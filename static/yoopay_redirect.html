@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to Yoopay...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .order-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .order-info p {
+            margin: 8px 0;
+            opacity: 0.9;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #00c853;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .button.secondary {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px auto;
+            display: inline-block;
+        }
+        
+        .qr-container img {
+            max-width: 200px;
+        }
+        
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo"></div>
+        <h1>Complete Your Payment</h1>
+        
+        <div id="payment-info">
+            <div class="amount">¥<span id="amount">0.00</span></div>
+            
+            <div class="order-info">
+                <p><strong>Order:</strong> <span id="order-number">-</span></p>
+                <p><strong>Payment ID:</strong> <span id="payment-id">-</span></p>
+            </div>
+            
+            <div class="qr-container" id="qr-container">
+                <img id="qr-code" src="" alt="Payment QR Code">
+            </div>
+            
+            <div class="instructions">
+                <h3>How to Pay</h3>
+                <ol>
+                    <li>Click the green button below to open Yoopay</li>
+                    <li>Complete the payment on Yoopay</li>
+                    <li>Return to this page and click "I've Paid"</li>
+                    <li>Your tickets will be generated automatically!</li>
+                </ol>
+            </div>
+            
+            <a id="pay-button" href="#" class="button" target="_blank">
+                Open Yoopay to Pay →
+            </a>
+            
+            <br>
+            
+            <button id="verify-button" class="button secondary" onclick="verifyPayment()">
+                I've Paid - Verify Now
+            </button>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Verifying your payment...</p>
+        </div>
+        
+        <div id="result" class="hidden">
+            <h2 id="result-title"></h2>
+            <p id="result-message"></p>
+            <a id="result-button" href="#" class="button"></a>
+        </div>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get('payment_id');
+        const orderNumber = urlParams.get('order_number');
+        const amount = urlParams.get('amount');
+        const paymentUrl = urlParams.get('payment_url');
+        const qrCode = urlParams.get('qr_code');
+        const returnUrl = urlParams.get('return_url');
+        
+        // Set values
+        document.getElementById('amount').textContent = amount || '0.00';
+        document.getElementById('order-number').textContent = orderNumber || '-';
+        document.getElementById('payment-id').textContent = paymentId || '-';
+        document.getElementById('pay-button').href = paymentUrl || 'https://yoopay.cn/tc/603316601';
+        
+        if (qrCode) {
+            document.getElementById('qr-code').src = qrCode;
+        } else {
+            document.getElementById('qr-container').style.display = 'none';
+        }
+        
+        async function verifyPayment() {
+            const loadingDiv = document.getElementById('loading');
+            const paymentInfoDiv = document.getElementById('payment-info');
+            const resultDiv = document.getElementById('result');
+            
+            loadingDiv.style.display = 'block';
+            paymentInfoDiv.style.display = 'none';
+            
+            try {
+                const token = localStorage.getItem('token'); // or however you store auth
+                
+                const response = await fetch('/api/v1/payments/yoopay/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        payment_id: paymentId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loadingDiv.style.display = 'none';
+                resultDiv.classList.remove('hidden');
+                
+                if (data.success) {
+                    document.getElementById('result-title').textContent = 'Payment Successful!';
+                    document.getElementById('result-message').textContent = 
+                        `Your payment has been verified. ${data.tickets_generated} ticket(s) have been generated.`;
+                    document.getElementById('result-button').textContent = 'View My Tickets';
+                    document.getElementById('result-button').href = '/my-tickets';
+                } else {
+                    document.getElementById('result-title').textContent = '⏳ Payment Pending';
+                    document.getElementById('result-message').textContent = 
+                        'We couldn\'t verify your payment yet. Please wait a moment and try again.';
+                    document.getElementById('result-button').textContent = 'Try Again';
+                    document.getElementById('result-button').onclick = () => location.reload();
+                }
+                
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                resultDiv.classList.remove('hidden');
+                document.getElementById('result-title').textContent = 'Error';
+                document.getElementById('result-message').textContent = 
+                    'An error occurred. Please try again or contact support.';
+                document.getElementById('result-button').textContent = 'Try Again';
+                document.getElementById('result-button').onclick = () => location.reload();
+            }
+        }
+        
+        // Auto-open Yoopay after 2 seconds (optional)
+        // setTimeout(() => {
+        //     window.open(document.getElementById('pay-button').href, '_blank');
+        // }, 2000);
+    </script>
+</body>
+</html>

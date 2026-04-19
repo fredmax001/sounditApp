@@ -1,0 +1,32 @@
+{
+    "include": [
+        "api/",
+        "utils/",
+        "main.py",
+        "*.py"
+    ],
+    "exclude": [
+        ".venv/",
+        "static/",
+        "uploads/",
+        "__pycache__/",
+        "*.pyc"
+    ],
+    "pythonVersion": "3.9",
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": "none",
+    "pythonPlatform": "Darwin",
+    "venvPath": ".",
+    "venv": ".venv",
+    "reportAttributeAccessIssue": "none",
+    "reportGeneralTypeIssues": "none",
+    "reportArgumentType": "none",
+    "reportOptionalMemberAccess": "none",
+    "reportRedeclaration": "none",
+    "reportCallIssue": "none",
+    "reportReturnType": "none",
+    "reportUndefinedVariable": "error",
+    "reportUnboundVariable": "error"
+}

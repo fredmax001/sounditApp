@@ -1,0 +1,19 @@
+[Unit]
+Description=Sound It Platform API (sounditent.com)
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=exec
+User=nginx
+Group=nginx
+WorkingDirectory=/var/www/soundit
+Environment=PATH=/var/www/soundit/venv/bin
+EnvironmentFile=/var/www/soundit/.env
+ExecStart=/var/www/soundit/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 4
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
