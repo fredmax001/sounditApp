@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://sounditent.com/sitemap.xml
+
+# Disallow private/dashboard routes
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /user/
+Disallow: /artist/dashboard/
+Disallow: /vendor/dashboard/
+Disallow: /business/dashboard/
+Disallow: /organizer/
+Disallow: /payment/
+Disallow: /cart/
+Disallow: /scan/
+Disallow: /validate/
+
+# Disallow auth callback routes
+Disallow: /auth/
+Disallow: /verify-
+
+# Crawl delay for rate limiting
+Crawl-delay: 1

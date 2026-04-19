@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set password [lindex $argv 0]
+set remote_user [lindex $argv 1]
+set remote_host [lindex $argv 2]
+set command [lindex $argv 3]
+
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote_user@$remote_host $command
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

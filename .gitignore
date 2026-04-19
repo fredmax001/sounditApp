@@ -1,0 +1,98 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Production
+dist/
+build/
+*.tar.gz
+*.zip
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+backend_local/.env*
+app/.env*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.Trash/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Database
+*.db
+*.sqlite
+soundit_local.db
+soundit_prod.db
+
+# Uploads
+uploads/
+temp_hearthis_response.json
+
+# Logs
+logs/
+*.log
+
+# API keys and secrets
+pass.txt
+secrets/
+
+# Build outputs
+soundit-frontend-*.tar.gz
+soundit-backend-*.tar.gz
+
+# Mobile/Web specific
+.next
+out/
+
+# Test artifacts
+.playwright-mcp/
+
+# Backups
+*.bak
+
+# APIs (excluded per user request)
+api/
