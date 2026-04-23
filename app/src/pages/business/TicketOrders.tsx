@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import {
-  Ticket, Loader2, User, CheckCircle2, XCircle, Clock, Search, Eye,
+  Ticket, Loader2, CheckCircle2, XCircle, Clock, Search, Eye,
   QrCode, Calendar, Download, Filter, Smartphone
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import DashboardPageContainer, {
+  DashboardPageHeader,
+} from '@/components/dashboard/DashboardPageContainer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -17,7 +20,8 @@ interface TicketOrder {
   quantity?: number;
   payment_amount: number;
   payer_name: string;
-  payment_screenshot: string;
+  email?: string;
+  phone_number?: string;
   status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'used';
   ticket_code?: string;
   ticket_qr?: string;
@@ -46,7 +50,6 @@ const TicketOrdersPage = () => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'used'>('all');
   const [search, setSearch] = useState('');
   const [processingId, setProcessingId] = useState<number | null>(null);
-  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
 
   const fetchOrders = async () => {
@@ -126,6 +129,8 @@ const TicketOrdersPage = () => {
     const term = search.toLowerCase();
     return (
       (o.payer_name || '').toLowerCase().includes(term) ||
+      (o.email || '').toLowerCase().includes(term) ||
+      (o.phone_number || '').toLowerCase().includes(term) ||
       (o.user?.email || '').toLowerCase().includes(term) ||
       (o.user?.phone || '').toLowerCase().includes(term) ||
       (o.event?.title || '').toLowerCase().includes(term) ||
@@ -135,43 +140,44 @@ const TicketOrdersPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-6 lg:p-10">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-display text-white mb-1 flex items-center gap-3">
-            <Ticket className="w-8 h-8 text-[#d3da0c]" />
-            {t('business.dashboard.ticketOrders') || 'Ticket Orders'}
-          </h1>
-          <p className="text-gray-400">{t('business.dashboard.manageTicketOrders') || 'Manage and approve ticket orders for your events.'}</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('common.search') || 'Search orders...'}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64"
-            />
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.dashboard.ticketOrders') || 'Ticket Orders'}
+        subtitle={t('business.dashboard.manageTicketOrders') || 'Manage and approve ticket orders for your events.'}
+        action={
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('common.search') || 'Search orders...'}
+                className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as any)}
+                className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                }}
+              >
+                <option value="all">{t('business.dashboard.all') || 'All'}</option>
+                <option value="pending">{t('business.dashboard.pending') || 'Pending'}</option>
+                <option value="approved">{t('business.dashboard.approved') || 'Approved'}</option>
+                <option value="rejected">{t('business.dashboard.rejected') || 'Rejected'}</option>
+                <option value="used">{t('business.dashboard.used') || 'Used'}</option>
+              </select>
+            </div>
           </div>
-          <div className="relative">
-            <Filter className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none"
-            >
-              <option value="all">{t('business.dashboard.all') || 'All'}</option>
-              <option value="pending">{t('business.dashboard.pending') || 'Pending'}</option>
-              <option value="approved">{t('business.dashboard.approved') || 'Approved'}</option>
-              <option value="rejected">{t('business.dashboard.rejected') || 'Rejected'}</option>
-              <option value="used">{t('business.dashboard.used') || 'Used'}</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Orders Table */}
       {loading ? (
@@ -179,13 +185,13 @@ const TicketOrdersPage = () => {
           <Loader2 className="w-10 h-10 animate-spin text-[#d3da0c] mx-auto" />
         </div>
       ) : filteredOrders.length === 0 ? (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center text-gray-400">
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-12 text-center text-gray-400">
           <Ticket className="w-12 h-12 mx-auto mb-4 text-gray-600" />
           <p className="text-lg font-medium text-white mb-1">{t('business.dashboard.noTicketOrders') || 'No ticket orders found'}</p>
           <p className="text-sm">{t('business.dashboard.noTicketOrdersHint') || 'Orders will appear here once customers purchase tickets.'}</p>
         </div>
       ) : (
-        <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-[#111111] border border-white/5 rounded-xl overflow-hidden">
           {/* Desktop Header */}
           <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 text-gray-400 text-sm font-medium border-b border-white/5">
             <div className="col-span-2">{t('business.dashboard.name') || 'Name'}</div>
@@ -248,15 +254,6 @@ const TicketOrdersPage = () => {
                       )}
                     </div>
                     <div className="col-span-2 flex items-center justify-end gap-2 flex-wrap">
-                      {order.payment_screenshot && (
-                        <button
-                          onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                          className="px-2 py-1.5 rounded-lg bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          {t('business.tableReservations.viewPaymentProof') || 'Proof'}
-                        </button>
-                      )}
                       {order.ticket_qr && (
                         <button
                           onClick={() => setSelectedQr(order.ticket_qr)}
@@ -298,10 +295,10 @@ const TicketOrdersPage = () => {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
                         <p className="text-white font-semibold">{order.payer_name || order.user?.name || '-'}</p>
-                        <p className="text-gray-400 text-sm">{order.user?.email || '-'}</p>
-                        {order.user?.phone && (
+                        <p className="text-gray-400 text-sm">{order.email || order.user?.email || '-'}</p>
+                        {(order.phone_number || order.user?.phone) && (
                           <p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5">
-                            <Smartphone className="w-3 h-3" /> {order.user.phone}
+                            <Smartphone className="w-3 h-3" /> {order.phone_number || order.user?.phone}
                           </p>
                         )}
                       </div>
@@ -336,15 +333,6 @@ const TicketOrdersPage = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      {order.payment_screenshot && (
-                        <button
-                          onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                          className="px-3 py-2 rounded-lg bg-white/5 text-gray-300 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                          {t('business.tableReservations.viewPaymentProof') || 'Proof'}
-                        </button>
-                      )}
                       {order.ticket_qr && (
                         <button
                           onClick={() => setSelectedQr(order.ticket_qr)}
@@ -381,45 +369,20 @@ const TicketOrdersPage = () => {
         </div>
       )}
 
-      {/* Screenshot Modal */}
-      {selectedScreenshot && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedScreenshot(null)}
-        >
-          <div className="bg-[#141414] rounded-2xl p-4 max-w-2xl w-full border border-white/10">
-            <img
-              src={selectedScreenshot}
-              alt="Payment proof"
-              className="w-full rounded-xl"
-              onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
-            />
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setSelectedScreenshot(null)}
-                className="px-4 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
-              >
-                {t('common.close') || 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* QR Modal */}
       {selectedQr && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedQr(null)}
         >
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+          <div className="bg-[#111111] rounded-2xl p-6 max-w-sm w-full border border-white/5 text-center">
             <img src={selectedQr} alt="Ticket QR" className="w-48 h-48 mx-auto rounded-xl" />
             <p className="text-gray-400 text-sm mt-4">{t('business.dashboard.ticketQrCode') || 'Ticket QR Code'}</p>
             <div className="flex justify-center gap-3 mt-4">
               <a
                 href={selectedQr}
                 download
-                className="px-4 py-2 rounded-lg bg-[#d3da0c] text-black text-sm font-medium hover:bg-[#bbc10b] flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-[#d3da0c] text-black text-sm font-bold hover:bg-[#bbc10b] flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 {t('common.download') || 'Download'}
@@ -434,7 +397,7 @@ const TicketOrdersPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </DashboardPageContainer>
   );
 };
 

@@ -104,6 +104,44 @@ export default function PublicProfile() {
     fetchProfile();
   }, [id]);
 
+  // Update meta tags for social sharing
+  useEffect(() => {
+    if (!profile) return;
+    const name = profile.business_profile?.business_name
+      || profile.organizer_profile?.organization_name
+      || `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+      || 'Profile on Sound It';
+    const title = `${name} - Sound It`;
+    const description = (profile.business_profile?.description
+      || profile.organizer_profile?.description
+      || profile.bio
+      || 'Discover amazing profiles on Sound It.').slice(0, 300);
+    const image = profile.avatar_url || `${window.location.origin}/logo.png`;
+    const url = `${window.location.origin}/profiles/${id}`;
+
+    document.title = title;
+    const setMeta = (selector: string, content: string) => {
+      let el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        const prop = selector.match(/property=["']([^"']+)["']/)?.[1];
+        const name = selector.match(/name=["']([^"']+)["']/)?.[1];
+        if (prop) el.setAttribute('property', prop);
+        if (name) el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:image"]', image);
+    setMeta('meta[property="og:url"]', url);
+    setMeta('meta[property="og:type"]', 'profile');
+    setMeta('meta[name="twitter:title"]', title);
+    setMeta('meta[name="twitter:description"]', description);
+    setMeta('meta[name="twitter:image"]', image);
+  }, [profile, id]);
+
   // Check follow status for organizer/business
   useEffect(() => {
     const targetId = profile?.organizer_profile?.id || profile?.business_profile?.id;

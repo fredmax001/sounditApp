@@ -22,6 +22,7 @@ export interface SubscriptionState {
   features: SubscriptionFeatures;
   role: string | null;
   daysRemaining: number | null;
+  isTrial: boolean;
   isLoading: boolean;
   error: string | null;
   checkSubscription: (token: string) => Promise<void>;
@@ -57,6 +58,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   features: {},
   role: null,
   daysRemaining: null,
+  isTrial: false,
   isLoading: false,
   error: null,
 
@@ -72,6 +74,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       const feats = data?.features || {};
       const roleValue = data?.role || null;
       const days = data?.subscription?.days_remaining ?? null;
+      const isTrial = data?.is_trial || data?.subscription?.is_trial || false;
 
       set({
         hasSubscription: hasSub,
@@ -79,6 +82,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         features: feats,
         role: roleValue,
         daysRemaining: days,
+        isTrial,
         isLoading: false,
       });
     } catch (err: any) {
@@ -88,6 +92,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         features: {},
         role: null,
         daysRemaining: null,
+        isTrial: false,
         isLoading: false,
         error: err?.response?.data?.detail || err?.message || 'Failed to check subscription',
       });
@@ -101,6 +106,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       features: {},
       role: null,
       daysRemaining: null,
+      isTrial: false,
       isLoading: false,
       error: null,
     });

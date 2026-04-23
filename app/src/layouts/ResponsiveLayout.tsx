@@ -11,6 +11,7 @@ import { useRoleBasedLayout } from '@/hooks/useDeviceDetection';
 import MobileLayout from './MobileLayout';
 import DashboardLayout from './DashboardLayout';
 import { useAuthStore } from '@/store/authStore';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import type { ReactNode } from 'react';
 
 interface ResponsiveLayoutProps {
@@ -26,13 +27,13 @@ export const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
   const userRole = profile?.role_type || profile?.role;
   const { isMobileLayout } = useRoleBasedLayout(userRole);
   
-  // Mobile (non-admin): Use mobile layout (Mini Program style with bottom nav)
-  // Desktop OR Admin: Use full dashboard layout (with sidebar)
-  if (isMobileLayout) {
-    return <MobileLayout>{children}</MobileLayout>;
-  } else {
-    return <DashboardLayout>{children}</DashboardLayout>;
-  }
+  const layout = isMobileLayout ? (
+    <MobileLayout>{children}</MobileLayout>
+  ) : (
+    <DashboardLayout>{children}</DashboardLayout>
+  );
+
+  return <ErrorBoundary>{layout}</ErrorBoundary>;
 };
 
 /**

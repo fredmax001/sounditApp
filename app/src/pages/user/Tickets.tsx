@@ -570,7 +570,7 @@ const Tickets = () => {
                   <>
                     <div className="bg-white rounded-xl p-6 mb-6">
                       <QRCodeSVG
-                        value={ticket.ticket_number}
+                        value={`SOUNDIT:${ticket.ticket_number}:${ticket.event_id}`}
                         size={200}
                         className="w-full"
                         level="H"

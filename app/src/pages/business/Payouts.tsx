@@ -6,6 +6,11 @@ import { useDashboardStore } from '@/store/dashboardStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import DashboardPageContainer, {
+  DashboardPageHeader,
+  DashboardStatCard,
+  DashboardCard,
+} from '@/components/dashboard/DashboardPageContainer';
 
 interface Transaction {
   id: string;
@@ -127,70 +132,60 @@ const Payouts = () => {
   const completedAmount = completedPayouts.reduce((sum, p) => sum + (p.amount || 0), 0);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{t('business.payouts.title')}</h2>
-          <p className="text-gray-400">{t('business.payouts.subtitle')}</p>
-        </div>
-        <button 
-          onClick={() => setShowWithdrawModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors"
-        >
-          <ArrowUpRight className="w-5 h-5" />
-          {t('business.payouts.requestPayout')}
-        </button>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.payouts.title')}
+        subtitle={t('business.payouts.subtitle')}
+        action={
+          <button
+            onClick={() => setShowWithdrawModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-bold hover:bg-[#bbc10b] transition-colors"
+          >
+            <ArrowUpRight className="w-5 h-5" />
+            {t('business.payouts.requestPayout')}
+          </button>
+        }
+      />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-gray-400">{t('business.payouts.availableBalance')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">¥{availableBalance.toLocaleString()}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <Wallet className="w-5 h-5 text-green-400" />
-            <span className="text-gray-400">{t('business.payouts.totalEarnings')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">¥{totalEarnings.toLocaleString()}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-5 h-5 text-yellow-400" />
-            <span className="text-gray-400">{t('business.payouts.pending')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">¥{pendingAmount.toLocaleString()}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="w-5 h-5 text-blue-400" />
-            <span className="text-gray-400">{t('business.payouts.completed')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">¥{completedAmount.toLocaleString()}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <DashboardStatCard
+          icon={DollarSign}
+          label={t('business.payouts.availableBalance')}
+          value={`¥${availableBalance.toLocaleString()}`}
+        />
+        <DashboardStatCard
+          icon={Wallet}
+          label={t('business.payouts.totalEarnings')}
+          value={`¥${totalEarnings.toLocaleString()}`}
+          iconClassName="text-green-400"
+        />
+        <DashboardStatCard
+          icon={Clock}
+          label={t('business.payouts.pending')}
+          value={`¥${pendingAmount.toLocaleString()}`}
+          iconClassName="text-yellow-400"
+        />
+        <DashboardStatCard
+          icon={CheckCircle}
+          label={t('business.payouts.completed')}
+          value={`¥${completedAmount.toLocaleString()}`}
+          iconClassName="text-blue-400"
+        />
       </div>
 
       {/* Pending Payouts */}
       {pendingPayouts.length > 0 && (
-        <div className="bg-[#111111] rounded-xl border border-yellow-500/30 overflow-hidden">
-          <div className="p-6 border-b border-white/5">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-yellow-400" />
+        <DashboardCard className="mb-8 border-yellow-500/20">
+          <div className="p-4 border-b border-white/5 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-yellow-400" />
+            <h3 className="text-lg font-semibold text-white">
               {t('business.payouts.pendingPayouts')}
             </h3>
           </div>
           <div className="divide-y divide-white/5">
             {pendingPayouts.map((payout) => (
-              <div key={payout.id} className="flex items-center justify-between p-6">
+              <div key={payout.id} className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-yellow-400" />
@@ -209,13 +204,13 @@ const Payouts = () => {
               </div>
             ))}
           </div>
-        </div>
+        </DashboardCard>
       )}
 
       {/* Transaction History */}
-      <div className="bg-[#111111] rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">{t('business.payouts.transactionHistory')}</h3>
+      <DashboardCard title={t('business.payouts.transactionHistory')}>
+        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+          <span />
           <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
             <Download className="w-4 h-4" />
             {t('business.payouts.export')}
@@ -229,14 +224,14 @@ const Payouts = () => {
         ) : transactions.length > 0 ? (
           <div className="divide-y divide-white/5">
             {transactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+              <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    tx.type === 'sale' ? 'bg-green-500/20' : 
+                    tx.type === 'sale' ? 'bg-green-500/20' :
                     tx.type === 'payout' ? 'bg-blue-500/20' : 'bg-red-500/20'
                   }`}>
-                    {tx.type === 'sale' ? <DollarSign className="w-5 h-5 text-green-400" /> : 
-                     tx.type === 'payout' ? <Wallet className="w-5 h-5 text-blue-400" /> : 
+                    {tx.type === 'sale' ? <DollarSign className="w-5 h-5 text-green-400" /> :
+                     tx.type === 'payout' ? <Wallet className="w-5 h-5 text-blue-400" /> :
                      <ArrowUpRight className="w-5 h-5 text-red-400" />}
                   </div>
                   <div>
@@ -249,13 +244,13 @@ const Payouts = () => {
                     {tx.type === 'payout' ? '-' : '+'}¥{tx.amount.toLocaleString()}
                   </p>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                    tx.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
+                    tx.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                     tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-gray-500/20 text-gray-400'
                   }`}>
                     {tx.status}
                   </span>
-                  <p className="text-gray-500 text-sm">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : ''}</p>
+                  <p className="text-gray-500 text-sm hidden sm:block">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : ''}</p>
                 </div>
               </div>
             ))}
@@ -267,7 +262,7 @@ const Payouts = () => {
             <p className="text-gray-500 text-sm">{t('business.payouts.noTransactionsHint')}</p>
           </div>
         )}
-      </div>
+      </DashboardCard>
 
       {/* Withdraw Modal */}
       <AnimatePresence>
@@ -284,11 +279,11 @@ const Payouts = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111111] rounded-2xl border border-white/10 p-6 w-full max-w-md"
+              className="bg-[#111111] rounded-2xl border border-white/5 p-6 w-full max-w-md"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white">{t('business.payouts.requestPayoutModalTitle')}</h3>
-                <button 
+                <button
                   onClick={() => setShowWithdrawModal(false)}
                   className="p-2 text-gray-500 hover:text-white transition-colors"
                 >
@@ -304,7 +299,7 @@ const Payouts = () => {
                     value={withdrawForm.amount}
                     onChange={(e) => setWithdrawForm({...withdrawForm, amount: e.target.value})}
                     placeholder={t('business.payouts.amountPlaceholder', { max: availableBalance.toLocaleString() })}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
                     required
                   />
                 </div>
@@ -314,7 +309,12 @@ const Payouts = () => {
                   <select
                     value={withdrawForm.payment_method}
                     onChange={(e) => setWithdrawForm({...withdrawForm, payment_method: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 1rem center',
+                    }}
                   >
                     <option value="bank_transfer" className="bg-[#111111]">{t('business.payouts.bankTransfer')}</option>
                     <option value="alipay" className="bg-[#111111]">{t('business.payouts.alipay')}</option>
@@ -328,24 +328,24 @@ const Payouts = () => {
                     value={withdrawForm.account_details}
                     onChange={(e) => setWithdrawForm({...withdrawForm, account_details: e.target.value})}
                     placeholder={t('business.payouts.accountDetailsPlaceholder')}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
                     rows={3}
                     required
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowWithdrawModal(false)}
-                    className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors"
+                    className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors"
                   >
                     {t('business.payouts.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-3 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-[#d3da0c] text-black rounded-xl font-bold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
@@ -362,7 +362,7 @@ const Payouts = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </DashboardPageContainer>
   );
 };
 

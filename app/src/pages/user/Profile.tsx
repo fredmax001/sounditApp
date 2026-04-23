@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X } from 'lucide-react';
+import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
@@ -10,7 +11,8 @@ import { API_BASE_URL } from '@/config/api';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, updateProfile, uploadAvatar, uploadBanner, session } = useAuthStore();
+  const { profile, updateProfile, uploadAvatar, uploadBanner, session, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
@@ -416,6 +418,25 @@ const Profile = () => {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Logout Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="mt-4"
+        >
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Log Out</span>
+          </button>
         </motion.div>
       </div>
     </div>

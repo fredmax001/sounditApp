@@ -72,7 +72,7 @@ const UserDashboard = () => {
 
     setLoadingSaved(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/favorites/events`, {
+      const response = await fetch(`${API_BASE_URL}/events/saved`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }

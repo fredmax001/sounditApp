@@ -3,14 +3,15 @@ import asyncio
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from contextlib import asynccontextmanager
 
 from config import get_settings
 from database import init_db, SessionLocal
-from models import SystemSetting, User, UserRole
+from models import SystemSetting, User, UserRole, PageVisit
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, otp, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, otp, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, analytics
+from og_serve import serve_event_og, serve_artist_og, serve_vendor_og, serve_profile_og, serve_default_og
 # monitoring module temporarily disabled
 
 settings = get_settings()
@@ -154,6 +155,65 @@ async def maintenance_mode_middleware(request: Request, call_next):
     # Allow frontend to load so it can display maintenance screen
     return await call_next(request)
 
+
+# Page visit tracking middleware
+@app.middleware("http")
+async def page_visit_middleware(request: Request, call_next):
+    """Log page visits for analytics (non-blocking)."""
+    response = await call_next(request)
+    
+    path = request.url.path
+    method = request.method
+    
+    # Only track GET requests to page routes (not API, static, or assets)
+    if method != "GET":
+        return response
+    if path.startswith(("/api/", "/static/", "/assets/", "/uploads/")):
+        return response
+    if path in ["/health", "/favicon.ico", "/robots.txt", "/sitemap.xml"]:
+        return response
+    # Skip common file extensions
+    if "." in path.split("/")[-1]:
+        return response
+    
+    try:
+        db = SessionLocal()
+        try:
+            user_id = None
+            session_id = None
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                token = auth_header.replace("Bearer ", "")
+                payload = decode_token(token)
+                if payload and payload.get("sub"):
+                    user_id = int(payload["sub"])
+            
+            # Try to get session from cookie or generate one
+            session_id = request.cookies.get("session_id")
+            if not session_id:
+                session_id = request.headers.get("X-Session-ID")
+            
+            visit = PageVisit(
+                path=path[:500],
+                method=method,
+                user_agent=request.headers.get("User-Agent", "")[:500],
+                ip_address=request.client.host if request.client else None,
+                referrer=request.headers.get("Referer", "")[:500],
+                user_id=user_id,
+                session_id=session_id[:100] if session_id else None,
+            )
+            db.add(visit)
+            db.commit()
+        except Exception:
+            # Silently fail — analytics should never block requests
+            db.rollback()
+        finally:
+            db.close()
+    except Exception:
+        pass
+    
+    return response
+
 # Static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -192,6 +252,7 @@ app.include_router(ticketing.router, prefix="/api/v1")
 app.include_router(ticketing_organizer.router, prefix="/api/v1")
 app.include_router(tickets.router, prefix="/api/v1")
 app.include_router(product_orders.router, prefix="/api/v1")
+app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(table_reservations.router, prefix="/api/v1")
 app.include_router(cities.router, prefix="/api/v1")
 
@@ -199,7 +260,7 @@ app.include_router(cities.router, prefix="/api/v1")
 @app.get("/")
 def root():
     # Serve frontend index.html
-    index_path = os.path.join("dist", "index.html")
+    index_path = os.path.join("app", "dist", "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
     # Fallback to API info if frontend not built
@@ -233,6 +294,57 @@ def serve_admin_dashboard():
     raise HTTPException(status_code=404, detail="Admin dashboard not found")
 
 
+# OG Meta Tag Injection for Shareable Routes
+# These return the SPA index.html with dynamically injected OG meta tags
+# so social media crawlers see the correct title, description, and image.
+
+@app.get("/events/{event_id}")
+def og_event(event_id: int):
+    html = serve_event_og(event_id)
+    if html is None:
+        return HTMLResponse(content=serve_default_og(f"events/{event_id}"))
+    return HTMLResponse(content=html)
+
+
+@app.get("/artists/{artist_id}")
+def og_artist(artist_id: int):
+    html = serve_artist_og(artist_id)
+    if html is None:
+        return HTMLResponse(content=serve_default_og(f"artists/{artist_id}"))
+    return HTMLResponse(content=html)
+
+
+@app.get("/vendors/{vendor_id}")
+def og_vendor(vendor_id: int):
+    html = serve_vendor_og(vendor_id)
+    if html is None:
+        return HTMLResponse(content=serve_default_og(f"vendors/{vendor_id}"))
+    return HTMLResponse(content=html)
+
+
+@app.get("/profiles/{profile_id}")
+def og_profile(profile_id: int):
+    html = serve_profile_og(profile_id)
+    if html is None:
+        return HTMLResponse(content=serve_default_og(f"profiles/{profile_id}"))
+    return HTMLResponse(content=html)
+
+
+@app.get("/community")
+def og_community():
+    return HTMLResponse(content=serve_default_og("community"))
+
+
+@app.get("/city-guide")
+def og_city_guide():
+    return HTMLResponse(content=serve_default_og("city-guide"))
+
+
+@app.get("/discovery")
+def og_discovery():
+    return HTMLResponse(content=serve_default_og("discovery"))
+
+
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")
 def serve_frontend(path: str):
@@ -242,14 +354,14 @@ def serve_frontend(path: str):
         raise HTTPException(status_code=404, detail="Not found")
     
     # Serve actual files from dist (images, etc.)
-    file_path = os.path.join("dist", path)
+    file_path = os.path.join("app", "dist", path)
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return FileResponse(file_path)
     
-    # Serve index.html for all other routes (SPA routing)
-    index_path = os.path.join("dist", "index.html")
+    # Serve index.html with default OG tags for all other routes
+    index_path = os.path.join("app", "dist", "index.html")
     if os.path.exists(index_path):
-        return FileResponse(index_path)
+        return HTMLResponse(content=serve_default_og(path))
     raise HTTPException(status_code=404, detail="Frontend not built")
 
 

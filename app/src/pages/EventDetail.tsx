@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Ticket, MessageCircle, Copy } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -26,11 +26,11 @@ export default function EventDetail() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [payerName, setPayerName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [payerNotes, setPayerNotes] = useState('');
-  const [screenshot, setScreenshot] = useState<File | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [paymentReference, setPaymentReference] = useState('');
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
 
   useEffect(() => {
@@ -137,8 +137,8 @@ export default function EventDetail() {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!screenshot || !payerName.trim()) {
-      toast.error(t('eventDetail.pleaseUploadScreenshotAndName'));
+    if (!payerName.trim() || !email.trim() || !phoneNumber.trim()) {
+      toast.error(t('eventDetail.pleaseFillAllFields'));
       return;
     }
     const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
@@ -148,33 +148,34 @@ export default function EventDetail() {
     }
 
     setSubmitting(true);
-    const formData = new FormData();
-    formData.append('event_id', String(currentEvent.id));
-    formData.append('payment_screenshot', screenshot);
-    formData.append('payer_name', payerName);
-    formData.append('quantity', String(quantity));
-    if (selectedTierId) formData.append('ticket_tier_id', selectedTierId);
     const tier = currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId);
     const rawTierPrice = tier?.price;
     const tierPrice = typeof rawTierPrice === 'number' && !isNaN(rawTierPrice) ? rawTierPrice : undefined;
     const unitPrice = tierPrice ?? currentEvent.ticket_price ?? 0;
-    formData.append('payment_amount', String(unitPrice * quantity));
-    formData.append('payment_reference', paymentReference.trim());
-    if (payerNotes) formData.append('payer_notes', payerNotes);
+
+    const payload = {
+      event_id: currentEvent.id,
+      payer_name: payerName.trim(),
+      email: email.trim(),
+      phone_number: phoneNumber.trim(),
+      quantity,
+      payment_amount: unitPrice * quantity,
+      ticket_tier_id: selectedTierId ? Number(selectedTierId) : undefined,
+      payer_notes: payerNotes.trim() || undefined,
+    };
 
     try {
       const res = await fetch(`${API_BASE_URL}/tickets/order`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
-        if (data.status === 'rejected') {
-          toast.error(data.message || t('eventDetail.orderFailed'));
-        } else {
-          toast.success(data.auto_approved ? t('eventDetail.orderAutoApproved') : t('eventDetail.orderSubmitted'));
-        }
+        toast.success(t('eventDetail.orderSubmitted'));
         setRecentOrder({ status: data.status || 'pending', ticket_qr: undefined, ticket_code: undefined });
         setShowOrderModal(false);
         setShowSuccessModal(true);
@@ -386,7 +387,7 @@ export default function EventDetail() {
                     {t('eventDetail.business')}
                   </h2>
                   <Link
-                    to={`/profiles/${currentEvent.business.id}`}
+                    to={`/profiles/${currentEvent.business.user_id}`}
                     className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
                   >
                     <img
@@ -541,13 +542,16 @@ export default function EventDetail() {
       {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">{t('eventDetail.scanToPay')}</h3>
               <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
             </div>
             <MobileQrPayment
               amount={(currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent.ticket_price ?? 0) * quantity}
+              wechatQrUrl={currentEvent.wechat_qr_url}
+              alipayQrUrl={currentEvent.alipay_qr_url}
+              paymentInstructions={currentEvent.payment_instructions}
             />
             <button
               onClick={() => { setShowQrModal(false); setShowOrderModal(true); }}
@@ -580,6 +584,28 @@ export default function EventDetail() {
                 />
               </div>
               <div>
+                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.email')} *</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                  placeholder={t('eventDetail.enterYourEmail')}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.phoneNumber')} *</label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                  placeholder={t('eventDetail.enterYourPhone')}
+                  required
+                />
+              </div>
+              <div>
                 <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')} *</label>
                 <div className="flex items-center gap-3">
                   <button
@@ -594,35 +620,6 @@ export default function EventDetail() {
                     className="w-10 h-10 rounded-lg bg-white/5 text-white hover:bg-white/10"
                   >+</button>
                 </div>
-              </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.paymentScreenshot')} *</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#d3da0c]/50 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 text-white/50 mb-2" />
-                    <p className="text-sm text-white/60">{screenshot ? screenshot.name : t('eventDetail.clickToUpload')}</p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
-                    className="hidden"
-                    required
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">
-                  {t('eventDetail.paymentReference')} 
-                  <span className="ml-1 text-[#d3da0c] font-medium">(Optional - We will try to auto-detect)</span>
-                </label>
-                <input
-                  type="text"
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
-                  placeholder={t('eventDetail.enterPaymentReference')}
-                />
               </div>
               <div>
                 <label className="text-white/60 text-sm block mb-2">{t('eventDetail.notesOptional')}</label>
@@ -757,9 +754,7 @@ export default function EventDetail() {
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.orderSuccessTitle')}</h3>
             <p className="text-gray-400 text-sm mb-6">
-              {recentOrder?.status === 'approved' || recentOrder?.status === 'used'
-                ? t('eventDetail.orderAutoApproved')
-                : t('eventDetail.orderSubmitted')}
+              {t('eventDetail.orderSubmittedDesc')}
             </p>
             <div className="flex flex-col gap-3">
               <button

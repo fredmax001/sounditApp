@@ -176,32 +176,10 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      syncWithServer: async (token: string) => {
-        // Sync cart with server for cross-device persistence
-        set({ isLoading: true });
-        try {
-          const response = await fetch(`${API_URL}/cart/sync`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ items: get().items }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to sync cart');
-          }
-
-          const data = await response.json();
-          if (data.items) {
-            set({ items: data.items });
-          }
-        } catch (error: unknown) {
-          set({ error: (error as { message?: string }).message });
-        } finally {
-          set({ isLoading: false });
-        }
+      syncWithServer: async (_token: string) => {
+        // Cart sync is client-side only — no backend cart API exists yet
+        // This preserves cross-session cart data via localStorage (zustand persist)
+        return;
       },
     }),
     {

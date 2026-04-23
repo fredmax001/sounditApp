@@ -13,6 +13,7 @@ interface Artist {
   avatar_url: string;
   bio: string;
   city_id: string;
+  is_verified?: boolean;
   verification_badge?: boolean;
   artist_profiles: Array<{
     stage_name: string;
@@ -46,6 +47,7 @@ export default function Artists() {
         city: string;
         genres?: string[];
         followers_count?: number;
+        is_verified?: boolean;
         verification_badge?: boolean;
       }) => ({
         id: artist.id,
@@ -53,6 +55,7 @@ export default function Artists() {
         avatar_url: artist.avatar_url,
         bio: artist.bio,
         city_id: artist.city,
+        is_verified: artist.is_verified,
         verification_badge: artist.verification_badge,
         artist_profiles: [{
           stage_name: artist.stage_name,
@@ -231,7 +234,7 @@ export default function Artists() {
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <h3 className="text-lg lg:text-xl font-semibold text-white mb-1 flex items-center gap-2">
                         {name}
-                        {artist.verification_badge && <VerificationBadge size="sm" />}
+                        {(artist.is_verified || artist.verification_badge) && <VerificationBadge size="sm" />}
                       </h3>
                       <div className="flex items-center gap-4 text-white/50 text-sm">
                         <span className="flex items-center gap-1">

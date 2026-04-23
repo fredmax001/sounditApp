@@ -99,7 +99,9 @@ class VerificationRequestType(str, Enum):
 class BookingStatus(str, Enum):
     PENDING = "pending"
     ACCEPTED = "accepted"
-    DECLINED = "declined"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    REJECTED = "rejected"
     CANCELLED = "cancelled"
 
 
@@ -678,6 +680,7 @@ class EventResponse(EventBase):
     status: EventStatus
     views_count: int
     tickets_sold: int
+    is_featured: bool = False
     share_url: Optional[str] = None
     qr_code: Optional[str] = None
     wechat_qr_url: Optional[str] = None
@@ -696,6 +699,7 @@ class EventResponse(EventBase):
 
 class EventBusiness(BaseModel):
     id: int
+    user_id: int
     business_name: str
     logo_url: Optional[str] = None
     verification_badge: bool = False
@@ -744,7 +748,7 @@ class TicketResponse(BaseModel):
     id: int
     user_id: int
     ticket_tier_id: int
-    order_id: int
+    order_id: Optional[int] = None
     ticket_number: str
     qr_code: Optional[str] = None
     is_used: bool

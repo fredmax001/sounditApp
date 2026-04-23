@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X } from 'lucide-react';
+import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/store/themeStore';
 import { API_BASE_URL } from '@/config/api';
 
@@ -23,7 +24,8 @@ const languages = [
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { session } = useAuthStore();
+  const { session, logout } = useAuthStore();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -404,11 +406,29 @@ const Settings = () => {
           </button>
         </motion.div>
 
-        {/* Danger Zone */}
+        {/* Logout */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+        >
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Log Out</span>
+          </button>
+        </motion.div>
+
+        {/* Danger Zone */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
           className="bg-[#111111] border border-red-500/15 rounded-2xl p-4"
         >
           <div className="flex items-center gap-3 mb-3">

@@ -7,6 +7,47 @@ import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const normalizeTicketPayload = (rawValue: string): string => {
+  const value = rawValue.trim();
+  if (!value) return value;
+
+  // Some legacy QR formats include prefixes (e.g. SOUNDIT:TKT-...).
+  if (value.startsWith('SOUNDIT:')) {
+    const parts = value.split(':');
+    if (parts.length > 1 && parts[1]) {
+      return parts[1].trim();
+    }
+  }
+
+  try {
+    const url = new URL(value);
+
+    // Token QR format: https://domain/validate/{uuid}
+    const validateMatch = url.pathname.match(/\/validate\/([^/?#]+)/i);
+    if (validateMatch?.[1] && UUID_REGEX.test(validateMatch[1])) {
+      return validateMatch[1];
+    }
+
+    // Manual fallback query params
+    const ticketCodeFromQuery = url.searchParams.get('ticket_code') || url.searchParams.get('ticket');
+    if (ticketCodeFromQuery) {
+      return ticketCodeFromQuery.trim();
+    }
+  } catch {
+    // Not a URL; use raw payload.
+  }
+
+  return value;
+};
+
+const isEventShareQr = (rawValue: string): boolean => {
+  const value = rawValue.trim();
+  if (!value) return false;
+  if (!value.includes('/events/')) return false;
+  return !value.includes('/validate/');
+};
 
 interface ValidationResult {
   valid: boolean;
@@ -51,7 +92,7 @@ const Scanner = () => {
   const { isMobile, isTablet, isTouchDevice } = useDeviceDetection();
   const isAllowedDevice = isMobile || isTablet || isTouchDevice;
 
-  const [scanning, setScanning] = useState(false);
+  const [scanning, setScanning] = useState(true);
   const [scannedTicket, setScannedTicket] = useState<ScannedTicket | null>(null);
   const [scanResult, setScanResult] = useState<'valid' | 'invalid' | 'used' | null>(null);
   const [isValidating, setIsValidating] = useState(false);
@@ -193,6 +234,7 @@ const Scanner = () => {
 
   const handleScan = useCallback(async (qrData: string) => {
     if (!qrData.trim()) return;
+    const normalizedData = normalizeTicketPayload(qrData);
 
     // Clear any running scanner
     if (html5QrCodeRef.current) {
@@ -211,16 +253,37 @@ const Scanner = () => {
     setCameraReady(false);
 
     try {
-      const validation = await validateTicketViaAPI(qrData.trim());
+      if (isEventShareQr(qrData)) {
+        const message = t('organizer.scanner.invalidTicket') || 'Invalid ticket';
+        setScanResult('invalid');
+        setScannedTicket({
+          qr_code: qrData,
+          message: `${message}. This is an event share QR, not a ticket QR.`,
+        });
+        toast.error(`${message}. Use the attendee ticket QR from the Tickets page.`);
+
+        const newScan: RecentScan = {
+          id: Date.now().toString(),
+          ticket_number: normalizedData,
+          attendee_name: t('organizer.scanner.unknownAttendee'),
+          event_title: t('organizer.scanner.unknownEvent'),
+          scanned_at: new Date().toISOString(),
+          status: 'invalid',
+        };
+        setRecentScans(prev => [newScan, ...prev.slice(0, 9)]);
+        return;
+      }
+
+      const validation = await validateTicketViaAPI(normalizedData);
 
       if (!validation.valid || !validation.ticket) {
         setScanResult('invalid');
-        setScannedTicket({ qr_code: qrData, message: validation.message });
+        setScannedTicket({ qr_code: normalizedData, message: validation.message });
         toast.error(validation.message || t('organizer.scanner.invalidTicket'));
 
         const newScan: RecentScan = {
           id: Date.now().toString(),
-          ticket_number: qrData,
+          ticket_number: normalizedData,
           attendee_name: t('organizer.scanner.unknownAttendee'),
           event_title: t('organizer.scanner.unknownEvent'),
           scanned_at: new Date().toISOString(),
@@ -277,44 +340,6 @@ const Scanner = () => {
     toast.success(t('organizer.scanner.clearSuccess'));
   };
 
-  // Desktop blocker
-  if (!isAllowedDevice) {
-    return (
-      <div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-display text-white mb-2">
-            {t('organizer.scanner.titlePrefix')} <span className="text-[#d3da0c]">{t('organizer.scanner.titleHighlight')}</span>
-          </h1>
-          <p className="text-gray-400">{t('organizer.scanner.subtitle')}</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-8 text-center"
-        >
-          <div className="w-20 h-20 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Smartphone className="w-10 h-10 text-[#d3da0c]" />
-          </div>
-          <h2 className="text-2xl font-semibold text-white mb-3">
-            {t('organizer.scanner.mobileOnlyTitle') || 'Mobile & Tablet Only'}
-          </h2>
-          <p className="text-gray-400 max-w-md mx-auto mb-6">
-            {t('organizer.scanner.mobileOnlyDesc') || 'QR code scanning and check-in are only available on mobile devices and tablets for the best experience.'}
-          </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <Info className="w-4 h-4" />
-            <span>{t('organizer.scanner.useMobileHint') || 'Please open this page on your phone or iPad'}</span>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <motion.div
@@ -346,11 +371,20 @@ const Scanner = () => {
                 className="text-center"
               >
                 {/* Camera Scanner */}
-                <div className="relative mx-auto mb-6 max-w-sm rounded-2xl overflow-hidden bg-black min-h-[300px]">
-                  <div
-                    id="scanner-video"
-                    className="w-full h-full object-cover"
-                  ></div>
+                <div className="relative mx-auto mb-6 max-w-sm rounded-2xl overflow-hidden bg-black" style={{ height: '320px' }}>
+                  {isAllowedDevice ? (
+                    <div
+                      id="scanner-video"
+                      className="w-full"
+                      style={{ height: '320px' }}
+                    ></div>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white">
+                      <ScanLine className="w-12 h-12 text-gray-500 mb-3" />
+                      <span className="text-sm text-gray-400">Camera scanning available on mobile devices</span>
+                      <span className="text-xs text-gray-500 mt-1">Use manual entry below</span>
+                    </div>
+                  )}
                   {!cameraReady && !scannerError && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white">
                       <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin mb-3" />

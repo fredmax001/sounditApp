@@ -138,7 +138,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
         { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
         { path: '/dashboard/business/followers', label: t('nav.followers') || 'Followers', icon: Heart },
         { path: '/dashboard/business/payouts', label: t('upgrade.payouts') || 'Payouts', icon: Wallet, locked: true, feature: 'payouts' },
-        { path: '/dashboard/business/community', label: t('upgrade.communityPosts') || 'Community Posts', icon: MessageSquare, locked: true, feature: 'community_posts' },
+        { path: '/dashboard/business/community', label: t('upgrade.communityPosts') || 'Community Posts', icon: MessageSquare, locked: false },
         { path: '/dashboard/business/tables', label: t('upgrade.tableReservations') || 'Table Reservations', icon: Wine, locked: true, feature: 'table_reservations' },
         { path: '/subscriptions', label: t('nav.subscriptions') || 'Subscription', icon: Crown },
         { path: '/tickets', label: t('nav.myTickets') || 'My Tickets', icon: Ticket },

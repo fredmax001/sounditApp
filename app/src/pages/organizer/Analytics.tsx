@@ -52,7 +52,7 @@ const Analytics = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/organizer/stats`, {
+      const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

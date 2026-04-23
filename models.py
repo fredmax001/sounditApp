@@ -262,6 +262,7 @@ class ArtistProfile(Base):
     spotify_url = Column(String(500), nullable=True)
     apple_music_url = Column(String(500), nullable=True)
     soundcloud_url = Column(String(500), nullable=True)
+    hearthis_url = Column(String(500), nullable=True)
     
     # Booking settings
     starting_price = Column(Float, nullable=True)
@@ -592,8 +593,14 @@ class BookingRequest(Base):
     agreed_price = Column(Float, nullable=True)
     payment_method = Column(String(50), nullable=True)
     
-    payment_proof_hash = Column(String(64), nullable=True, index=True)
-    payment_reference = Column(String(100), nullable=True)
+    # Payment proof fields
+    payment_screenshot = Column(String(500), nullable=True)
+    payment_amount = Column(Float, nullable=True)
+    payer_name = Column(String(100), nullable=True)
+    payer_notes = Column(Text, nullable=True)
+    payment_status = Column(String(50), nullable=True, default="pending")
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -967,7 +974,6 @@ class Order(Base):
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
     verified_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Admin who verified
     verified_at = Column(DateTime(timezone=True), nullable=True)
-    payment_proof_hash = Column(String(64), nullable=True, index=True)  # SHA256 hash to prevent reuse
     rejection_reason = Column(Text, nullable=True)  # If payment rejected
     
     # Refund
@@ -1824,6 +1830,9 @@ class Subscription(Base):
     start_date = Column(DateTime(timezone=True), nullable=True)
     end_date = Column(DateTime(timezone=True), nullable=True)
     
+    # Trial tracking
+    is_trial = Column(Boolean, default=False)
+    
     # Admin approval
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
@@ -1845,15 +1854,19 @@ class TicketOrder(Base):
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    # Payment proof
-    payment_screenshot = Column(String(500), nullable=False)
-    payment_amount = Column(Float, nullable=False)
+    # Payment proof (now optional — external payment via organizer QR)
+    payment_screenshot = Column(String(500), nullable=True)
+    payment_amount = Column(Float, nullable=True)
     payment_date = Column(Date, nullable=True)
     payment_reference = Column(String(100), nullable=True)
     payment_proof_hash = Column(String(64), nullable=True, index=True)
     payer_name = Column(String(100), nullable=True)
     payer_notes = Column(Text, nullable=True)
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Attendee contact info (required for external payment flow)
+    email = Column(String(255), nullable=True)
+    phone_number = Column(String(50), nullable=True)
     
     # Order status
     status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING)
@@ -2186,3 +2199,19 @@ class PromoCode(Base):
     is_active = Column(Boolean, default=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PageVisit(Base):
+    """Tracks page visits for analytics"""
+    __tablename__ = "page_visits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    path = Column(String(500), nullable=False, index=True)
+    method = Column(String(10), default="GET")
+    user_agent = Column(String(500), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    referrer = Column(String(500), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    session_id = Column(String(100), nullable=True, index=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useCommunityStore, type CommunityPost } from '@/store/communityStore';
 import { useTranslation } from 'react-i18next';
@@ -16,24 +16,15 @@ import {
   Image as ImageIcon,
   Video,
 } from 'lucide-react';
+import DashboardPageContainer, {
+  DashboardPageHeader,
+  DashboardStatCard,
+  DashboardCard,
+} from './DashboardPageContainer';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import {
   Table,
   TableHeader,
@@ -197,42 +188,224 @@ export default function CommunityDashboard({
     }
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
+  const modalContent = isModalOpen ? (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      onClick={handleCloseModal}
+      role="dialog"
+      aria-modal="true"
     >
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
-          <p className="text-gray-400">{subtitle}</p>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70" />
+      {/* Modal Content */}
+      <div
+        className="relative bg-[#111111] border border-[#d3da0c]/30 text-white w-full max-w-lg rounded-xl shadow-2xl shadow-[#d3da0c]/10 p-6 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">
+            {editingPost
+              ? t('dashboard.community.editPost')
+              : t('dashboard.community.createPost')}
+          </h2>
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <Button onClick={handleOpenCreate} className="gap-2">
-          <Plus className="w-4 h-4" />
-          {t('dashboard.community.createPost')}
-        </Button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              {t('dashboard.community.postTitle')}
+            </label>
+            <Input
+              value={form.title}
+              onChange={(e) =>
+                setForm({ ...form, title: e.target.value })
+              }
+              placeholder={t('community.postTitle') || ''}
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              {t('dashboard.community.section')}
+            </label>
+            <select
+              value={form.section_id}
+              onChange={(e) =>
+                setForm({ ...form, section_id: e.target.value })
+              }
+              className="w-full h-9 bg-white/5 border border-white/10 text-white rounded-md px-3 py-1 text-sm outline-none focus:border-[#d3da0c] appearance-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+              }}
+            >
+              <option value="">{t('common.none') || 'None'}</option>
+              {sections.map((s) => (
+                <option key={s.id} value={String(s.id)}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              {t('dashboard.community.content')}
+            </label>
+            <Textarea
+              value={form.content}
+              onChange={(e) =>
+                setForm({ ...form, content: e.target.value })
+              }
+              placeholder={t('community.shareExperiencePlaceholder') || ''}
+              rows={4}
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              {t('dashboard.community.imageUpload')}
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {form.images.map((url) => (
+                <div
+                  key={url}
+                  className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10"
+                >
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(url)}
+                    className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <label
+                className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
+                  uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
+                }`}
+              >
+                {uploading ? (
+                  <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                ) : (
+                  <ImageIcon className="w-5 h-5 text-gray-400" />
+                )}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">
+              {t('dashboard.community.videoUpload')}
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {form.videos.map((url) => (
+                <div
+                  key={url}
+                  className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10"
+                >
+                  <video src={url} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveVideo(url)}
+                    className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <label
+                className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
+                  uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
+                }`}
+              >
+                {uploading ? (
+                  <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                ) : (
+                  <Video className="w-5 h-5 text-gray-400" />
+                )}
+                <input
+                  type="file"
+                  multiple
+                  accept="video/*"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseModal}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={isCreating || uploading}>
+              {isCreating ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {editingPost ? t('common.save') : t('common.create')}
+            </Button>
+          </div>
+        </form>
       </div>
+    </div>
+  ) : null;
+
+  return (
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={title}
+        subtitle={subtitle}
+        action={
+          <Button onClick={handleOpenCreate} className="gap-2">
+            <Plus className="w-4 h-4" />
+            {t('dashboard.community.createPost')}
+          </Button>
+        }
+      />
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <DashboardStatCard
           icon={MessageSquare}
           label={t('dashboard.community.totalPosts')}
           value={metrics.totalPosts}
         />
-        <MetricCard
+        <DashboardStatCard
           icon={Eye}
           label={t('dashboard.community.totalViews')}
           value={metrics.totalViews}
         />
-        <MetricCard
+        <DashboardStatCard
           icon={Heart}
           label={t('dashboard.community.totalLikes')}
           value={metrics.totalLikes}
         />
-        <MetricCard
+        <DashboardStatCard
           icon={MessageCircle}
           label={t('dashboard.community.totalComments')}
           value={metrics.totalComments}
@@ -240,12 +413,7 @@ export default function CommunityDashboard({
       </div>
 
       {/* Posts Table */}
-      <div className="bg-[#111111] rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-4 border-b border-white/5">
-          <h3 className="text-lg font-semibold text-white">
-            {t('dashboard.community.posts')}
-          </h3>
-        </div>
+      <DashboardCard title={t('dashboard.community.posts')}>
         {isLoading ? (
           <div className="p-12 text-center">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin mx-auto mb-4" />
@@ -337,200 +505,10 @@ export default function CommunityDashboard({
             </p>
           </div>
         )}
-      </div>
+      </DashboardCard>
 
-      {/* Modal */}
-      <Dialog
-        open={isModalOpen}
-        onOpenChange={(open) => {
-          if (!open) handleCloseModal();
-          setIsModalOpen(open);
-        }}
-      >
-        <DialogContent className="bg-[#111111] border-white/10 text-white max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              {editingPost
-                ? t('dashboard.community.editPost')
-                : t('dashboard.community.createPost')}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                {t('dashboard.community.postTitle')}
-              </label>
-              <Input
-                value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
-                placeholder={t('community.postTitle') || ''}
-                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                {t('dashboard.community.section')}
-              </label>
-              <Select
-                value={form.section_id}
-                onValueChange={(val) =>
-                  setForm({ ...form, section_id: val })
-                }
-              >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white w-full">
-                  <SelectValue placeholder={t('community.selectSection') || ''} />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                  <SelectItem value="">{t('common.none') || 'None'}</SelectItem>
-                  {sections.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                {t('dashboard.community.content')}
-              </label>
-              <Textarea
-                value={form.content}
-                onChange={(e) =>
-                  setForm({ ...form, content: e.target.value })
-                }
-                placeholder={t('community.shareExperiencePlaceholder') || ''}
-                rows={4}
-                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                {t('dashboard.community.imageUpload')}
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {form.images.map((url) => (
-                  <div
-                    key={url}
-                    className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10"
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(url)}
-                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                <label
-                  className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
-                    uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
-                  }`}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-                  ) : (
-                    <ImageIcon className="w-5 h-5 text-gray-400" />
-                  )}
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                    disabled={uploading}
-                  />
-                </label>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                {t('dashboard.community.videoUpload')}
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {form.videos.map((url) => (
-                  <div
-                    key={url}
-                    className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10"
-                  >
-                    <video src={url} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveVideo(url)}
-                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                <label
-                  className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
-                    uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
-                  }`}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-                  ) : (
-                    <Video className="w-5 h-5 text-gray-400" />
-                  )}
-                  <input
-                    type="file"
-                    multiple
-                    accept="video/*"
-                    className="hidden"
-                    onChange={handleVideoUpload}
-                    disabled={uploading}
-                  />
-                </label>
-              </div>
-            </div>
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleCloseModal}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={isCreating || uploading}>
-                {isCreating ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {editingPost ? t('common.save') : t('common.create')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </motion.div>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="bg-[#111111] rounded-xl p-5 border border-white/5">
-      <div className="flex items-center gap-3 mb-2">
-        <Icon className="w-5 h-5 text-[#d3da0c]" />
-        <span className="text-gray-400 text-sm">{label}</span>
-      </div>
-      <p className="text-2xl font-bold text-white">{value.toLocaleString()}</p>
-    </div>
+      {/* Modal rendered via portal for reliability */}
+      {modalContent && createPortal(modalContent, document.body)}
+    </DashboardPageContainer>
   );
 }

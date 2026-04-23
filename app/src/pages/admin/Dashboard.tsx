@@ -10,7 +10,7 @@ import {
   Ban, Check, Trash2,
   RefreshCw,
   Activity, CreditCard, BarChart3, Shield,
-  UserPlus, X, Loader2
+  UserPlus, X, Loader2, Eye, UserCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -134,6 +134,8 @@ const AdminDashboard = () => {
     totalRevenue: 0,
     pendingPayouts: 0,
     pendingVerifications: 0,
+    totalVisits30d: 0,
+    uniqueVisitors30d: 0,
   });
 
   // Data states - all empty arrays
@@ -191,6 +193,8 @@ const AdminDashboard = () => {
           totalRevenue: statsData.total_revenue || 0,
           pendingPayouts: statsData.pending_payouts || 0,
           pendingVerifications: statsData.pending_verifications || 0,
+          totalVisits30d: statsData.total_visits_30d || 0,
+          uniqueVisitors30d: statsData.unique_visitors_30d || 0,
         });
       }
 
@@ -468,6 +472,19 @@ const AdminDashboard = () => {
         <StatCard title={t('admin.dashboard.totalRevenue')} value={`¥${stats.totalRevenue.toLocaleString()}`} icon={BarChart3} loading={isLoading} />
         <StatCard title={t('admin.dashboard.pendingPayouts')} value={stats.pendingPayouts} icon={CreditCard} loading={isLoading} />
         <StatCard title={t('admin.dashboard.pendingVerifications')} value={stats.pendingVerifications} icon={Shield} loading={isLoading} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title={t('admin.dashboard.totalVisits30d') || 'Total Visits (30d)'} value={stats.totalVisits30d.toLocaleString()} icon={Eye} loading={isLoading} />
+        <StatCard title={t('admin.dashboard.uniqueVisitors30d') || 'Unique Visitors (30d)'} value={stats.uniqueVisitors30d.toLocaleString()} icon={Users} loading={isLoading} />
+        <div className="md:col-span-2 flex items-center justify-end">
+          <button
+            onClick={() => navigate('/admin/analytics')}
+            className="px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-bold hover:bg-[#bbc10b] transition-colors flex items-center gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            {t('admin.dashboard.viewAnalytics') || 'View Full Analytics'}
+          </button>
+        </div>
       </div>
 
       {/* Recent Activity */}

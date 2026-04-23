@@ -88,16 +88,24 @@ class SubscriptionService:
                 "features": plan_config.features,
             }
         
+        end_date = active_sub.end_date
+        if end_date and end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=timezone.utc)
+        start_date = active_sub.start_date
+        if start_date and start_date.tzinfo is None:
+            start_date = start_date.replace(tzinfo=timezone.utc)
+        
         return {
             "has_active_subscription": True,
             "subscription": active_sub,
             "plan_type": active_sub.plan_type.value,
             "role": active_sub.role.value,
-            "start_date": active_sub.start_date,
-            "end_date": active_sub.end_date,
-            "days_remaining": (active_sub.end_date - datetime.now(timezone.utc)).days,
+            "start_date": start_date,
+            "end_date": end_date,
+            "days_remaining": (end_date - datetime.now(timezone.utc)).days if end_date else 0,
             "features": features,
             "can_access_features": True,
+            "is_trial": active_sub.is_trial or False,
         }
     
     @staticmethod
@@ -193,6 +201,39 @@ class SubscriptionService:
             price=price,
             status=SubscriptionStatus.PENDING,
             payment_method=payment_method
+        )
+        
+        db.add(subscription)
+        db.commit()
+        db.refresh(subscription)
+        return subscription
+    
+    @staticmethod
+    def create_trial_subscription(db: Session, user_id: int, role: UserRole):
+        """Create a 30-day free trial subscription for new business/vendor/artist users."""
+        now = datetime.now(timezone.utc)
+        
+        # Check if user already had a trial
+        existing_trial = db.query(Subscription).filter(
+            and_(
+                Subscription.user_id == user_id,
+                Subscription.is_trial == True
+            )
+        ).first()
+        
+        if existing_trial:
+            return existing_trial
+        
+        subscription = Subscription(
+            user_id=user_id,
+            role=role,
+            plan_type=SubscriptionPlan.PRO,
+            price=0.0,
+            status=SubscriptionStatus.ACTIVE,
+            start_date=now,
+            end_date=now + timedelta(days=30),
+            is_trial=True,
+            payment_method=None
         )
         
         db.add(subscription)

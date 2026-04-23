@@ -204,7 +204,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     fetchFeaturedEvents: async (token) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.get(`${API_URL}/admin/featured-events`, {
+            const response = await axios.get(`${API_URL}/admin/featured`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             set({ featuredEventIds: response.data.map((e: { id: string }) => e.id) || [], isLoading: false });
@@ -260,7 +260,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             if (isDisabled) {
-                await axios.post(`${API_URL}/admin/events/${id}/enable`, {}, {
+                await axios.delete(`${API_URL}/admin/disabled-events/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 set((state) => ({
@@ -268,7 +268,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                     isLoading: false
                 }));
             } else {
-                await axios.post(`${API_URL}/admin/events/${id}/disable`, {}, {
+                await axios.post(`${API_URL}/admin/disabled-events/${id}`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 set((state) => ({

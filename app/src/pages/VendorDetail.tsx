@@ -68,6 +68,37 @@ export default function VendorDetail() {
     fetchVendor();
   }, [id]);
 
+  // Update meta tags for social sharing
+  useEffect(() => {
+    if (!vendor) return;
+    const title = `${vendor.business_name} - Sound It`;
+    const description = (vendor.description || 'Discover amazing vendors on Sound It.').slice(0, 300);
+    const image = vendor.logo_url || vendor.banner_url || `${window.location.origin}/logo.png`;
+    const url = `${window.location.origin}/vendors/${id}`;
+
+    document.title = title;
+    const setMeta = (selector: string, content: string) => {
+      let el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        const prop = selector.match(/property=["']([^"']+)["']/)?.[1];
+        const name = selector.match(/name=["']([^"']+)["']/)?.[1];
+        if (prop) el.setAttribute('property', prop);
+        if (name) el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:image"]', image);
+    setMeta('meta[property="og:url"]', url);
+    setMeta('meta[property="og:type"]', 'profile');
+    setMeta('meta[name="twitter:title"]', title);
+    setMeta('meta[name="twitter:description"]', description);
+    setMeta('meta[name="twitter:image"]', image);
+  }, [vendor, id]);
+
   useEffect(() => {
     if (!vendor?.id || !session?.access_token) return;
     const checkFollow = async () => {

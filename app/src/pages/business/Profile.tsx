@@ -1,14 +1,16 @@
-import { motion } from 'framer-motion';
-import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin } from 'lucide-react';
+import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin, LogOut } from 'lucide-react';
+import DashboardPageContainer, { DashboardPageHeader, DashboardCard } from '@/components/dashboard/DashboardPageContainer';
 import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile } = useAuthStore();
+  const { profile, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
@@ -213,32 +215,27 @@ const Profile = () => {
   const selectedCityName = chinaCities.find(c => c.id === profileData.cityId)?.name || t('business.profile.notSet');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{t('business.profile.communityProfile')}</h2>
-          <p className="text-gray-400">{t('business.profile.editYourProfileInfo')}</p>
-        </div>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          disabled={isUploading || isSaving}
-          className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50"
-        >
-          {isSaving || isUploading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : isEditing ? (
-            <Save className="w-5 h-5" />
-          ) : (
-            <Edit className="w-5 h-5" />
-          )}
-          {isSaving ? t('business.profile.saving') : isUploading ? t('business.profile.uploading') : isEditing ? t('business.profile.saveChanges') : t('business.profile.editProfile')}
-        </button>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.profile.communityProfile')}
+        subtitle={t('business.profile.editYourProfileInfo')}
+        action={
+          <button
+            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+            disabled={isUploading || isSaving}
+            className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50"
+          >
+            {isSaving || isUploading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isEditing ? (
+              <Save className="w-5 h-5" />
+            ) : (
+              <Edit className="w-5 h-5" />
+            )}
+            {isSaving ? t('business.profile.saving') : isUploading ? t('business.profile.uploading') : isEditing ? t('business.profile.saveChanges') : t('business.profile.editProfile')}
+          </button>
+        }
+      />
 
       {/* Profile Header Card */}
       <div className="bg-[#111111] rounded-2xl border border-white/5 overflow-hidden">
@@ -521,7 +518,19 @@ const Profile = () => {
           {t('business.profile.uploadPhotosHint')}
         </p>
       </div>
-    </motion.div>
+
+      {/* Logout Button */}
+      <button
+        onClick={() => {
+          logout();
+          navigate('/');
+        }}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-colors"
+      >
+        <LogOut className="w-4 h-4" />
+        <span className="text-sm font-medium">Log Out</span>
+      </button>
+    </DashboardPageContainer>
   );
 };
 

@@ -795,6 +795,37 @@ const ArtistDetail = () => {
     fetchArtistData();
   }, [fetchArtistData]);
 
+  // Update meta tags for social sharing
+  useEffect(() => {
+    if (!artist) return;
+    const title = `${artist.stage_name} - Sound It`;
+    const description = (artist.bio || 'Discover talented artists on Sound It.').slice(0, 300);
+    const image = artist.avatar_url || `${window.location.origin}/logo.png`;
+    const url = `${window.location.origin}/artists/${id}`;
+
+    document.title = title;
+    const setMeta = (selector: string, content: string) => {
+      let el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        const prop = selector.match(/property=["']([^"']+)["']/)?.[1];
+        const name = selector.match(/name=["']([^"']+)["']/)?.[1];
+        if (prop) el.setAttribute('property', prop);
+        if (name) el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:image"]', image);
+    setMeta('meta[property="og:url"]', url);
+    setMeta('meta[property="og:type"]', 'profile');
+    setMeta('meta[name="twitter:title"]', title);
+    setMeta('meta[name="twitter:description"]', description);
+    setMeta('meta[name="twitter:image"]', image);
+  }, [artist, id]);
+
   // Check if current user is following this artist
   useEffect(() => {
     if (!artist?.id || !session?.access_token) return;
@@ -869,11 +900,11 @@ const ArtistDetail = () => {
               animate={{ opacity: 1, y: 0 }}
             >
               {/* Name with Verification Badge */}
-              <div className="flex items-center gap-3 mb-4">
-                <h1 className="text-4xl md:text-6xl font-display text-white">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <h1 className="text-4xl md:text-6xl font-display text-white min-w-0">
                   {artist.stage_name}
                 </h1>
-                {artist.verification_badge && (
+                {(artist.is_verified || artist.verification_badge) && (
                   <VerificationBadge size="lg" className="flex-shrink-0" />
                 )}
               </div>

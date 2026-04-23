@@ -4,11 +4,12 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image as ImageIcon
+  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import DashboardPageContainer, { DashboardPageHeader, DashboardCard, DashboardStatCard } from '@/components/dashboard/DashboardPageContainer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -36,7 +37,8 @@ interface TicketOrder {
   quantity?: number;
   payment_amount: number;
   payer_name: string;
-  payment_screenshot: string;
+  email?: string;
+  phone_number?: string;
   status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'used';
   ticket_code?: string;
   ticket_qr?: string;
@@ -70,7 +72,6 @@ const BusinessDashboard = () => {
   const [ticketOrdersLoading, setTicketOrdersLoading] = useState(false);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
-  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
 
   // Open edit modal
@@ -271,18 +272,13 @@ const BusinessDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-4 lg:p-10">
-      {/* Welcome Header */}
-      <div className="mb-10">
-        <h1 className="text-2xl lg:text-4xl font-display text-white mb-2">
-          {t('business.dashboard.welcomeBack')}
-        </h1>
-        <p className="text-gray-400">
-          {businessProfile?.business_name
-            ? t('business.dashboard.welcomeMessageNamed', { name: businessProfile.business_name })
-            : t('business.dashboard.welcomeMessage')}
-        </p>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.dashboard.welcomeBack')}
+        subtitle={businessProfile?.business_name
+          ? t('business.dashboard.welcomeMessageNamed', { name: businessProfile.business_name })
+          : t('business.dashboard.welcomeMessage')}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
@@ -340,7 +336,8 @@ const BusinessDashboard = () => {
                     </div>
                     <div>
                       <p className="text-white font-semibold">{order.payer_name || order.user?.name || 'Unknown'}</p>
-                      <p className="text-gray-400 text-sm">{order.user?.email}</p>
+                      <p className="text-gray-400 text-sm">{order.email || order.user?.email}</p>
+                      {order.phone_number && <p className="text-gray-500 text-sm">{order.phone_number}</p>}
                       <p className="text-gray-500 text-xs mt-1">{order.event?.title} • Qty: {order.quantity || 1} • {new Date(order.created_at).toLocaleString()}</p>
                     </div>
                   </div>
@@ -380,12 +377,6 @@ const BusinessDashboard = () => {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                    className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg text-sm text-white hover:bg-white/10"
-                  >
-                    <ImageIcon className="w-4 h-4" /> View Screenshot
-                  </button>
                   {order.ticket_qr && (
                     <button
                       onClick={() => setSelectedQr(order.ticket_qr!)}
@@ -639,16 +630,6 @@ const BusinessDashboard = () => {
         </div>
       )}
 
-      {/* Screenshot Modal */}
-      {selectedScreenshot && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setSelectedScreenshot(null)}>
-          <div className="relative max-w-3xl w-full">
-            <button onClick={() => setSelectedScreenshot(null)} className="absolute -top-10 right-0 text-white hover:text-gray-300"><X className="w-8 h-8" /></button>
-            <img src={selectedScreenshot} alt="Screenshot" className="w-full h-auto rounded-xl" />
-          </div>
-        </div>
-      )}
-
       {/* QR Modal */}
       {selectedQr && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setSelectedQr(null)}>
@@ -658,7 +639,7 @@ const BusinessDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </DashboardPageContainer>
   );
 };
 

@@ -91,6 +91,7 @@ export interface Event {
 export interface EventWithDetails extends Event {
   business?: {
     id: string;
+    user_id: string;
     business_name: string;
     logo_url?: string;
     verified: boolean;

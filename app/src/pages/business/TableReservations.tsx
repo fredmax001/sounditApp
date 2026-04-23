@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import DashboardPageContainer, { DashboardPageHeader } from '@/components/dashboard/DashboardPageContainer';
 import { 
   Plus, Edit2, Trash2, Wine, Users, Ticket,
   Loader2, X, Check, Package,
@@ -320,16 +321,13 @@ export default function BusinessTableReservations() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{t('business.tableReservations.title')}</h1>
-            <p className="text-white/60 mt-1">{t('business.tableReservations.subtitle')}</p>
-          </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.tableReservations.title')}
+        subtitle={t('business.tableReservations.subtitle')}
+        action={
           <div className="flex items-center gap-3">
-            <div className="flex bg-[#141414] rounded-xl p-1">
+            <div className="flex bg-[#111111] rounded-xl p-1">
               <button
                 onClick={() => setActiveTab('packages')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -368,9 +366,10 @@ export default function BusinessTableReservations() {
               </button>
             )}
           </div>
-        </div>
+        }
+      />
 
-        {/* Content */}
+      {/* Content */}
         {activeTab === 'packages' ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {packages.map((pkg) => (
@@ -378,7 +377,7 @@ export default function BusinessTableReservations() {
                 key={pkg.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden"
+                className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
               >
                 {pkg.image_url ? (
                   <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${pkg.image_url})` }} />
@@ -470,7 +469,7 @@ export default function BusinessTableReservations() {
                 key={order.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden"
+                className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
               >
                 <div 
                   className="p-6 cursor-pointer"
@@ -508,7 +507,7 @@ export default function BusinessTableReservations() {
                       initial={{ height: 0 }}
                       animate={{ height: 'auto' }}
                       exit={{ height: 0 }}
-                      className="border-t border-white/10"
+                      className="border-t border-white/5"
                     >
                       <div className="p-6 space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
@@ -600,7 +599,6 @@ export default function BusinessTableReservations() {
             )}
           </div>
         )}
-      </div>
 
       {/* Create Package Modal */}
       {showCreateModal && (
@@ -608,9 +606,9 @@ export default function BusinessTableReservations() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141414] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-[#111111] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">{t('business.tableReservations.createTablePackage')}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -626,7 +624,7 @@ export default function BusinessTableReservations() {
                 <select
                   value={formData.event_id}
                   onChange={(e) => setFormData({...formData, event_id: e.target.value})}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   required
                 >
                   <option value="">{t('business.tableReservations.selectEvent') || 'Select an event'}</option>
@@ -644,7 +642,7 @@ export default function BusinessTableReservations() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder={t('business.tableReservations.packageNamePlaceholder')}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -654,7 +652,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -667,7 +665,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.max_people}
                     onChange={(e) => setFormData({...formData, max_people: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
@@ -676,7 +674,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.ticket_quantity}
                     onChange={(e) => setFormData({...formData, ticket_quantity: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
@@ -685,7 +683,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.total_tables}
                     onChange={(e) => setFormData({...formData, total_tables: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
               </div>
@@ -696,7 +694,7 @@ export default function BusinessTableReservations() {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
 
@@ -735,7 +733,7 @@ export default function BusinessTableReservations() {
                       value={item}
                       onChange={(e) => updateArrayField('included_items', idx, e.target.value)}
                       placeholder={t('business.tableReservations.includedItemPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -765,7 +763,7 @@ export default function BusinessTableReservations() {
                       value={drink}
                       onChange={(e) => updateArrayField('drinks', idx, e.target.value)}
                       placeholder={t('business.tableReservations.drinkPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -795,7 +793,7 @@ export default function BusinessTableReservations() {
                       value={extra}
                       onChange={(e) => updateArrayField('extras', idx, e.target.value)}
                       placeholder={t('business.tableReservations.extraPlaceholder') || 'Extra item'}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -841,9 +839,9 @@ export default function BusinessTableReservations() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141414] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-[#111111] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">{t('business.tableReservations.editTablePackage') || 'Edit Table Package'}</h2>
               <button
                 onClick={() => { setShowEditModal(false); setEditingPackage(null); setEditImageFile(null); }}
@@ -859,7 +857,7 @@ export default function BusinessTableReservations() {
                 <select
                   value={formData.event_id}
                   disabled
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white/60 px-4 py-3 rounded-xl focus:outline-none cursor-not-allowed"
+                  className="w-full bg-[#0A0A0A] border border-white/5 text-white/60 px-4 py-3 rounded-xl focus:outline-none cursor-not-allowed"
                 >
                   {events.map(event => (
                     <option key={event.id} value={event.id}>{event.title}</option>
@@ -875,7 +873,7 @@ export default function BusinessTableReservations() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder={t('business.tableReservations.packageNamePlaceholder')}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -885,7 +883,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -898,7 +896,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.max_people}
                     onChange={(e) => setFormData({...formData, max_people: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
@@ -907,7 +905,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.ticket_quantity}
                     onChange={(e) => setFormData({...formData, ticket_quantity: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
@@ -916,7 +914,7 @@ export default function BusinessTableReservations() {
                     type="number"
                     value={formData.total_tables}
                     onChange={(e) => setFormData({...formData, total_tables: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
               </div>
@@ -927,7 +925,7 @@ export default function BusinessTableReservations() {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-[#0A0A0A] border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
 
@@ -971,7 +969,7 @@ export default function BusinessTableReservations() {
                       value={item}
                       onChange={(e) => updateArrayField('included_items', idx, e.target.value)}
                       placeholder={t('business.tableReservations.includedItemPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1001,7 +999,7 @@ export default function BusinessTableReservations() {
                       value={drink}
                       onChange={(e) => updateArrayField('drinks', idx, e.target.value)}
                       placeholder={t('business.tableReservations.drinkPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1031,7 +1029,7 @@ export default function BusinessTableReservations() {
                       value={extra}
                       onChange={(e) => updateArrayField('extras', idx, e.target.value)}
                       placeholder={t('business.tableReservations.extraPlaceholder') || 'Extra item'}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-[#0A0A0A] border border-white/5 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1085,7 +1083,7 @@ export default function BusinessTableReservations() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-sm w-full"
+              className="bg-[#111111] border border-white/5 rounded-2xl p-8 max-w-sm w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
@@ -1115,6 +1113,6 @@ export default function BusinessTableReservations() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </DashboardPageContainer>
   );
 }

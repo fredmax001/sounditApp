@@ -107,9 +107,9 @@ def validate_payment_screenshot(db: Session, order: TicketOrder, event: Event) -
     return is_valid, "; ".join(notes_parts)
 
 
-def _generate_qr_code(ticket_code: str) -> str:
-    """Generate a base64 PNG QR code for a ticket code"""
-    qr_data = ticket_code
+def _generate_qr_code(ticket_code: str, event_id: int) -> str:
+    """Generate a base64 PNG QR code encoding SOUNDIT:ticket_code:event_id"""
+    qr_data = f"SOUNDIT:{ticket_code}:{event_id}"
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(qr_data)
     qr.make(fit=True)
@@ -146,7 +146,7 @@ def generate_tickets_from_order(
     for i in range(tickets_to_generate):
         ticket_code = f"TKT-{event.id}-{order.user_id}-{uuid.uuid4().hex[:8].upper()}-{i+1}"
         qr_token = f"qr-{uuid.uuid4().hex}"
-        qr_code = _generate_qr_code(ticket_code)
+        qr_code = _generate_qr_code(ticket_code, event.id)
         
         ticket = Ticket(
             user_id=order.user_id,

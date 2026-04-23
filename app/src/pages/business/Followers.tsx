@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
 import { Heart, Users, TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import DashboardPageContainer, { DashboardPageHeader, DashboardStatCard } from '@/components/dashboard/DashboardPageContainer';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -58,48 +58,42 @@ const Followers = () => {
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   }).length;
 
+  const avgEvents = followers.length > 0
+    ? Math.round(followers.reduce((sum, f) => sum + (f.eventsAttended || 0), 0) / followers.length)
+    : 0;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold text-white mb-2">{t('business.followers.title')}</h2>
-        <p className="text-gray-400">{t('business.followers.subtitle')}</p>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.followers.title')}
+        subtitle={t('business.followers.subtitle')}
+      />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <Heart className="w-5 h-5 text-[#FF2D8F]" />
-            <span className="text-gray-400">{t('business.followers.totalFollowers')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">{followers.length}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            <span className="text-gray-400">{t('business.followers.newThisMonth')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">{thisMonth}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-gray-400">{t('business.followers.active')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">{followers.length}</p>
-        </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="w-5 h-5 text-blue-400" />
-            <span className="text-gray-400">{t('business.followers.avgEvents')}</span>
-          </div>
-          <p className="text-3xl font-bold text-white">-</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <DashboardStatCard
+          icon={Heart}
+          label={t('business.followers.totalFollowers')}
+          value={followers.length}
+          iconClassName="text-[#FF2D8F]"
+        />
+        <DashboardStatCard
+          icon={TrendingUp}
+          label={t('business.followers.newThisMonth')}
+          value={thisMonth}
+          iconClassName="text-green-400"
+        />
+        <DashboardStatCard
+          icon={Users}
+          label={t('business.followers.active')}
+          value={followers.length}
+        />
+        <DashboardStatCard
+          icon={Calendar}
+          label={t('business.followers.avgEvents')}
+          value={avgEvents}
+          iconClassName="text-blue-400"
+        />
       </div>
 
       {/* Followers List */}
@@ -146,7 +140,7 @@ const Followers = () => {
           </div>
         )}
       </div>
-    </motion.div>
+    </DashboardPageContainer>
   );
 };
 

@@ -43,6 +43,9 @@ interface CreateEventFormData {
   refundPolicy: string;
   requireId: boolean;
   ticketPrice: string;
+  wechatQrUrl: string;
+  alipayQrUrl: string;
+  paymentInstructions: string;
 }
 
 const EVENT_TYPES = ['Party', 'Concert', 'Festival', 'Day Party', 'Rooftop Party', 'Club Night', 'Live Music', 'DJ Set'];
@@ -157,6 +160,9 @@ const CreateEvent = () => {
     refundPolicy: 'Non-refundable',
     requireId: false,
     ticketPrice: '',
+    wechatQrUrl: '',
+    alipayQrUrl: '',
+    paymentInstructions: '',
   });
 
   const [ticketTiers, setTicketTiers] = useState<TicketTierData[]>([
@@ -178,6 +184,11 @@ const CreateEvent = () => {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [wechatQrFile, setWechatQrFile] = useState<File | null>(null);
+  const [wechatQrPreview, setWechatQrPreview] = useState('');
+  const [alipayQrFile, setAlipayQrFile] = useState<File | null>(null);
+  const [alipayQrPreview, setAlipayQrPreview] = useState('');
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdEvent, setCreatedEvent] = useState<{ id: string | number; title: string; flyer_image?: string; qr_code?: string; share_url?: string } | null>(null);
@@ -319,6 +330,16 @@ const CreateEvent = () => {
     }
   };
 
+  const uploadQr = async (file: File | null, existingUrl: string): Promise<string> => {
+    if (!file) return existingUrl;
+    setIsUploadingQr(true);
+    try {
+      return await uploadFile(file);
+    } finally {
+      setIsUploadingQr(false);
+    }
+  };
+
   const createTicketTierApi = async (eventId: number, tier: TicketTierData, authToken: string) => {
     const response = await fetch(`${API_BASE_URL}/events/${eventId}/ticket-tiers`, {
       method: 'POST',
@@ -405,6 +426,8 @@ const CreateEvent = () => {
     try {
       const flyerImageUrl = imageFile ? await uploadFlyer() : formData.image;
       const galleryUrls = galleryFiles.length > 0 ? await uploadGallery() : [];
+      const wechatQrUrl = await uploadQr(wechatQrFile, formData.wechatQrUrl);
+      const alipayQrUrl = await uploadQr(alipayQrFile, formData.alipayQrUrl);
 
       // Build description with embedded metadata
       let fullDescription = formData.description || '';
@@ -428,6 +451,9 @@ const CreateEvent = () => {
         refund_policy: formData.refundPolicy || undefined,
         require_id: formData.requireId,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
+        wechat_qr_url: wechatQrUrl || undefined,
+        alipay_qr_url: alipayQrUrl || undefined,
+        payment_instructions: formData.paymentInstructions.trim() || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
       };
 
@@ -455,7 +481,7 @@ const CreateEvent = () => {
     }
   };
 
-  const isSubmitting = isLoading || isUploadingImage || isUploadingGallery;
+  const isSubmitting = isLoading || isUploadingImage || isUploadingGallery || isUploadingQr;
 
   const formatPreviewDate = () => {
     if (!formData.date || !formData.time) return null;
@@ -1039,6 +1065,107 @@ const CreateEvent = () => {
                     />
                   </div>
                 </div>
+
+                {/* WeChat QR */}
+                <div>
+                  <Label>{t('organizer.createEvent.wechatQr')}</Label>
+                  <div className="mt-1">
+                    {(wechatQrPreview || formData.wechatQrUrl) ? (
+                      <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-white/10">
+                        <img
+                          src={wechatQrPreview || formData.wechatQrUrl}
+                          alt="WeChat QR"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setWechatQrFile(null); setWechatQrPreview(''); setFormData(prev => ({ ...prev, wechatQrUrl: '' })); }}
+                          className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-32 h-32 rounded-xl border-2 border-dashed border-white/20 bg-white/5 cursor-pointer hover:border-[#d3da0c]/50 hover:bg-[#d3da0c]/5 transition-colors">
+                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                        <span className="text-xs text-gray-400">{t('organizer.createEvent.uploadQr')}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                toast.error(t('organizer.createEvent.qrSizeError'));
+                                return;
+                              }
+                              setWechatQrFile(file);
+                              setWechatQrPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Alipay QR */}
+                <div>
+                  <Label>{t('organizer.createEvent.alipayQr')}</Label>
+                  <div className="mt-1">
+                    {(alipayQrPreview || formData.alipayQrUrl) ? (
+                      <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-white/10">
+                        <img
+                          src={alipayQrPreview || formData.alipayQrUrl}
+                          alt="Alipay QR"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setAlipayQrFile(null); setAlipayQrPreview(''); setFormData(prev => ({ ...prev, alipayQrUrl: '' })); }}
+                          className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-32 h-32 rounded-xl border-2 border-dashed border-white/20 bg-white/5 cursor-pointer hover:border-[#d3da0c]/50 hover:bg-[#d3da0c]/5 transition-colors">
+                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                        <span className="text-xs text-gray-400">{t('organizer.createEvent.uploadQr')}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                toast.error(t('organizer.createEvent.qrSizeError'));
+                                return;
+                              }
+                              setAlipayQrFile(file);
+                              setAlipayQrPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Instructions */}
+                <div>
+                  <Label>{t('organizer.createEvent.paymentInstructionsLabel')}</Label>
+                  <textarea
+                    name="paymentInstructions"
+                    value={formData.paymentInstructions}
+                    onChange={handleChange}
+                    placeholder={t('organizer.createEvent.paymentInstructionsPlaceholder')}
+                    rows={3}
+                    className="w-full mt-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#d3da0c]/50 focus:border-transparent resize-none text-sm"
+                  />
+                </div>
               </div>
             </SectionCard>
 
@@ -1146,6 +1273,7 @@ const CreateEvent = () => {
                       title: '', titleCN: '', description: '', date: '', time: '', endDate: '', endTime: '',
                       venue: '', address: '', city: '', capacity: '', image: '', tags: [], eventType: '',
                       refundPolicy: 'Non-refundable', requireId: false, ticketPrice: '',
+                      wechatQrUrl: '', alipayQrUrl: '', paymentInstructions: '',
                     });
                     setTicketTiers([{ id: '1', name: 'General Admission', price: '', quantity: '', description: '', saleStartDate: '', saleEndDate: '', maxPerPerson: '10' }]);
                     setImageFile(null);

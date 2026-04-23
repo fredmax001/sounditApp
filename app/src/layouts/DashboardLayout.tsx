@@ -64,6 +64,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const {
     hasSubscription,
     planType,
+    isTrial,
+    daysRemaining,
     checkSubscription,
   } = useSubscriptionStore();
 
@@ -157,7 +159,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
     { path: '/dashboard/business/followers', label: t('nav.followers') || 'Followers', icon: Heart, locked: false },
     { path: '/dashboard/business/payouts', label: t('upgrade.payouts') || 'Payouts', icon: Wallet, locked: true, feature: 'payouts' },
-    { path: '/dashboard/business/community', label: t('upgrade.communityPosts') || 'Community Posts', icon: MessageSquare, locked: true, feature: 'community_posts' },
+    { path: '/dashboard/business/community', label: t('upgrade.communityPosts') || 'Community Posts', icon: MessageSquare, locked: false },
     { path: '/dashboard/business/profile', label: t('nav.profile') || 'Community Profile', icon: Store, locked: false },
     { path: '/dashboard/business/tables', label: t('upgrade.tableReservations') || 'Table Reservations', icon: Wine, locked: true, feature: 'table_reservations' },
     { path: '/subscriptions', label: t('nav.subscriptions') || 'Subscription', icon: Crown, locked: false },
@@ -185,6 +187,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const adminNavItems: NavItem[] = [
     { path: '/admin', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard, locked: false },
+    { path: '/admin/analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, locked: false },
     { path: '/admin/users', label: t('nav.users') || 'Users', icon: Users, locked: false },
     { path: '/admin/artists', label: t('nav.artists') || 'Artists', icon: Music, locked: false },
     { path: '/admin/vendors', label: t('nav.vendors') || 'Vendors', icon: ShoppingBag, locked: false },
@@ -294,8 +297,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </p>
         </div>
 
+        {/* Free trial banner */}
+        {isTrial && daysRemaining !== null && daysRemaining > 0 && (
+          <div className="px-4 pt-3 pb-1">
+            <div className="bg-[#d3da0c]/10 border border-[#d3da0c]/30 rounded-lg px-3 py-2">
+              <p className="text-[#d3da0c] text-xs font-medium">
+                {t('upgrade.trialBanner', { days: daysRemaining }) || `Free trial: ${daysRemaining} days remaining`}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Subscription warning banner */}
-        {hasSubscription === false && !profile?.is_verified && (role === 'business' || role === 'organizer' || role === 'vendor' || role === 'artist') && (
+        {hasSubscription === false && !profile?.is_verified && !isTrial && (role === 'business' || role === 'organizer' || role === 'vendor' || role === 'artist') && (
           <div className="px-4 pt-3 pb-1">
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
               <p className="text-yellow-500 text-xs">

@@ -25,7 +25,7 @@ import Food from './pages/Food';
 import Community from './pages/Community';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import Scan from './pages/Scan';
+import Scanner from './pages/organizer/Scanner';
 
 // Legal Pages
 import Press from './pages/Press';
@@ -109,6 +109,7 @@ import SecurityLogs from './pages/admin/SecurityLogs';
 import APIIntegrations from './pages/admin/APIIntegrations';
 import AdsManager from './pages/admin/AdsManager';
 import AdminSubscriptions from './pages/admin/AdminSubscriptions';
+import AdminAnalytics from './pages/admin/Analytics';
 import VerificationCenter from './pages/admin/VerificationCenter';
 import CommunityMetrics from './pages/admin/CommunityMetrics';
 import ManageCommunitySections from './pages/admin/ManageCommunitySections';
@@ -284,8 +285,9 @@ function App() {
               <Route path="/payment/success" element={<PaymentSuccess />} />
             </Route>
 
-            {/* Scan Page - Works on all devices */}
-            <Route path="/scan" element={<Scan />} />
+            {/* Scan Page - Ticket scanner for organizers */}
+            <Route path="/scan" element={<Scanner />} />
+            <Route path="/organizer/scanner" element={<Scanner />} />
 
             {/* Validate Page - QR code validation route */}
             <Route path="/validate/:token" element={<Validate />} />
@@ -500,6 +502,11 @@ function App() {
             <Route path="/admin/cms" element={
               <AdminLayout>
                 <CMSContent />
+              </AdminLayout>
+            } />
+            <Route path="/admin/analytics" element={
+              <AdminLayout>
+                <AdminAnalytics />
               </AdminLayout>
             } />
             <Route path="/admin/notifications" element={

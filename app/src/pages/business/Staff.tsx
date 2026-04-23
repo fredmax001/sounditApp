@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, UserPlus, Mail, Shield, X, Loader2, Phone, Lock, User, Eye, EyeOff, QrCode, ClipboardList, Check } from 'lucide-react';
+import DashboardPageContainer, { DashboardPageHeader } from '@/components/dashboard/DashboardPageContainer';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -133,25 +134,20 @@ const Staff = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{t('business.staff.title')}</h2>
-          <p className="text-gray-400">{t('business.staff.subtitle')}</p>
-        </div>
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors"
-        >
-          <UserPlus className="w-5 h-5" />
-          {t('business.staff.inviteStaff')}
-        </button>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('business.staff.title')}
+        subtitle={t('business.staff.subtitle')}
+        action={
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors"
+          >
+            <UserPlus className="w-5 h-5" />
+            {t('business.staff.inviteStaff')}
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -461,7 +457,7 @@ const Staff = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </DashboardPageContainer>
   );
 };
 

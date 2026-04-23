@@ -79,19 +79,23 @@ const RolePermissions = () => {
         ? currentPerms.filter((p: string) => p !== permission)
         : [...currentPerms, permission];
 
-      const res = await fetch(`${API_BASE_URL}/admin/roles/${role}/permissions`, {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ permissions: newPerms })
-      });
+      // TODO: Backend API for role permissions not yet implemented
+      // const res = await fetch(`${API_BASE_URL}/admin/roles/${role}/permissions`, {
+      //   method: 'PUT',
+      //   headers: { 
+      //     'Authorization': `Bearer ${session?.access_token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({ permissions: newPerms })
+      // });
+      // if (res.ok) {
+      //   setPermissions({ ...permissions, [role]: newPerms });
+      //   toast.success(t('admin.rolePermissions.permissionsUpdated'));
+      // }
 
-      if (res.ok) {
-        setPermissions({ ...permissions, [role]: newPerms });
-        toast.success(t('admin.rolePermissions.permissionsUpdated'));
-      }
+      // Optimistic UI update for now
+      setPermissions({ ...permissions, [role]: newPerms });
+      toast.info('Role permissions backend API coming soon. Changes are local only.');
     } catch {
       toast.error(t('admin.rolePermissions.failedToUpdatePermissions'));
     } finally {
