@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta, date
 from typing import Tuple, Optional
 from sqlalchemy.orm import Session
 import uuid
+import hashlib
 import qrcode
 import io
 import base64
@@ -14,6 +15,9 @@ from models import (
     UserRole, Notification, TicketTier
 )
 from services.subscription_service import SubscriptionService
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _create_notification(db: Session, user_id: int, title: str, message: str,
@@ -107,16 +111,62 @@ def validate_payment_screenshot(db: Session, order: TicketOrder, event: Event) -
     return is_valid, "; ".join(notes_parts)
 
 
-def _generate_qr_code(ticket_code: str, event_id: int) -> str:
-    """Generate a base64 PNG QR code encoding SOUNDIT:ticket_code:event_id"""
-    qr_data = f"SOUNDIT:{ticket_code}:{event_id}"
+def _get_user_reference(order: TicketOrder) -> str:
+    """
+    Compact, deterministic user reference for QR payload.
+    Uses user_id when available, otherwise a stable guest hash.
+    """
+    if order.user_id:
+        return f"U{order.user_id}"
+
+    guest_seed = (order.email or order.phone_number or f"ORDER-{order.id or 'UNKNOWN'}").strip().lower()
+    guest_hash = hashlib.sha1(guest_seed.encode("utf-8")).hexdigest()[:10].upper()
+    return f"G{guest_hash}"
+
+
+def _build_ticket_qr_payload(ticket: Ticket, order: TicketOrder, event: Event) -> str:
+    """
+    Canonical ticket QR payload (backward compatible with existing parser):
+    SOUNDIT:<ticket_code>:<event_id>:TID:<ticket_id>:UID:<user_ref>
+    """
+    user_ref = _get_user_reference(order)
+    return f"SOUNDIT:{ticket.ticket_number}:{event.id}:TID:{ticket.id}:UID:{user_ref}"
+
+
+def _generate_qr_code(payload: str, ticket: Ticket, order: TicketOrder, event: Event) -> str:
+    """Generate a base64 PNG QR image from payload and log debug metadata."""
+    user_ref = _get_user_reference(order)
+    # Log the QR payload (not the image) for debugging/verification.
+    try:
+        logger.info(
+            "Generating ticket QR payload "
+            f"ticket_id={ticket.id} ticket_code={ticket.ticket_number} "
+            f"event_id={event.id} user_ref={user_ref} payload={payload}"
+        )
+        # Also print to stdout to keep local verification simple
+        print(
+            "[QR GEN] "
+            f"ticket_id={ticket.id} ticket_code={ticket.ticket_number} "
+            f"event_id={event.id} user_ref={user_ref} payload={payload}"
+        )
+    except Exception:
+        # Ensure QR generation never fails due to logging
+        pass
+
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(qr_data)
+    qr.add_data(payload)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
     buffered = io.BytesIO()
     img.save(buffered, format="PNG")
-    return f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode()}"
+    data_url = f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode()}"
+
+    # Log the generated data_url length for debugging (column is Text – no truncation risk)
+    logger.debug(
+        f"Ticket QR generated: ticket_id={ticket.id} ticket_code={ticket.ticket_number} "
+        f"payload_len={len(payload)} dataurl_len={len(data_url)}"
+    )
+    return data_url
 
 
 def generate_tickets_from_order(
@@ -146,7 +196,6 @@ def generate_tickets_from_order(
     for i in range(tickets_to_generate):
         ticket_code = f"TKT-{event.id}-{order.user_id}-{uuid.uuid4().hex[:8].upper()}-{i+1}"
         qr_token = f"qr-{uuid.uuid4().hex}"
-        qr_code = _generate_qr_code(ticket_code, event.id)
         
         ticket = Ticket(
             user_id=order.user_id,
@@ -155,11 +204,15 @@ def generate_tickets_from_order(
             ticket_order_id=order.id,
             ticket_number=ticket_code,
             qr_token=qr_token,
-            qr_code=qr_code,
+            qr_code=None,
             status="active",
             is_used=False,
         )
         db.add(ticket)
+        db.flush()  # Needed to get ticket.id before composing QR payload
+
+        payload = _build_ticket_qr_payload(ticket, order, event)
+        ticket.qr_code = _generate_qr_code(payload, ticket, order, event)
         generated.append(ticket)
     
     # Update order

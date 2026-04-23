@@ -680,7 +680,7 @@ const VendorDashboard = () => {
 
             {/* Stats Grid - Only show on overview tab */}
             {activeTab === 'overview' && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[
                         { label: t('vendor.dashboard.totalSalesLabel'), value: `¥${stats.totalSales.toLocaleString()}`, icon: DollarSign, color: 'text-[#d3da0c]' },
                         { label: t('vendor.dashboard.activeListingsLabel'), value: stats.activeListings, icon: Store, color: 'text-blue-400' },

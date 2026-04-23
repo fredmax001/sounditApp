@@ -217,7 +217,22 @@ const Settings = () => {
       return;
     }
 
-    toast.error('Account deletion is not supported by the current backend API');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/auth/me`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+      if (response.ok) {
+        toast.success('Account deleted successfully');
+        logout();
+        navigate('/');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to delete account');
+      }
+    } catch {
+      toast.error('Network error. Please try again.');
+    }
   };
 
   const settingSections = [

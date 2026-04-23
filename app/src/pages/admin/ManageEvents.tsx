@@ -128,6 +128,9 @@ const ManageEvents = () => {
       if (res.ok) {
         toast.success(t('admin.manageEvents.eventDeleted'));
         loadEvents();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.manageEvents.failedToDeleteEvent'));

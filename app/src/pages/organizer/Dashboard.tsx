@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Users, Ticket, TrendingUp, Plus, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, Users, Ticket, TrendingUp, Plus, ArrowRight, Loader2, AlertCircle, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
@@ -55,6 +55,12 @@ const OrganizerDashboard = () => {
       value: businessStats?.tickets_sold || 0,
       icon: Ticket,
       change: t('organizer.dashboard.totalSales')
+    },
+    {
+      label: t('organizer.dashboard.followersLabel') || 'Followers',
+      value: businessStats?.followers_count || 0,
+      icon: Heart,
+      change: t('organizer.dashboard.followersGrowth') || 'Community'
     },
     {
       label: t('organizer.dashboard.revenueLabel'),

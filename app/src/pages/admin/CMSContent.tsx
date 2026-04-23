@@ -110,6 +110,9 @@ const CMSContent = () => {
       if (res.ok) {
         toast.success(t('admin.cmsContent.pageDeleted'));
         loadContent();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.cmsContent.failedToDeletePage'));

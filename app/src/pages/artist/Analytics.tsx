@@ -7,6 +7,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import DashboardPageContainer, { DashboardPageHeader, DashboardCard } from '@/components/dashboard/DashboardPageContainer';
 
 interface Booking {
   id: number | string;
@@ -67,30 +68,32 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <DashboardPageContainer>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DashboardPageContainer>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">{t('artist.analytics.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('artist.analytics.subtitle')}</p>
-        </div>
-        <button
-          onClick={loadAnalytics}
-          className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors"
-        >
-          {t('artist.analytics.refresh')}
-        </button>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('artist.analytics.title')}
+        subtitle={t('artist.analytics.subtitle')}
+        action={
+          <button
+            onClick={loadAnalytics}
+            className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors"
+          >
+            {t('artist.analytics.refresh')}
+          </button>
+        }
+      />
 
+      <div className="space-y-8">
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -189,7 +192,7 @@ const Analytics = () => {
       {/* Genre Performance */}
       <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
         <h2 className="text-lg font-bold text-white mb-4">{t('artist.analytics.genrePerformance')}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {(artistProfile?.genres || []).map((genre: string) => {
             const genreGigs = completedBookings.filter((b: Booking) => b.event_name?.toLowerCase().includes(genre.toLowerCase())).length;
             return (
@@ -201,7 +204,8 @@ const Analytics = () => {
           })}
         </div>
       </div>
-    </div>
+      </div>
+    </DashboardPageContainer>
   );
 };
 

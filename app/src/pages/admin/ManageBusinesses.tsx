@@ -118,6 +118,9 @@ const ManageBusinesses = () => {
       if (res.ok) {
         toast.success(t('admin.manageBusinesses.businessDeleted'));
         loadBusinesses();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.manageBusinesses.failedToDeleteBusiness'));

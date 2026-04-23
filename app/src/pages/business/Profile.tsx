@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL } from '@/config/api';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -185,14 +186,14 @@ const Profile = () => {
 
     try {
       const { session } = useAuthStore.getState();
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/business/profile`, {
+      const response = await fetch(`${API_BASE_URL}/business/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          business_name: businessProfile.business_name,
+          business_name: profileData.businessName || businessProfile.business_name,
           gallery_images: updatedGallery,
         }),
       });
@@ -323,7 +324,7 @@ const Profile = () => {
                 <p className="text-gray-500 text-sm">{t('business.profile.events')}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{profile?.followers_count || 0}</p>
+                <p className="text-2xl font-bold text-white">{businessProfile?.followers_count || 0}</p>
                 <p className="text-gray-500 text-sm">{t('business.profile.followers')}</p>
               </div>
               <div className="text-center">
@@ -470,7 +471,7 @@ const Profile = () => {
           className="hidden"
         />
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {/* Display existing gallery images */}
           {galleryImages.map((imageUrl, index) => (
             <div key={index} className="aspect-square rounded-lg overflow-hidden border border-white/10 relative group">

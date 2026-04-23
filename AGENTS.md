@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-04-17
+2026-04-23
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-04-17
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-04-23
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,34 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 29. Admin Subscriptions "Failed to load" Toast Fix (2026-04-23)
+- **Problem**: Admin Subscriptions page loaded data successfully but still showed a "Failed to load" toast.
+- **Root cause**: The `useEffect` in `AdminSubscriptions.tsx` fired `fetchSubscriptions()` before the JWT token was ready (during auth state initialization). The unauthenticated request returned 401, triggering the error toast. Then the auth state updated, a second request succeeded, and data rendered — but the error toast remained.
+- **Fix**: Added `if (!token) return;` guard to `fetchSubscriptions()`, added `AbortController` to cancel in-flight requests on cleanup/filter changes, and filtered out `CanceledError`/`AbortError` from toast notifications. Also added `token` to the effect dependency array with early-return guard to prevent navigation race conditions.
+
+### 28. Admin Delete Buttons, Event Deletion & Order Rejection Fixes (2026-04-22)
+- **Missing DELETE endpoints for artists and businesses**
+  - Root cause: `ManageArtists.tsx` called `DELETE /admin/artists/${id}` and `ManageBusinesses.tsx` called `DELETE /admin/businesses/${id}`, but neither endpoint existed in `api/admin.py`, causing all admin artist/business delete buttons to fail with 404.
+  - Fix: Added `DELETE /admin/artists/{artist_id}` and `DELETE /admin/businesses/{business_id}` to `api/admin.py`.
+  - `delete_artist` cleans up `ArtistReview`, `ArtistFollow`, `ArtistAvailability`, `EventArtist`, `BookingRequest` rows before deleting the profile, then resets the user's role to `user`.
+  - `delete_business` soft-deletes the associated user account (same anonymization pattern as `delete_user`) to preserve events and data integrity.
+- **Admin event hard delete crashed on PostgreSQL FK constraints**
+  - Root cause: `api/admin.py::delete_event` only cleaned up `EventArtist`, `EventFollow`, and `TicketTier/Ticket` rows. It missed `EventVendor`, `CommunityPost`, `TablePackage`, `TableOrder`, `TicketOrder`, `Recap`, `EventPaymentQR`, and `PromoCode` — causing FK constraint violations on production PostgreSQL.
+  - Fix: Added comprehensive pre-cleanup for all child relationships before deleting the event. `Recap` and `CommunityPost` event references are nulled out rather than deleted.
+- **Vendor delete crashed on ProductOrder FK constraints**
+  - Root cause: `api/admin.py::delete_vendor` called `db.query(Product).filter(...).delete()` which bypasses ORM cascades and fails when `ProductOrder` rows reference those products.
+  - Fix: Changed to iterate products, delete their `ProductOrder` rows first, then delete each product via ORM.
+- **Vendor product delete crashed on ProductOrder FK constraints**
+  - Root cause: `api/vendors.py::delete_product` hard-deleted a product without checking for existing `ProductOrder` rows.
+  - Fix: Added a check — if orders exist, returns 400 "Cannot delete product with existing orders".
+- **Events "don't delete" for organizers/businesses**
+  - Root cause: `api/events.py::delete_event` (organizer) performs a soft delete by setting `status = CANCELLED`. But `api/events.py::list_my_events` returned ALL events including cancelled ones, so "deleted" events still appeared in the dashboard.
+  - Fix: Added `Event.status != EventStatus.CANCELLED` filter to `list_my_events`.
+- **Recap delete crashed on RecapLike FK constraints**
+  - Root cause: `api/recaps.py::delete_recap` deleted the recap without deleting `RecapLike` rows first. The `Recap.likes` relationship has no `cascade="all, delete-orphan"`.
+  - Fix: Added `db.query(RecapLike).filter(...).delete()` before `db.delete(recap)`.
+- **Build status**: Frontend built successfully, backend imports cleanly.
 
 ### 27. Post-Deployment UI Regression Fixes (2026-04-17)
 - **Missing `artistDetail.followed` translation key**
@@ -689,3 +717,59 @@
   - Fixed `.env` `DATABASE_URL` placeholder issue that caused post-deploy startup crashes.
   - PostgreSQL schema migrations for new columns executed live.
 - **Build Status**: Backend imports OK, frontend build passes, deployed live to sounditent.com.
+
+
+### 28. Organizer Dashboard — Follower Count Consistency Fix (2026-04-21)
+- **Problem**: Followers showed correctly in the business Followers tab (`GET /business/followers` returned 3 followers), but the organizer public profile, business dashboard, and vendor detail pages all showed 0 followers. Other stats were also inconsistent across views.
+- **Root causes**:
+  1. `OrganizerProfile` and `VendorProfile` models lacked a `followers_count` column — `api/social.py` follow/unfollow endpoints crashed with `AttributeError` when mutating these counters.
+  2. `api/profiles.py` public profile serializer did not compute or return `followers_count` for organizers, businesses, or vendors.
+  3. `api/dashboard_stats.py` `BusinessStats` schema and response omitted `followers_count` entirely.
+  4. `api/vendors.py` public vendor serialization did not include `followers_count`.
+  5. `api/business.py` `BusinessProfileResponse` was a separate inline schema missing `followers_count`, `total_revenue`, and `events_count`.
+  6. Frontend `PublicProfile.tsx` only rendered follower counts for `artist_profile`, ignoring organizers and vendors.
+  7. Frontend `business/Profile.tsx` read `profile?.followers_count` (User object, always 0) instead of `businessProfile?.followers_count`.
+  8. Frontend `VendorDetail.tsx` did not display or update follower counts.
+  9. Frontend dashboard stores (`dashboardStore.ts`) had outdated TypeScript types without `followers_count`.
+- **Fixes applied**:
+  - **Backend**
+    - `models.py`: Added `followers_count = Column(Integer, default=0)` to `OrganizerProfile` and `VendorProfile`.
+    - `schemas.py`: Added `followers_count` to `OrganizerProfileResponse`, `VendorProfileResponse`, `BusinessProfileResponse`, and `BusinessStats`.
+    - `api/profiles.py`: Computes `followers_count` dynamically from `OrganizerFollow` / `VendorFollow` tables for all profile types.
+    - `api/dashboard_stats.py`: Queries `OrganizerFollow` count and includes it in `BusinessStats`.
+    - `api/vendors.py`: `_serialize_vendor` now returns `followers_count`.
+    - `api/business.py`: Aligned inline `BusinessProfileResponse` with `schemas.py`; returns `followers_count`, `total_revenue`, and `events_count`.
+    - `api/social.py`: Added `_resolve_organizer()` helper so organizer follow/unfollow endpoints gracefully accept `business_profile.id` and auto-create a linked `OrganizerProfile` if needed. Made vendor/organizer counter mutations resilient with `getattr(..., 'followers_count', None)`.
+    - `scripts/migrate_followers_count.py`: Created migration to add the new columns for both SQLite and PostgreSQL. Ran locally.
+  - **Frontend**
+    - `PublicProfile.tsx`: Added `followers_count` to all role-specific interfaces, displays followers for organizer and vendor profiles, and optimistically updates local state on follow/unfollow.
+    - `VendorDetail.tsx`: Added `followers_count` to Vendor interface, displays it, and updates count after follow/unfollow.
+    - `business/Dashboard.tsx` & `organizer/Dashboard.tsx`: Added followers stat card using `bizStats.followers_count`.
+    - `business/Profile.tsx`: Changed follower count source from `profile?.followers_count` to `businessProfile?.followers_count`.
+    - `store/authStore.ts`: Added `followers_count` to `BusinessProfile` interface.
+    - `store/dashboardStore.ts`: Added `followers_count` to `business_stats` TypeScript type.
+  - **Build**: Frontend compiles successfully (`npm run build` passes). Copied `app/dist/` to root `dist/`.
+
+
+### 29. Delete Button Fixes — Platform-Wide Audit (2026-04-21)
+- **Problem**: User reported delete buttons not working across the entire platform.
+- **Root causes identified via audit**:
+  1. `artist/Recaps.tsx` — Delete handler was a complete stub; it showed a success toast but never made an API call.
+  2. `user/Settings.tsx` — Account deletion showed a hardcoded error toast (`"Account deletion is not supported..."`) instead of calling the backend.
+  3. `business/Profile.tsx` — Gallery image removal PUT request used `businessProfile.business_name` (stale store value) instead of the current form value, causing the name to revert on every gallery edit.
+  4. `api/admin.py` — `POST /admin/disabled-events/{id}` and `DELETE /admin/disabled-events/{id}` were no-ops; they returned success messages without touching the database.
+  5. `store/adminStore.ts` — `unfeatureEvent` called `DELETE /admin/events/${id}/feature` but the backend endpoint did not exist (only `DELETE /social/admin/feature/{feature_id}` existed).
+  6. `api/media.py` — `delete_file` checked `file_path.relative_to(user_dir)` where `user_dir = base_path / user_id`, but almost all uploads are stored in subfolders (`events/`, `vendors/`, `tickets/`, etc.) rather than per-user directories. This caused a `ValueError` on every deletion, returning HTTP 403.
+  7. Multiple admin pages (`ManageEvents`, `ManageVendors`, `ManageArtists`, `ManageBusinesses`, `CMSContent`, `RolePermissions`) had delete handlers that silently swallowed 4xx/5xx responses — no toast, no console error, no user feedback.
+- **Fixes applied**:
+  - **Backend**
+    - `api/admin.py`: Added `POST /admin/events/{event_id}/feature` and `DELETE /admin/events/{event_id}/feature` endpoints that set `event.is_featured` and manage `FeaturedItem` records.
+    - `api/admin.py`: Fixed `disable_event` to set `event.status = EventStatus.REJECTED` and `enable_event` to set `event.status = EventStatus.APPROVED`, with actual `db.commit()`.
+    - `api/auth_password.py`: Added `DELETE /auth/me` self-service account deletion endpoint (soft delete — anonymizes PII and sets status to `INACTIVE`). Prevents admin self-deletion.
+    - `api/media.py`: Fixed `delete_file` security check from `file_path.relative_to(user_dir)` to `file_path.relative_to(base_path)` so files in subfolders can actually be deleted.
+  - **Frontend**
+    - `artist/Recaps.tsx`: Wired `handleDelete(id)` to `DELETE /recaps/${id}` with auth header and proper error handling.
+    - `user/Settings.tsx`: Wired `handleDeleteAccount` to `DELETE /auth/me`, then calls `logout()` and navigates home on success.
+    - `business/Profile.tsx`: Gallery removal now uses `profileData.businessName || businessProfile.business_name` so unsaved name changes are preserved.
+    - `admin/ManageEvents.tsx`, `ManageVendors.tsx`, `ManageArtists.tsx`, `ManageBusinesses.tsx`, `CMSContent.tsx`, `RolePermissions.tsx`: Added `else` blocks to all delete handlers that parse `err.detail` and show `toast.error()` on failure.
+  - **Build**: Frontend compiles successfully (`npm run build` passes). Copied `app/dist/` to root `dist/`.

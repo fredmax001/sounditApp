@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
+import { useAuthStore } from '@/store/authStore';
 import {
   ChevronLeft,
   MapPin,
@@ -40,6 +41,7 @@ interface PublicProfileData {
     organization_name: string;
     description?: string;
     events_count: number;
+    followers_count: number;
     is_verified: boolean;
   };
   business_profile?: {
@@ -47,6 +49,7 @@ interface PublicProfileData {
     business_name: string;
     business_type?: string[];
     description?: string;
+    followers_count: number;
     is_verified: boolean;
   };
   vendor_profile?: {
@@ -56,6 +59,7 @@ interface PublicProfileData {
     vendor_type?: string;
     rating?: number;
     reviews_count?: number;
+    followers_count: number;
   };
 }
 
@@ -70,6 +74,7 @@ interface PublicEvent {
 export default function PublicProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { session, isAuthenticated } = useAuthStore();
   const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [events, setEvents] = useState<PublicEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,7 +151,7 @@ export default function PublicProfile() {
   useEffect(() => {
     const targetId = profile?.organizer_profile?.id || profile?.business_profile?.id;
     if (!targetId) return;
-    const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
+    const token = session?.access_token;
     if (!token) return;
     fetch(`${API_BASE_URL}/social/following`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -163,8 +168,8 @@ export default function PublicProfile() {
   const handleFollowToggle = async () => {
     const targetId = profile?.organizer_profile?.id || profile?.business_profile?.id;
     if (!targetId) return;
-    const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
-    if (!token) {
+    const token = session?.access_token;
+    if (!token || !isAuthenticated) {
       navigate('/login', { state: { from: `/profiles/${id}` } });
       return;
     }
@@ -177,6 +182,24 @@ export default function PublicProfile() {
       });
       if (res.ok) {
         setIsFollowing(!isFollowing);
+        // Optimistically update follower count in profile state
+        setProfile(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev };
+          if (updated.organizer_profile) {
+            updated.organizer_profile = {
+              ...updated.organizer_profile,
+              followers_count: Math.max(0, (updated.organizer_profile.followers_count || 0) + (isFollowing ? -1 : 1))
+            };
+          }
+          if (updated.business_profile) {
+            updated.business_profile = {
+              ...updated.business_profile,
+              followers_count: Math.max(0, (updated.business_profile.followers_count || 0) + (isFollowing ? -1 : 1))
+            };
+          }
+          return updated;
+        });
         toast.success(isFollowing ? 'Unfollowed' : 'Now following');
       } else {
         const err = await res.json().catch(() => ({}));
@@ -336,6 +359,10 @@ export default function PublicProfile() {
               <Users className="w-4 h-4 text-gray-400" />
               <span>{profile.vendor_profile.reviews_count || 0} reviews</span>
             </div>
+            <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
+              <Users className="w-4 h-4 text-pink-400" />
+              <span>{profile.vendor_profile.followers_count || 0} followers</span>
+            </div>
           </div>
         )}
 
@@ -350,6 +377,12 @@ export default function PublicProfile() {
               <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
                 <Users className="w-4 h-4 text-gray-400" />
                 <span>{profile.artist_profile.followers_count || 0} followers</span>
+              </div>
+            )}
+            {profile.organizer_profile && (
+              <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
+                <Users className="w-4 h-4 text-pink-400" />
+                <span>{profile.organizer_profile.followers_count || 0} followers</span>
               </div>
             )}
           </div>

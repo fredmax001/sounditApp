@@ -149,6 +149,7 @@ export interface BusinessProfile {
   total_events: number;
   total_sales: number;
   rating: number;
+  followers_count: number;
 }
 
 export interface ArtistProfile {
@@ -164,6 +165,10 @@ export interface ArtistProfile {
   gallery_images: string[];
   soundcloud_url: string;
   spotify_url: string;
+  apple_music_url: string;
+  hearthis_url: string;
+  youtube_url: string;
+  audiomack_url: string;
   instagram: string;
   is_available_for_booking: boolean;
   booking_fee_range: string;
@@ -369,12 +374,14 @@ export const useAuthStore = create<AuthState>()(
 
                 return;
               } else {
-                // Token invalid, remove it
+                // Token invalid, remove it and clear auth state
                 localStorage.removeItem('auth-token');
+                set({ user: null, profile: null, session: null, token: null, isAuthenticated: false });
               }
             } catch (error) {
               console.error('Token validation error:', error);
               localStorage.removeItem('auth-token');
+              set({ user: null, profile: null, session: null, token: null, isAuthenticated: false });
             }
           }
 
@@ -1170,7 +1177,18 @@ export const useAuthStore = create<AuthState>()(
                   is_verified: backendUser.is_verified,
                   verification_status: backendUser.is_verified ? 'verified' : 'unverified',
                 };
-                set({ profile: updatedProfile, selectedCity: backendUser.preferred_city || null });
+                // Also update artist/business profiles if present in response
+                const updates: Partial<AuthState> = {
+                  profile: updatedProfile,
+                  selectedCity: backendUser.preferred_city || null
+                };
+                if (backendUser.artist_profile !== undefined) {
+                  updates.artistProfile = backendUser.artist_profile;
+                }
+                if (backendUser.business_profile !== undefined) {
+                  updates.businessProfile = backendUser.business_profile;
+                }
+                set(updates);
               }
             }
           }
@@ -1215,7 +1233,7 @@ export const useAuthStore = create<AuthState>()(
           if (response.ok) {
             const data = await response.json();
             // Backend returns nested { user, artist_profile }; extract artist_profile
-            const artistProfile = data.artist_profile || data;
+            const artistProfile = data.artist_profile !== undefined ? data.artist_profile : data;
             set({ artistProfile });
           }
         } catch (error) {
@@ -1357,7 +1375,9 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(errorData.detail || 'Failed to update artist profile');
           }
 
-          const updated = await response.json();
+          const responseData = await response.json();
+          // Backend returns { message, profile } or the profile directly
+          const updated = responseData.profile || responseData;
           set({ artistProfile: updated });
         } catch (error: unknown) {
           console.error('Artist profile update error:', error);

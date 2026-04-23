@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Ticket, MessageCircle, Copy } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Ticket, MessageCircle, Copy, ChevronRight } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -32,6 +32,7 @@ export default function EventDetail() {
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
+  const [isGuestOrder, setIsGuestOrder] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -141,11 +142,9 @@ export default function EventDetail() {
       toast.error(t('eventDetail.pleaseFillAllFields'));
       return;
     }
+
     const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
-    if (!token) {
-      navigate('/login', { state: { from: `/events/${id}` } });
-      return;
-    }
+    const isGuest = !token;
 
     setSubmitting(true);
     const tier = currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId);
@@ -153,30 +152,31 @@ export default function EventDetail() {
     const tierPrice = typeof rawTierPrice === 'number' && !isNaN(rawTierPrice) ? rawTierPrice : undefined;
     const unitPrice = tierPrice ?? currentEvent.ticket_price ?? 0;
 
-    const payload = {
-      event_id: currentEvent.id,
-      payer_name: payerName.trim(),
-      email: email.trim(),
-      phone_number: phoneNumber.trim(),
-      quantity,
-      payment_amount: unitPrice * quantity,
-      ticket_tier_id: selectedTierId ? Number(selectedTierId) : undefined,
-      payer_notes: payerNotes.trim() || undefined,
-    };
+    const formData = new FormData();
+    formData.append('event_id', String(currentEvent.id));
+    formData.append('payer_name', payerName.trim());
+    formData.append('email', email.trim());
+    formData.append('phone_number', phoneNumber.trim());
+    formData.append('quantity', String(quantity));
+    formData.append('payment_amount', String(unitPrice * quantity));
+    if (selectedTierId) formData.append('ticket_tier_id', selectedTierId);
+    if (payerNotes.trim()) formData.append('payer_notes', payerNotes.trim());
 
     try {
-      const res = await fetch(`${API_BASE_URL}/tickets/order`, {
+      const endpoint = isGuest ? '/tickets/guest-order' : '/tickets/order';
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        headers,
+        body: formData,
       });
       const data = await res.json();
       if (res.ok) {
         toast.success(t('eventDetail.orderSubmitted'));
         setRecentOrder({ status: data.status || 'pending', ticket_qr: undefined, ticket_code: undefined });
+        setIsGuestOrder(isGuest);
         setShowOrderModal(false);
         setShowSuccessModal(true);
       } else {
@@ -380,31 +380,34 @@ export default function EventDetail() {
                 </div>
               )}
 
-              {/* Business */}
+              {/* Business / Organizer Contact Card */}
               {currentEvent.business && (
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold text-white mb-4">
-                    {t('eventDetail.business')}
+                    {t('eventDetail.organizedBy') || 'Organized By'}
                   </h2>
                   <Link
                     to={`/profiles/${currentEvent.business.user_id}`}
-                    className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                    className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors group"
                   >
-                    <img
-                      src={currentEvent.business.logo_url || '/placeholder.jpg'}
-                      alt={currentEvent.business.business_name}
-                      className="w-16 h-16 rounded-xl object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-                    />
-                    <div>
-                      <p className="text-white font-semibold flex items-center gap-2">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#1a1a1a] flex-shrink-0">
+                      <img
+                        src={currentEvent.business.logo_url || currentEvent.business.avatar_url || '/default-avatar.jpg'}
+                        alt={currentEvent.business.business_name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.jpg'; }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold flex items-center gap-2 truncate">
                         {currentEvent.business.business_name}
                         {currentEvent.business.verification_badge && <VerificationBadge size="sm" />}
                       </p>
-                      <p className="text-white/50 text-sm">
-                        {currentEvent.business.verification_badge ? t('eventDetail.verifiedBusiness') : t('eventDetail.business')}
+                      <p className="text-[#d3da0c] text-sm mt-0.5">
+                        {currentEvent.business.verification_badge ? (t('eventDetail.verifiedOrganizer') || 'Verified Organizer') : (t('eventDetail.viewProfile') || 'View Profile')}
                       </p>
                     </div>
+                    <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#d3da0c] transition-colors flex-shrink-0" />
                   </Link>
                 </div>
               )}
@@ -485,10 +488,6 @@ export default function EventDetail() {
                           toast.error(t('eventDetail.pleaseSelectTicketType'));
                           return;
                         }
-                        if (!profile) {
-                          navigate('/login', { state: { from: `/events/${id}` } });
-                          return;
-                        }
                         setShowQrModal(true);
                       }}
                       className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer"
@@ -506,13 +505,7 @@ export default function EventDetail() {
                     </div>
 
                     <button
-                      onClick={() => {
-                        if (!profile) {
-                          navigate('/login', { state: { from: `/events/${id}` } });
-                          return;
-                        }
-                        setShowQrModal(true);
-                      }}
+                      onClick={() => setShowQrModal(true)}
                       className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer mb-4"
                     >
                       {t('eventDetail.buyTicket')}
@@ -605,6 +598,7 @@ export default function EventDetail() {
                   required
                 />
               </div>
+
               <div>
                 <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')} *</label>
                 <div className="flex items-center gap-3">
@@ -752,22 +746,28 @@ export default function EventDetail() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-500" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.orderSuccessTitle')}</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.orderPendingTitle')}</h3>
             <p className="text-gray-400 text-sm mb-6">
-              {t('eventDetail.orderSubmittedDesc')}
+              {t('eventDetail.orderPendingDesc')}
             </p>
             <div className="flex flex-col gap-3">
+              {isGuestOrder ? (
+                <p className="text-gray-400 text-sm mb-4">
+                  {t('eventDetail.guestOrderDesc') || 'Your ticket QR code will be sent to your email once the organizer confirms your payment.'}
+                </p>
+              ) : (
+                <button
+                  onClick={() => { setShowSuccessModal(false); navigate('/tickets'); }}
+                  className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+                >
+                  {t('eventDetail.viewMyTickets')}
+                </button>
+              )}
               <button
-                onClick={() => { setShowSuccessModal(false); navigate('/tickets'); }}
-                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
-              >
-                {t('eventDetail.viewMyTickets')}
-              </button>
-              <button
-                onClick={() => setShowSuccessModal(false)}
+                onClick={() => { setShowSuccessModal(false); navigate('/'); }}
                 className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
               >
-                {t('eventDetail.continueBrowsing')}
+                {t('eventDetail.returnHome')}
               </button>
             </div>
           </div>

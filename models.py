@@ -263,6 +263,8 @@ class ArtistProfile(Base):
     apple_music_url = Column(String(500), nullable=True)
     soundcloud_url = Column(String(500), nullable=True)
     hearthis_url = Column(String(500), nullable=True)
+    youtube_url = Column(String(500), nullable=True)
+    audiomack_url = Column(String(500), nullable=True)
     
     # Booking settings
     starting_price = Column(Float, nullable=True)
@@ -331,6 +333,7 @@ class OrganizerProfile(Base):
     # Stats
     events_count = Column(Integer, default=0)
     total_revenue = Column(Float, default=0.0)
+    followers_count = Column(Integer, default=0)
     
     # Link to unified BusinessProfile
     business_profile_id = Column(Integer, ForeignKey("business_profiles.id"), nullable=True)
@@ -490,6 +493,7 @@ class VendorProfile(Base):
     # Stats
     rating = Column(Float, default=0.0)
     reviews_count = Column(Integer, default=0)
+    followers_count = Column(Integer, default=0)
     
     # Verification
     is_verified = Column(Boolean, default=False)
@@ -678,7 +682,7 @@ class PayoutRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # User requesting payout
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Amount
     amount = Column(Float, nullable=False)
@@ -923,7 +927,7 @@ class Ticket(Base):
     # Ticket Info
     ticket_number = Column(String(50), unique=True, nullable=False)
     qr_token = Column(String(255), unique=True, index=True, nullable=False)
-    qr_code = Column(String(1500), nullable=True)
+    qr_code = Column(Text, nullable=True)  # base64 PNG – needs Text, not String(N)
     
     # Status
     status = Column(String(50), default="active", index=True)
@@ -1874,7 +1878,7 @@ class TicketOrder(Base):
     ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"), nullable=True)
     
     # QR Code for approved ticket
-    ticket_qr_code = Column(String(1500), nullable=True)  # URL to generated QR
+    ticket_qr_code = Column(Text, nullable=True)  # base64 PNG – needs Text, not String(N)
     ticket_code = Column(String(100), unique=True, nullable=True)  # Unique ticket code
     
     # Auto-approval tracking
@@ -1922,7 +1926,7 @@ class ProductOrder(Base):
     status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING)
     
     # QR Code for approved order
-    order_qr_code = Column(String(1500), nullable=True)
+    order_qr_code = Column(Text, nullable=True)  # base64 PNG – needs Text, not String(N)
     order_code = Column(String(255), unique=True, nullable=True, index=True)
     
     # Vendor approval
@@ -2066,7 +2070,7 @@ class TableOrder(Base):
     admin_notes = Column(Text, nullable=True)
     
     # QR Code for approved table order
-    ticket_qr_code = Column(String(1500), nullable=True)
+    ticket_qr_code = Column(Text, nullable=True)  # base64 PNG – needs Text, not String(N)
     ticket_code = Column(String(100), unique=True, nullable=True)
     
     # Usage tracking
@@ -2215,3 +2219,24 @@ class PageVisit(Base):
     session_id = Column(String(100), nullable=True, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class StaffMember(Base):
+    """Business staff members (sub-accounts for events)"""
+    __tablename__ = "staff_members"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    full_name = Column(String(200), nullable=False)
+    login = Column(String(100), nullable=False, unique=True)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(20), nullable=True)
+    role = Column(String(50), nullable=False, default="Scanner")
+    status = Column(String(20), nullable=False, default="Pending")  # Active, Pending
+    
+    # Permissions as JSON
+    permissions = Column(JSON, nullable=True, default=dict)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

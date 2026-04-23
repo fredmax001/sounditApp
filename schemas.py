@@ -290,10 +290,20 @@ class ArtistProfileBase(BaseModel):
     spotify_url: Optional[str] = None
     apple_music_url: Optional[str] = None
     soundcloud_url: Optional[str] = None
+    hearthis_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    audiomack_url: Optional[str] = None
     artist_type: Optional[str] = "Artist"  # Artist, DJ, or MC
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
     payment_instructions: Optional[str] = None
+
+    @field_validator('genre_tags', mode='before')
+    @classmethod
+    def validate_genre_tags(cls, v):
+        if v is None:
+            return []
+        return v
 
 
 class ArtistProfileCreate(ArtistProfileBase):
@@ -349,6 +359,7 @@ class BusinessProfileResponse(BusinessProfileBase):
     is_verified: bool
     total_revenue: Optional[float] = 0.0
     events_count: Optional[int] = 0
+    followers_count: int = 0
     gallery_images: Optional[List[str]] = None
     created_at: datetime
     
@@ -374,6 +385,7 @@ class OrganizerProfileResponse(OrganizerProfileBase):
     is_verified: bool = False
     events_count: int = 0
     total_revenue: float = 0.0
+    followers_count: int = 0
     created_at: datetime
     
     class Config:
@@ -470,6 +482,7 @@ class VendorProfileResponse(VendorProfileBase):
     user_id: int
     rating: float = 0.0
     reviews_count: int = 0
+    followers_count: int = 0
     created_at: datetime
     
     class Config:
@@ -702,6 +715,7 @@ class EventBusiness(BaseModel):
     user_id: int
     business_name: str
     logo_url: Optional[str] = None
+    avatar_url: Optional[str] = None
     verification_badge: bool = False
     
     class Config:
@@ -1144,6 +1158,7 @@ class BusinessStats(BaseModel):
     platform_commission: float = 0.0
     net_earnings: float = 0.0
     pending_artist_payments: float
+    followers_count: int = 0
 
 
 class ArtistStats(BaseModel):

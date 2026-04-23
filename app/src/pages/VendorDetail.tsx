@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2 } from 'lucide-react';
+import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
@@ -33,6 +33,7 @@ interface Vendor {
   wechat?: string;
   rating?: number;
   reviews_count?: number;
+  followers_count?: number;
   is_verified?: boolean;
   is_featured?: boolean;
   products?: Product[];
@@ -188,6 +189,10 @@ export default function VendorDetail() {
                     <span className="text-gray-400">({vendor.reviews_count || 0} {t('vendorDetail.reviews') || 'reviews'})</span>
                   </div>
                 )}
+                <div className="flex items-center gap-1 text-pink-400">
+                  <Users className="w-4 h-4" />
+                  <span>{vendor.followers_count || 0} followers</span>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-4">
@@ -204,6 +209,7 @@ export default function VendorDetail() {
                           });
                           if (res.ok) {
                             setIsFollowing(false);
+                            setVendor(prev => prev ? { ...prev, followers_count: Math.max(0, (prev.followers_count || 0) - 1) } : prev);
                             toast.success(t('vendorDetail.unfollowed') || 'Unfollowed');
                           }
                         } else {
@@ -213,6 +219,7 @@ export default function VendorDetail() {
                           });
                           if (res.ok) {
                             setIsFollowing(true);
+                            setVendor(prev => prev ? { ...prev, followers_count: (prev.followers_count || 0) + 1 } : prev);
                             toast.success(t('vendorDetail.followed') || 'Following');
                           } else {
                             const err = await res.json();

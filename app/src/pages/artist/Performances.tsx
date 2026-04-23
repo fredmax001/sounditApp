@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import DashboardPageContainer, { DashboardPageHeader, DashboardCard } from '@/components/dashboard/DashboardPageContainer';
 
 interface Booking {
   id: number;
@@ -63,22 +64,24 @@ const Performances = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <DashboardPageContainer>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DashboardPageContainer>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">{t('artist.performances.title')}</h1>
-        <p className="text-gray-400 mt-1">{t('artist.performances.subtitle')}</p>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('artist.performances.title')}
+        subtitle={t('artist.performances.subtitle')}
+      />
 
+      <div className="space-y-8">
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -209,7 +212,8 @@ const Performances = () => {
           <p className="text-gray-500 text-center py-8">{t('artist.performances.noCompleted')}</p>
         )}
       </div>
-    </div>
+      </div>
+    </DashboardPageContainer>
   );
 };
 

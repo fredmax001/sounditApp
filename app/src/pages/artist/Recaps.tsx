@@ -96,11 +96,19 @@ export default function ArtistRecaps() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (id: string | number) => {
     if (!confirm(t('artist.recaps.deleteConfirm'))) return;
 
     try {
-      // Note: Delete endpoint would need to be implemented
+      const token = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/recaps/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Delete failed');
+      }
       toast.success(t('artist.recaps.deleteSuccess'));
       loadRecaps();
     } catch {
@@ -137,7 +145,7 @@ export default function ArtistRecaps() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
         {[
           { label: t('artist.recaps.totalRecaps'), value: recaps.length, icon: Video },
           { label: t('artist.recaps.videos'), value: recaps.filter(r => r.type === 'video').length, icon: FileVideo },
@@ -181,7 +189,7 @@ export default function ArtistRecaps() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {recaps.map((recap, index) => (
             <motion.div
               key={recap.id}
@@ -233,7 +241,7 @@ export default function ArtistRecaps() {
 
                 {/* Delete Button */}
                 <button
-                  onClick={() => handleDelete()}
+                  onClick={() => handleDelete(recap.id)}
                   className="absolute top-2 right-2 w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <Trash2 className="w-4 h-4 text-white" />

@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { useTranslation } from 'react-i18next';
+import DashboardPageContainer, { DashboardPageHeader, DashboardCard } from '@/components/dashboard/DashboardPageContainer';
 
 interface Booking {
   id: number;
@@ -149,42 +150,40 @@ export default function ArtistBookings() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d3da0c]"></div>
-      </div>
+      <DashboardPageContainer>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d3da0c]"></div>
+        </div>
+      </DashboardPageContainer>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">{t('artist.bookings.title')}</h1>
-          <p className="text-gray-400 mt-1">
-            {t('artist.bookings.subtitle')}
-          </p>
-        </div>
-        
-        {/* Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#d3da0c] focus:outline-none"
-          >
-            <option value="all">{t('artist.bookings.filter.all')}</option>
-            <option value="pending">{t('artist.bookings.filter.pending')}</option>
-            <option value="accepted">{t('artist.bookings.filter.accepted')}</option>
-            <option value="completed">{t('artist.bookings.filter.completed')}</option>
-            <option value="rejected">{t('artist.bookings.filter.rejected')}</option>
-          </select>
-        </div>
-      </div>
+    <DashboardPageContainer>
+      <DashboardPageHeader
+        title={t('artist.bookings.title')}
+        subtitle={t('artist.bookings.subtitle')}
+        action={
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#d3da0c] focus:outline-none"
+            >
+              <option value="all">{t('artist.bookings.filter.all')}</option>
+              <option value="pending">{t('artist.bookings.filter.pending')}</option>
+              <option value="accepted">{t('artist.bookings.filter.accepted')}</option>
+              <option value="completed">{t('artist.bookings.filter.completed')}</option>
+              <option value="rejected">{t('artist.bookings.filter.rejected')}</option>
+            </select>
+          </div>
+        }
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="space-y-8">
+      {/* Stats -->
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
         {[
           { label: t('artist.bookings.stat.total'), value: bookings.length, color: 'text-white' },
           { label: t('artist.bookings.stat.pending'), value: bookings.filter(b => b.status === 'pending').length, color: 'text-yellow-400' },
@@ -402,6 +401,7 @@ export default function ArtistBookings() {
           ))
         )}
       </div>
-    </div>
+      </div>
+    </DashboardPageContainer>
   );
 }

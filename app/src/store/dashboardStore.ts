@@ -40,6 +40,7 @@ export interface DashboardStats {
         platform_commission: number;
         net_earnings: number;
         pending_artist_payments: number;
+        followers_count?: number;
     };
     artist_stats?: {
         followers: number;

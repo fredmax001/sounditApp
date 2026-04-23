@@ -169,7 +169,8 @@
     "showLess": "Show less",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
-    "available": "Available"
+    "available": "Available",
+    "actions": "Actions"
   },
   "auth": {
     "login": {
@@ -478,6 +479,7 @@
       "totalRevenue": "Total Revenue",
       "pendingArtistPayments": "Pending Artist Payments",
       "liveEvents": "Live Events",
+      "followers": "Followers",
       "manageAll": "Manage All",
       "noEventsYet": "No events yet",
       "createFirstEventPrompt": "Create your first event to get started",
@@ -620,12 +622,12 @@
     },
     "staff": {
       "pleaseEnterEmail": "Please enter an email address",
-      "pleaseEnterValidEmail": "Please enter a valid email address",
+      "pleaseEnterValidEmail": "Please enter a valid email",
       "invitationSent": "Invitation sent to {{email}}",
       "failedToSendInvitation": "Failed to send invitation",
       "staffMemberRemoved": "Staff member removed",
-      "title": "Staff",
-      "subtitle": "Invite staff members and assign roles to help manage your events.",
+      "title": "Staff Management",
+      "subtitle": "Manage your team members and their permissions",
       "inviteStaff": "Invite Staff",
       "totalStaff": "Total Staff",
       "active": "Active",
@@ -646,7 +648,32 @@
       "roleViewerDesc": "Can only view events and analytics",
       "cancel": "Cancel",
       "sending": "Sending...",
-      "sendInvite": "Send Invite"
+      "sendInvite": "Send Invite",
+      "noStaffYet": "No staff members yet",
+      "inviteToStart": "Invite staff members to get started",
+      "fullName": "Full Name",
+      "login": "Login",
+      "password": "Password",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "permissions": "Permissions",
+      "qrScanner": "QR Scanner",
+      "qrScannerDesc": "Allow staff to scan tickets and check-ins",
+      "checkedInInfo": "Check-in Info",
+      "checkedInInfoDesc": "Allow staff to view checked-in guest lists",
+      "sendInvitationEmail": "Send invitation email",
+      "sendEmailDesc": "Notify staff member via email",
+      "addStaffMember": "Add Staff Member",
+      "enterFullName": "Enter full name",
+      "enterLogin": "Enter login username",
+      "enterPassword": "Enter password",
+      "enterEmail": "Enter email address",
+      "enterPhone": "Enter phone number",
+      "pleaseEnterFullName": "Please enter full name",
+      "pleaseEnterLogin": "Please enter login",
+      "pleaseEnterPassword": "Please enter password",
+      "remove": "Remove"
     },
     "tableReservations": {
       "failedToLoadData": "Failed to load data",
@@ -944,7 +971,35 @@
         "hipHop": "Hip-Hop"
       }
     },
-    "recaps": "Recaps",
+    "recaps": {
+      "title": "Recaps",
+      "subtitle": "Share your event moments with fans",
+      "totalRecaps": "Total Recaps",
+      "totalViews": "Total Views",
+      "noRecaps": "No recaps yet",
+      "noRecapsDescription": "Upload photos and videos from your events",
+      "uploadRecap": "Upload Recap",
+      "uploadFirstRecap": "Upload your first recap",
+      "modalTitle": "New Recap",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter recap title",
+      "eventLabel": "Event",
+      "eventPlaceholder": "Select an event",
+      "typeLabel": "Type",
+      "type": {
+        "image": "Image",
+        "video": "Video"
+      },
+      "images": "Images",
+      "videos": "Videos",
+      "maxFileSize": "Max file size: 50MB",
+      "uploadSuccess": "Recap uploaded successfully",
+      "uploadFailed": "Failed to upload recap",
+      "uploadError": "Error uploading file",
+      "deleteConfirm": "Delete this recap?",
+      "deleteSuccess": "Recap deleted",
+      "deleteFailed": "Failed to delete recap"
+    },
     "community": {
       "title": "Community",
       "subtitle": "Connect with your fans"
@@ -980,7 +1035,9 @@
       "sold": "sold",
       "noEvents": "No events yet",
       "noEventsDescription": "Create your first event to get started",
-      "createEventButton": "Create Event"
+      "createEventButton": "Create Event",
+      "followersGrowth": "Followers Growth",
+      "followersLabel": "Followers"
     },
     "createEvent": {
       "businessProfileWarning": "Could not load business profile. Using default settings.",
@@ -1120,7 +1177,9 @@
       "downloadQrCode": "Download QR Code",
       "viewEvent": "View Event",
       "createAnotherEvent": "Create Another Event",
-      "goToMyEvents": "Go to My Events"
+      "goToMyEvents": "Go to My Events",
+      "paymentInstructionsPlaceholder": "Enter payment instructions for attendees...",
+      "ticketPriceLabel": "Ticket Price"
     },
     "manageEvents": {
       "loadErrorToast": "Failed to load events",
@@ -1232,7 +1291,9 @@
       "validationFailed": "This ticket could not be validated",
       "ticketIdLabel": "Ticket ID",
       "unknownTicketId": "Unknown",
-      "scanNext": "Scan Next Ticket",
+      "scanAnother": "Scan Another",
+      "recentScans": "Recent Scans",
+      "noScansYet": "No scans yet",
       "recentScansTitle": "Recent Scans",
       "clearAll": "Clear All",
       "clearSuccess": "Recent scans cleared",
@@ -1241,6 +1302,10 @@
       "validLabel": "Valid",
       "usedLabel": "Already Used",
       "invalidLabel": "Invalid",
+      "statusValid": "Valid",
+      "statusUsed": "Already Used",
+      "statusInvalid": "Invalid",
+      "startingCamera": "Starting camera...",
       "cameraError": "Unable to access camera. Please use manual entry."
     },
     "recaps": {
@@ -1253,9 +1318,15 @@
       "title": "Event Recaps",
       "subtitle": "Share photo highlights from your events (max {{max}} photos per recap)",
       "createRecap": "Create Recap",
-      "noRecapsTitle": "No Recaps Yet",
-      "noRecapsDesc": "Create your first recap to showcase photos from your past events.",
+      "noRecapsYet": "No Recaps Yet",
+      "noRecapsDescription": "Browse event highlights and photos from our community.",
       "createFirstRecap": "Create Your First Recap",
+      "backToRecaps": "Back to Recaps",
+      "photo": "Photo",
+      "views": "Views",
+      "likes": "Likes",
+      "photos": "Photos",
+      "thumbnail": "Thumbnail",
       "morePhotos": "+{{count}} more",
       "photoCount": "{{count}} photos",
       "edit": "Edit",
@@ -1275,7 +1346,9 @@
       "cancel": "Cancel",
       "saveChanges": "Save Changes",
       "createRecapButton": "Create Recap",
-      "back": "Back"
+      "back": "Back",
+      "noRecapsTitle": "No Recaps",
+      "noRecapsDesc": "Create your first event recap"
     },
     "community": {
       "title": "Fan Feed",
@@ -1455,7 +1528,26 @@
       "noProductsDescription": "Start selling by adding your first product. Products will appear here once created.",
       "addFirstProduct": "Add Your First Product"
     },
-    "orders": "Orders",
+    "orders": {
+      "title": "Orders",
+      "subtitle": "Manage your product orders",
+      "noOrdersTitle": "No orders yet",
+      "noOrdersDescription": "Orders will appear here when customers make purchases",
+      "orderIdHeader": "Order ID",
+      "dateHeader": "Date",
+      "customerHeader": "Customer",
+      "productHeader": "Product",
+      "qtyHeader": "Qty",
+      "totalHeader": "Total",
+      "statusHeader": "Status",
+      "statusPending": "Pending",
+      "statusProcessing": "Processing",
+      "statusCompleted": "Completed",
+      "statusCancelled": "Cancelled",
+      "product": "Product",
+      "na": "N/A",
+      "unknown": "Unknown"
+    },
     "events": {
       "title": "Event Booths",
       "subtitle": "Manage your event applications",
@@ -1550,7 +1642,8 @@
       "uploadImageError": "Failed to upload image",
       "notAuthenticated": "Not authenticated",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile"
+      "updateError": "Failed to update profile",
+      "city": "City"
     },
     "community": {
       "title": "Community",
@@ -1706,7 +1799,10 @@
       "browseAndBook": "Browse events and book your first ticket!",
       "pastEventsAppearHere": "Your past events will appear here",
       "browseEvents": "Browse Events",
-      "noQrAvailable": "No QR available"
+      "noQrAvailable": "No QR available",
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected"
     },
     "favorites": {
       "failedToLoadFavorites": "Failed to load favorites",
@@ -1756,7 +1852,9 @@
       "noFollowingYet": "No following yet",
       "whenPeopleFollowYou": "When people follow you, they'll appear here. Share your profile to grow your network!",
       "explorePlatform": "Explore the platform to find and follow your favorite DJs, artists, and event organizers.",
-      "findPeople": "Find People"
+      "findPeople": "Find People",
+      "follower": "Follower",
+      "unfollowed": "Unfollowed"
     }
   },
   "admin": {
@@ -1765,83 +1863,74 @@
       "subtitle": "Manage verification requests and badges",
       "documentsTab": "Document Verification",
       "badgesTab": "Badge Management",
-      "documents": {
-        "pendingRequests": "Pending Requests",
-        "refresh": "Refresh",
-        "id": "ID",
-        "user": "User",
-        "type": "Type",
-        "submitted": "Submitted",
-        "status": "Status",
-        "actions": "Actions",
-        "noPendingRequests": "No pending verification requests.",
-        "view": "View",
-        "approve": "Approve",
-        "reject": "Reject",
+      "tabDocuments": "Documents",
+      "tabBadges": "Badges",
+      "filter": {
+        "all": "All",
         "pending": "Pending",
         "approved": "Approved",
         "rejected": "Rejected"
       },
-      "badges": {
-        "verifiedUsers": "Verified Users",
-        "searchPlaceholder": "Search users by name or email...",
-        "search": "Search",
-        "searchResults": "Search Results",
-        "noResults": "No users found",
-        "assignBadge": "Assign Badge",
-        "removeBadge": "Remove Badge",
-        "noVerifiedUsers": "No verified users yet.",
-        "userName": "Name",
-        "userEmail": "Email",
-        "badgeStatus": "Badge Status"
+      "entityType": {
+        "business": "Business",
+        "artist": "Artist",
+        "vendor": "Vendor",
+        "venue": "Venue"
       },
-      "rejectButton": "Reject Button",
-      "removeButton": "Remove Button",
-      "tabBadges": "Tab Badges",
-      "approvalHintSuffix": "Approval Hint Suffix",
-      "removeBadge": "Remove Badge",
-      "cancelButton": "Cancel Button",
-      "tabDocuments": "Tab Documents",
-      "verificationRejected": "Verification Rejected",
-      "verifiedUsers": "Verified Users",
-      "noVerifiedUsersYet": "No Verified Users Yet",
-      "selectRequestHint": "Select Request Hint",
-      "approvalHintPrefix": "Approval Hint Prefix",
-      "failedToLoadVerifiedUsers": "Failed To Load Verified Users",
-      "networkErrorSearchingUsers": "Network Error Searching Users",
-      "rejectionReasonLabel": "Rejection reason",
-      "networkErrorLoadingVerifiedUsers": "Network Error Loading Verified Users",
-      "searchPlaceholder": "Search verifications...",
-      "failedToRejectVerification": "Failed To Reject Verification",
-      "badgeActive": "Badge Active",
-      "failedToApproveVerification": "Failed To Approve Verification",
-      "failedToUpdateBadge": "Failed To Update Badge",
-      "assignBadge": "Assign Badge",
-      "rejectionReasonPlaceholder": "Enter reason for rejection",
-      "verifiedCheckmark": "Verified Checkmark",
-      "selectRequestToReview": "Select Request To Review",
-      "networkError": "Network Error",
-      "noDocumentsSubmitted": "No Documents Submitted",
-      "alreadyRejected": "Already Rejected",
-      "documentUrlNotAvailable": "Document URL Not Available",
-      "approveAndBadgeEntity": "Approve And Badge Entity",
-      "viewDocumentTitle": "View document",
-      "verificationApproved": "Verification Approved",
-      "failedToLoadVerificationRequests": "Failed To Load Verification Requests",
-      "failedToSearchUsers": "Failed To Search Users",
-      "noUsersFound": "No Users Found",
-      "submittedDocuments": "Submitted Documents",
-      "searchEntitiesPlaceholder": "Search businesses, artists, vendors, events...",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
       "timeAgo": {
-        "justNow": "Just Now"
+        "justNow": "Just now",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago"
       },
-      "rejectVerification": "Reject Verification",
+      "documentsCount": "{{count}} documents",
+      "issuedAgo": "Issued {{time}}",
+      "searchPlaceholder": "Search verifications...",
+      "searchEntitiesPlaceholder": "Search businesses, artists, vendors, events...",
+      "submittedDocuments": "Submitted Documents",
+      "noDocumentsSubmitted": "No documents submitted",
+      "viewDocumentTitle": "View document",
       "verificationActions": "Verification Actions",
-      "rejectVerificationModalTitle": "Reject Verification",
+      "approvalHintPrefix": "Approving will grant the",
+      "verifiedCheckmark": "Verified",
+      "approvalHintSuffix": "badge to this entity and make them discoverable.",
+      "approveAndBadgeEntity": "Approve & Verify",
       "alreadyApproved": "Already Approved",
-      "noVerificationRequestsFound": "No Verification Requests Found",
-      "badgeAssigned": "Badge Assigned",
-      "badgeRemoved": "Badge Removed"
+      "rejectVerification": "Reject Verification",
+      "alreadyRejected": "Already Rejected",
+      "rejectButton": "Reject",
+      "cancelButton": "Cancel",
+      "rejectVerificationModalTitle": "Reject Verification",
+      "rejectionReasonLabel": "Rejection reason",
+      "rejectionReasonPlaceholder": "Enter reason for rejection",
+      "selectRequestToReview": "Select a request to review",
+      "selectRequestHint": "Choose a verification request from the list to view details and take action.",
+      "noVerificationRequestsFound": "No verification requests found",
+      "verifiedUsers": "Verified Users",
+      "noVerifiedUsersYet": "No verified users yet",
+      "badgeActive": "Active",
+      "assignBadge": "Assign Badge",
+      "removeBadge": "Remove Badge",
+      "removeButton": "Remove",
+      "badgeAssigned": "Badge assigned",
+      "badgeRemoved": "Badge removed",
+      "failedToLoadVerificationRequests": "Failed to load verification requests",
+      "failedToApproveVerification": "Failed to approve verification",
+      "failedToRejectVerification": "Failed to reject verification",
+      "failedToLoadVerifiedUsers": "Failed to load verified users",
+      "failedToSearchUsers": "Failed to search users",
+      "failedToUpdateBadge": "Failed to update badge",
+      "networkError": "Network error",
+      "networkErrorLoadingVerifiedUsers": "Network error loading verified users",
+      "networkErrorSearchingUsers": "Network error searching users",
+      "noUsersFound": "No users found",
+      "documentUrlNotAvailable": "Document URL not available",
+      "verificationApproved": "Verification approved",
+      "verificationRejected": "Verification rejected"
     },
     "dashboard": {
       "adminPanel": "Admin Panel",
@@ -1957,7 +2046,16 @@
       "eventsTabSubtitle": "Review and manage platform events",
       "paymentsTabSubtitle": "Process payouts and review transactions",
       "totalTickets": "Total Tickets",
-      "pendingPayouts": "Pending Payouts"
+      "pendingPayouts": "Pending Payouts",
+      "usersTabTitle": "Users",
+      "adminsTabTitle": "Admins",
+      "businessesTabTitle": "Businesses",
+      "artistsTabTitle": "Artists",
+      "eventsTabTitle": "Events",
+      "paymentsTabTitle": "Payments",
+      "totalVisits30d": "Total Visits (30d)",
+      "uniqueVisitors30d": "Unique Visitors (30d)",
+      "viewAnalytics": "View Analytics"
     },
     "manageUsers": {
       "title": "Users Management",
@@ -2028,7 +2126,12 @@
       "inviteUser": "Invite User",
       "statusSuspended": "Status Suspended",
       "messageRequired": "Message Required",
-      "emailRequired": "Email Required"
+      "emailRequired": "Email Required",
+      "grantVerificationTitle": "Grant Verification",
+      "removeVerificationTitle": "Remove Verification",
+      "verificationGranted": "Verification granted",
+      "verificationRemoved": "Verification removed",
+      "failedToUpdateVerification": "Failed to update verification"
     },
     "events": {
       "title": "Manage Events",
@@ -2521,7 +2624,12 @@
       "titlePlaceholder": "Notification title",
       "recentNotifications": "Recent Notifications",
       "messageLabel": "Message",
-      "targetAudience": "Target Audience"
+      "targetAudience": "Target Audience",
+      "noNotifications": "No notifications",
+      "untitled": "Untitled",
+      "status": {
+        "sent": "Sent"
+      }
     },
     "securityLogs": {
       "searchPlaceholder": "Search logs...",
@@ -2604,7 +2712,20 @@
       "failedToApprove": "Failed To Approve",
       "pending": "Pending",
       "role": "Role",
-      "subtitle": "Manage subscription plans"
+      "subtitle": "Manage subscription plans",
+      "filter": {
+        "all": "All",
+        "basic": "Basic",
+        "pro": "Pro",
+        "premium": "Premium",
+        "lifetime": "Lifetime",
+        "pending": "Pending",
+        "expired": "Expired"
+      },
+      "validUntil": "Valid Until",
+      "lifetime": "Lifetime",
+      "approve": "Approve",
+      "reject": "Reject"
     },
     "rolePermissions": {
       "firstNamePlaceholder": "First name",
@@ -2820,6 +2941,19 @@
       "commentApproved": "Comment approved",
       "commentRejected": "Comment rejected",
       "noCommentsFound": "No comments found"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": "Platform traffic and usage analytics",
+      "totalVisits": "Total Visits",
+      "uniqueVisitors": "Unique Visitors",
+      "uniqueSessions": "Unique Sessions",
+      "avgPerDay": "Avg per day",
+      "recentVisits": "Recent Visits",
+      "topPages": "Top Pages",
+      "noRecentVisits": "No recent visits",
+      "noPageData": "No page data available",
+      "dailyVisits": "Daily Visits"
     }
   },
   "about": {
@@ -3318,32 +3452,17 @@
     "heroHighlight": "Hero Highlight"
   },
   "cart": {
-    "title": "Your Cart",
-    "subtitle": "Review your selected items before checkout",
-    "empty": "Your cart is empty",
-    "emptyDescription": "Looks like you haven't added anything to your cart yet.",
+    "title": "Cart",
+    "emptyTitle": "Your cart is empty",
+    "emptySubtitle": "Browse events and discover something new to attend.",
     "browseEvents": "Browse Events",
-    "item": "Item",
-    "quantity": "Quantity",
-    "price": "Price",
-    "total": "Total",
+    "clearCart": "Clear Cart",
+    "cartCleared": "Cart cleared successfully",
+    "itemRemoved": "Article removed from cart",
     "remove": "Remove",
-    "subtotal": "Subtotal",
-    "serviceFee": "Service Fee",
-    "grandTotal": "Grand Total",
-    "checkout": "Proceed to Checkout",
-    "continueShopping": "Continue Shopping",
-    "removeConfirm": "Remove this item from your cart?",
-    "eventRemoved": "Event removed from cart",
-    "ticket": "Ticket",
-    "tablePackage": "Table Package",
-    "itemRemoved": "Item Removed",
-    "emptySubtitle": "Empty Subtitle",
-    "checkoutForEvent": "Checkout For Event",
-    "each": "Each",
-    "emptyTitle": "Empty Title",
-    "cartCleared": "Cart Cleared",
-    "clearCart": "Clear Cart"
+    "each": "each",
+    "total": "Total",
+    "checkoutForEvent": "Checkout for this event"
   },
   "community": {
     "title": "Community",
@@ -4035,7 +4154,7 @@
     "pleaseFillAllFields": "Please fill in all required fields",
     "pleaseUploadScreenshotAndName": "Please upload screenshot and enter your name",
     "orderSubmitted": "Order submitted",
-    "orderSubmittedDesc": "Your order has been submitted. The organizer will confirm your payment and issue your ticket shortly.",
+    "orderSubmittedDesc": "Your order has been submitted successfully.",
     "orderAutoApproved": "Order submitted and auto-approved!",
     "saveQr": "Save QR",
     "amountToPay": "Amount to Pay",
@@ -4064,7 +4183,11 @@
     "submitOrder": "Submit Order",
     "viewMyTickets": "View My Tickets",
     "continueBrowsing": "Continue Browsing",
-    "orderSuccessTitle": "Order Submitted"
+    "orderSuccessTitle": "Order Submitted",
+    "orderPendingTitle": "Request received!",
+    "orderPendingDesc": "Your ticket is now pending approval from the organizer.",
+    "returnHome": "Return Home",
+    "optional": "optional"
   },
   "contact": {
     "facebook": "Facebook",

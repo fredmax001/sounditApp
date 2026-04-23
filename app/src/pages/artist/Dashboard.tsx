@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useBookingStore, BookingStatus } from '@/store/bookingStore';
 import { useDashboardStore } from '@/store/dashboardStore';
+import { useSubscriptionStore } from '@/store/subscriptionStore';
 import {
   Music, Calendar, Users, Star, TrendingUp, Edit, Camera, Check,
   X as CloseIcon, Clock, Loader2, Instagram, Twitter,
   DollarSign, Headphones,
-  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode
+  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode,
+  Crown, Youtube
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +22,7 @@ const ArtistDashboard = () => {
   const { profile, artistProfile, session, updateProfile } = useAuthStore();
   const { incomingBookings, fetchIncomingBookings, updateBookingStatus, isLoading: isBookingsLoading } = useBookingStore();
   const { stats: dashboardStats, fetchStats } = useDashboardStore();
+  const { checkSubscription, hasSubscription, planType, daysRemaining } = useSubscriptionStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -37,7 +40,9 @@ const ArtistDashboard = () => {
     spotify_url: '',
     apple_music_url: '',
     soundcloud_url: '',
-    hearthis_url: ''
+    hearthis_url: '',
+    youtube_url: '',
+    audiomack_url: ''
   });
 
   // Booking filter state
@@ -48,8 +53,10 @@ const ArtistDashboard = () => {
   useEffect(() => {
     if (session?.access_token) {
       useAuthStore.getState().refreshSession().catch(err => console.error('Failed to refresh session:', err));
+      useAuthStore.getState().fetchArtistProfile().catch(err => console.error('Failed to fetch artist profile:', err));
+      checkSubscription(session.access_token);
     }
-  }, [session]);
+  }, [session, checkSubscription]);
 
   // Update form when profile data changes from backend
   useEffect(() => {
@@ -64,9 +71,11 @@ const ArtistDashboard = () => {
         wechat: profile?.wechat_id || '',
         phone: profile?.phone || '',
         spotify_url: artistProfile?.spotify_url || '',
-        apple_music_url: '',
+        apple_music_url: artistProfile?.apple_music_url || '',
         soundcloud_url: artistProfile?.soundcloud_url || '',
-        hearthis_url: ''
+        hearthis_url: artistProfile?.hearthis_url || '',
+        youtube_url: artistProfile?.youtube_url || '',
+        audiomack_url: artistProfile?.audiomack_url || ''
       });
     }
   }, [artistProfile, profile]);
@@ -134,58 +143,30 @@ const ArtistDashboard = () => {
         throw new Error('Failed to update user profile');
       }
 
-      // Update artist profile via dedicated artist/profile endpoint
-      if (artistProfile?.id) {
-        // For existing artist profile - update via PUT endpoint
-        const artistResponse = await fetch(`${API_BASE_URL}/artist/profile`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            stage_name: profileForm.stage_name,
-            artist_type: profileForm.artist_type,
-            genres: profileForm.genres.split(',').map(g => g.trim()).filter(Boolean),
-            bio: profileForm.bio,
-            spotify_url: profileForm.spotify_url,
-            apple_music_url: profileForm.apple_music_url,
-            soundcloud_url: profileForm.soundcloud_url,
-            hearthis_url: profileForm.hearthis_url
-          })
-        });
+      // Update artist profile - PUT handles both create and update
+      const artistResponse = await fetch(`${API_BASE_URL}/artist/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          stage_name: profileForm.stage_name || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('artist.dashboard.newArtist'),
+          artist_type: profileForm.artist_type,
+          genres: profileForm.genres.split(',').map(g => g.trim()).filter(Boolean),
+          bio: profileForm.bio,
+          spotify_url: profileForm.spotify_url,
+          apple_music_url: profileForm.apple_music_url,
+          soundcloud_url: profileForm.soundcloud_url,
+          hearthis_url: profileForm.hearthis_url,
+          youtube_url: profileForm.youtube_url,
+          audiomack_url: profileForm.audiomack_url
+        })
+      });
 
-        if (!artistResponse.ok) {
-          const errorData = await artistResponse.json().catch(() => ({}));
-          throw new Error(errorData.detail || 'Failed to update artist profile');
-        }
-      } else {
-        // Create new artist profile
-        const artistResponse = await fetch(`${API_BASE_URL}/artist/profile`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            stage_name: profileForm.stage_name || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('artist.dashboard.newArtist'),
-            artist_type: profileForm.artist_type,
-            genres: profileForm.genres.split(',').map(g => g.trim()).filter(Boolean),
-            bio: profileForm.bio,
-            spotify_url: profileForm.spotify_url,
-            apple_music_url: profileForm.apple_music_url,
-            soundcloud_url: profileForm.soundcloud_url,
-            hearthis_url: profileForm.hearthis_url
-          })
-        });
-
-        if (!artistResponse.ok) {
-          const errorData = await artistResponse.json().catch(() => ({}));
-          throw new Error(errorData.detail || 'Failed to create artist profile');
-        }
-
-        // Refresh session so auth store picks up the new artist profile
-        await useAuthStore.getState().refreshSession();
+      if (!artistResponse.ok) {
+        const errorData = await artistResponse.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to update artist profile');
       }
       
       // Also update wechat_id and phone in user profile if the API supports it
@@ -300,6 +281,18 @@ const ArtistDashboard = () => {
       bg: 'bg-blue-500/20',
       iconSvg: <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-8c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2zm-2 0c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z"/></svg>
     };
+    if (url.includes('audiomack.com')) return { 
+      name: 'Audiomack', 
+      color: 'text-orange-400', 
+      bg: 'bg-orange-400/20',
+      iconSvg: <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+    };
+    if (url.includes('music.youtube.com') || url.includes('youtube.com') || url.includes('youtu.be')) return { 
+      name: 'YouTube Music', 
+      color: 'text-red-500', 
+      bg: 'bg-red-500/20',
+      iconSvg: <Youtube className="w-6 h-6" />
+    };
     return { name: t('artist.dashboard.music'), color: 'text-[#d3da0c]', bg: 'bg-[#d3da0c]/20', iconSvg: <Music className="w-6 h-6" /> };
   };
 
@@ -335,7 +328,11 @@ const ArtistDashboard = () => {
   // Music platform links from artist profile
   const musicLinks = [
     { url: artistProfile?.spotify_url || profileForm.spotify_url, key: 'spotify' },
+    { url: artistProfile?.apple_music_url || profileForm.apple_music_url, key: 'apple_music' },
     { url: artistProfile?.soundcloud_url || profileForm.soundcloud_url, key: 'soundcloud' },
+    { url: artistProfile?.hearthis_url || profileForm.hearthis_url, key: 'hearthis' },
+    { url: artistProfile?.youtube_url || profileForm.youtube_url, key: 'youtube' },
+    { url: artistProfile?.audiomack_url || profileForm.audiomack_url, key: 'audiomack' },
   ].filter(link => link.url);
 
   // Get display name - prioritize stage_name, then first_name + last_name
@@ -519,6 +516,38 @@ const ArtistDashboard = () => {
         >
           {activeTab === 'overview' && (
             <div className="grid gap-12">
+              {/* Subscription Status */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#d3da0c]/10 rounded-2xl flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-[#d3da0c]" />
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-lg">
+                      {hasSubscription ? (
+                        planType ? `${planType.charAt(0).toUpperCase() + planType.slice(1)} Plan` : 'Active Subscription'
+                      ) : (
+                        'No Active Subscription'
+                      )}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {hasSubscription && daysRemaining !== null
+                        ? `${daysRemaining} days remaining`
+                        : 'Subscribe to unlock premium features'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {!hasSubscription && (
+                  <a
+                    href="/subscriptions"
+                    className="px-6 py-3 bg-[#d3da0c] text-black font-black rounded-2xl text-sm hover:scale-105 active:scale-95 transition-all"
+                  >
+                    Upgrade
+                  </a>
+                )}
+              </div>
+
               {/* Stats from backend */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
@@ -815,6 +844,36 @@ const ArtistDashboard = () => {
                         value={profileForm.hearthis_url}
                         onChange={(e) => handleProfileChange('hearthis_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.hearthis')}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      />
+                    </div>
+
+                    {/* YouTube Music */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        {getPlatformInfo('https://music.youtube.com')?.iconSvg || <span className="w-6 h-6 bg-red-500/20 rounded flex items-center justify-center text-red-500 text-xs">YT</span>}
+                        YouTube Music
+                      </label>
+                      <input
+                        type="url"
+                        value={profileForm.youtube_url}
+                        onChange={(e) => handleProfileChange('youtube_url', e.target.value)}
+                        placeholder="https://music.youtube.com/..."
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      />
+                    </div>
+
+                    {/* Audiomack */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        {getPlatformInfo('https://audiomack.com')?.iconSvg || <span className="w-6 h-6 bg-orange-400/20 rounded flex items-center justify-center text-orange-400 text-xs">AM</span>}
+                        Audiomack
+                      </label>
+                      <input
+                        type="url"
+                        value={profileForm.audiomack_url}
+                        onChange={(e) => handleProfileChange('audiomack_url', e.target.value)}
+                        placeholder="https://audiomack.com/..."
                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>

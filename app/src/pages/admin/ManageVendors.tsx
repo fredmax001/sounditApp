@@ -116,6 +116,9 @@ const ManageVendors = () => {
       if (res.ok) {
         toast.success(t('admin.manageVendors.vendorDeleted'));
         loadVendors();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.manageVendors.failedToDeleteVendor'));

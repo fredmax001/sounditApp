@@ -22,8 +22,8 @@ const Checkout = () => {
   const [step, setStep] = useState<'qr' | 'form' | 'success'>('qr');
   const [payerName, setPayerName] = useState('');
   const [payerNotes, setPayerNotes] = useState('');
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [paymentReference, setPaymentReference] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ order_id: number; status: string; message?: string } | null>(null);
 
@@ -32,6 +32,14 @@ const Checkout = () => {
       fetchEventById(eventId);
     }
   }, [eventId, events, currentEvent, fetchEventById]);
+
+  useEffect(() => {
+    if (profile) {
+      setPayerName(profile.display_name || '');
+      setEmail(profile.email || '');
+      setPhoneNumber(profile.phone || '');
+    }
+  }, [profile]);
 
   const event = events.find(e => String(e.id) === eventId) || (String(currentEvent?.id) === eventId ? currentEvent : undefined);
   const ticketCount = (location.state as { ticketCount?: number })?.ticketCount || 1;
@@ -73,13 +81,8 @@ const Checkout = () => {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!screenshot || !payerName.trim() || !paymentReference.trim()) {
-      if (!screenshot || !payerName.trim()) {
-        toast.error(t('payment.checkout.uploadScreenshotAndName'));
-      }
-      if (!paymentReference.trim()) {
-        toast.error(t('eventDetail.paymentReferenceRequired'));
-      }
+    if (!payerName.trim() || !email.trim() || !phoneNumber.trim()) {
+      toast.error(t('eventDetail.pleaseFillAllFields'));
       return;
     }
     if (!isAuthenticated || !profile) {
@@ -97,15 +100,15 @@ const Checkout = () => {
     setSubmitting(true);
     const formData = new FormData();
     formData.append('event_id', String(event.id));
-    formData.append('payment_screenshot', screenshot);
     formData.append('payer_name', payerName);
+    formData.append('email', email);
+    formData.append('phone_number', phoneNumber);
     formData.append('quantity', String(ticketCount));
     formData.append('payment_amount', String(totalAmount));
     if ((location.state as { tierId?: string | number })?.tierId) {
       formData.append('ticket_tier_id', String((location.state as { tierId?: string | number }).tierId));
     }
     if (payerNotes) formData.append('payer_notes', payerNotes);
-    formData.append('payment_reference', paymentReference.trim());
 
     try {
       const res = await fetch(`${API_BASE_URL}/tickets/order`, {
@@ -190,7 +193,7 @@ const Checkout = () => {
               <ul className="text-gray-400 text-sm space-y-2">
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#d3da0c]" /> Scan QR code with your phone</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#d3da0c]" /> Complete the transfer</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#d3da0c]" /> Upload screenshot for verification</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#d3da0c]" /> Confirm your payment</li>
               </ul>
             </div>
 
@@ -241,33 +244,31 @@ const Checkout = () => {
                   required
                 />
               </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">Payment Screenshot *</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#d3da0c]/50 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 text-white/50 mb-2" />
-                    <p className="text-sm text-white/60">{screenshot ? screenshot.name : 'Click to upload screenshot'}</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('eventDetail.email')} *</label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
-                    className="hidden"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                    placeholder="your@email.com"
                     required
                   />
-                </label>
+                </div>
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('eventDetail.phoneNumber')} *</label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                    placeholder="+1234567890"
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.paymentReference')} *</label>
-                <input
-                  type="text"
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
-                  placeholder={t('eventDetail.enterPaymentReference')}
-                  required
-                />
-              </div>
+
               <div>
                 <label className="text-white/60 text-sm block mb-2">Notes (optional)</label>
                 <textarea
@@ -300,30 +301,30 @@ const Checkout = () => {
             </div>
             <h2 className="text-2xl font-display text-white mb-2">
               {orderResult?.status === 'approved'
-                ? 'Order Approved!'
+                ? t('eventDetail.orderAutoApproved')
                 : orderResult?.status === 'rejected'
-                  ? 'Order Rejected'
-                  : 'Order Submitted'}
+                  ? t('eventDetail.ticketRejected')
+                  : t('eventDetail.orderPendingTitle')}
             </h2>
             <p className="text-gray-400 mb-6">
               {orderResult?.status === 'approved'
-                ? 'Your ticket has been approved. Check your tickets page for your QR code.'
+                ? t('eventDetail.ticketApproved')
                 : orderResult?.status === 'rejected'
-                  ? (orderResult?.message || 'Your ticket order was rejected. Please contact the organizer for more information.')
-                  : 'Your ticket request is pending organizer approval. You will receive a notification once approved.'}
+                  ? (orderResult?.message || t('eventDetail.ticketRejected'))
+                  : t('eventDetail.orderPendingDesc')}
             </p>
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => navigate('/tickets')}
                 className="px-6 py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-colors"
               >
-                View My Tickets
+                {t('eventDetail.viewMyTickets')}
               </button>
               <button
-                onClick={() => navigate('/events')}
+                onClick={() => navigate('/')}
                 className="px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors"
               >
-                Browse Events
+                {t('eventDetail.returnHome')}
               </button>
             </div>
           </motion.div>

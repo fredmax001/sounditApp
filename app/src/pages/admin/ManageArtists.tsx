@@ -116,6 +116,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success(t('admin.manageArtists.artistDeleted'));
         loadArtists();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.manageArtists.failedToDeleteArtist'));

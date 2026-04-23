@@ -577,47 +577,7 @@ const CityGuide = () => {
         </div>
       </section>
 
-      {/* Featured Section */}
-      {activeTab === 'all' && featuredItems.length > 0 && (
-        <section className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-4">
-          <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            <Star className="w-4 h-4 text-[#d3da0c]" />
-            {t('discovery.featured') || 'Featured'}
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            {featuredItems.map((item) => (
-              <motion.div
-                key={`featured-${item.type}-${item.id}`}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  if (item.type === 'artist') navigate(`/artists/${item.id}`);
-                  else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                  else if ((item.type === 'business' || item.type === 'organizer') && item.user_id) navigate(`/profiles/${item.user_id}`);
-                  else if (item.type === 'event') navigate(`/events/${item.id}`);
-                  else {
-                    setSelectedItem(item);
-                    if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
-                  }
-                }}
-                className="flex-shrink-0 w-28 cursor-pointer"
-              >
-                <div className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a] mb-1.5">
-                  <img
-                    src={item.image || (item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg')}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).src = item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg'; }}
-                  />
-                </div>
-                <p className="text-xs font-medium text-white truncate">{item.name}</p>
-                <EntityBadge type={item.type} />
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Main Content */}
+      {/* Main Content -- Featured items removed from Discovery; shown on Home only */}
       <section className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-2">
         <div className={`flex ${hasMap ? 'flex-col lg:flex-row' : 'flex-col'} gap-4`}>
           {/* Map - stacked on top for mobile when active tab is mappable */}

@@ -94,6 +94,7 @@ export interface EventWithDetails extends Event {
     user_id: string;
     business_name: string;
     logo_url?: string;
+    avatar_url?: string;
     verified: boolean;
     verification_badge?: boolean;
   };

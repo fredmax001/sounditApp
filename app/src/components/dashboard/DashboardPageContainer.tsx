@@ -41,7 +41,7 @@ export function DashboardPageHeader({
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-display text-white mb-1">
+        <h1 className="text-3xl md:text-4xl font-display text-white mb-1">
           {title}
         </h1>
         {subtitle && <p className="text-gray-400 text-sm">{subtitle}</p>}

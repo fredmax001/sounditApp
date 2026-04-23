@@ -549,11 +549,31 @@ const Tickets = () => {
                 </>
               ) : selectedOrder ? (
                 <>
-                  <div className="bg-white rounded-xl p-6 mb-6">
-                    {selectedOrder.ticket_qr ? (
-                      <img src={selectedOrder.ticket_qr} alt="Ticket QR" className="w-full h-auto" />
+                  <div className="bg-white rounded-xl p-6 mb-6 flex items-center justify-center">
+                    {selectedOrder.ticket_code ? (
+                      /*
+                       * Client-side QR — always reliable.
+                       * Encodes: SOUNDIT:<ticket_code>:<event_id>:TID:0:UID:U0
+                       * The scanner's _normalize_ticket_candidates() extracts parts[1]
+                       * (the ticket_code) and looks it up in TicketOrder.ticket_code.
+                       */
+                      <QRCodeSVG
+                        value={`SOUNDIT:${selectedOrder.ticket_code}:${selectedOrder.event?.id ?? 0}:TID:0:UID:U0`}
+                        size={220}
+                        level="H"
+                        includeMargin
+                        className="w-full max-w-[220px]"
+                      />
+                    ) : selectedOrder.ticket_qr ? (
+                      /* Fallback: stored base64 PNG (column now Text — future orders are valid) */
+                      <img
+                        src={selectedOrder.ticket_qr}
+                        alt="Ticket QR"
+                        className="w-full max-w-[220px] h-auto"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
                     ) : (
-                      <div className="text-center text-black">{t('user.tickets.noQrAvailable')}</div>
+                      <div className="text-center text-black py-8">{t('user.tickets.noQrAvailable')}</div>
                     )}
                   </div>
                   <div className="text-center">
@@ -568,13 +588,36 @@ const Tickets = () => {
                 if (!ticket) return null;
                 return (
                   <>
-                    <div className="bg-white rounded-xl p-6 mb-6">
-                      <QRCodeSVG
-                        value={`SOUNDIT:${ticket.ticket_number}:${ticket.event_id}`}
-                        size={200}
-                        className="w-full"
-                        level="H"
-                      />
+                    <div className="bg-white rounded-xl p-6 mb-6 flex items-center justify-center">
+                      {ticket.qr_code ? (
+                        /*
+                         * Stored base64 PNG (now Text column — future QRs are full-size).
+                         * onError: if the stored image is corrupt (old truncated data),
+                         * fall back to a fresh client-side SVG.
+                         */
+                        <img
+                          src={ticket.qr_code}
+                          alt="Ticket QR"
+                          className="w-full max-w-[220px] h-auto"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.style.display = 'none';
+                            // Show sibling SVG fallback
+                            const fallback = img.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'block';
+                          }}
+                        />
+                      ) : null}
+                      {/* Always render SVG fallback (hidden unless img fails or absent) */}
+                      <div style={{ display: ticket.qr_code ? 'none' : 'block' }}>
+                        <QRCodeSVG
+                          value={`SOUNDIT:${ticket.ticket_number}:${ticket.event_id}:TID:${ticket.id}:UID:${ticket.user_id || 'U0'}`}
+                          size={220}
+                          level="H"
+                          includeMargin
+                          className="w-full max-w-[220px]"
+                        />
+                      </div>
                     </div>
                     <div className="text-center">
                       <p className="text-white font-semibold mb-1">

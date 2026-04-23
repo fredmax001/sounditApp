@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User
+  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Heart
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -257,7 +257,7 @@ const BusinessDashboard = () => {
     { label: t('business.dashboard.totalEvents'), value: bizStats?.total_events || 0, icon: Calendar, color: 'text-blue-400' },
     { label: t('business.dashboard.ticketsSold'), value: bizStats?.tickets_sold || 0, icon: Ticket, color: 'text-green-400' },
     { label: t('business.dashboard.totalRevenue'), value: `¥${bizStats?.total_revenue?.toLocaleString() || '0'}`, icon: DollarSign, color: 'text-[#d3da0c]' },
-    { label: t('business.dashboard.pendingArtistPayments'), value: `¥${bizStats?.pending_artist_payments?.toLocaleString() || '0'}`, icon: Wallet, color: 'text-red-400' },
+    { label: t('business.dashboard.followers') || 'Followers', value: bizStats?.followers_count || 0, icon: Heart, color: 'text-pink-400' },
   ];
 
   if (!profile) {
@@ -281,7 +281,7 @@ const BusinessDashboard = () => {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-10">
         {stats.map((stat, idx) => (
           <motion.div
             key={idx}
@@ -481,7 +481,7 @@ const BusinessDashboard = () => {
       {/* Quick Actions */}
       <section className="mb-10">
         <h2 className="text-2xl font-bold text-white mb-6">{t('business.dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate('/dashboard/business/create-event')}

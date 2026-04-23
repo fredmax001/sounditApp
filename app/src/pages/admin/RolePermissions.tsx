@@ -141,6 +141,9 @@ const RolePermissions = () => {
       if (res.ok) {
         toast.success(t('admin.rolePermissions.adminRemoved'));
         loadRolesAndPermissions();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Delete failed');
       }
     } catch {
       toast.error(t('admin.rolePermissions.failedToRemoveAdmin'));
