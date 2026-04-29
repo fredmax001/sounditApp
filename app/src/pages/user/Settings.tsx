@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X } from 'lucide-react';
+import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
@@ -23,7 +23,7 @@ const languages = [
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { session } = useAuthStore();
+  const { session, cities, selectedCity, setSelectedCity } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -243,7 +243,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen pb-6">
+    <div className="min-h-screen pb-6 pt-14 lg:pt-24">
       {/* Header */}
       <div className="px-4 pt-2 pb-4">
         <h1 className="text-2xl font-bold text-white">{t('settings.title')}</h1>
@@ -309,6 +309,43 @@ const Settings = () => {
                   {lang.name}
                 </span>
                 {i18n.language === lang.code && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
+                )}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* City Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-[#d3da0c]" />
+            </div>
+            <h2 className="text-base font-semibold text-white">{t('settings.city') || 'City'}</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
+            {cities.map((city) => (
+              <button
+                key={city.id}
+                onClick={() => {
+                  setSelectedCity(city.id);
+                  toast.success(`City updated to ${city.name}`);
+                }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${selectedCity === city.id
+                    ? 'bg-[#d3da0c]/15 border border-[#d3da0c]/40'
+                    : 'bg-white/5 border border-transparent hover:bg-white/10'
+                  }`}
+              >
+                <span className={`text-sm font-medium ${selectedCity === city.id ? 'text-[#d3da0c]' : 'text-white'}`}>
+                  {city.name}
+                </span>
+                {selectedCity === city.id && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
                 )}
               </button>

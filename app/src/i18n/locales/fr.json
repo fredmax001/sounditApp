@@ -1430,7 +1430,13 @@
       "statusUsed": "Used",
       "uploadQrError": "Failed to upload QR codes",
       "viewQr": "View QR",
-      "wechatQr": "WeChat QR Code"
+      "wechatQr": "WeChat QR Code",
+      "messagesComingSoon": "Messages bientôt disponibles !",
+      "searchEvents": "Rechercher des événements...",
+      "apply": "Postuler",
+      "noEventsAvailable": "Aucun événement disponible pour candidature de stand.",
+      "boothAppliedSuccess": "Candidature de stand soumise !",
+      "boothApplyError": "Échec de la candidature de stand"
     },
     "products": {
       "title": "My Products",
@@ -1451,7 +1457,27 @@
       "noProductsDescription": "Start selling by adding your first product. Products will appear here once created.",
       "addFirstProduct": "Add Your First Product"
     },
-    "orders": "Commandes",
+    "orders": {
+      "navLabel": "Commandes",
+      "title": "Gestion des Commandes",
+      "subtitle": "Gérez et suivez vos commandes de produits",
+      "orderIdHeader": "N° Commande",
+      "customerHeader": "Client",
+      "productHeader": "Produit",
+      "qtyHeader": "Qté",
+      "totalHeader": "Total",
+      "statusHeader": "Statut",
+      "dateHeader": "Date",
+      "na": "N/D",
+      "unknown": "Inconnu",
+      "product": "Produit",
+      "statusCompleted": "Terminé",
+      "statusPending": "En attente",
+      "statusCancelled": "Annulé",
+      "statusProcessing": "En cours",
+      "noOrdersTitle": "Aucune Commande",
+      "noOrdersDescription": "Vous n'avez pas encore reçu de commandes. Une fois que les clients achètent vos produits, ils apparaîtront ici."
+    },
     "events": {
       "title": "Event Booths",
       "subtitle": "Manage your event applications",
@@ -1473,7 +1499,12 @@
       "cancelApplication": "Cancel Application",
       "noEventsTitle": "No Event Booths Yet",
       "noEventsDescription": "Apply to become a vendor at upcoming events to see them here.",
-      "browseEvents": "Browse Events"
+      "browseEvents": "Browse Events",
+      "applySuccess": "Candidature de stand soumise !",
+      "applyError": "Échec de la candidature de stand",
+      "searchEvents": "Rechercher des événements...",
+      "apply": "Postuler",
+      "noEventsAvailable": "Aucun événement disponible pour candidature de stand."
     },
     "earnings": {
       "title": "Earnings",
@@ -1546,7 +1577,8 @@
       "uploadImageError": "Failed to upload image",
       "notAuthenticated": "Not authenticated",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile"
+      "updateError": "Failed to update profile",
+      "city": "Ville"
     },
     "community": {
       "title": "Community",

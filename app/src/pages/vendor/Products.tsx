@@ -47,7 +47,7 @@ const VendorProducts = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen p-4 lg:p-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">

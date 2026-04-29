@@ -40,7 +40,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Sound It" className="h-36 lg:h-48 w-auto" />
+            <img src="/logo.png" alt="Sound It" className="h-24 lg:h-28 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

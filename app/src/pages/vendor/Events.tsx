@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 import { useTranslation } from 'react-i18next';
 import {
-  Calendar, ArrowLeft, Loader2, MapPin, Plus, X
+  Calendar, ArrowLeft, Loader2, MapPin, Plus, X, Search
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -32,6 +32,11 @@ const VendorEvents = () => {
   const [events, setEvents] = useState<VendorEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showBoothModal, setShowBoothModal] = useState(false);
+  const [availableEvents, setAvailableEvents] = useState<VendorEvent[]>([]);
+  const [isLoadingBoothEvents, setIsLoadingBoothEvents] = useState(false);
+  const [boothSearchQuery, setBoothSearchQuery] = useState('');
+  const [applyingEventId, setApplyingEventId] = useState<number | null>(null);
 
   const fetchVendorEvents = useCallback(async (token: string) => {
     setIsLoading(true);
@@ -94,7 +99,60 @@ const VendorEvents = () => {
   };
 
   const handleApplyForBooth = () => {
-    navigate('/events');
+    setShowBoothModal(true);
+    fetchAvailableEventsForBooth();
+  };
+
+  const fetchAvailableEventsForBooth = async () => {
+    if (!session?.access_token) return;
+    setIsLoadingBoothEvents(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/events?limit=50`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const appliedIds = new Set(events.map(e => e.id));
+        const filtered = (data.items || data || []).filter((evt: VendorEvent) => !appliedIds.has(evt.id));
+        setAvailableEvents(filtered);
+      } else {
+        setAvailableEvents([]);
+      }
+    } catch {
+      setAvailableEvents([]);
+    } finally {
+      setIsLoadingBoothEvents(false);
+    }
+  };
+
+  const handleApplyToEvent = async (eventId: number) => {
+    if (!session?.access_token) {
+      toast.error(t('vendor.events.notAuthenticated'));
+      return;
+    }
+    setApplyingEventId(eventId);
+    try {
+      const response = await fetch(`${API_BASE_URL}/vendors/events/${eventId}/apply`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      if (response.ok) {
+        toast.success(t('vendor.events.applySuccess') || 'Booth application submitted!');
+        setShowBoothModal(false);
+        fetchVendorEvents(session.access_token);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || t('vendor.events.applyError') || 'Failed to apply for booth');
+      }
+    } catch {
+      toast.error(t('vendor.events.networkError'));
+    } finally {
+      setApplyingEventId(null);
+    }
   };
 
   const getStatusLabel = (status?: string) => {
@@ -106,7 +164,7 @@ const VendorEvents = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -222,6 +280,65 @@ const VendorEvents = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Booth Application Modal */}
+      {showBoothModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">{t('vendor.events.applyForBooth')}</h3>
+              <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder={t('vendor.events.searchEvents') || 'Search events...'}
+                value={boothSearchQuery}
+                onChange={(e) => setBoothSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {isLoadingBoothEvents ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+                </div>
+              ) : availableEvents.filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase())).length > 0 ? (
+                availableEvents
+                  .filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase()))
+                  .map((event) => (
+                    <div key={event.id} className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-white font-bold">{event.name || event.event_name || t('vendor.events.unnamedEvent')}</p>
+                        <p className="text-gray-400 text-sm">{event.date || event.event_date || t('vendor.events.tbd')}</p>
+                      </div>
+                      <button
+                        onClick={() => handleApplyToEvent(event.id)}
+                        disabled={applyingEventId === event.id}
+                        className="px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                      >
+                        {applyingEventId === event.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          t('vendor.events.apply') || 'Apply'
+                        )}
+                      </button>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-gray-400 text-center py-8">{t('vendor.events.noEventsAvailable') || 'No events available for booth application.'}</p>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

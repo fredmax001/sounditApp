@@ -1430,7 +1430,13 @@
       "statusUsed": "Used",
       "uploadQrError": "Failed to upload QR codes",
       "viewQr": "View QR",
-      "wechatQr": "WeChat QR Code"
+      "wechatQr": "WeChat QR Code",
+      "messagesComingSoon": "消息功能即将推出！",
+      "searchEvents": "搜索活动...",
+      "apply": "申请",
+      "noEventsAvailable": "没有可申请摊位的活动。",
+      "boothAppliedSuccess": "摊位申请已提交！",
+      "boothApplyError": "申请摊位失败"
     },
     "products": {
       "title": "My Products",
@@ -1451,7 +1457,27 @@
       "noProductsDescription": "Start selling by adding your first product. Products will appear here once created.",
       "addFirstProduct": "Add Your First Product"
     },
-    "orders": "订单",
+    "orders": {
+      "navLabel": "订单",
+      "title": "订单管理",
+      "subtitle": "管理和跟踪您的产品订单",
+      "orderIdHeader": "订单编号",
+      "customerHeader": "客户",
+      "productHeader": "产品",
+      "qtyHeader": "数量",
+      "totalHeader": "总计",
+      "statusHeader": "状态",
+      "dateHeader": "日期",
+      "na": "无",
+      "unknown": "未知",
+      "product": "产品",
+      "statusCompleted": "已完成",
+      "statusPending": "待处理",
+      "statusCancelled": "已取消",
+      "statusProcessing": "处理中",
+      "noOrdersTitle": "暂无订单",
+      "noOrdersDescription": "您还没有收到任何产品订单。客户购买您的产品后，订单将显示在这里。"
+    },
     "events": {
       "title": "Event Booths",
       "subtitle": "Manage your event applications",
@@ -1473,7 +1499,12 @@
       "cancelApplication": "Cancel Application",
       "noEventsTitle": "No Event Booths Yet",
       "noEventsDescription": "Apply to become a vendor at upcoming events to see them here.",
-      "browseEvents": "Browse Events"
+      "browseEvents": "Browse Events",
+      "applySuccess": "摊位申请已提交！",
+      "applyError": "申请摊位失败",
+      "searchEvents": "搜索活动...",
+      "apply": "申请",
+      "noEventsAvailable": "没有可申请摊位的活动。"
     },
     "earnings": {
       "title": "Earnings",
@@ -1546,7 +1577,8 @@
       "uploadImageError": "Failed to upload image",
       "notAuthenticated": "Not authenticated",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile"
+      "updateError": "Failed to update profile",
+      "city": "城市"
     },
     "community": {
       "title": "Community",

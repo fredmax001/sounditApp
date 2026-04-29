@@ -52,6 +52,9 @@ export interface DashboardStats {
         active_listings: number;
         pending_orders: number;
         event_booths: number;
+        monthly_sales?: number;
+        last_month_sales?: number;
+        pending_payout?: number;
     };
 }
 

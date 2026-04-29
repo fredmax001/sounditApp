@@ -6,10 +6,12 @@ export default function VendorCommunity() {
   const { t } = useTranslation();
   useSubscriptionGuard('community_posts');
   return (
-    <CommunityDashboard
-      authorType="vendor"
-      title={t('vendor.community.title')}
-      subtitle={t('vendor.community.subtitle')}
-    />
+    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
+      <CommunityDashboard
+        authorType="vendor"
+        title={t('vendor.community.title')}
+        subtitle={t('vendor.community.subtitle')}
+      />
+    </div>
   );
 }

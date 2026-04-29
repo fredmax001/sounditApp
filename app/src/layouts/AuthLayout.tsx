@@ -56,7 +56,7 @@ const AuthLayout = () => {
           className="text-center mb-8 hidden md:block"
         >
           <Link to="/" className="inline-block">
-            <img src="/logo.png" alt="Sound It" className="h-36 w-auto mx-auto" />
+            <img src="/logo.png" alt="Sound It" className="h-32 w-auto mx-auto" />
           </Link>
           <p className="text-gray-500 text-sm mt-2 tracking-wider">
             5 YEARS OF EXCELLENCE IN ENTERTAINMENT

@@ -1154,6 +1154,9 @@ class VendorStats(BaseModel):
     active_listings: int
     pending_orders: int
     event_booths: int
+    monthly_sales: float = 0.0
+    last_month_sales: float = 0.0
+    pending_payout: float = 0.0
 
 
 class RoleDashboardStats(BaseModel):

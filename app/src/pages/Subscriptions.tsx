@@ -35,7 +35,7 @@ interface PaymentDetails {
 
 export default function Subscriptions() {
   const { t } = useTranslation();
-  const { user, profile, session } = useAuthStore();
+  const { user, profile, session, isLoading: isAuthLoading } = useAuthStore();
   const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
@@ -51,19 +51,17 @@ export default function Subscriptions() {
   const [paymentReference, setPaymentReference] = useState('');
 
   const token = session?.access_token;
-  const role = profile?.role_type;
+  const role = profile?.role_type || profile?.role;
 
   useEffect(() => {
-    // Give auth store time to hydrate from localStorage before redirecting
-    const checkAuth = setTimeout(() => {
-      if (!user || !token || !role) {
-        navigate('/login');
-        return;
-      }
-      fetchData();
-    }, 500);
-    return () => clearTimeout(checkAuth);
-  }, [user, token, role]);
+    // Wait for auth store to finish hydrating before deciding to redirect
+    if (isAuthLoading) return;
+    if (!user || !token || !role) {
+      navigate('/login');
+      return;
+    }
+    fetchData();
+  }, [user, token, role, isAuthLoading]);
 
   const fetchData = async () => {
     try {

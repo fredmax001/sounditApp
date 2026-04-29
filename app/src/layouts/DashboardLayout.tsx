@@ -166,7 +166,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const vendorNavItems: NavItem[] = [
     { path: '/dashboard/vendor', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard, locked: false },
     { path: '/dashboard/vendor/products', label: t('vendor.myProducts') || 'My Products', icon: Store, locked: false },
-    { path: '/dashboard/vendor/orders', label: t('vendor.orders') || 'Orders', icon: ShoppingBag, locked: false },
+    { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel') || 'Orders', icon: ShoppingBag, locked: false },
     { path: '/dashboard/vendor/events', label: t('upgrade.eventBooths') || 'Event Booths', icon: CalendarDays, locked: true, feature: 'event_booths' },
     { path: '/dashboard/vendor/earnings', label: t('upgrade.earnings') || 'Earnings', icon: Wallet, locked: true, feature: 'earnings' },
     { path: '/dashboard/vendor/community', label: t('upgrade.communityPosts') || 'Community', icon: MessageSquare, locked: true, feature: 'community_posts' },
@@ -286,7 +286,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <img
               src="/logo.png"
               alt="Sound It"
-              className="h-16 w-auto max-w-full"
+              className="h-24 w-auto max-w-full"
             />
           </Link>
           <p className="text-gray-500 text-[10px] mt-1 truncate">
@@ -395,7 +395,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen" style={{ marginLeft: sidebarWidth }}>
+      <main className="flex-1 min-h-screen pt-4" style={{ marginLeft: sidebarWidth }}>
         {children || <Outlet />}
       </main>
 
