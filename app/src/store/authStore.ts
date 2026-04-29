@@ -260,8 +260,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Load cities
           await get().fetchCities();
-          // Auto-detect city from location (only if not already set)
-          get().detectCityByLocation();
 
           // Check for stored token first
           const token = localStorage.getItem('auth-token');
@@ -347,13 +345,18 @@ export const useAuthStore = create<AuthState>()(
                   user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
                 };
 
+                // Preserve locally-selected city if backend has no preferred_city
+                const currentSelectedCity = get().selectedCity;
+                const backendCity = backendUser.preferred_city || null;
+                const finalSelectedCity = backendCity || currentSelectedCity;
+
                 set({
                   user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
                   profile,
                   session,
                   isAuthenticated: true,
                   isLoading: false,
-                  selectedCity: backendUser.preferred_city || null,
+                  selectedCity: finalSelectedCity,
                 });
 
                 // Set user ID in cart store
@@ -378,7 +381,11 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
-          // No additional auth fallback — backend API is the single source of truth
+          // No valid token or auth failed — run geolocation for anonymous users
+          const { selectedCity } = get();
+          if (!selectedCity) {
+            get().detectCityByLocation();
+          }
         } catch (error) {
           console.error('Auth initialization error:', error);
         } finally {
@@ -404,13 +411,19 @@ export const useAuthStore = create<AuthState>()(
 
       // Detect nearest city from browser geolocation
       detectCityByLocation: async () => {
-        const { selectedCity } = get();
-        // Only auto-detect if user hasn't manually selected a city
+        const { selectedCity, isAuthenticated } = get();
+        // Only auto-detect if user hasn't manually selected a city and is not logged in
         if (selectedCity) return;
+        if (isAuthenticated) return;
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             try {
+              // Re-check state inside callback — auth may have completed while geolocation was pending
+              const { selectedCity: currentCity, isAuthenticated: nowAuth } = get();
+              if (currentCity) return;
+              if (nowAuth) return;
+
               const { latitude, longitude } = position.coords;
               const response = await fetch(
                 `${API_BASE_URL}/cities/detect?lat=${latitude}&lng=${longitude}`

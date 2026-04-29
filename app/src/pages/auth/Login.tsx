@@ -387,7 +387,7 @@ const Login = () => {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <img src="/logo.png" alt={t('auth.login.logoAlt')} className="h-16 w-auto mx-auto mb-4" />
+        <img src="/logo.png" alt={t('auth.login.logoAlt')} className="h-32 w-auto mx-auto mb-4" />
         <h1 className="text-2xl font-semibold text-white mb-2">{t('auth.login.title')}</h1>
         <p className="text-gray-400 text-sm">{t('auth.login.subtitle')}</p>
       </div>

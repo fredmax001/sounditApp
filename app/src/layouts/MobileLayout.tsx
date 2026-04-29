@@ -155,7 +155,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     }
     if (isVendor) {
       return [
-        { path: '/dashboard/vendor/orders', label: t('vendor.orders') || 'Orders', icon: ShoppingBag },
+        { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel') || 'Orders', icon: ShoppingBag },
         { path: '/dashboard/vendor/events', label: t('upgrade.eventBooths') || 'Event Booths', icon: CalendarDays, locked: true, feature: 'event_booths' },
         { path: '/dashboard/vendor/earnings', label: t('upgrade.earnings') || 'Earnings', icon: Wallet, locked: true, feature: 'earnings' },
         { path: '/dashboard/vendor/community', label: t('upgrade.communityPosts') || 'Community', icon: MessageSquare, locked: true, feature: 'community_posts' },

@@ -75,7 +75,7 @@ const MobileBottomNav = () => {
         { path: '/dashboard/vendor', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
         { path: '/dashboard/vendor/products', label: t('vendor.myProducts') || 'Products', icon: Store },
         { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine },
-        { path: '/dashboard/vendor/orders', label: t('vendor.orders') || 'Orders', icon: ShoppingBag },
+        { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel') || 'Orders', icon: ShoppingBag },
         { path: '/dashboard/vendor/profile', label: t('nav.profile') || 'Profile', icon: User },
       ];
     }

@@ -128,7 +128,7 @@ const VendorEarnings = () => {
   const [nextPayoutDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString());
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">

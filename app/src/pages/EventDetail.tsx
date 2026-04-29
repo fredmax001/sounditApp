@@ -660,7 +660,7 @@ export default function EventDetail() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <img src="/logo.png" alt="Sound It" className="h-16 w-auto opacity-80" />
+                  <img src="/logo.png" alt="Sound It" className="h-32 w-auto opacity-80" />
                 </div>
               )}
               <button
@@ -693,8 +693,8 @@ export default function EventDetail() {
                       src: '/logo.png',
                       x: undefined,
                       y: undefined,
-                      height: 30,
-                      width: 30,
+                      height: 60,
+                      width: 60,
                       excavate: true,
                     }}
                   />

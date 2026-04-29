@@ -13,7 +13,7 @@ import { chinaCities } from '@/data/constants';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const VendorProfile = () => {
-  const { session } = useAuthStore();
+  const { session, updateProfile: updateAuthProfile } = useAuthStore();
   const { profile: vendorProfile, fetchProfile, updateProfile } = useVendorStore();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
@@ -150,6 +150,11 @@ const VendorProfile = () => {
         logo_url: logoUrl
       });
 
+      // Sync vendor logo to auth profile avatar so sidebar updates
+      if (logoUrl && updateAuthProfile) {
+        await updateAuthProfile({ avatar_url: logoUrl });
+      }
+
       toast.success(t('vendor.profile.updateSuccess'));
       setProfileLogo(null);
       fetchProfile(session.access_token);
@@ -170,7 +175,7 @@ const VendorProfile = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">

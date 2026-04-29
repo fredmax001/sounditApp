@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { chinaCities } from '@/data/constants';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useVendorStore } from '@/store/vendorStore';
@@ -8,7 +9,7 @@ import {
     Plus, Edit, TrendingUp, Package, MessageSquare,
     Eye, X, Check, MapPin, Trash2, Inbox,
     Loader2, Image as ImageIcon, User, Phone, Mail, Globe,
-    QrCode, Filter
+    QrCode, Filter, Search
 } from 'lucide-react';
 import type { Product } from '@/store/vendorStore';
 import { Link, useNavigate } from 'react-router-dom';
@@ -62,7 +63,7 @@ interface ProductOrderItem {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const VendorDashboard = () => {
-    const { session, profile } = useAuthStore();
+    const { session, profile, updateProfile: updateAuthProfile } = useAuthStore();
     const { profile: vendorProfile, products, fetchProfile, fetchProducts, updateProduct, deleteProduct, updateProfile } = useVendorStore();
     const { stats: dashboardStats, fetchStats, fetchActivities } = useDashboardStore();
     const navigate = useNavigate();
@@ -70,6 +71,13 @@ const VendorDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    // Booth apply modal state
+    const [showBoothModal, setShowBoothModal] = useState(false);
+    const [availableEvents, setAvailableEvents] = useState<VendorEvent[]>([]);
+    const [isLoadingBoothEvents, setIsLoadingBoothEvents] = useState(false);
+    const [boothSearchQuery, setBoothSearchQuery] = useState('');
+    const [applyingEventId, setApplyingEventId] = useState<number | null>(null);
 
     // Product form state
     const [productForm, setProductForm] = useState({
@@ -95,6 +103,7 @@ const VendorDashboard = () => {
         phone: '',
         address: '',
         website: '',
+        city_id: '',
         vendor_type: '' as 'food' | 'merch' | 'service' | 'beverage' | ''
     });
     const [profileLogo, setProfileLogo] = useState<File | null>(null);
@@ -393,9 +402,15 @@ const VendorDashboard = () => {
                 phone: profileForm.phone || undefined,
                 address: profileForm.address || undefined,
                 website: profileForm.website || undefined,
+                city_id: profileForm.city_id || undefined,
                 vendor_type: profileForm.vendor_type || undefined,
                 logo_url: logoUrl
             });
+
+            // Sync vendor logo to auth profile avatar so sidebar updates
+            if (logoUrl && updateAuthProfile) {
+                await updateAuthProfile({ avatar_url: logoUrl });
+            }
 
             toast.success(t('vendor.dashboard.profileUpdatedSuccess'));
             setProfileLogo(null);
@@ -418,6 +433,7 @@ const VendorDashboard = () => {
                 phone: vendorProfile.phone || '',
                 address: vendorProfile.address || '',
                 website: vendorProfile.website || '',
+                city_id: (vendorProfile as unknown as Record<string, string>).city_id || '',
                 vendor_type: vendorProfile.vendor_type || ''
             });
             setProfileLogoPreview(vendorProfile.logo_url || null);
@@ -426,11 +442,65 @@ const VendorDashboard = () => {
     }, [vendorProfile]);
 
     const handleViewMessages = () => {
-        navigate('/messages');
+        navigate('/dashboard/vendor/community');
     };
 
     const handleApplyForBooth = () => {
-        navigate('/events');
+        setShowBoothModal(true);
+        fetchAvailableEventsForBooth();
+    };
+
+    const fetchAvailableEventsForBooth = async () => {
+        if (!session?.access_token) return;
+        setIsLoadingBoothEvents(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/events?limit=50`, {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                // Filter out events vendor already applied to
+                const appliedIds = new Set(events.map(e => e.id));
+                const filtered = (data.items || data || []).filter((evt: VendorEvent) => !appliedIds.has(evt.id));
+                setAvailableEvents(filtered);
+            } else {
+                setAvailableEvents([]);
+            }
+        } catch {
+            setAvailableEvents([]);
+        } finally {
+            setIsLoadingBoothEvents(false);
+        }
+    };
+
+    const handleApplyToEvent = async (eventId: number) => {
+        if (!session?.access_token) {
+            toast.error(t('vendor.dashboard.notAuthenticated'));
+            return;
+        }
+        setApplyingEventId(eventId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/vendors/events/${eventId}/apply`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+            if (response.ok) {
+                toast.success(t('vendor.dashboard.boothAppliedSuccess') || 'Booth application submitted!');
+                setShowBoothModal(false);
+                fetchVendorEvents(session.access_token);
+            } else {
+                const error = await response.json();
+                toast.error(error.detail || t('vendor.dashboard.boothApplyError') || 'Failed to apply for booth');
+            }
+        } catch {
+            toast.error(t('vendor.dashboard.networkError'));
+        } finally {
+            setApplyingEventId(null);
+        }
     };
 
     const fetchVendorEvents = useCallback(async (token: string) => {
@@ -646,7 +716,7 @@ const VendorDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] p-6 lg:p-10">
+        <div className="min-h-screen bg-[#0A0A0A] pt-20 lg:pt-10 pb-6 px-6 lg:px-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10">
                 <div>
@@ -1271,6 +1341,22 @@ const VendorDashboard = () => {
                                     </div>
 
                                     <div>
+                                        <label className="block text-sm text-gray-400 mb-2">{t('vendor.profile.city') || 'City'}</label>
+                                        <select
+                                            value={profileForm.city_id}
+                                            onChange={(e) => handleProfileChange('city_id', e.target.value)}
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                                        >
+                                            <option value="" className="bg-[#111111]">Select city</option>
+                                            {chinaCities.map((city) => (
+                                                <option key={city.id} value={city.id} className="bg-[#111111]">
+                                                    {city.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
                                         <label className="block text-sm text-gray-400 mb-2">{t('vendor.dashboard.businessDescription')}</label>
                                         <textarea
                                             placeholder={t('vendor.dashboard.businessDescriptionPlaceholder')}
@@ -1413,6 +1499,65 @@ const VendorDashboard = () => {
                     </div>
                 )}
             </motion.div>
+
+            {/* Booth Application Modal */}
+            {showBoothModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-white">{t('vendor.dashboard.applyForBooth')}</h3>
+                            <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-400 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="relative mb-4">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder={t('vendor.dashboard.searchEvents') || 'Search events...'}
+                                value={boothSearchQuery}
+                                onChange={(e) => setBoothSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                            />
+                        </div>
+                        <div className="flex-1 overflow-y-auto space-y-3">
+                            {isLoadingBoothEvents ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+                                </div>
+                            ) : availableEvents.filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase())).length > 0 ? (
+                                availableEvents
+                                    .filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase()))
+                                    .map((event) => (
+                                        <div key={event.id} className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
+                                            <div>
+                                                <p className="text-white font-bold">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</p>
+                                                <p className="text-gray-400 text-sm">{event.date || event.event_date || t('vendor.dashboard.tbd')}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleApplyToEvent(event.id)}
+                                                disabled={applyingEventId === event.id}
+                                                className="px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                                            >
+                                                {applyingEventId === event.id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    t('vendor.dashboard.apply')
+                                                )}
+                                            </button>
+                                        </div>
+                                    ))
+                            ) : (
+                                <p className="text-gray-400 text-center py-8">{t('vendor.dashboard.noEventsAvailable') || 'No events available for booth application.'}</p>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

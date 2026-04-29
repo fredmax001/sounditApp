@@ -207,37 +207,62 @@ class User(Base):
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    artist_profile = relationship("ArtistProfile", back_populates="user", uselist=False)
+    booking_requests_sent = relationship("BookingRequest", back_populates="requester", foreign_keys="BookingRequest.requester_id")
+    business_profile = relationship("BusinessProfile", back_populates="user", uselist=False)
+    community_comment_likes = relationship("CommunityCommentLike", back_populates="user")
+    community_comments = relationship("CommunityComment", back_populates="user")
+    community_likes = relationship("CommunityLike", back_populates="user")
+    community_posts = relationship("CommunityPost", back_populates="user")
+    followed_artists = relationship("ArtistFollow", back_populates="user")
+    followed_events = relationship("EventFollow", back_populates="user")
+    followed_organizers = relationship("OrganizerFollow", back_populates="user")
+    followed_vendors = relationship("VendorFollow", back_populates="user")
+    orders = relationship("Order", back_populates="user", foreign_keys="Order.user_id")
+    organizer_profile = relationship("OrganizerProfile", back_populates="user", uselist=False)
+    payout_requests = relationship("PayoutRequest", back_populates="user", foreign_keys="PayoutRequest.user_id")
+    product_orders = relationship("ProductOrder", back_populates="user", foreign_keys="ProductOrder.user_id")
+    subscriptions = relationship("Subscription", back_populates="user", foreign_keys="Subscription.user_id")
+    table_orders = relationship("TableOrder", back_populates="user", foreign_keys="TableOrder.user_id")
+    ticket_orders = relationship("TicketOrder", back_populates="user", foreign_keys="TicketOrder.user_id")
+    tickets = relationship("Ticket", back_populates="user", foreign_keys="Ticket.user_id")
+    vendor_profile = relationship("VendorProfile", back_populates="user", uselist=False)
+    verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
+
+
+class PageVisit(Base):
+    """Page visit tracking for analytics"""
+    __tablename__ = "page_visits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    path = Column(String(500), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class StaffMember(Base):
+    """Business staff members (sub-accounts for events)"""
+    __tablename__ = "staff_members"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    full_name = Column(String(200), nullable=False)
+    login = Column(String(100), nullable=False, unique=True)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(20), nullable=True)
+    role = Column(String(50), nullable=False, default="Scanner")
+    status = Column(String(20), nullable=False, default="Pending")
+    
+    permissions = Column(JSON, nullable=True, default=dict)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
-    tickets = relationship("Ticket", back_populates="user", foreign_keys="Ticket.user_id")
-    artist_profile = relationship("ArtistProfile", back_populates="user", uselist=False)
-    organizer_profile = relationship("OrganizerProfile", back_populates="user", uselist=False)
-    business_profile = relationship("BusinessProfile", back_populates="user", uselist=False)
-    vendor_profile = relationship("VendorProfile", back_populates="user", uselist=False)
-    followed_artists = relationship("ArtistFollow", back_populates="user")
-    followed_events = relationship("EventFollow", back_populates="user")
-    followed_vendors = relationship("VendorFollow", back_populates="user")
-    followed_organizers = relationship("OrganizerFollow", back_populates="user")
-    payout_requests = relationship("PayoutRequest", back_populates="user", foreign_keys="PayoutRequest.user_id")
-    verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
-    booking_requests_sent = relationship("BookingRequest", back_populates="requester", foreign_keys="BookingRequest.requester_id")
-    orders = relationship("Order", back_populates="user", foreign_keys="Order.user_id")
-    
-    # Community feed relationships
-    community_posts = relationship("CommunityPost", back_populates="user")
-    community_comments = relationship("CommunityComment", back_populates="user")
-    community_likes = relationship("CommunityLike", back_populates="user")
-    community_comment_likes = relationship("CommunityCommentLike", back_populates="user")
-    
-    # Subscription and ticketing relationships
-    subscriptions = relationship("Subscription", back_populates="user", foreign_keys="Subscription.user_id")
-    ticket_orders = relationship("TicketOrder", back_populates="user", foreign_keys="TicketOrder.user_id")
-    product_orders = relationship("ProductOrder", back_populates="user", foreign_keys="ProductOrder.user_id")
-    
-    # Table reservation relationships
-    table_orders = relationship("TableOrder", back_populates="user", foreign_keys="TableOrder.user_id")
 
 
 class ArtistProfile(Base):
@@ -276,12 +301,17 @@ class ArtistProfile(Base):
     events_count = Column(Integer, default=0)
     rating = Column(Float, default=0.0)
     reviews_count = Column(Integer, default=0)
+    followers_count = Column(Integer, default=0)
     
     # Verification
     is_verified = Column(Boolean, default=False)
     
     # Featured status
     is_featured = Column(Boolean, default=False)
+    
+    @property
+    def city_id(self):
+        return self.city.value if self.city else None
     
     # Performance history
     performance_history = Column(JSON, nullable=True)
@@ -489,6 +519,7 @@ class VendorProfile(Base):
     # Stats
     rating = Column(Float, default=0.0)
     reviews_count = Column(Integer, default=0)
+    followers_count = Column(Integer, default=0)
     
     # Verification
     is_verified = Column(Boolean, default=False)
@@ -504,6 +535,10 @@ class VendorProfile(Base):
     products = relationship("Product", back_populates="vendor")
     events = relationship("EventVendor", back_populates="vendor")
     followers = relationship("VendorFollow", back_populates="vendor")
+    
+    @property
+    def city_id(self):
+        return self.city.value if self.city else None
 
 
 class Product(Base):

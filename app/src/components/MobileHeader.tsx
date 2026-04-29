@@ -97,7 +97,7 @@ const MobileHeader = () => {
         <div className="flex items-center justify-between px-4 py-3">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="SOUND IT" className="h-16 w-auto object-contain" />
+            <img src="/logo.png" alt="SOUND IT" className="h-20 w-auto object-contain" />
           </Link>
 
           {/* Right Actions */}

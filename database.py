@@ -272,8 +272,8 @@ def init_db():
                             (role, plan_type, price, duration_days, event_limit, featured_listing, analytics_access, priority_support, verified_badge, homepage_spotlight, is_active)
                             VALUES (:role, :plan, :price, 30, :event_limit, :featured, :analytics, :support, :badge, :spotlight, 1)
                         """), {
-                            "role": role.value,
-                            "plan": plan.value,
+                            "role": role.name,
+                            "plan": plan.name,
                             "price": price,
                             "event_limit": event_limit,
                             "featured": featured,

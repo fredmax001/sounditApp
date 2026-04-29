@@ -1434,7 +1434,13 @@
       "statusUsed": "Used",
       "uploadQrError": "Failed to upload QR codes",
       "viewQr": "View QR",
-      "wechatQr": "WeChat QR Code"
+      "wechatQr": "WeChat QR Code",
+      "messagesComingSoon": "Messages coming soon!",
+      "searchEvents": "Search events...",
+      "apply": "Apply",
+      "noEventsAvailable": "No events available for booth application.",
+      "boothAppliedSuccess": "Booth application submitted!",
+      "boothApplyError": "Failed to apply for booth"
     },
     "products": {
       "title": "My Products",
@@ -1455,7 +1461,27 @@
       "noProductsDescription": "Start selling by adding your first product. Products will appear here once created.",
       "addFirstProduct": "Add Your First Product"
     },
-    "orders": "Orders",
+    "orders": {
+      "navLabel": "Orders",
+      "title": "Order Management",
+      "subtitle": "Manage and track your product orders",
+      "orderIdHeader": "Order ID",
+      "customerHeader": "Customer",
+      "productHeader": "Product",
+      "qtyHeader": "Qty",
+      "totalHeader": "Total",
+      "statusHeader": "Status",
+      "dateHeader": "Date",
+      "na": "N/A",
+      "unknown": "Unknown",
+      "product": "Product",
+      "statusCompleted": "Completed",
+      "statusPending": "Pending",
+      "statusCancelled": "Cancelled",
+      "statusProcessing": "Processing",
+      "noOrdersTitle": "No Orders Yet",
+      "noOrdersDescription": "You haven't received any product orders yet. Once customers purchase your products, they'll appear here."
+    },
     "events": {
       "title": "Event Booths",
       "subtitle": "Manage your event applications",
@@ -1477,7 +1503,12 @@
       "cancelApplication": "Cancel Application",
       "noEventsTitle": "No Event Booths Yet",
       "noEventsDescription": "Apply to become a vendor at upcoming events to see them here.",
-      "browseEvents": "Browse Events"
+      "browseEvents": "Browse Events",
+      "applySuccess": "Booth application submitted!",
+      "applyError": "Failed to apply for booth",
+      "searchEvents": "Search events...",
+      "apply": "Apply",
+      "noEventsAvailable": "No events available for booth application."
     },
     "earnings": {
       "title": "Earnings",
@@ -1550,7 +1581,8 @@
       "uploadImageError": "Failed to upload image",
       "notAuthenticated": "Not authenticated",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile"
+      "updateError": "Failed to update profile",
+      "city": "City"
     },
     "community": {
       "title": "Community",
