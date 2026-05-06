@@ -92,19 +92,23 @@ const ManageEvents = () => {
     }
   };
 
-  const handleFeature = async (id: number) => {
-    setActionLoading(`feature-${id}`);
+  const handleFeature = async (event: EventItem) => {
+    setActionLoading(`feature-${event.id}`);
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/events/${id}/feature`, {
-        method: 'POST',
+      const isFeatured = event.is_featured;
+      const url = `${API_BASE_URL}/admin/events/${event.id}/feature`;
+      const res = await fetch(url, {
+        method: isFeatured ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ is_featured: true })
+        }
       });
       if (res.ok) {
-        toast.success(t('admin.manageEvents.eventFeaturedStatusUpdated'));
+        toast.success(isFeatured
+          ? (t('admin.manageEvents.eventUnfeatured') || 'Event unfeatured')
+          : (t('admin.manageEvents.eventFeatured') || 'Event featured')
+        );
         loadEvents();
       } else {
         const err = await res.json();
@@ -291,7 +295,7 @@ const ManageEvents = () => {
                           </>
                         )}
                         <button
-                          onClick={() => handleFeature(event.id)}
+                          onClick={() => handleFeature(event)}
                           disabled={actionLoading === `feature-${event.id}`}
                           className={`p-2 rounded-lg ${event.is_featured ? 'bg-[#d3da0c]/20 text-[#d3da0c]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
                         >

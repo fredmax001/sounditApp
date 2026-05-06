@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X, MapPin } from 'lucide-react';
+import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X, MapPin, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/store/themeStore';
 import { API_BASE_URL } from '@/config/api';
 
@@ -23,7 +24,8 @@ const languages = [
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { session, cities, selectedCity, setSelectedCity } = useAuthStore();
+  const { session, cities, selectedCity, setSelectedCity, logout } = useAuthStore();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -442,6 +444,25 @@ const Settings = () => {
         </motion.div>
 
         {/* Danger Zone */}
+        {/* Logout */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
+        >
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
+          </button>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

@@ -10,6 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import VerificationBadge from '@/components/VerificationBadge';
 import TableBooking from '@/components/TableBooking';
 import { API_BASE_URL } from '@/config/api';
+import { WEB_ORIGIN } from '@/lib/appUrl';
 
 export default function EventDetail() {
   const { t } = useTranslation();
@@ -31,6 +32,8 @@ export default function EventDetail() {
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
 
   useEffect(() => {
@@ -48,9 +51,9 @@ export default function EventDetail() {
       ? currentEvent.description.replace(/<[^>]+>/g, '').slice(0, 160)
       : '5 years of Excellence in Entertainment';
     const image = currentEvent.flyer_image
-      ? (currentEvent.flyer_image.startsWith('http') ? currentEvent.flyer_image : `${window.location.origin}${currentEvent.flyer_image}`)
-      : `${window.location.origin}/logo.png`;
-    const url = `${window.location.origin}/events/${id}`;
+      ? (currentEvent.flyer_image.startsWith('http') ? currentEvent.flyer_image : `${WEB_ORIGIN}${currentEvent.flyer_image}`)
+      : `${WEB_ORIGIN}/logo.png`;
+    const url = `${WEB_ORIGIN}/events/${id}`;
 
     document.title = `${title} - Sound It`;
 
@@ -161,6 +164,7 @@ export default function EventDetail() {
     formData.append('payment_amount', String(unitPrice * quantity));
     formData.append('payment_reference', paymentReference.trim());
     if (payerNotes) formData.append('payer_notes', payerNotes);
+    if (referralCode.trim()) formData.append('referral_code', referralCode.trim().toUpperCase());
 
     try {
       const res = await fetch(`${API_BASE_URL}/tickets/order`, {
@@ -268,6 +272,16 @@ export default function EventDetail() {
                 {currentEvent.event_type || t('eventDetail.event')}
               </span>
 
+              {currentEvent.tags && currentEvent.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {currentEvent.tags.map((tag, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-xs text-white/60">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* Title */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
                 {currentEvent.title}
@@ -343,6 +357,9 @@ export default function EventDetail() {
                 <TableBooking 
                   eventId={Number(currentEvent.id)} 
                   eventTitle={currentEvent.title}
+                  wechatQrUrl={currentEvent.wechat_qr_url}
+                  alipayQrUrl={currentEvent.alipay_qr_url}
+                  paymentInstructions={currentEvent.payment_instructions}
                 />
               </div>
 
@@ -548,6 +565,9 @@ export default function EventDetail() {
             </div>
             <MobileQrPayment
               amount={(currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent.ticket_price ?? 0) * quantity}
+              wechatQrUrl={currentEvent.wechat_qr_url}
+              alipayQrUrl={currentEvent.alipay_qr_url}
+              paymentInstructions={currentEvent.payment_instructions}
             />
             <button
               onClick={() => { setShowQrModal(false); setShowOrderModal(true); }}
@@ -625,6 +645,19 @@ export default function EventDetail() {
                 />
               </div>
               <div>
+                <label className="text-white/60 text-sm block mb-2">
+                  {t('eventDetail.referralCode') || 'Referral Code'}
+                  <span className="ml-1 text-purple-400 font-medium">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
+                  placeholder={t('eventDetail.enterReferralCode') || 'Enter referral code'}
+                />
+              </div>
+              <div>
                 <label className="text-white/60 text-sm block mb-2">{t('eventDetail.notesOptional')}</label>
                 <textarea
                   value={payerNotes}
@@ -685,7 +718,7 @@ export default function EventDetail() {
               <div className="flex flex-col items-center gap-4">
                 <div className="w-48 h-48 bg-white rounded-xl flex items-center justify-center p-3 shadow-lg">
                   <QRCodeSVG
-                    value={`${window.location.origin}/events/${id}`}
+                    value={`${WEB_ORIGIN}/events/${id}`}
                     size={180}
                     level="H"
                     includeMargin={true}
@@ -707,7 +740,7 @@ export default function EventDetail() {
                 <div className="flex gap-3 w-full">
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/events/${id}`);
+                      navigator.clipboard.writeText(`${WEB_ORIGIN}/events/${id}`);
                       toast.success(t('eventDetail.linkCopied'));
                     }}
                     className="flex-1 px-4 py-2.5 bg-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/15 transition-colors flex items-center justify-center gap-2"
@@ -721,10 +754,10 @@ export default function EventDetail() {
                         navigator.share({
                           title: currentEvent?.title || 'Sound It Event',
                           text: currentEvent?.description ? currentEvent.description.replace(/<[^>]+>/g, '').slice(0, 100) : '',
-                          url: `${window.location.origin}/events/${id}`,
+                          url: `${WEB_ORIGIN}/events/${id}`,
                         }).catch(() => {});
                       } else {
-                        navigator.clipboard.writeText(`${window.location.origin}/events/${id}`);
+                        navigator.clipboard.writeText(`${WEB_ORIGIN}/events/${id}`);
                         toast.success(t('eventDetail.linkCopied'));
                       }
                     }}

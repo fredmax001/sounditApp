@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X } from 'lucide-react';
+import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
@@ -10,7 +11,8 @@ import { API_BASE_URL } from '@/config/api';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, updateProfile, uploadAvatar, uploadBanner, session } = useAuthStore();
+  const { profile, updateProfile, uploadAvatar, uploadBanner, session, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
@@ -416,6 +418,26 @@ const Profile = () => {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Logout Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 bg-[#111111] rounded-xl p-6 border border-white/5"
+        >
+          <h3 className="text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h3>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors border border-red-500/20"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
+          </button>
         </motion.div>
       </div>
     </div>

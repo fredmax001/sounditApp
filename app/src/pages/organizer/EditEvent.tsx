@@ -4,13 +4,14 @@ import { motion } from 'framer-motion';
 import {
   Calendar, MapPin, Clock, Users, DollarSign, Plus, X, Upload, Loader2, AlertCircle,
   Ticket, ChevronLeft, Shield, Music, ImageIcon, CreditCard, Tag, Trash2,
-  Check, QrCode, Copy
+  Check, QrCode, Copy, Share2, Percent
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { WEB_ORIGIN } from '@/lib/appUrl';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -44,6 +45,10 @@ interface EventFormData {
   refundPolicy: string;
   requireId: boolean;
   ticketPrice: string;
+  promoterEnabled: boolean;
+  commissionRate: string;
+  discountPercent: string;
+  maxDiscountAmount: string;
 }
 
 const EVENT_TYPES = ['Party', 'Concert', 'Festival', 'Day Party', 'Rooftop Party', 'Club Night', 'Live Music', 'DJ Set'];
@@ -125,6 +130,10 @@ const EditEvent = () => {
     refundPolicy: 'Non-refundable',
     requireId: false,
     ticketPrice: '',
+    promoterEnabled: false,
+    commissionRate: '10',
+    discountPercent: '5',
+    maxDiscountAmount: '',
   });
 
   const [ticketTiers, setTicketTiers] = useState<TicketTierData[]>([]);
@@ -139,6 +148,13 @@ const EditEvent = () => {
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [wechatQrFile, setWechatQrFile] = useState<File | null>(null);
+  const [alipayQrFile, setAlipayQrFile] = useState<File | null>(null);
+  const [wechatQrPreview, setWechatQrPreview] = useState('');
+  const [alipayQrPreview, setAlipayQrPreview] = useState('');
+  const [paymentInstructions, setPaymentInstructions] = useState('');
+  const [selectedDjs, setSelectedDjs] = useState<number[]>([]);
+  const [artists, setArtists] = useState<{ id: number; name?: string; stage_name?: string }[]>([]);
 
   // Load event data
   useEffect(() => {
@@ -176,14 +192,16 @@ const EditEvent = () => {
       venue = currentEvent.address || '';
     }
 
+    const pad = (n: number) => String(n).padStart(2, '0');
+
     setFormData({
       title: currentEvent.title || '',
       titleCN: currentEvent.title_cn || '',
       description,
-      date: start ? start.toISOString().split('T')[0] : '',
-      time: start ? start.toTimeString().slice(0, 5) : '',
-      endDate: end ? end.toISOString().split('T')[0] : '',
-      endTime: end ? end.toTimeString().slice(0, 5) : '',
+      date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
+      time: start ? `${pad(start.getHours())}:${pad(start.getMinutes())}` : '',
+      endDate: end ? `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}` : '',
+      endTime: end ? `${pad(end.getHours())}:${pad(end.getMinutes())}` : '',
       venue,
       address: currentEvent.address || '',
       city: currentEvent.city ? currentEvent.city.charAt(0).toUpperCase() + currentEvent.city.slice(1) : '',
@@ -194,7 +212,21 @@ const EditEvent = () => {
       refundPolicy: currentEvent.refund_policy || 'Non-refundable',
       requireId: currentEvent.require_id || false,
       ticketPrice: currentEvent.ticket_price != null ? String(currentEvent.ticket_price) : '',
+      promoterEnabled: currentEvent.promoter_enabled || false,
+      commissionRate: currentEvent.default_commission_rate != null ? String(currentEvent.default_commission_rate) : '10',
+      discountPercent: currentEvent.default_discount_percent != null ? String(currentEvent.default_discount_percent) : '5',
+      maxDiscountAmount: currentEvent.max_discount_amount != null ? String(currentEvent.max_discount_amount) : '',
     });
+
+    // Payment QR codes
+    setPaymentInstructions(currentEvent.payment_instructions || '');
+    setWechatQrPreview(currentEvent.wechat_qr_url || '');
+    setAlipayQrPreview(currentEvent.alipay_qr_url || '');
+    setWechatQrFile(null);
+    setAlipayQrFile(null);
+
+    // DJs
+    setSelectedDjs(currentEvent.djs?.map((dj: {id: string | number}) => Number(dj.id)) || []);
 
     // Gallery
     if (currentEvent.gallery_images?.length) {
@@ -243,6 +275,21 @@ const EditEvent = () => {
     };
     loadBusinessProfile();
   }, [profile, businessProfile, fetchBusinessProfile, t]);
+
+  useEffect(() => {
+    const fetchArtists = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/artists?limit=100`);
+        if (res.ok) {
+          const data = await res.json();
+          setArtists(data.artists || data || []);
+        }
+      } catch {
+        // non-blocking
+      }
+    };
+    fetchArtists();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -349,6 +396,51 @@ const EditEvent = () => {
     }
   };
 
+  const handleQrFileSelect = (type: 'wechat' | 'alipay') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('organizer.createEvent.invalidQrImage'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(t('organizer.createEvent.qrSizeError'));
+      return;
+    }
+    if (type === 'wechat') {
+      setWechatQrFile(file);
+      setWechatQrPreview(URL.createObjectURL(file));
+    } else {
+      setAlipayQrFile(file);
+      setAlipayQrPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadQrCodes = async (eventId: number) => {
+    if (!wechatQrFile && !alipayQrFile && !paymentInstructions) return;
+    const authToken = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+    if (!authToken) return;
+
+    const formDataUpload = new FormData();
+    if (wechatQrFile) formDataUpload.append('wechat_qr', wechatQrFile);
+    if (alipayQrFile) formDataUpload.append('alipay_qr', alipayQrFile);
+    if (paymentInstructions) formDataUpload.append('payment_instructions', paymentInstructions);
+    if (formData.ticketPrice) formDataUpload.append('ticket_price', formData.ticketPrice);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/upload-qr`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}` },
+        body: formDataUpload,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to upload QR codes');
+      }
+    } catch {
+      toast.error('Failed to upload QR codes');
+    }
+  };
 
   const uploadFile = async (file: File): Promise<string> => {
     const authToken = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
@@ -478,14 +570,17 @@ const EditEvent = () => {
       let fullDescription = formData.description || '';
       fullDescription = `${t('organizer.createEvent.venuePrefix')} ${formData.venue}${formData.address ? `, ${formData.address}` : ''}\n\n${fullDescription}`;
 
+      const startLocal = new Date(`${formData.date}T${formData.time}`);
+      const endLocal = formData.endDate && formData.endTime
+        ? new Date(`${formData.endDate}T${formData.endTime}`)
+        : startLocal;
+
       const updateData = {
         title: formData.title.trim(),
         title_cn: formData.titleCN.trim() || undefined,
         description: fullDescription.trim(),
-        start_date: `${formData.date}T${formData.time}:00`,
-        end_date: formData.endDate && formData.endTime
-          ? `${formData.endDate}T${formData.endTime}:00`
-          : `${formData.date}T${formData.time}:00`,
+        start_date: startLocal.toISOString(),
+        end_date: endLocal.toISOString(),
         city: formData.city.trim().toLowerCase(),
         flyer_image: flyerImageUrl,
         gallery_images: galleryUrls.length > 0 ? galleryUrls : undefined,
@@ -496,9 +591,17 @@ const EditEvent = () => {
         require_id: formData.requireId,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
+        dj_ids: selectedDjs.length > 0 ? selectedDjs : undefined,
+        promoter_enabled: formData.promoterEnabled,
+        default_commission_rate: formData.promoterEnabled ? parseFloat(formData.commissionRate || '10') : undefined,
+        default_discount_percent: formData.promoterEnabled ? parseFloat(formData.discountPercent || '5') : undefined,
+        max_discount_amount: formData.promoterEnabled && formData.maxDiscountAmount ? parseFloat(formData.maxDiscountAmount) : undefined,
       };
 
       await updateEvent(eventId, updateData);
+
+      // Upload payment QR codes
+      await uploadQrCodes(Number(eventId));
 
       // Sync ticket tiers
       const currentTierIds = new Set(ticketTiers.map(t => t.id));
@@ -879,6 +982,42 @@ const EditEvent = () => {
                     ))}
                   </div>
                 </div>
+
+                <div>
+                  <Label>DJ Line-up</Label>
+                  <select
+                    multiple
+                    value={selectedDjs.map(String)}
+                    onChange={(e) => {
+                      const options = Array.from(e.target.selectedOptions);
+                      const ids = options.map(o => Number(o.value));
+                      setSelectedDjs(ids);
+                    }}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors"
+                    size={Math.min(artists.length, 5)}
+                  >
+                    {artists.map(artist => (
+                      <option key={artist.id} value={artist.id} className="bg-[#111111]">
+                        {artist.stage_name || artist.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-gray-500 text-xs mt-1">Hold Ctrl/Cmd to select multiple DJs</p>
+                </div>
+
+                {selectedDjs.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDjs.map(djId => {
+                      const artist = artists.find(a => a.id === djId);
+                      return artist ? (
+                        <span key={djId} className="px-3 py-1 bg-[#d3da0c]/20 text-[#d3da0c] rounded-lg text-sm flex items-center gap-2">
+                          {artist.stage_name || artist.name}
+                          <button onClick={() => setSelectedDjs(prev => prev.filter(id => id !== djId))} className="hover:text-white">×</button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
             </SectionCard>
 
@@ -1102,6 +1241,164 @@ const EditEvent = () => {
                     />
                   </div>
                 </div>
+
+                {/* WeChat QR */}
+                <div>
+                  <Label>{t('organizer.createEvent.wechatQr')}</Label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQrFileSelect('wechat')}
+                      className="hidden"
+                      id="wechat-qr-upload"
+                    />
+                    <label
+                      htmlFor="wechat-qr-upload"
+                      className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+                    >
+                      {wechatQrPreview ? (
+                        <img src={wechatQrPreview} alt="WeChat QR" className="w-16 h-16 object-contain rounded-lg" />
+                      ) : (
+                        <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center">
+                          <QrCode className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-white text-sm font-medium">
+                          {wechatQrPreview ? t('organizer.createEvent.changeQr') : t('organizer.createEvent.uploadQr')}
+                        </p>
+                        <p className="text-gray-500 text-xs">PNG, JPG up to 2MB</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Alipay QR */}
+                <div>
+                  <Label>{t('organizer.createEvent.alipayQr')}</Label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQrFileSelect('alipay')}
+                      className="hidden"
+                      id="alipay-qr-upload"
+                    />
+                    <label
+                      htmlFor="alipay-qr-upload"
+                      className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+                    >
+                      {alipayQrPreview ? (
+                        <img src={alipayQrPreview} alt="Alipay QR" className="w-16 h-16 object-contain rounded-lg" />
+                      ) : (
+                        <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center">
+                          <QrCode className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-white text-sm font-medium">
+                          {alipayQrPreview ? t('organizer.createEvent.changeQr') : t('organizer.createEvent.uploadQr')}
+                        </p>
+                        <p className="text-gray-500 text-xs">PNG, JPG up to 2MB</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Payment Instructions */}
+                <div>
+                  <Label>{t('organizer.createEvent.paymentInstructionsLabel')}</Label>
+                  <TextArea
+                    value={paymentInstructions}
+                    onChange={(e) => setPaymentInstructions(e.target.value)}
+                    placeholder={t('organizer.createEvent.paymentInstructionsPlaceholder') || 'e.g. Please include your name and event name in the transfer note'}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </SectionCard>
+
+            {/* Promoter & Referral Settings */}
+            <SectionCard className="border-purple-500/20 bg-purple-500/5">
+              <div className="flex items-center gap-2 mb-4">
+                <Share2 className="w-5 h-5 text-purple-400" />
+                <h3 className="text-white font-semibold text-lg">{t('organizer.createEvent.promoterSettings') || 'Promoter & Referral'}</h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                {t('organizer.createEvent.promoterSettingsDescription') || 'Enable promoters to sell tickets and earn commissions'}
+              </p>
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="promoterEnabled"
+                    checked={formData.promoterEnabled}
+                    onChange={handleChange}
+                    className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500"
+                  />
+                  <div>
+                    <p className="text-white text-sm font-medium">{t('organizer.createEvent.enablePromoters') || 'Enable Promoter Program'}</p>
+                    <p className="text-gray-400 text-xs">{t('organizer.createEvent.enablePromotersDescription') || 'Allow promoters to share your event and earn commissions'}</p>
+                  </div>
+                </label>
+
+                {formData.promoterEnabled && (
+                  <>
+                    <div>
+                      <Label>{t('organizer.createEvent.commissionRate') || 'Commission Rate (%)'}</Label>
+                      <div className="relative">
+                        <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Input
+                          type="number"
+                          name="commissionRate"
+                          value={formData.commissionRate}
+                          onChange={handleChange}
+                          placeholder="10"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          className="pl-12"
+                        />
+                      </div>
+                      <p className="text-gray-500 text-xs mt-1">Percentage promoters earn per ticket sale</p>
+                    </div>
+                    <div>
+                      <Label>{t('organizer.createEvent.discountPercent') || 'Referral Discount (%)'}</Label>
+                      <div className="relative">
+                        <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Input
+                          type="number"
+                          name="discountPercent"
+                          value={formData.discountPercent}
+                          onChange={handleChange}
+                          placeholder="5"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          className="pl-12"
+                        />
+                      </div>
+                      <p className="text-gray-500 text-xs mt-1">Discount buyers get when using a referral code</p>
+                    </div>
+                    <div>
+                      <Label>{t('organizer.createEvent.maxDiscountAmount') || 'Max Discount Amount'}</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Input
+                          type="number"
+                          name="maxDiscountAmount"
+                          value={formData.maxDiscountAmount}
+                          onChange={handleChange}
+                          placeholder="Optional cap"
+                          min="0"
+                          step="0.01"
+                          className="pl-12"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </SectionCard>
 
@@ -1168,12 +1465,12 @@ const EditEvent = () => {
                 <input
                   type="text"
                   readOnly
-                  value={currentEvent.share_url || `${window.location.origin}/events/${currentEvent.id}`}
+                  value={currentEvent.share_url || `${WEB_ORIGIN}/events/${currentEvent.id}`}
                   className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
                 />
                 <button
                   onClick={() => {
-                    const url = currentEvent.share_url || `${window.location.origin}/events/${currentEvent.id}`;
+                    const url = currentEvent.share_url || `${WEB_ORIGIN}/events/${currentEvent.id}`;
                     navigator.clipboard.writeText(url);
                     setLinkCopied(true);
                     toast.success(t('organizer.createEvent.linkCopied'));

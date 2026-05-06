@@ -48,6 +48,20 @@ class PaymentMethod(str, enum.Enum):
     YOOPAY = "yoopay"
     WECHAT_PAY = "wechat_pay"
     ALIPAY = "alipay"
+
+
+class PromoterTier(str, enum.Enum):
+    BASIC = "basic"
+    SILVER = "silver"
+    GOLD = "gold"
+    PLATINUM = "platinum"
+
+
+class EventPromoterStatus(str, enum.Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    PAUSED = "paused"
+    REMOVED = "removed"
     APPLE_PAY = "apple_pay"
     GOOGLE_PAY = "google_pay"
     QR_TRANSFER = "qr_transfer"
@@ -301,10 +315,10 @@ class ArtistProfile(Base):
     events_count = Column(Integer, default=0)
     rating = Column(Float, default=0.0)
     reviews_count = Column(Integer, default=0)
-    followers_count = Column(Integer, default=0)
     
     # Verification
     is_verified = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=False)
     
     # Featured status
     is_featured = Column(Boolean, default=False)
@@ -351,6 +365,7 @@ class OrganizerProfile(Base):
     
     # Verification
     is_verified = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=False)
     is_business = Column(Boolean, default=False)
     verification_documents = Column(JSON, nullable=True)
     
@@ -389,6 +404,7 @@ class BusinessProfile(Base):
     
     # Verification
     is_verified = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=False)
     verification_documents = Column(JSON, nullable=True)
     
     # Stats
@@ -523,6 +539,7 @@ class VendorProfile(Base):
     
     # Verification
     is_verified = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=False)
     
     # Featured status
     is_featured = Column(Boolean, default=False)
@@ -870,6 +887,12 @@ class Event(Base):
     ticket_price = Column(Float, nullable=True)
     payment_instructions = Column(Text, nullable=True)
     
+    # Promoter & Referral settings
+    promoter_enabled = Column(Boolean, default=False)
+    default_commission_rate = Column(Float, default=10.0)  # percentage
+    default_discount_percent = Column(Float, default=5.0)  # percentage
+    max_discount_amount = Column(Float, nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -890,6 +913,10 @@ class Event(Base):
     # Table reservation relationships
     table_packages = relationship("TablePackage", back_populates="event")
     table_orders = relationship("TableOrder", back_populates="event")
+    
+    # Promoter relationships
+    event_promoters = relationship("EventPromoter", back_populates="event")
+    promoter_referrals = relationship("PromoterReferral", back_populates="event")
 
 
 class EventArtist(Base):
@@ -1859,6 +1886,9 @@ class Subscription(Base):
     start_date = Column(DateTime(timezone=True), nullable=True)
     end_date = Column(DateTime(timezone=True), nullable=True)
     
+    # Trial flag
+    is_trial = Column(Boolean, default=False)
+    
     # Admin approval
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
@@ -1910,6 +1940,12 @@ class TicketOrder(Base):
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
     rejection_reason = Column(Text, nullable=True)
     
+    # Promoter & Referral tracking
+    event_promoter_id = Column(Integer, ForeignKey("event_promoters.id"), nullable=True)
+    referral_code = Column(String(50), nullable=True, index=True)
+    discount_applied = Column(Float, default=0.0)
+    final_amount = Column(Float, nullable=True)
+    
     # Usage tracking
     used_at = Column(DateTime(timezone=True), nullable=True)
     used_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Who scanned it
@@ -1922,6 +1958,7 @@ class TicketOrder(Base):
     user = relationship("User", foreign_keys=[user_id], back_populates="ticket_orders")
     reviewer = relationship("User", foreign_keys=[reviewed_by])
     tickets = relationship("Ticket", back_populates="ticket_order")
+    event_promoter = relationship("EventPromoter", back_populates="ticket_orders")
 
 
 class ProductOrder(Base):
@@ -2221,3 +2258,138 @@ class PromoCode(Base):
     is_active = Column(Boolean, default=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PromoterProfile(Base):
+    """Promoter profile for users who promote events"""
+    __tablename__ = "promoter_profiles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    
+    # Referral identity
+    referral_code = Column(String(50), unique=True, nullable=False, index=True)
+    
+    # Performance stats
+    total_referrals = Column(Integer, default=0)
+    total_conversions = Column(Integer, default=0)
+    total_sales = Column(Float, default=0.0)
+    total_commission = Column(Float, default=0.0)
+    total_paid_out = Column(Float, default=0.0)
+    pending_commission = Column(Float, default=0.0)
+    
+    # Settings
+    tier = Column(Enum(PromoterTier), default=PromoterTier.BASIC)
+    commission_rate = Column(Float, default=10.0)  # default %
+    is_active = Column(Boolean, default=True)
+    
+    # Payment info for payouts
+    payment_method = Column(String(50), nullable=True)  # wechat, alipay, bank
+    payment_account = Column(String(255), nullable=True)
+    payment_name = Column(String(100), nullable=True)
+    
+    # Contact
+    contact_phone = Column(String(20), nullable=True)
+    contact_wechat = Column(String(100), nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", backref="promoter_profile")
+    event_promoters = relationship("EventPromoter", back_populates="promoter")
+    payouts = relationship("PromoterPayout", back_populates="promoter")
+
+
+class EventPromoter(Base):
+    """Junction table: promoters assigned to specific events"""
+    __tablename__ = "event_promoters"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    promoter_id = Column(Integer, ForeignKey("promoter_profiles.id"), nullable=False)
+    
+    # Unique referral code for this event-promoter pair
+    referral_code = Column(String(50), unique=True, nullable=False, index=True)
+    
+    # Custom settings per event (override defaults)
+    commission_rate = Column(Float, nullable=True)  # null = use event default
+    discount_percent = Column(Float, nullable=True)  # null = use event default
+    max_discount_amount = Column(Float, nullable=True)
+    
+    # Status
+    status = Column(Enum(EventPromoterStatus), default=EventPromoterStatus.PENDING)
+    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Performance
+    clicks = Column(Integer, default=0)
+    conversions = Column(Integer, default=0)
+    tickets_sold = Column(Integer, default=0)
+    revenue_generated = Column(Float, default=0.0)
+    commission_earned = Column(Float, default=0.0)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    event = relationship("Event", back_populates="event_promoters")
+    promoter = relationship("PromoterProfile", back_populates="event_promoters")
+    ticket_orders = relationship("TicketOrder", back_populates="event_promoter")
+    referrals = relationship("PromoterReferral", back_populates="event_promoter")
+
+
+class PromoterReferral(Base):
+    """Tracks individual referral clicks and conversions"""
+    __tablename__ = "promoter_referrals"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_promoter_id = Column(Integer, ForeignKey("event_promoters.id"), nullable=False)
+    referral_code = Column(String(50), nullable=False, index=True)
+    
+    # Visitor info
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    visitor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # Conversion tracking
+    converted = Column(Boolean, default=False)
+    ticket_order_id = Column(Integer, ForeignKey("ticket_orders.id"), nullable=True)
+    conversion_value = Column(Float, nullable=True)
+    commission_amount = Column(Float, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    converted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    event = relationship("Event", back_populates="promoter_referrals")
+    event_promoter = relationship("EventPromoter", back_populates="referrals")
+
+
+class PromoterPayout(Base):
+    """Commission payout records"""
+    __tablename__ = "promoter_payouts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    promoter_id = Column(Integer, ForeignKey("promoter_profiles.id"), nullable=False)
+    
+    amount = Column(Float, nullable=False)
+    status = Column(String(20), default="pending")  # pending, processing, paid, rejected
+    
+    period_start = Column(DateTime(timezone=True), nullable=True)
+    period_end = Column(DateTime(timezone=True), nullable=True)
+    
+    payment_method = Column(String(50), nullable=True)
+    payment_account = Column(String(255), nullable=True)
+    payment_reference = Column(String(100), nullable=True)
+    
+    notes = Column(Text, nullable=True)
+    paid_at = Column(DateTime(timezone=True), nullable=True)
+    paid_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    promoter = relationship("PromoterProfile", back_populates="payouts")

@@ -10,9 +10,10 @@ import {
 
 interface Business {
   id: number;
-  business_name: string;
-  business_type?: string;
+  organization_name: string;
+  description?: string;
   is_verified: boolean;
+  is_approved?: boolean;
   verification_badge?: boolean;
   events_count?: number;
   total_revenue?: number;
@@ -20,7 +21,6 @@ interface Business {
   user_name?: string;
   user_id?: number;
   status?: string;
-  city?: { name?: string };
 }
 
 const ManageBusinesses = () => {
@@ -29,7 +29,7 @@ const ManageBusinesses = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState(''); // kept for compatibility but unused
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,6 +83,42 @@ const ManageBusinesses = () => {
       }
     } catch {
       toast.error('Failed to unverify business');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    setActionLoading(`approve-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/businesses/${id}/approve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Business approved');
+        loadBusinesses();
+      }
+    } catch {
+      toast.error('Failed to approve business');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUnapprove = async (id: number) => {
+    setActionLoading(`unapprove-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/businesses/${id}/unapprove`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Business unapproved');
+        loadBusinesses();
+      }
+    } catch {
+      toast.error('Failed to unapprove business');
     } finally {
       setActionLoading(null);
     }
@@ -164,13 +200,10 @@ const ManageBusinesses = () => {
 
   const filteredBusinesses = businesses.filter(business => {
     const matchesSearch = !searchQuery || 
-      business.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      business.business_type?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !typeFilter || business.business_type === typeFilter;
-    return matchesSearch && matchesType;
+      business.organization_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      business.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
-
-  const businessTypes = [...new Set(businesses.map(b => b.business_type).filter(Boolean))];
 
   return (
     <div className="space-y-6">
@@ -182,7 +215,7 @@ const ManageBusinesses = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
@@ -235,6 +268,19 @@ const ManageBusinesses = () => {
         </div>
         <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
           <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Check className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs">Approved</p>
+              <p className="text-white font-bold text-xl">
+                {businesses.filter(b => b.is_approved).length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-yellow-500/10 rounded-lg">
               <Sparkles className="w-5 h-5 text-yellow-400" />
             </div>
@@ -260,14 +306,7 @@ const ManageBusinesses = () => {
             className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
-        >
-          <option value="">{t('admin.manageBusinesses.allTypes')}</option>
-          {businessTypes.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
+        {/* Type filter removed — backend no longer returns business_type */}
       </div>
 
       {/* Businesses Table */}
@@ -281,8 +320,7 @@ const ManageBusinesses = () => {
             <thead className="bg-white/5">
               <tr>
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.business')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.type')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.location')}</th>
+                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.description') || 'Description'}</th>
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.events')}</th>
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.status')}</th>
                 <th className="text-right text-gray-400 text-sm font-medium p-4">{t('admin.manageBusinesses.actions')}</th>
@@ -294,16 +332,15 @@ const ManageBusinesses = () => {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {business.business_name?.[0] || 'B'}
+                        {business.organization_name?.[0] || 'B'}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{business.business_name}</p>
+                        <p className="text-white font-medium">{business.organization_name}</p>
                         <p className="text-gray-500 text-sm">{business.user_name}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-gray-400 capitalize">{business.business_type || t('admin.manageBusinesses.na')}</td>
-                  <td className="p-4 text-gray-400">{business.city?.name || t('admin.manageBusinesses.na')}</td>
+                  <td className="p-4 text-gray-400">{business.description || t('admin.manageBusinesses.na')}</td>
                   <td className="p-4 text-gray-400">{business.events_count || 0}</td>
                   <td className="p-4">
                     <div className="flex flex-col gap-1">
@@ -312,6 +349,11 @@ const ManageBusinesses = () => {
                       }`}>
                         {business.is_verified ? t('admin.manageBusinesses.verifiedStatus') : t('admin.manageBusinesses.pendingStatus')}
                       </span>
+                      {business.is_approved && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-blue-500/20 text-blue-400">
+                          Approved
+                        </span>
+                      )}
                       {business.is_featured && (
                         <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-yellow-500/20 text-yellow-400">
                           {t('admin.manageBusinesses.featuredBadge')}
@@ -343,6 +385,25 @@ const ManageBusinesses = () => {
                           title="Unverify"
                         >
                           {actionLoading === `unverify-${business.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                        </button>
+                      )}
+                      {!business.is_approved ? (
+                        <button
+                          onClick={() => handleApprove(business.id)}
+                          disabled={actionLoading === `approve-${business.id}`}
+                          className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
+                          title="Approve account"
+                        >
+                          {actionLoading === `approve-${business.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnapprove(business.id)}
+                          disabled={actionLoading === `unapprove-${business.id}`}
+                          className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                          title="Unapprove account"
+                        >
+                          {actionLoading === `unapprove-${business.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                         </button>
                       )}
                       <button

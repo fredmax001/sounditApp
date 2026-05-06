@@ -1,6 +1,6 @@
 /**
- * Mobile Header - App-Style Header
- * Clean, hides on scroll down, reappears on scroll up.
+ * Mobile Header — Premium Floating Glass Top Bar (2025)
+ * Glassmorphism, animated logo, pulsing location, gradient avatar ring
  */
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,9 +17,10 @@ import {
   Heart,
   ChevronDown,
   LayoutDashboard,
-  Globe,
   X,
   ScanLine,
+  Share2,
+  Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
@@ -35,6 +36,7 @@ const MobileHeader = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [showCitySheet, setShowCitySheet] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [scrollDepth, setScrollDepth] = useState(0);
   const lastScrollY = useRef(0);
   const { trigger } = useHaptic();
   const { t } = useTranslation();
@@ -42,10 +44,10 @@ const MobileHeader = () => {
   const currentCity = chinaCities.find((c) => c.id === selectedCity) || chinaCities[0];
   const role = profile?.role_type || profile?.role;
 
-  // Hide header on scroll down, show on scroll up
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      setScrollDepth(currentScrollY);
       if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
         setIsHidden(true);
       } else {
@@ -79,6 +81,8 @@ const MobileHeader = () => {
         { icon: Ticket, label: t('nav.myTickets') || 'My Tickets', onClick: () => navigate('/tickets') },
         { icon: Heart, label: t('nav.favorites') || 'Favorites', onClick: () => navigate('/favorites') },
         { icon: LayoutDashboard, label: t('nav.dashboard') || 'Dashboard', onClick: () => navigate('/dashboard') },
+        { icon: Crown, label: t('nav.subscriptions') || 'Subscriptions', onClick: () => navigate('/subscriptions') },
+        { icon: Share2, label: t('nav.promoter') || 'Promoter', onClick: () => navigate('/promoter') },
         { icon: Settings, label: t('nav.settings') || 'Settings', onClick: () => navigate('/settings') },
       ]
     : [
@@ -86,72 +90,108 @@ const MobileHeader = () => {
         { icon: User, label: t('nav.getStarted') || 'Register', onClick: () => navigate('/register') },
       ];
 
+  const headerOpacity = Math.min(scrollDepth / 80, 1);
+
   return (
     <>
       <motion.header
         initial={{ y: 0 }}
         animate={{ y: isHidden ? '-100%' : 0 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 safe-area-pt"
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed top-0 left-0 right-0 z-40 safe-area-pt"
+        style={{
+          background: `rgba(10, 10, 15, ${0.3 + headerOpacity * 0.5})`,
+          backdropFilter: scrollDepth > 20 ? 'blur(24px) saturate(180%)' : 'blur(12px) saturate(150%)',
+          WebkitBackdropFilter: scrollDepth > 20 ? 'blur(24px) saturate(180%)' : 'blur(12px) saturate(150%)',
+          borderBottom: `1px solid rgba(255,255,255,${0.05 + headerOpacity * 0.05})`,
+        }}
       >
         <div className="flex items-center justify-between px-4 py-3">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="SOUND IT" className="h-20 w-auto object-contain" />
+            <motion.img
+              src="/logo.png"
+              alt="SOUND IT"
+              className="h-7 w-auto object-contain"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              style={{ filter: 'drop-shadow(0 0 8px rgba(211,218,12,0.3))' }}
+            />
           </Link>
+
+          {/* Center — Location Pill */}
+          <button
+            onClick={() => setShowCitySheet(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill-premium text-xs font-medium text-gray-300 active:scale-95 transition-transform"
+          >
+            <motion.span
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <MapPin className="w-3 h-3 text-[#d3da0c]" />
+            </motion.span>
+            <span className="max-w-[5rem] truncate">{currentCity.name.split(' ')[0]}</span>
+            <ChevronDown className="w-3 h-3 opacity-60" />
+          </button>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
             {isAuthenticated && (
               <>
-                {/* City Selector */}
-                <button
-                  onClick={() => setShowCitySheet(true)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white/5 text-xs font-medium text-gray-300 touch-feedback"
-                >
-                  <MapPin className="w-3 h-3 text-[#d3da0c]" />
-                  <span className="max-w-[4rem] truncate">{currentCity.name.split(' ')[0]}</span>
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-
                 {/* Cart */}
-                <Link to="/cart" className="relative p-2 text-gray-300 hover:text-white touch-feedback">
-                  <ShoppingCart className="w-5 h-5" />
+                <Link
+                  to="/cart"
+                  className="relative w-9 h-9 rounded-full glass-pill-premium flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform"
+                >
+                  <ShoppingCart className="w-4 h-4" />
                   {cartItemsCount > 0 && (
-                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full flex items-center justify-center">
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full flex items-center justify-center"
+                    >
                       {cartItemsCount > 9 ? '9+' : cartItemsCount}
-                    </span>
+                    </motion.span>
                   )}
                 </Link>
 
                 {/* Notifications */}
                 <button
                   onClick={() => toast.info('No new notifications')}
-                  className="p-2 text-gray-300 hover:text-white touch-feedback relative"
+                  className="relative w-9 h-9 rounded-full glass-pill-premium flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform"
                 >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FF2D8F] rounded-full" />
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#FF2D8F] rounded-full animate-badge-bounce" />
                 </button>
               </>
             )}
 
-            {/* Profile Avatar */}
+            {/* Avatar with gradient ring */}
             <button
               onClick={() => setShowDrawer(true)}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden touch-feedback"
+              className="relative w-9 h-9 rounded-full flex items-center justify-center overflow-hidden active:scale-90 transition-transform"
             >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default-avatar.png';
-                  }}
-                />
-              ) : (
-                <User className="w-4 h-4 text-black" />
-              )}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[2px]">
+                <div className="w-full h-full rounded-full bg-[#0A0A0F] p-[2px]">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="w-full h-full rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                      <User className="w-4 h-4 text-black" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Online dot */}
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00E676] rounded-full border-2 border-[#0A0A0F]" />
             </button>
           </div>
         </div>
@@ -165,7 +205,7 @@ const MobileHeader = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-50"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
               onClick={() => setShowDrawer(false)}
             />
             <motion.div
@@ -173,7 +213,7 @@ const MobileHeader = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs bg-[#111111] border-l border-white/5 z-50 safe-area-pt"
+              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs glass-panel-dark border-l border-white/10 z-50 safe-area-pt"
             >
               <div className="flex flex-col h-full p-4 safe-area-pb">
                 {/* Drawer Header */}
@@ -186,19 +226,25 @@ const MobileHeader = () => {
 
                 {/* User Info */}
                 <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/5">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/default-avatar.png';
-                        }}
-                      />
-                    ) : (
-                      <User className="w-7 h-7 text-black" />
-                    )}
+                  <div className="relative w-14 h-14">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[2px]">
+                      <div className="w-full h-full rounded-full bg-[#0A0A0F] p-[2px]">
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt=""
+                            className="w-full h-full rounded-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/default-avatar.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                            <User className="w-6 h-6 text-black" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium truncate">
@@ -215,9 +261,12 @@ const MobileHeader = () => {
 
                 {/* Menu Items */}
                 <div className="flex-1 overflow-y-auto space-y-1">
-                  {menuItems.map((item) => (
-                    <button
+                  {menuItems.map((item, i) => (
+                    <motion.button
                       key={item.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
                       onClick={() => {
                         trigger('light');
                         item.onClick();
@@ -227,7 +276,7 @@ const MobileHeader = () => {
                     >
                       <item.icon className="w-5 h-5" />
                       <span className="text-sm font-medium">{item.label}</span>
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
 
@@ -282,7 +331,7 @@ const MobileHeader = () => {
                     className={`px-3 py-3 rounded-xl text-sm font-medium transition-colors touch-feedback ${
                       selectedCity === city.id
                         ? 'bg-[#d3da0c] text-black'
-                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                        : 'glass-pill-premium text-gray-300 hover:bg-white/10'
                     }`}
                   >
                     {city.name.split(' ')[0]}

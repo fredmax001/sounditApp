@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-04-17
+2026-05-06
 
 ---
 
@@ -689,3 +689,51 @@
   - Fixed `.env` `DATABASE_URL` placeholder issue that caused post-deploy startup crashes.
   - PostgreSQL schema migrations for new columns executed live.
 - **Build Status**: Backend imports OK, frontend build passes, deployed live to sounditent.com.
+
+
+### 33. Mobile Glassmorphism Upgrade + Logo & Favicon Refresh (2026-05-06)
+- **Objective**: Upgrade mobile UI to premium glassmorphism design, replace platform logo, fix mock data, and separate web/app favicons.
+
+#### 33.1 Mobile Glassmorphism Homepage Redesign
+- `app/src/pages/Home.tsx`: Complete cinematic hero redesign with gradient mesh orbs, floating music-note particles, Ken Burns background, glass quick chips, horizontal snap-scroll trending events, vertical upcoming events list, circular DJ avatars with live ring, masonry city guide grid, and glass stats cards.
+- `app/src/components/MobileHeader.tsx`: Floating glass top nav with scroll-intensified blur, logo glow, location pill, notification bell, gradient-ring avatar, profile drawer, city picker bottom sheet.
+- `app/src/components/MobileBottomNav.tsx`: Floating glass dock pill with spring-animated active tab indicator, 5 tabs (Home/Events/Community/Discovery/Profile).
+- `app/src/index.css`: Added 2025 glassmorphism design tokens, keyframe animations (`float`, `gradient-shift`, `mesh-drift`, `pulse-slow`), glass utility classes, mobile bottom sheet, skeleton loading, snap-scroll.
+
+#### 33.2 Logo Swap — `Sit.PNG`
+- New logo copied to `app/public/logo.png`, `app/dist/logo.png`, `app/ios/App/App/public/logo.png`, `app/android/app/src/main/assets/public/logo.png`.
+- **Web layout header/footer logos reduced** (multiple iterations):
+  - `Navbar.tsx`: `h-20 lg:h-24` → `h-8 lg:h-10`
+  - `Navigation.tsx`: `h-24 lg:h-28` → `h-10 lg:h-12`
+  - `Footer.tsx`: `h-24` → `h-10`
+- **Mobile header logo**: Kept at `h-7` (reverted after test increase).
+- **Dashboard logo**: `DashboardLayout.tsx`: `h-24` → `h-12`
+- **Login/auth logos**: `h-32` → `h-16 md:h-32` (mobile smaller, desktop preserved).
+
+#### 33.3 City Guide — Real Data Metrics
+- `app/src/pages/Home.tsx`: Replaced hardcoded mock counts (`12 venues`, `8 spots`, `24 upcoming`, `15 DJs`) with live API data from `GET /cities/{city}/guide`.
+- Added `cityGuideCounts` state + `fetchCityGuideCounts()` using `venues.length`, `foodSpots.length`, `events.length`, `artists.length`.
+
+#### 33.4 Responsive Grid Fixes (Web Layout)
+- `app/src/pages/Home.tsx`:
+  - **Trending Now**: Mobile keeps horizontal scroll; desktop uses `md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`.
+  - **Upcoming Events**: Mobile keeps vertical list; desktop uses `md:grid-cols-2 lg:grid-cols-3`.
+- `app/src/pages/Events.tsx`: Events list changed from `space-y-4` to `space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0` — no more huge single-column tiles on desktop.
+
+#### 33.5 Discovery / City Guide Cleanup
+- `app/src/pages/CityGuide.tsx`: Removed duplicate `<CityDropdown>` from the controls section — city selection is handled by the navbar location pill.
+
+#### 33.6 Translation Fix
+- Added missing `nav.account` key to `en.json` (`"Account"`), `zh.json` (`"账户"`), `fr.json` (`"Compte"`).
+- Used in `user/Profile.tsx`, `business/Profile.tsx`, `vendor/Profile.tsx`.
+
+#### 33.7 Favicon & App Icon Separation
+- **Web favicons** (from `/Users/djfredmax/Downloads/SIC.JPG`):
+  - `favicon-16x16.png`, `favicon-32x32.png`
+  - `apple-touch-icon.png` (180×180)
+  - `android-chrome-192x192.png`, `android-chrome-512x512.png`
+- **App icons** (from `/Users/djfredmax/Downloads/App.-Icon.png`):
+  - iOS: `AppIcon.appiconset/AppIcon-512@2x.png` (1024×1024)
+  - Android: all `mipmap-*` densities (ldpi/mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi) with `ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png`, `ic_launcher_background.png`
+
+- **Build Status**: Frontend compiles successfully, deployed live to sounditent.com.

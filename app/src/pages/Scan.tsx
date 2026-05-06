@@ -1,26 +1,30 @@
 /**
  * Ticket Scanner Page
- * Mobile-optimized ticket scanning using camera
+ * Mobile-optimized ticket scanning using html5-qrcode
  * Works across all user roles (Admin, Business, Artist, Vendor)
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ScanLine,
   Flashlight,
-  Image as ImageIcon,
+  Keyboard,
   X,
   CheckCircle,
   AlertCircle,
   Ticket,
   User,
-  Calendar
+  Calendar,
+  Loader2,
+  Camera,
+  RefreshCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface ScanResult {
   success: boolean;
@@ -31,6 +35,7 @@ interface ScanResult {
     event_date: string;
     user_name: string;
     status: string;
+    tier_name?: string;
   };
   message: string;
 }
@@ -39,93 +44,112 @@ const ScanPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { session } = useAuthStore();
+
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualCode, setManualCode] = useState('');
-  const [hasCamera, setHasCamera] = useState(true);
+  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
   const [flashlightOn, setFlashlightOn] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
-  // Request camera access
-  useEffect(() => {
-    const initCamera = async () => {
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  // Start camera scanner
+  const startScanner = useCallback(async () => {
+    if (html5QrCodeRef.current) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
+        await html5QrCodeRef.current.stop();
+      } catch {
+        // ignore
+      }
+      html5QrCodeRef.current = null;
+    }
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          streamRef.current = stream;
+    setCameraError(null);
+    setScanResult(null);
+
+    try {
+      const scanner = new Html5Qrcode('scan-video-container');
+      html5QrCodeRef.current = scanner;
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        (decodedText) => {
+          // QR code successfully decoded
+          handleScan(decodedText);
+        },
+        () => {
+          // No QR found in frame — ignore
         }
-        setHasCamera(true);
-        setIsScanning(true);
-      } catch (err) {
-        console.error('Camera access denied:', err);
-        setHasCamera(false);
-        toast.error(t('scan.cameraDenied'));
-      }
-    };
+      );
 
-    initCamera();
+      setIsScanning(true);
+      setHasCamera(true);
+    } catch (err) {
+      console.error('Camera start failed:', err);
+      setIsScanning(false);
+      setHasCamera(false);
+      setCameraError(
+        t('scan.cameraDenied') || 'Unable to access camera. Please check permissions or use manual entry.'
+      );
+    }
+  }, [t]);
 
-    return () => {
-      // Cleanup camera stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+  // Stop camera scanner
+  const stopScanner = useCallback(async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch {
+        // ignore
       }
-    };
+      html5QrCodeRef.current = null;
+    }
+    setIsScanning(false);
   }, []);
 
-  // Extract token from QR code data
-  const extractTokenFromQR = (qrData: string): string | null => {
-    try {
-      // Handle URL format: https://sounditent.com/validate/{token}
-      if (qrData.includes('/validate/')) {
-        const token = qrData.split('/validate/')[1];
-        if (token && token.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-          return token;
-        }
-      }
+  // Initialize camera on mount
+  useEffect(() => {
+    startScanner();
 
-      // Handle direct UUID token format
-      if (qrData.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        return qrData;
-      }
+    return () => {
+      stopScanner();
+    };
+  }, [startScanner, stopScanner]);
 
-      return null;
-    } catch {
-      console.error('Error extracting token from QR');
-      return null;
-    }
-  };
-
-  // {t('scan.validate')} ticket by token
+  // Validate ticket via API
   const handleScan = async (code: string) => {
-    if (!code || scanResult) return;
+    if (!code.trim() || isValidating) return;
 
-    setIsScanning(false);
+    setIsValidating(true);
+    setScanResult(null);
 
-    // Extract token from QR data
-    const token = extractTokenFromQR(code);
-    if (!token) {
-      setScanResult({
-        success: false,
-        message: t('scan.invalidQRCode')
-      });
-      toast.error(t('scan.invalidQRCodeFormat'));
-      return;
-    }
+    // Pause scanner while validating
+    await stopScanner();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/payments/validate/${token}`, {
-        method: 'GET',
+      const token = session?.access_token || localStorage.getItem('auth-token') || '';
+      if (!token) {
+        setScanResult({
+          success: false,
+          message: t('scan.authRequired') || 'Please log in to validate tickets',
+        });
+        toast.error(t('scan.authRequired') || 'Please log in to validate tickets');
+        setIsValidating(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/ticketing/organizer/validate-ticket`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ ticket_code: code.trim() }),
       });
 
       const data = await response.json();
@@ -134,40 +158,34 @@ const ScanPage = () => {
         setScanResult({
           success: true,
           ticket: {
-            id: data.ticket_id,
-            ticket_number: token,
-            event_title: `${t('scan.event')} ${data.event_id}`,
-            event_date: data.validated_at || new Date().toLocaleString(),
-            user_name: `${t('scan.user')} ${data.user_id}`,
-            status: data.status
+            id: String(data.ticket_id || ''),
+            ticket_number: data.ticket_code || code,
+            event_title: data.event || t('scan.unknownEvent'),
+            event_date: data.event_start_date
+              ? new Date(data.event_start_date).toLocaleString()
+              : '',
+            user_name: data.user || t('scan.unknownUser'),
+            status: data.status || 'validated',
+            tier_name: data.tier_name,
           },
-          message: data.message || t('scan.ticketValidatedSuccess')
+          message: data.message || t('scan.ticketValidatedSuccess'),
         });
-        toast.success(t('scan.ticketValidated'));
+        toast.success(data.message || t('scan.ticketValidated'));
       } else {
         setScanResult({
           success: false,
-          message: data.message || t('scan.ticketValidationFailed')
+          message: data.detail || data.message || t('scan.invalidTicket'),
         });
-
-        // Show specific error messages based on status
-        if (data.status === 'already_used') {
-          toast.error(`${t('scan.ticketAlreadyUsed')} ${data.used_at}`);
-        } else if (data.status === 'cancelled') {
-          toast.error(t('scan.ticketCancelled'));
-        } else if (data.status === 'ticket_not_found') {
-          toast.error(t('scan.ticketNotFound'));
-        } else {
-          toast.error(data.message || t('scan.invalidTicket'));
-        }
+        toast.error(data.detail || data.message || t('scan.invalidTicket'));
       }
     } catch {
-      console.error('Validation error');
       setScanResult({
         success: false,
-        message: t('scan.networkError')
+        message: t('scan.networkError') || 'Network error. Please try again.',
       });
-      toast.error(t('scan.validationFailed'));
+      toast.error(t('scan.validationFailed') || 'Validation failed');
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -182,173 +200,241 @@ const ScanPage = () => {
     setScanResult(null);
     setManualCode('');
     setShowManualEntry(false);
-    setIsScanning(true);
+    startScanner();
   };
 
   const toggleFlashlight = async () => {
     try {
-      if (streamRef.current) {
-        const track = streamRef.current.getVideoTracks()[0];
-        const capabilities = track.getCapabilities() as unknown as { torch?: boolean };
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as unknown as { torch?: boolean };
 
-        if (capabilities.torch) {
-          await track.applyConstraints({ advanced: [{ torch: !flashlightOn }] } as unknown);
-          setFlashlightOn(!flashlightOn);
-        }
+      if (capabilities.torch) {
+        await track.applyConstraints({ advanced: [{ torch: !flashlightOn }] } as unknown);
+        setFlashlightOn(!flashlightOn);
+      } else {
+        toast.error(t('scan.flashlightNotAvailable') || 'Flashlight not available');
       }
+      // Stop the temporary stream
+      stream.getTracks().forEach((t) => t.stop());
     } catch {
-      toast.error(t('scan.flashlightNotAvailable'));
+      toast.error(t('scan.flashlightNotAvailable') || 'Flashlight not available');
     }
   };
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-[#0A0A0A]">
+      <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border-b border-white/10 z-10">
         <button
-          onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
+          onClick={() => {
+            if (window.history.length > 1) navigate(-1);
+            else navigate('/');
+          }}
           className="p-2 text-white hover:bg-white/10 rounded-full"
         >
           <X className="w-6 h-6" />
         </button>
-        <h1 className="text-white font-semibold">{t('scan.title')}</h1>
+        <h1 className="text-white font-semibold">{t('scan.title') || 'Ticket Scanner'}</h1>
         <div className="w-10" />
       </div>
 
       {/* Scan Result Overlay */}
-      {scanResult && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-        >
-          <div className="bg-[#111111] rounded-2xl p-6 w-full max-w-sm">
-            {scanResult.success ? (
-              <>
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-500" />
-                </div>
-                <h2 className="text-white text-xl font-bold text-center mb-2">
-                  {t('scan.validTicket')}
-                </h2>
-
-                {scanResult.ticket && (
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-3 text-gray-400">
-                      <Ticket className="w-5 h-5" />
-                      <span className="text-white">{scanResult.ticket.ticket_number}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-gray-400">
-                      <Calendar className="w-5 h-5" />
-                      <span className="text-white">{scanResult.ticket.event_title}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-gray-400">
-                      <User className="w-5 h-5" />
-                      <span className="text-white">{scanResult.ticket.user_name}</span>
-                    </div>
+      <AnimatePresence>
+        {scanResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-[#111111] rounded-2xl p-6 w-full max-w-sm border border-white/5"
+            >
+              {scanResult.success ? (
+                <>
+                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="w-8 h-8 text-red-500" />
-                </div>
-                <h2 className="text-white text-xl font-bold text-center mb-2">
-                  {t('scan.invalidTicketTitle')}
-                </h2>
-                <p className="text-gray-400 text-center mb-6">
-                  {scanResult.message}
-                </p>
-              </>
-            )}
+                  <h2 className="text-white text-xl font-bold text-center mb-2">
+                    {t('scan.validTicket') || 'Valid Ticket'}
+                  </h2>
 
-            <div className="flex gap-3">
-              <button
-                onClick={resetScan}
-                className="flex-1 py-3 bg-white/10 text-white rounded-xl font-medium"
-              >
-                {t('scan.scanAnother')}
-              </button>
-              <button
-                onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
-                className="flex-1 py-3 bg-[#d3da0c] text-black rounded-xl font-medium"
-              >
-                {t('scan.done')}
-              </button>
-            </div>
+                  {scanResult.ticket && (
+                    <div className="space-y-3 mb-6">
+                      <div className="bg-white/5 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Ticket className="w-5 h-5 text-[#d3da0c]" />
+                          <div>
+                            <p className="text-gray-500 text-xs">{t('scan.ticketNumber') || 'Ticket'}</p>
+                            <p className="text-white text-sm font-mono">{scanResult.ticket.ticket_number}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Calendar className="w-5 h-5 text-[#d3da0c]" />
+                          <div>
+                            <p className="text-gray-500 text-xs">{t('scan.event') || 'Event'}</p>
+                            <p className="text-white text-sm">{scanResult.ticket.event_title}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <User className="w-5 h-5 text-[#d3da0c]" />
+                          <div>
+                            <p className="text-gray-500 text-xs">{t('scan.attendee') || 'Attendee'}</p>
+                            <p className="text-white text-sm">{scanResult.ticket.user_name}</p>
+                          </div>
+                        </div>
+                        {scanResult.ticket.tier_name && (
+                          <div className="flex items-center gap-3">
+                            <Ticket className="w-5 h-5 text-[#d3da0c]" />
+                            <div>
+                              <p className="text-gray-500 text-xs">{t('scan.tier') || 'Tier'}</p>
+                              <p className="text-white text-sm">{scanResult.ticket.tier_name}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                  </div>
+                  <h2 className="text-white text-xl font-bold text-center mb-2">
+                    {t('scan.invalidTicketTitle') || 'Invalid Ticket'}
+                  </h2>
+                  <p className="text-gray-400 text-center mb-6">{scanResult.message}</p>
+                </>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={resetScan}
+                  className="flex-1 py-3 bg-white/10 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                >
+                  <RefreshCcw className="w-4 h-4" />
+                  {t('scan.scanAnother') || 'Scan Another'}
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.history.length > 1) navigate(-1);
+                    else navigate('/');
+                  }}
+                  className="flex-1 py-3 bg-[#d3da0c] text-black rounded-xl font-medium"
+                >
+                  {t('scan.done') || 'Done'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Validating overlay */}
+      {isValidating && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-[#d3da0c] animate-spin mx-auto mb-3" />
+            <p className="text-white">{t('scan.validating') || 'Validating...'}</p>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Camera View */}
+      {/* Camera / Manual Entry */}
       {!scanResult && !showManualEntry && (
-        <div className="flex-1 relative">
-          {hasCamera ? (
+        <div className="flex-1 relative flex flex-col">
+          {hasCamera !== false ? (
             <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              {/* Scanner Viewport */}
+              <div className="flex-1 relative bg-black">
+                <div
+                  ref={videoContainerRef}
+                  id="scan-video-container"
+                  className="w-full h-full"
+                />
 
-              {/* Scan Frame */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-64 h-64">
-                  {/* Corner markers */}
-                  <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-[#d3da0c]" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-[#d3da0c]" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-[#d3da0c]" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-[#d3da0c]" />
+                {/* Scan Frame Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="relative w-64 h-64">
+                    {/* Corner markers */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-[#d3da0c]" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-[#d3da0c]" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-[#d3da0c]" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-[#d3da0c]" />
 
-                  {/* Scan line animation */}
-                  {isScanning && (
-                    <motion.div
-                      animate={{ top: ['0%', '100%', '0%'] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      className="absolute left-0 right-0 h-0.5 bg-[#d3da0c] shadow-[0_0_10px_#d3da0c]"
-                    />
-                  )}
+                    {/* Scan line animation */}
+                    {isScanning && (
+                      <motion.div
+                        animate={{ top: ['0%', '100%', '0%'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="absolute left-0 right-0 h-0.5 bg-[#d3da0c] shadow-[0_0_10px_#d3da0c]"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Top hint */}
+                <div className="absolute top-6 left-0 right-0 text-center pointer-events-none">
+                  <p className="text-white/70 text-sm font-medium">
+                    {t('scan.positionQR') || 'Point camera at ticket QR code'}
+                  </p>
                 </div>
               </div>
 
-              {/* Controls */}
-              <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center gap-6">
-                <button
-                  onClick={toggleFlashlight}
-                  className={`p-4 rounded-full ${flashlightOn ? 'bg-[#d3da0c] text-black' : 'bg-white/10 text-white'}`}
-                >
-                  <Flashlight className="w-6 h-6" />
-                </button>
+              {/* Bottom Controls */}
+              <div className="bg-[#0A0A0A] border-t border-white/10 p-4 pb-safe">
+                {cameraError && (
+                  <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-yellow-400 text-sm text-center">{cameraError}</p>
+                  </div>
+                )}
 
-                <button
-                  onClick={() => setShowManualEntry(true)}
-                  className="p-4 rounded-full bg-white/10 text-white"
-                >
-                  <ImageIcon className="w-6 h-6" />
-                </button>
-              </div>
+                <div className="flex items-center justify-center gap-6">
+                  <button
+                    onClick={toggleFlashlight}
+                    className={`p-4 rounded-full transition-colors ${
+                      flashlightOn ? 'bg-[#d3da0c] text-black' : 'bg-white/10 text-white'
+                    }`}
+                  >
+                    <Flashlight className="w-6 h-6" />
+                  </button>
 
-              {/* Scan hint */}
-              <div className="absolute top-8 left-0 right-0 text-center">
-                <p className="text-white/60 text-sm">
-                  {t('scan.positionQR')}
-                </p>
+                  <button
+                    onClick={() => {
+                      stopScanner();
+                      setShowManualEntry(true);
+                    }}
+                    className="p-4 rounded-full bg-white/10 text-white"
+                  >
+                    <Keyboard className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full p-4">
-              <ScanLine className="w-16 h-16 text-gray-600 mb-4" />
+            <div className="flex-1 flex flex-col items-center justify-center p-4">
+              <Camera className="w-16 h-16 text-gray-600 mb-4" />
               <p className="text-gray-400 text-center mb-4">
-                {t('scan.cameraNotAvailable')}
+                {cameraError || t('scan.cameraNotAvailable') || 'Camera not available'}
               </p>
               <button
-                onClick={() => setShowManualEntry(true)}
-                className="px-6 py-3 bg-[#d3da0c] text-black rounded-xl font-medium"
+                onClick={() => {
+                  setCameraError(null);
+                  startScanner();
+                }}
+                className="px-6 py-3 bg-[#d3da0c] text-black rounded-xl font-medium mb-4"
               >
-                {t('scan.enterCodeManually')}
+                {t('scan.retryCamera') || 'Retry Camera'}
+              </button>
+              <button
+                onClick={() => setShowManualEntry(true)}
+                className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium"
+              >
+                {t('scan.enterCodeManually') || 'Enter Code Manually'}
               </button>
             </div>
           )}
@@ -365,14 +451,14 @@ const ScanPage = () => {
           <form onSubmit={handleManualSubmit} className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col items-center justify-center">
               <label className="text-white text-lg font-medium mb-4">
-                {t('scan.enterTicketCode')}
+                {t('scan.enterTicketCode') || 'Enter Ticket Code'}
               </label>
               <input
                 type="text"
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
-                placeholder={t('scan.codePlaceholder')}
-                className="w-full max-w-xs px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-2xl tracking-wider focus:border-[#d3da0c] focus:outline-none"
+                placeholder={t('scan.codePlaceholder') || 'TKT-XXX-XXX-XXXXXXX-X'}
+                className="w-full max-w-xs px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-xl tracking-wider focus:border-[#d3da0c] focus:outline-none font-mono"
                 autoFocus
               />
             </div>
@@ -380,16 +466,25 @@ const ScanPage = () => {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowManualEntry(false)}
+                onClick={() => {
+                  setShowManualEntry(false);
+                  startScanner();
+                }}
                 className="flex-1 py-4 bg-white/10 text-white rounded-xl font-medium"
               >
-                {t('scan.back')}
+                {t('scan.back') || 'Back'}
               </button>
               <button
                 type="submit"
-                disabled={!manualCode.trim()}
+                disabled={!manualCode.trim() || isValidating}
                 className="flex-1 py-4 bg-[#d3da0c] text-black rounded-xl font-medium disabled:opacity-50"
-              >{t('scan.validate')}</button>
+              >
+                {isValidating ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : (
+                  t('scan.validate') || 'Validate'
+                )}
+              </button>
             </div>
           </form>
         </motion.div>

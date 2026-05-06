@@ -170,13 +170,7 @@ const Payments = () => {
                     <h1 className="text-3xl font-display text-white mb-2">{t('admin.payments.title')}</h1>
                     <p className="text-gray-400">{t('admin.payments.subtitle')}</p>
                 </div>
-                <button
-                    onClick={() => toast.info(t('admin.payments.exportNotImplemented'))}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm hover:bg-white/10 transition-colors"
-                >
-                    <Download className="w-4 h-4" />
-                    {t('admin.payments.export')}
-                </button>
+                {/* Export button hidden until backend export endpoint is implemented */}
             </div>
 
             {/* Financial Overview */}

@@ -261,6 +261,7 @@ const ReportsModeration = () => {
                     {report.status === 'pending' && (
                       <>
                         <button
+                          onClick={() => alert(`${t('admin.reportsModeration.reason') || 'Reason'}: ${report.reason}\n${t('admin.reportsModeration.reporter') || 'Reporter'}: ${report.reporter_name}`)}
                           className="p-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10"
                           title={t('admin.reportsModeration.viewDetailsTitle')}
                         >

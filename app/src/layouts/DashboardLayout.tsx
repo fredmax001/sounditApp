@@ -233,8 +233,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const isReallyLocked = (item: NavItem) => {
     if (!item.locked) return false;
-    // Verified users get unlimited access without subscription
-    if (profile?.is_verified) return false;
+    // Verified users (admin-verified or premium badge) get unlimited access without subscription
+    if (profile?.verification_badge) return false;
     if (hasSubscription === null) return false; // still loading
     if (!hasSubscription) return true;
     if (item.feature) {
@@ -256,17 +256,25 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     );
   }
 
-  // If no profile after loading, show error
+  // If no profile after loading, session may have expired — redirect to login
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-6">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Failed to load profile</p>
+        <div className="text-center max-w-sm">
+          <p className="text-white text-lg font-bold mb-2">
+            {t('auth.sessionExpired') || 'Session Expired'}
+          </p>
+          <p className="text-gray-400 mb-6">
+            {t('auth.pleaseLoginAgain') || 'Please log in again to continue.'}
+          </p>
           <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#d3da0c] text-black rounded-lg"
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="px-6 py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
           >
-            Reload
+            {t('auth.goToLogin') || 'Go to Login'}
           </button>
         </div>
       </div>
@@ -286,7 +294,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <img
               src="/logo.png"
               alt="Sound It"
-              className="h-24 w-auto max-w-full"
+              className="h-12 w-auto max-w-full"
             />
           </Link>
           <p className="text-gray-500 text-[10px] mt-1 truncate">
@@ -295,7 +303,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Subscription warning banner */}
-        {hasSubscription === false && !profile?.is_verified && (role === 'business' || role === 'organizer' || role === 'vendor' || role === 'artist') && (
+        {hasSubscription === false && !profile?.verification_badge && (role === 'business' || role === 'organizer' || role === 'vendor' || role === 'artist') && (
           <div className="px-4 pt-3 pb-1">
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
               <p className="text-yellow-500 text-xs">

@@ -4,18 +4,19 @@ import { useAuthStore } from '@/store/authStore';
 import { useVendorStore } from '@/store/vendorStore';
 import { useTranslation } from 'react-i18next';
 import {
-  ArrowLeft, Store, Check, Loader2, Globe, Mail, Phone, MapPin
+  ArrowLeft, Store, Check, Loader2, Globe, Mail, Phone, MapPin, LogOut
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const VendorProfile = () => {
-  const { session, updateProfile: updateAuthProfile } = useAuthStore();
+  const { session, updateProfile: updateAuthProfile, logout } = useAuthStore();
   const { profile: vendorProfile, fetchProfile, updateProfile } = useVendorStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -190,12 +191,25 @@ const VendorProfile = () => {
             <p className="text-gray-400 text-sm mt-1">{t('vendor.profile.subtitle')}</p>
           </div>
         </div>
-        {vendorProfile?.is_verified && (
-          <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm font-bold flex items-center gap-2">
-            <Check className="w-4 h-4" />
-            {t('vendor.profile.verifiedVendor')}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {vendorProfile?.is_approved ? (
+            <span className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-full text-sm font-bold flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              {t('vendor.profile.approved') || 'Approved'}
+            </span>
+          ) : (
+            <span className="px-4 py-2 bg-yellow-500/20 text-yellow-400 rounded-full text-sm font-bold flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {t('vendor.profile.pendingApproval') || 'Pending Approval'}
+            </span>
+          )}
+          {vendorProfile?.is_verified && (
+            <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm font-bold flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              {t('vendor.profile.verifiedVendor')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Profile Form */}
@@ -242,9 +256,15 @@ const VendorProfile = () => {
               <h4 className="text-white font-bold mb-4">{t('vendor.profile.accountStatus')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">{t('vendor.profile.statusLabel')}</span>
-                  <span className="text-green-400 font-bold">
-                    {vendorProfile?.is_verified ? t('vendor.profile.statusVerified') : t('vendor.profile.statusPending')}
+                  <span className="text-gray-400">{t('vendor.profile.approvalStatus') || 'Approval Status'}</span>
+                  <span className={`font-bold ${vendorProfile?.is_approved ? 'text-blue-400' : 'text-orange-400'}`}>
+                    {vendorProfile?.is_approved ? (t('vendor.profile.approved') || 'Approved') : (t('vendor.profile.pendingApproval') || 'Pending Approval')}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">{t('vendor.profile.verificationStatus') || 'Verification Status'}</span>
+                  <span className={`font-bold ${vendorProfile?.is_verified ? 'text-green-400' : 'text-gray-400'}`}>
+                    {vendorProfile?.is_verified ? (t('vendor.profile.verified') || 'Verified') : (t('vendor.profile.unverified') || 'Unverified')}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -407,6 +427,23 @@ const VendorProfile = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Logout Section */}
+      <div className="max-w-4xl mx-auto mt-6">
+        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+          <h4 className="text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h4>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors border border-red-500/20"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

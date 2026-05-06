@@ -85,6 +85,10 @@ export interface Event {
   qr_code?: string;
   share_url?: string;
   organizer_plan?: string;
+  promoter_enabled?: boolean;
+  default_commission_rate?: number;
+  default_discount_percent?: number;
+  max_discount_amount?: number;
   created_at: string;
 }
 
@@ -179,6 +183,10 @@ export interface CreateEventData {
   address?: string;
   ticket_tiers?: Omit<TicketTier, 'id' | 'quantity_sold'>[];
   status?: Event['status'];
+  promoter_enabled?: boolean;
+  default_commission_rate?: number;
+  default_discount_percent?: number;
+  max_discount_amount?: number;
 }
 
 // ============================================

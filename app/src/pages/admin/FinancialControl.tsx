@@ -51,11 +51,15 @@ const FinancialControl = () => {
 
   const loadFinancials = async () => {
     try {
+      const days = parseInt(dateRange, 10);
+      const to = new Date().toISOString();
+      const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
       const [statsRes, transactionsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/admin/financials?days=${dateRange}`, {
           headers: { 'Authorization': `Bearer ${session?.access_token}` }
         }),
-        fetch(`${API_BASE_URL}/admin/payments?days=${dateRange}`, {
+        fetch(`${API_BASE_URL}/admin/payments?date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`, {
           headers: { 'Authorization': `Bearer ${session?.access_token}` }
         })
       ]);

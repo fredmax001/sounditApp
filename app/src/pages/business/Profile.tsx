@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion';
-import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin } from 'lucide-react';
+import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin, LogOut } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile } = useAuthStore();
+  const { profile, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
@@ -216,7 +218,7 @@ const Profile = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
+      className="space-y-8 p-6 lg:p-10"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -520,6 +522,21 @@ const Profile = () => {
         <p className="text-gray-500 text-sm mt-3">
           {t('business.profile.uploadPhotosHint')}
         </p>
+      </div>
+
+      {/* Logout Section */}
+      <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+        <h4 className="text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h4>
+        <button
+          onClick={() => {
+            logout();
+            navigate('/');
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors border border-red-500/20"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
+        </button>
       </div>
     </motion.div>
   );

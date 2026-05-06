@@ -53,6 +53,7 @@ export interface VendorProfile {
     rating: number;
     reviews_count: number;
     is_verified: boolean;
+    is_approved?: boolean;
     verification_status: 'pending' | 'verified' | 'rejected';
 }
 
