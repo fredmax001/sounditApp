@@ -10,7 +10,7 @@ from config import get_settings
 from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, otp, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters
 # monitoring module temporarily disabled
 
 settings = get_settings()
@@ -158,7 +158,8 @@ async def maintenance_mode_middleware(request: Request, call_next):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Frontend static files (assets, etc.)
-app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+# Production build lives in app/dist/; fallback to dist/ for backward compatibility
+app.mount("/assets", StaticFiles(directory="app/dist/assets"), name="assets")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
@@ -170,7 +171,8 @@ app.include_router(admin.router, prefix="/api/v1")
 app.include_router(admin_payment_verification.router, prefix="/api/v1")
 app.include_router(clubs.router, prefix="/api/v1")
 app.include_router(foodspots.router, prefix="/api/v1")
-app.include_router(otp.router, prefix="/api/v1")
+# OTP router removed — registration and login use direct password flow
+# app.include_router(otp.router, prefix="/api/v1")
 
 app.include_router(vendors.router, prefix="/api/v1")
 app.include_router(dashboard_stats.router, prefix="/api/v1")
@@ -194,14 +196,16 @@ app.include_router(tickets.router, prefix="/api/v1")
 app.include_router(product_orders.router, prefix="/api/v1")
 app.include_router(table_reservations.router, prefix="/api/v1")
 app.include_router(cities.router, prefix="/api/v1")
+app.include_router(promoters.router, prefix="/api/v1")
 
 
 @app.get("/")
 def root():
-    # Serve frontend index.html
-    index_path = os.path.join("dist", "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
+    # Serve frontend index.html from production build
+    for dist_dir in ("app/dist", "dist"):
+        index_path = os.path.join(dist_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
     # Fallback to API info if frontend not built
     return {
         "name": settings.APP_NAME,
@@ -241,15 +245,18 @@ def serve_frontend(path: str):
         path.startswith("assets/") or path == "admin"):
         raise HTTPException(status_code=404, detail="Not found")
     
-    # Serve actual files from dist (images, etc.)
-    file_path = os.path.join("dist", path)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        return FileResponse(file_path)
+    # Production build lives in app/dist/; fallback to dist/ for backward compatibility
+    for dist_dir in ("app/dist", "dist"):
+        # Serve actual files from dist (images, etc.)
+        file_path = os.path.join(dist_dir, path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # Serve index.html for all other routes (SPA routing)
+        index_path = os.path.join(dist_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
     
-    # Serve index.html for all other routes (SPA routing)
-    index_path = os.path.join("dist", "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
     raise HTTPException(status_code=404, detail="Frontend not built")
 
 

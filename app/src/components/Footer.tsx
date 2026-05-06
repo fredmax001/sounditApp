@@ -71,7 +71,7 @@ const Footer = () => {
                 <img
                   src="/logo.png"
                   alt="SOUND IT"
-                  className="h-24 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                 />
               </Link>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">

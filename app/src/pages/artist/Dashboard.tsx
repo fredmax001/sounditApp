@@ -382,20 +382,20 @@ const ArtistDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-6 lg:p-10">
+    <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 bg-white/5 p-8 rounded-[2rem] border border-white/5">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="relative group">
+      <div className="flex items-center justify-between gap-4 mb-6 bg-white/5 p-3 rounded-2xl border border-white/5 lg:p-6 lg:rounded-3xl lg:mb-10">
+        <div className="flex items-center gap-3 lg:gap-6">
+          <div className="relative group flex-shrink-0">
             <img
               src={getAvatarUrl()}
               alt={getDisplayName()}
-              className="w-32 h-32 rounded-[2rem] object-cover ring-4 ring-[#d3da0c]/20 group-hover:ring-[#d3da0c]/50 transition-all duration-300 shadow-2xl"
+              className="w-14 h-14 rounded-xl object-cover ring-2 ring-[#d3da0c]/20 lg:w-28 lg:h-28 lg:rounded-3xl lg:ring-4 group-hover:ring-[#d3da0c]/50 transition-all duration-300 shadow-2xl"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = '/default-artist.png';
               }}
             />
-            <label className="absolute -bottom-2 -right-2 p-3 bg-[#d3da0c] rounded-2xl text-black shadow-xl hover:scale-110 active:scale-90 transition-all cursor-pointer">
+            <label className="absolute -bottom-1 -right-1 p-1.5 bg-[#d3da0c] rounded-lg text-black shadow-xl hover:scale-110 active:scale-90 transition-all cursor-pointer lg:-bottom-2 lg:-right-2 lg:p-3 lg:rounded-2xl">
               <input
                 type="file"
                 accept="image/*"
@@ -404,20 +404,20 @@ const ArtistDashboard = () => {
                 disabled={isUploadingAvatar}
               />
               {isUploadingAvatar ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 lg:w-5 lg:h-5 animate-spin" />
               ) : (
-                <Camera className="w-5 h-5" />
+                <Camera className="w-3.5 h-3.5 lg:w-5 lg:h-5" />
               )}
             </label>
           </div>
-          <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
-              <h1 className="text-4xl font-black text-white tracking-tighter">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 lg:gap-4 lg:mb-2">
+              <h1 className="text-base font-bold text-white tracking-tight truncate lg:text-3xl">
                 {getDisplayName()}
               </h1>
               {(profile?.is_verified || artistProfile?.is_verified) && (
-                <div className="bg-[#d3da0c] text-black p-1 rounded-full shadow-[0_0_15px_rgba(211, 218, 12,0.5)]">
-                  <Check className="w-3.5 h-3.5 font-black" />
+                <div className="bg-[#d3da0c] text-black p-0.5 rounded-full shadow-[0_0_15px_rgba(211, 218, 12,0.5)] flex-shrink-0 lg:p-1">
+                  <Check className="w-3 h-3 lg:w-3.5 lg:h-3.5 font-black" />
                 </div>
               )}
             </div>
@@ -427,14 +427,14 @@ const ArtistDashboard = () => {
               const showGenres = artistProfile?.genres?.length > 0;
               if (!showType && !showGenres) return null;
               return (
-                <p className="text-[#d3da0c] font-bold text-lg mb-3 tracking-wide">
+                <p className="text-[#d3da0c] font-semibold text-xs mb-1 tracking-wide truncate lg:text-base lg:mb-3">
                   {showType ? type : ''}
                   {showType && showGenres ? ' • ' : ''}
                   {showGenres ? artistProfile.genres.join(' • ') : ''}
                 </p>
               );
             })()}
-            <div className="flex items-center justify-center md:justify-start gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               {(profile?.instagram || profileForm.instagram) && (
                 <a
                   href={(profile?.instagram || profileForm.instagram).startsWith('http')
@@ -442,10 +442,10 @@ const ArtistDashboard = () => {
                     : `https://instagram.com/${profile?.instagram || profileForm.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-white/5 rounded-xl hover:bg-white/10 text-white transition-all hover:text-[#d3da0c]"
+                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
                   title={t('artist.dashboard.social.instagram')}
                 >
-                  <Instagram className="w-4 h-4" />
+                  <Instagram className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 </a>
               )}
               {(profile?.twitter || profileForm.twitter) && (
@@ -455,48 +455,48 @@ const ArtistDashboard = () => {
                     : `https://twitter.com/${profile?.twitter || profileForm.twitter}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-white/5 rounded-xl hover:bg-white/10 text-white transition-all hover:text-[#d3da0c]"
+                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
                   title={t('artist.dashboard.social.twitter')}
                 >
-                  <Twitter className="w-4 h-4" />
+                  <Twitter className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 </a>
               )}
               {(profile?.wechat_id || profileForm.wechat) && (
                 <span
-                  className="p-2 bg-white/5 rounded-xl text-white/60 cursor-default"
+                  className="p-1.5 bg-white/5 rounded-lg text-white/60 cursor-default lg:p-2 lg:rounded-xl"
                   title={t('artist.dashboard.social.wechatTitle', { handle: profile?.wechat_id || profileForm.wechat })}
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 </span>
               )}
               {(profile?.phone || profileForm.phone) && (
                 <a
                   href={`tel:${profile?.phone || profileForm.phone}`}
-                  className="p-2 bg-white/5 rounded-xl hover:bg-white/10 text-white transition-all hover:text-[#d3da0c]"
+                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
                   title={t('artist.dashboard.social.phone')}
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 </a>
               )}
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center md:items-end gap-2">
-          <span className="text-gray-500 text-xs font-black uppercase tracking-[0.2em]">{t('artist.dashboard.accountStatus')}</span>
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-green-500 text-xs font-black uppercase tracking-widest">{t('artist.dashboard.activePartner')}</span>
+        <div className="flex flex-col items-end gap-1 lg:gap-2 flex-shrink-0">
+          <span className="hidden lg:block text-gray-500 text-xs font-black uppercase tracking-[0.2em]">{t('artist.dashboard.accountStatus')}</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-full lg:px-4 lg:py-2 lg:gap-2">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse lg:w-2 lg:h-2" />
+            <span className="text-green-500 text-[10px] font-bold uppercase tracking-wider lg:text-xs">{t('artist.dashboard.activePartner')}</span>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 mb-10 bg-[#111111] p-1.5 rounded-2xl w-fit border border-white/5 shadow-2xl">
+      <div className="flex overflow-x-auto snap-tab-bar gap-2 mb-6 bg-[#111111] p-1.5 rounded-xl w-full border border-white/5 lg:w-fit lg:rounded-2xl">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-3 rounded-xl text-sm font-black transition-all capitalize flex items-center gap-2 ${activeTab === tab.id
+            className={`px-4 py-2 rounded-lg text-xs font-semibold lg:px-6 lg:py-3 lg:rounded-xl lg:text-sm lg:font-bold transition-all capitalize flex items-center gap-2 ${activeTab === tab.id
               ? 'bg-[#d3da0c] text-black shadow-[0_0_25px_rgba(211, 218, 12,0.2)]'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
@@ -515,23 +515,23 @@ const ArtistDashboard = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.2 }}
-          className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-10 min-h-[600px] shadow-2xl"
+          className="bg-[#111111] border border-white/5 rounded-2xl p-4 min-h-[400px] lg:rounded-3xl lg:p-8 lg:min-h-[600px]"
         >
           {activeTab === 'overview' && (
             <div className="grid gap-12">
               {/* Stats from backend */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                 {[
                   { label: t('artist.dashboard.stat.followers'), value: stats.followers.toLocaleString(), icon: Users, color: 'text-blue-400' },
                   { label: t('artist.dashboard.stat.avgRating'), value: stats.rating > 0 ? stats.rating.toFixed(1) : '-', icon: Star, color: 'text-yellow-400' },
                   { label: t('artist.dashboard.stat.totalGigs'), value: stats.totalBookings.toString(), icon: Calendar, color: 'text-purple-400' },
                   { label: t('artist.dashboard.stat.earnings'), value: `¥${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-[#d3da0c]' },
                 ].map((stat, idx) => (
-                  <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 hover:border-[#d3da0c]/30 transition-all group">
+                  <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 hover:border-[#d3da0c]/30 transition-all group">
                     <div className={`p-4 rounded-2xl w-fit mb-6 ${stat.color} bg-white/5`}>
                       <stat.icon className="w-6 h-6" />
                     </div>
-                    <p className="text-4xl font-black text-white mb-2">{stat.value}</p>
+                    <p className="text-xl font-bold lg:text-3xl text-white mb-2">{stat.value}</p>
                     <div className="flex items-center justify-between">
                       <p className="text-gray-500 text-xs font-black uppercase tracking-widest">{stat.label}</p>
                     </div>
@@ -549,7 +549,7 @@ const ArtistDashboard = () => {
                     </div>
                     <div className="space-y-4">
                       {incomingBookings.filter((b: Booking) => b.status === 'accepted').slice(0, 3).map((booking) => (
-                        <div key={booking.id} className="bg-white/5 border border-white/5 p-6 rounded-2xl flex items-center justify-between">
+                        <div key={booking.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between lg:p-5 lg:rounded-2xl">
                           <div className="flex items-center gap-6">
                             <div className="w-14 h-14 bg-[#d3da0c]/10 rounded-xl flex items-center justify-center">
                               <Music className="w-7 h-7 text-[#d3da0c]" />
@@ -563,7 +563,7 @@ const ArtistDashboard = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-white font-black text-xl">¥{(booking.budget || 0).toLocaleString()}</p>
+                            <p className="text-white font-bold text-base lg:text-xl">¥{(booking.budget || 0).toLocaleString()}</p>
                             <span className="text-green-500 text-[10px] font-black uppercase tracking-widest">{t('artist.dashboard.status.confirmed')}</span>
                           </div>
                         </div>
@@ -624,27 +624,27 @@ const ArtistDashboard = () => {
 
           {activeTab === 'profile' && (
             <div className="max-w-4xl">
-              <h2 className="text-3xl font-black text-white mb-4">{t('artist.dashboard.editProfileTitle')}</h2>
+              <h2 className="text-lg font-bold text-white mb-3 lg:text-2xl">{t('artist.dashboard.editProfileTitle')}</h2>
               <p className="text-gray-400 mb-10">{t('artist.dashboard.editProfileSubtitle')}</p>
 
               <div className="grid gap-8">
-                <div className="grid md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.stageName')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.stageName')}</label>
                     <input
                       type="text"
                       value={profileForm.stage_name}
                       onChange={(e) => handleProfileChange('stage_name', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.stageName')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.artistType')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.artistType')}</label>
                     <select
                       value={profileForm.artist_type}
                       onChange={(e) => handleProfileChange('artist_type', e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold appearance-none cursor-pointer"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold appearance-none cursor-pointer"
                       style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5rem' }}
                     >
                       <option value="Artist" className="bg-[#111111]">{t('artist.dashboard.artistType.artist')}</option>
@@ -653,30 +653,30 @@ const ArtistDashboard = () => {
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.genres')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.genres')}</label>
                     <input
                       type="text"
                       value={profileForm.genres}
                       onChange={(e) => handleProfileChange('genres', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.genres')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.biography')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.biography')}</label>
                     <span className={`text-xs font-bold ${getBioCharCount() >= 450 ? 'text-yellow-500' : 'text-gray-500'}`}>
                       {t('artist.dashboard.charCount', { count: getBioCharCount() })}
                     </span>
                   </div>
                   <textarea
-                    rows={5}
+                    rows={4}
                     value={profileForm.bio}
                     onChange={(e) => handleProfileChange('bio', e.target.value)}
                     placeholder={t('artist.dashboard.placeholder.bio')}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold resize-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold resize-none"
                     maxLength={500}
                   />
                   {getBioCharCount() >= 500 && (
@@ -684,48 +684,48 @@ const ArtistDashboard = () => {
                   )}
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.instagram')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.instagram')}</label>
                     <input
                       type="text"
                       value={profileForm.instagram}
                       onChange={(e) => handleProfileChange('instagram', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.instagram')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.twitter')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.twitter')}</label>
                     <input
                       type="text"
                       value={profileForm.twitter}
                       onChange={(e) => handleProfileChange('twitter', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.twitter')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.wechat')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.wechat')}</label>
                     <input
                       type="text"
                       value={profileForm.wechat}
                       onChange={(e) => handleProfileChange('wechat', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.wechat')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('artist.dashboard.label.phone')}</label>
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs">{t('artist.dashboard.label.phone')}</label>
                     <input
                       type="tel"
                       value={profileForm.phone}
                       onChange={(e) => handleProfileChange('phone', e.target.value)}
                       placeholder={t('artist.dashboard.placeholder.phone')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                     />
                   </div>
                 </div>
@@ -733,7 +733,7 @@ const ArtistDashboard = () => {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSaving}
-                  className="w-fit px-12 py-4 bg-[#d3da0c] text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(211, 218, 12,0.3)] mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-xl lg:w-fit lg:px-10 lg:py-3.5 lg:rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(211, 218, 12,0.3)] mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSaving ? (
                     <>
@@ -750,7 +750,7 @@ const ArtistDashboard = () => {
 
           {activeTab === 'music' && (
             <div className="max-w-4xl">
-              <h2 className="text-3xl font-black text-white mb-4">{t('artist.dashboard.musicTitle')}</h2>
+              <h2 className="text-lg font-bold text-white mb-3 lg:text-2xl">{t('artist.dashboard.musicTitle')}</h2>
               <p className="text-gray-400 mb-10">{t('artist.dashboard.musicSubtitle')}</p>
 
               <div className="grid gap-8">
@@ -761,7 +761,7 @@ const ArtistDashboard = () => {
                   <div className="space-y-4">
                     {/* Spotify */}
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
                         {getPlatformInfo('https://spotify.com')?.iconSvg || <span className="w-6 h-6 bg-green-500/20 rounded flex items-center justify-center text-green-500 text-xs">SP</span>}
                         {t('artist.dashboard.label.spotifyUrl')}
                       </label>
@@ -770,13 +770,13 @@ const ArtistDashboard = () => {
                         value={profileForm.spotify_url}
                         onChange={(e) => handleProfileChange('spotify_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.spotify')}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>
 
                     {/* Apple Music */}
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
                         {getPlatformInfo('https://music.apple.com')?.iconSvg || <span className="w-6 h-6 bg-pink-500/20 rounded flex items-center justify-center text-pink-500 text-xs">AM</span>}
                         {t('artist.dashboard.label.appleMusicUrl')}
                       </label>
@@ -785,13 +785,13 @@ const ArtistDashboard = () => {
                         value={profileForm.apple_music_url}
                         onChange={(e) => handleProfileChange('apple_music_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.appleMusic')}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>
 
                     {/* SoundCloud */}
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
                         {getPlatformInfo('https://soundcloud.com')?.iconSvg || <span className="w-6 h-6 bg-orange-500/20 rounded flex items-center justify-center text-orange-500 text-xs">SC</span>}
                         {t('artist.dashboard.label.soundcloudUrl')}
                       </label>
@@ -800,13 +800,13 @@ const ArtistDashboard = () => {
                         value={profileForm.soundcloud_url}
                         onChange={(e) => handleProfileChange('soundcloud_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.soundcloud')}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>
 
                     {/* HearThis */}
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
                         {getPlatformInfo('https://hearthis.at')?.iconSvg || <span className="w-6 h-6 bg-blue-500/20 rounded flex items-center justify-center text-blue-500 text-xs">HT</span>}
                         {t('artist.dashboard.label.hearthisUrl')}
                       </label>
@@ -815,7 +815,7 @@ const ArtistDashboard = () => {
                         value={profileForm.hearthis_url}
                         onChange={(e) => handleProfileChange('hearthis_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.hearthis')}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>
                   </div>
@@ -823,7 +823,7 @@ const ArtistDashboard = () => {
 
                 {/* Current Links Preview */}
                 {musicLinks.length > 0 && (
-                  <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 lg:p-5 lg:rounded-3xl">
                     <h4 className="text-[#d3da0c] font-black uppercase tracking-widest text-sm mb-4">{t('artist.dashboard.connectedPlatforms')}</h4>
                     <div className="flex flex-wrap gap-3">
                       {musicLinks.map((link, idx) => {
@@ -850,7 +850,7 @@ const ArtistDashboard = () => {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSaving}
-                  className="w-fit px-12 py-4 bg-[#d3da0c] text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(211, 218, 12,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-xl lg:w-fit lg:px-10 lg:py-3.5 lg:rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(211, 218, 12,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSaving ? (
                     <>
@@ -869,7 +869,7 @@ const ArtistDashboard = () => {
             <div className="space-y-12">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                  <h2 className="text-3xl font-black text-white">{t('artist.dashboard.bookingRequests')}</h2>
+                  <h2 className="text-lg font-bold text-white mb-3 lg:text-2xl">{t('artist.dashboard.bookingRequests')}</h2>
                   <p className="text-gray-500 font-medium">{t('artist.dashboard.manageBookingRequests')}</p>
                 </div>
                 <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
@@ -877,7 +877,7 @@ const ArtistDashboard = () => {
                     <button
                       key={filter}
                       onClick={() => setBookingFilter(filter)}
-                      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${bookingFilter === filter
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider lg:px-4 lg:py-2 lg:rounded-xl lg:text-xs transition-all ${bookingFilter === filter
                         ? 'bg-[#d3da0c] text-black'
                         : 'text-gray-400 hover:text-white'
                         }`}
@@ -911,15 +911,15 @@ const ArtistDashboard = () => {
                       key={booking.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="group flex flex-col lg:flex-row items-start lg:items-center justify-between p-8 bg-white/[0.02] border border-white/5 rounded-[2rem] hover:bg-white/[0.04] hover:border-[#d3da0c]/30 transition-all shadow-xl"
+                      className="group flex flex-col items-start justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl lg:flex-row lg:items-center lg:p-6 lg:rounded-3xl hover:bg-white/[0.04] hover:border-[#d3da0c]/30 transition-all shadow-xl"
                     >
                       <div className="flex items-center gap-8 flex-1">
-                        <div className="bg-[#d3da0c]/10 p-5 rounded-2xl group-hover:scale-110 transition-transform">
+                        <div className="bg-[#d3da0c]/10 p-3 rounded-xl lg:p-4 lg:rounded-2xl group-hover:scale-110 transition-transform">
                           <Music className="w-8 h-8 text-[#d3da0c]" />
                         </div>
                         <div>
                           <div className="flex items-center gap-4 mb-2">
-                            <h4 className="text-white font-black text-2xl tracking-tighter">{booking.event_name}</h4>
+                            <h4 className="text-white font-bold text-base tracking-tight lg:text-xl">{booking.event_name}</h4>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${booking.status === 'accepted' ? 'bg-green-500/10 text-green-500' :
                               booking.status === 'rejected' || booking.status === 'declined' ? 'bg-red-500/10 text-red-500' :
                                 booking.status === 'completed' ? 'bg-blue-500/10 text-blue-500' :
@@ -954,8 +954,8 @@ const ArtistDashboard = () => {
 
                       <div className="flex items-center gap-10 mt-8 lg:mt-0 w-full lg:w-auto border-t lg:border-t-0 border-white/5 pt-8 lg:pt-0">
                         <div className="text-right">
-                          <p className="text-xs text-gray-500 font-black uppercase tracking-widest mb-1">{t('artist.dashboard.proposedFee')}</p>
-                          <p className="text-[#d3da0c] text-4xl font-black tracking-tighter">¥{(booking.budget || 0).toLocaleString()}</p>
+                          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs mb-1">{t('artist.dashboard.proposedFee')}</p>
+                          <p className="text-[#d3da0c] text-xl font-bold tracking-tight lg:text-3xl">¥{(booking.budget || 0).toLocaleString()}</p>
                         </div>
 
                         <div className="flex gap-3 ml-auto lg:ml-0">
@@ -963,14 +963,14 @@ const ArtistDashboard = () => {
                             <>
                               <button
                                 onClick={() => handleStatusUpdate(booking.id, BookingStatus.REJECTED)}
-                                className="p-5 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-95"
+                                className="w-11 h-11 bg-red-500/10 text-red-500 rounded-xl touch-target lg:w-auto lg:h-auto lg:p-3 lg:rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-95"
                                 title={t('artist.dashboard.rejectInvitation')}
                               >
                                 <CloseIcon className="w-6 h-6" />
                               </button>
                               <button
                                 onClick={() => handleStatusUpdate(booking.id, BookingStatus.ACCEPTED)}
-                                className="px-8 py-5 bg-[#d3da0c] text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(211, 218, 12,0.3)] flex items-center gap-2"
+                                className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-xl text-sm lg:px-6 lg:py-3 lg:rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(211, 218, 12,0.3)] flex items-center gap-2"
                               >
                                 <Check className="w-6 h-6" />
                                 {t('artist.dashboard.acceptGig')}

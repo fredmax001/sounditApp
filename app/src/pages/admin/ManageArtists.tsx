@@ -12,6 +12,7 @@ interface Artist {
   stage_name?: string;
   genre?: string;
   is_verified?: boolean;
+  is_approved?: boolean;
   verification_badge?: boolean;
   is_featured?: boolean;
   followers_count?: number;
@@ -81,6 +82,42 @@ const ManageArtists = () => {
       }
     } catch {
       toast.error('Failed to unverify artist');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    setActionLoading(`approve-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/artists/${id}/approve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Artist approved');
+        loadArtists();
+      }
+    } catch {
+      toast.error('Failed to approve artist');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUnapprove = async (id: number) => {
+    setActionLoading(`unapprove-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/artists/${id}/unapprove`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Artist unapproved');
+        loadArtists();
+      }
+    } catch {
+      toast.error('Failed to unapprove artist');
     } finally {
       setActionLoading(null);
     }
@@ -180,7 +217,7 @@ const ManageArtists = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
@@ -227,6 +264,19 @@ const ManageArtists = () => {
               <p className="text-gray-400 text-xs">{t('admin.manageArtists.totalEvents')}</p>
               <p className="text-white font-bold text-xl">
                 {artists.reduce((acc, a) => acc + (a.events_count || 0), 0)}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Check className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs">Approved</p>
+              <p className="text-white font-bold text-xl">
+                {artists.filter(a => a.is_approved).length}
               </p>
             </div>
           </div>
@@ -310,6 +360,11 @@ const ManageArtists = () => {
                       }`}>
                         {artist.is_verified ? t('admin.manageArtists.verifiedStatus') : t('admin.manageArtists.pendingStatus')}
                       </span>
+                      {artist.is_approved && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-blue-500/20 text-blue-400">
+                          Approved
+                        </span>
+                      )}
                       {artist.is_featured && (
                         <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-yellow-500/20 text-yellow-400">
                           {t('admin.manageArtists.featuredBadge')}
@@ -341,6 +396,25 @@ const ManageArtists = () => {
                           title="Unverify"
                         >
                           {actionLoading === `unverify-${artist.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                        </button>
+                      )}
+                      {!artist.is_approved ? (
+                        <button
+                          onClick={() => handleApprove(artist.id)}
+                          disabled={actionLoading === `approve-${artist.id}`}
+                          className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
+                          title="Approve account"
+                        >
+                          {actionLoading === `approve-${artist.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnapprove(artist.id)}
+                          disabled={actionLoading === `unapprove-${artist.id}`}
+                          className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                          title="Unapprove account"
+                        >
+                          {actionLoading === `unapprove-${artist.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                         </button>
                       )}
                       <button

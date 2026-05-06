@@ -215,7 +215,11 @@ interface RegisterData {
   last_name?: string;
   city_id?: string;
   phone?: string;
-  role_type?: UserRole;
+  role_type?: UserRole | 'artist_dj' | 'business' | 'vendor' | 'user';
+  business_name?: string;
+  business_type?: string;
+  artist_type?: string;
+  vendor_type?: string;
 }
 
 interface BusinessProfileData {
@@ -327,9 +331,10 @@ export const useAuthStore = create<AuthState>()(
                   is_phone_verified: !!backendUser.phone,
                   is_id_verified: backendUser.is_verified,
                   is_verified: backendUser.is_verified,
+                  verification_badge: backendUser.verification_badge,
                   verification_status: (backendUser.is_verified ? 'verified' : 'unverified') as Profile['verification_status'],
-                  followers_count: 0,
-                  following_count: 0,
+                  followers_count: backendUser.followers_count || 0,
+                  following_count: backendUser.following_count || 0,
                   created_at: backendUser.created_at,
                   last_login: backendUser.last_login,
                   instagram: backendUser.instagram,
@@ -528,9 +533,10 @@ export const useAuthStore = create<AuthState>()(
             is_phone_verified: !!backendUser.phone,
             is_id_verified: backendUser.is_verified,
             is_verified: backendUser.is_verified,
+            verification_badge: backendUser.verification_badge,
             verification_status: backendUser.is_verified ? 'verified' : 'unverified',
-            followers_count: 0,
-            following_count: 0,
+            followers_count: backendUser.followers_count || 0,
+            following_count: backendUser.following_count || 0,
             created_at: backendUser.created_at,
             last_login: backendUser.last_login,
             instagram: backendUser.instagram,
@@ -602,6 +608,11 @@ export const useAuthStore = create<AuthState>()(
               first_name: data.first_name,
               last_name: data.last_name,
               role: roleType,
+              city: data.city_id,
+              business_name: data.business_name,
+              business_type: data.business_type,
+              artist_type: data.artist_type,
+              vendor_type: data.vendor_type,
             }),
           });
 
@@ -644,159 +655,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Send OTP via backend API (SMS or Email)
-      sendOTP: async (identifier: string) => {
-        set({ isLoading: true });
-        try {
-          // Determine if it's email or phone
-          const isEmail = identifier.includes('@');
-
-          const endpoint = isEmail ? `${API_BASE_URL}/otp/email/send` : `${API_BASE_URL}/otp/sms/send`;
-          const body = isEmail
-            ? JSON.stringify({ email: identifier, purpose: 'login' })
-            : JSON.stringify({ phone: identifier, purpose: 'login' });
-
-          const response = await fetchWithErrorHandling(endpoint, {
-            method: 'POST',
-            body: body,
-          });
-
-          const data = await response.json();
-
-          return { success: true, message: data.message || 'OTP sent successfully' };
-        } catch (error: unknown) {
-          console.error('[Auth] OTP send error:', (error as { message?: string }).message);
-          throw new Error((error as { message?: string }).message || 'Failed to send verification code');
-        } finally {
-          set({ isLoading: false });
-        }
+      // Send OTP via backend API (SMS or Email) — DISABLED
+      sendOTP: async (_identifier: string) => {
+        // OTP flow disabled — registration and login use direct password only
+        return { success: true, message: 'OTP not required' };
       },
 
-      // Verify OTP via backend API
-      verifyOTP: async (identifier: string, code: string) => {
-        set({ isLoading: true });
-
-        try {
-          const response = await fetch(`${API_BASE_URL}/otp/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier, code }),
-          });
-
-          const data = await response.json();
-
-          if (!data.success) {
-            set({ isLoading: false });
-            return false;
-          }
-
-          // If backend returned a token, fetch user profile and login
-          if (data.token) {
-            // Store token
-            localStorage.setItem('auth-token', data.token);
-
-            // Fetch user profile
-            const profileResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-              headers: {
-                'Authorization': `Bearer ${data.token}`,
-              },
-            });
-
-            if (!profileResponse.ok) {
-              set({ isLoading: false });
-              return false;
-            }
-
-            const backendUser = await profileResponse.json();
-
-            // Map Role - handle both uppercase (enum) and lowercase formats
-            let roleType: UserRole = 'user';
-            let role: 'user' | 'organizer' | 'admin' | 'dj' | 'vendor' = 'user';
-
-            const backendRoleRaw = backendUser.role || '';
-            const backendRole = backendRoleRaw.toLowerCase ? backendRoleRaw.toLowerCase() : String(backendRoleRaw).toLowerCase();
-
-            // BUSINESS and ORGANIZER roles are treated the same (unified as Business)
-            if (backendRole === 'business' || backendRole === 'organizer') {
-              roleType = 'business';
-              role = 'organizer';
-            } else if (backendRole === 'artist' || backendRole === 'dj') {
-              roleType = 'artist';
-              role = 'dj';
-            } else if (backendRole === 'super_admin') {
-              roleType = 'super_admin';
-              role = 'admin';
-            } else if (backendRole === 'admin') {
-              roleType = 'admin';
-              role = 'admin';
-            } else if (backendRole === 'vendor') {
-              roleType = 'vendor';
-              role = 'vendor';
-            }
-
-            const city = get().cities.find(c =>
-              c.id.toLowerCase() === (backendUser.preferred_city || '').toLowerCase()
-            ) || null;
-
-            const profile: Profile = {
-              id: String(backendUser.id),
-              email: backendUser.email || '',
-              phone: backendUser.phone,
-              role: role,
-              role_type: roleType as UserRole,
-              status: 'active',
-              first_name: backendUser.first_name,
-              last_name: backendUser.last_name,
-              display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
-              username: backendUser.username || null,
-              avatar_url: backendUser.avatar_url,
-              banner_url: backendUser.background_url,
-              bio: backendUser.bio,
-              city_id: backendUser.preferred_city,
-              city: city,
-              country: 'China',
-              is_email_verified: backendUser.is_verified,
-              is_phone_verified: !!backendUser.phone,
-              is_id_verified: backendUser.is_verified,
-              is_verified: backendUser.is_verified,
-              verification_status: backendUser.is_verified ? 'verified' : 'unverified',
-              followers_count: 0,
-              following_count: 0,
-              created_at: backendUser.created_at,
-              last_login: backendUser.last_login,
-              instagram: backendUser.instagram,
-              twitter: backendUser.twitter,
-              wechat_id: backendUser.wechat_id,
-            };
-
-            const session: Session = {
-              access_token: data.token,
-              token_type: 'bearer',
-              expires_in: 3600 * 24,
-              refresh_token: '',
-              user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
-            };
-
-            set({
-              user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
-              profile: profile,
-              session: session,
-              token: data.token,
-              isAuthenticated: true,
-              isLoading: false,
-              selectedCity: backendUser.preferred_city || null,
-            });
-          } else {
-            set({ isLoading: false });
-            return false;
-          }
-
-          return true;
-        } catch (error: unknown) {
-          console.error('[Auth] OTP verification error:', (error as { message?: string }).message);
-          set({ isLoading: false });
-          throw error;
-        }
+      // Verify OTP via backend API — DISABLED
+      verifyOTP: async (_identifier: string, _code: string) => {
+        // OTP flow disabled — registration and login use direct password only
+        return true;
       },
 
       // Logout
@@ -869,7 +737,10 @@ export const useAuthStore = create<AuthState>()(
             twitter: backendUser.twitter,
             wechat_id: backendUser.wechat_id,
             is_verified: backendUser.is_verified,
+            verification_badge: backendUser.verification_badge,
             verification_status: backendUser.is_verified ? 'verified' : 'unverified',
+            followers_count: backendUser.followers_count || 0,
+            following_count: backendUser.following_count || 0,
           };
 
           set({ profile: updatedProfile, selectedCity: backendUser.preferred_city || null });
@@ -1181,7 +1052,10 @@ export const useAuthStore = create<AuthState>()(
                   wechat_id: backendUser.wechat_id,
                   website: backendUser.website,
                   is_verified: backendUser.is_verified,
+                  verification_badge: backendUser.verification_badge,
                   verification_status: backendUser.is_verified ? 'verified' : 'unverified',
+                  followers_count: backendUser.followers_count || 0,
+                  following_count: backendUser.following_count || 0,
                 };
                 set({ profile: updatedProfile, selectedCity: backendUser.preferred_city || null });
               }

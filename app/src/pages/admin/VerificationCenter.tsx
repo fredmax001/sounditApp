@@ -262,7 +262,7 @@ const VerificationCenter = () => {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ reason: rejectReason })
+                body: JSON.stringify({ notes: rejectReason })
             });
 
             if (res.ok) {

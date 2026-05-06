@@ -57,6 +57,7 @@ const Payouts = () => {
       }
     } catch (err) {
       console.error('Failed to fetch transactions', err);
+      toast.error(t('business.payouts.loadError') || 'Failed to load transactions');
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -130,7 +131,7 @@ const Payouts = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
+      className="space-y-8 p-6 lg:p-10"
     >
       {/* Header */}
       <div className="flex items-center justify-between">

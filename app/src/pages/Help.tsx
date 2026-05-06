@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -200,6 +201,7 @@ const Help = () => {
     },
   ];
 
+  const navigate = useNavigate();
   const quickLinks = [
     { title: t('help.quickLinks.buyTickets'), icon: Ticket, path: '/events' },
     { title: t('help.quickLinks.paymentIssues'), icon: CreditCard, action: 'scroll', target: 'faq' },
@@ -292,7 +294,7 @@ const Help = () => {
                     if (link.action === 'scroll' && link.target) {
                       scrollToSection(link.target);
                     } else if (link.path) {
-                      window.location.href = link.path;
+                      navigate(link.path);
                     }
                   }}
                 >

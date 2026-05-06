@@ -6,6 +6,7 @@ import { Calendar, MapPin, Clock, X, Download, Share2, Check, Loader2, Ticket, P
 import { useTicketStore } from '@/store/ticketStore';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
+import { WEB_ORIGIN } from '@/lib/appUrl';
 
 interface TicketOrder {
   id: number;
@@ -146,7 +147,7 @@ const Tickets = () => {
           ? (item.product?.vendor?.business_name || t('user.tickets.tba'))
           : (item as typeof tickets[0]).event?.city || t('user.tickets.tba')
       }),
-      url: window.location.origin + (isProduct ? '/events' : `/events/${(item as TicketOrder | typeof tickets[0]).event?.id || ''}`)
+      url: WEB_ORIGIN + (isProduct ? '/events' : `/events/${(item as TicketOrder | typeof tickets[0]).event?.id || ''}`)
     };
 
     try {

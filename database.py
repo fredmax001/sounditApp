@@ -50,7 +50,8 @@ def init_db():
             ModerationReport, ApiKey, Webhook, Integration, PromoCode,
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
             CommunityCommentLike, CommunityShare,
-            ProductOrder, TablePackage, TableOrder
+            ProductOrder, TablePackage, TableOrder,
+            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout
         )
         Base.metadata.create_all(bind=engine)
         
@@ -249,6 +250,32 @@ def init_db():
                 except Exception:
                     pass
             
+            # Events: promoter columns
+            for col, col_type in [
+                ("promoter_enabled", "BOOLEAN DEFAULT 0"),
+                ("default_commission_rate", "FLOAT DEFAULT 10.0"),
+                ("default_discount_percent", "FLOAT DEFAULT 5.0"),
+                ("max_discount_amount", "FLOAT"),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE events ADD COLUMN {col} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+            
+            # Ticket orders: promoter columns
+            for col, col_type in [
+                ("event_promoter_id", "INTEGER"),
+                ("referral_code", "VARCHAR(50)"),
+                ("discount_applied", "FLOAT DEFAULT 0.0"),
+                ("final_amount", "FLOAT"),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE ticket_orders ADD COLUMN {col} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+            
             # Seed subscription plans if empty
             try:
                 result = conn.execute(text("SELECT COUNT(*) FROM subscription_plan_configs"))
@@ -298,9 +325,17 @@ def init_db():
             ModerationReport, ApiKey, Webhook, Integration, PromoCode,
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
             CommunityCommentLike, CommunityShare,
-            ProductOrder, TablePackage, TableOrder
+            ProductOrder, TablePackage, TableOrder,
+            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout
         )
-        Base.metadata.create_all(bind=engine)
+        try:
+            Base.metadata.create_all(bind=engine)
+        except Exception as e:
+            # Ignore race-condition errors when multiple workers create enums/tables simultaneously
+            if "already exists" in str(e).lower() or "duplicate key" in str(e).lower():
+                pass
+            else:
+                raise
         # Verify the connection
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))

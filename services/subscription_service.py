@@ -8,7 +8,8 @@ from typing import Optional, Dict, Any
 
 from models import (
     User, Subscription, SubscriptionFeatureUsage,
-    SubscriptionStatus, SubscriptionPlan, UserRole, SubscriptionPlanConfig
+    SubscriptionStatus, SubscriptionPlan, UserRole, SubscriptionPlanConfig,
+    ArtistProfile, BusinessProfile, OrganizerProfile, VendorProfile
 )
 from subscription_config import get_plan_price, get_plan_features
 
@@ -31,8 +32,8 @@ class SubscriptionService:
         if not user:
             return {"has_active_subscription": False}
         
-        # Verified users get unlimited premium access without subscription
-        if user.is_verified:
+        # Verified users (admin-verified or premium badge) get unlimited premium access without subscription
+        if user.verification_badge:
             return {
                 "has_active_subscription": True,
                 "plan_type": SubscriptionPlan.PREMIUM.value,
@@ -98,8 +99,29 @@ class SubscriptionService:
             "days_remaining": (active_sub.end_date - datetime.now(timezone.utc)).days,
             "features": features,
             "can_access_features": True,
+            "is_trial": getattr(active_sub, 'is_trial', False),
         }
     
+    @staticmethod
+    def is_profile_approved(db: Session, user: User) -> bool:
+        """Check if user's role profile is approved by admin"""
+        if user.role == UserRole.USER:
+            return True
+        if user.role == UserRole.ARTIST:
+            profile = db.query(ArtistProfile).filter(ArtistProfile.user_id == user.id).first()
+            return profile.is_approved if profile else False
+        if user.role == UserRole.BUSINESS:
+            business = db.query(BusinessProfile).filter(BusinessProfile.user_id == user.id).first()
+            organizer = db.query(OrganizerProfile).filter(OrganizerProfile.user_id == user.id).first()
+            return (business.is_approved if business else False) or (organizer.is_approved if organizer else False)
+        if user.role == UserRole.VENDOR:
+            profile = db.query(VendorProfile).filter(VendorProfile.user_id == user.id).first()
+            return profile.is_approved if profile else False
+        if user.role == UserRole.ORGANIZER:
+            profile = db.query(OrganizerProfile).filter(OrganizerProfile.user_id == user.id).first()
+            return profile.is_approved if profile else False
+        return True
+
     @staticmethod
     def can_create_event(db: Session, user_id: int):
         user = db.query(User).filter(User.id == user_id).first()
@@ -108,6 +130,10 @@ class SubscriptionService:
         
         if user.role not in [UserRole.BUSINESS, UserRole.ORGANIZER]:
             return True, "User role doesn't require subscription"
+        
+        # Check admin approval first
+        if not SubscriptionService.is_profile_approved(db, user):
+            return False, "Account pending admin approval"
         
         status = SubscriptionService.get_subscription_status(db, user_id)
         
@@ -214,9 +240,18 @@ class SubscriptionService:
             raise ValueError("Subscription is not pending")
         
         now = datetime.now(timezone.utc)
+        
+        # Get plan config for duration
+        plan_config = db.query(SubscriptionPlanConfig).filter(
+            SubscriptionPlanConfig.role == subscription.role,
+            SubscriptionPlanConfig.plan_type == subscription.plan_type,
+            SubscriptionPlanConfig.is_active == True
+        ).first()
+        duration_days = plan_config.duration_days if plan_config else 30
+        
         subscription.status = SubscriptionStatus.ACTIVE
         subscription.start_date = now
-        subscription.end_date = now + timedelta(days=30)
+        subscription.end_date = now + timedelta(days=duration_days)
         subscription.approved_by = admin_id
         subscription.approved_at = now
         subscription.admin_notes = notes
@@ -224,13 +259,9 @@ class SubscriptionService:
         # Grant verification badge if plan includes it
         user = db.query(User).filter(User.id == subscription.user_id).first()
         if user:
-            plan_config = db.query(SubscriptionPlanConfig).filter(
-                SubscriptionPlanConfig.role == subscription.role,
-                SubscriptionPlanConfig.plan_type == subscription.plan_type,
-                SubscriptionPlanConfig.is_active == True
-            ).first()
             if plan_config and plan_config.verified_badge:
                 user.verification_badge = True
+                user.is_verified = True
         
         db.commit()
         db.refresh(subscription)
@@ -246,6 +277,32 @@ class SubscriptionService:
         features = status.get("features", {})
         return features.get("visibility_rank", 4)
     
+    @staticmethod
+    def create_trial_subscription(db: Session, user_id: int, role: UserRole):
+        """Create a 30-day free PREMIUM trial subscription"""
+        now = datetime.now(timezone.utc)
+        trial = Subscription(
+            user_id=user_id,
+            role=role,
+            plan_type=SubscriptionPlan.PREMIUM,
+            price=0.0,
+            status=SubscriptionStatus.ACTIVE,
+            start_date=now,
+            end_date=now + timedelta(days=30),
+            is_trial=True,
+        )
+        db.add(trial)
+        
+        # Grant verification badge for the premium trial
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.verification_badge = True
+            user.is_verified = True
+        
+        db.commit()
+        db.refresh(trial)
+        return trial
+
     @staticmethod
     def check_expired_subscriptions(db: Session) -> list:
         """Mark expired active subscriptions as EXPIRED"""
@@ -283,6 +340,7 @@ class SubscriptionService:
                         break
                 if not still_has_badge:
                     user.verification_badge = False
+                    user.is_verified = False
         
         db.commit()
         return expired

@@ -141,7 +141,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    REDACTED_PLACEHOLDER: Optional[str] = None
+    password: Optional[str] = None
 
 
 class UserUpdate(UserBase):
@@ -154,6 +154,8 @@ class UserResponse(UserBase):
     is_verified: bool
     verification_badge: bool = False
     created_at: datetime
+    followers_count: int = 0
+    following_count: int = 0
     
     artist_profile: Optional["ArtistProfileResponse"] = None
     organizer_profile: Optional["OrganizerProfileResponse"] = None
@@ -186,7 +188,7 @@ class UserRegistration(BaseModel):
     """User registration - No verification codes required (Beta Launch)"""
     # Required fields for all roles
     email: str
-    REDACTED_PLACEHOLDER: str
+    password: str
     first_name: str
     last_name: str
     phone: Optional[str] = None
@@ -254,15 +256,15 @@ class SimpleUserResponse(BaseModel):
 
 class SignupRedirectResponse(BaseModel):
     """Response after successful signup with redirect URL"""
-    access_REDACTED_PLACEHOLDER: str
-    REDACTED_PLACEHOLDER_type: str = "bearer"
+    access_token: str
+    token_type: str = "bearer"
     user: SimpleUserResponse
     redirect_url: str
 
 
-class REDACTED_PLACEHOLDER(BaseModel):
-    access_REDACTED_PLACEHOLDER: str
-    REDACTED_PLACEHOLDER_type: str = "bearer"
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
     user: UserResponse
 
 
@@ -468,6 +470,8 @@ class VendorProfileResponse(VendorProfileBase):
     user_id: int
     rating: float = 0.0
     reviews_count: int = 0
+    is_verified: bool = False
+    is_approved: bool = False
     created_at: datetime
     
     class Config:
@@ -642,6 +646,10 @@ class EventCreate(EventBase):
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
     tags: Optional[List[str]] = None
+    promoter_enabled: Optional[bool] = False
+    default_commission_rate: Optional[float] = 10.0
+    default_discount_percent: Optional[float] = 5.0
+    max_discount_amount: Optional[float] = None
 
 
 class EventUpdate(BaseModel):
@@ -667,6 +675,11 @@ class EventUpdate(BaseModel):
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
     tags: Optional[List[str]] = None
+    dj_ids: Optional[List[int]] = None
+    promoter_enabled: Optional[bool] = False
+    default_commission_rate: Optional[float] = 10.0
+    default_discount_percent: Optional[float] = 5.0
+    max_discount_amount: Optional[float] = None
 
 
 class EventResponse(EventBase):
@@ -688,6 +701,10 @@ class EventResponse(EventBase):
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
     tags: Optional[List[str]] = None
+    promoter_enabled: bool = False
+    default_commission_rate: float = 10.0
+    default_discount_percent: float = 5.0
+    max_discount_amount: Optional[float] = None
     created_at: datetime
     
     class Config:

@@ -35,6 +35,12 @@ const ReviewEvents = () => {
         loadEvents();
     }, [fetchEvents]);
 
+    // Populate featuredIds from loaded events
+    useEffect(() => {
+        const featured = events.filter(e => e.is_featured).map(e => String(e.id));
+        setFeaturedIds(new Set(featured));
+    }, [events]);
+
     const loadEvents = async () => {
         setIsLoading(true);
         try {

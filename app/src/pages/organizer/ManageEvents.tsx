@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X, Share2 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import type { Event } from '@/store/eventStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { WEB_ORIGIN } from '@/lib/appUrl';
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
@@ -291,6 +292,13 @@ const ManageEvents = () => {
                         </button>
                       )}
                       <Link
+                        to={`/dashboard/business/events/${event.id}/promoters`}
+                        className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
+                        title="Manage Promoters"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </Link>
+                      <Link
                         to={`/dashboard/business/events/${event.id}/edit`}
                         className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                         title={t('organizer.manageEvents.editEventTooltip')}
@@ -367,7 +375,7 @@ const ManageEvents = () => {
               </a>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(qrModalEvent.share_url || `${window.location.origin}/events/${qrModalEvent.id}`);
+                  navigator.clipboard.writeText(qrModalEvent.share_url || `${WEB_ORIGIN}/events/${qrModalEvent.id}`);
                   toast.success('Link copied');
                 }}
                 className="w-full py-3 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"

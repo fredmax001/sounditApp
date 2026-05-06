@@ -12,6 +12,7 @@ interface Vendor {
   business_name?: string;
   category?: string;
   is_verified?: boolean;
+  is_approved?: boolean;
   verification_badge?: boolean;
   is_featured?: boolean;
   products_count?: number;
@@ -60,6 +61,9 @@ const ManageVendors = () => {
       if (res.ok) {
         toast.success(t('admin.manageVendors.vendorVerified'));
         loadVendors();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        toast.error(err.detail || 'Failed to verify vendor');
       }
     } catch {
       toast.error('Failed to verify vendor');
@@ -78,9 +82,54 @@ const ManageVendors = () => {
       if (res.ok) {
         toast.success('Vendor unverified');
         loadVendors();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        toast.error(err.detail || 'Failed to unverify vendor');
       }
     } catch {
       toast.error('Failed to unverify vendor');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    setActionLoading(`approve-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/vendors/${id}/approve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Vendor approved successfully');
+        loadVendors();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        toast.error(err.detail || 'Failed to approve vendor');
+      }
+    } catch {
+      toast.error('Failed to approve vendor');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUnapprove = async (id: number) => {
+    setActionLoading(`unapprove-${id}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/vendors/${id}/unapprove`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        toast.success('Vendor unapproved');
+        loadVendors();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        toast.error(err.detail || 'Failed to unapprove vendor');
+      }
+    } catch {
+      toast.error('Failed to unapprove vendor');
     } finally {
       setActionLoading(null);
     }
@@ -180,7 +229,7 @@ const ManageVendors = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
@@ -227,6 +276,19 @@ const ManageVendors = () => {
               <p className="text-gray-400 text-xs">{t('admin.manageVendors.totalSales')}</p>
               <p className="text-white font-bold text-xl">
                 ¥{vendors.reduce((acc, v) => acc + (v.total_sales || 0), 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Check className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs">Approved</p>
+              <p className="text-white font-bold text-xl">
+                {vendors.filter(v => v.is_approved).length}
               </p>
             </div>
           </div>
@@ -282,7 +344,8 @@ const ManageVendors = () => {
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageVendors.categoryHeader')}</th>
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageVendors.productsHeader')}</th>
                 <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageVendors.salesHeader')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.manageVendors.statusHeader')}</th>
+                <th className="text-left text-gray-400 text-sm font-medium p-4">Verification</th>
+                <th className="text-left text-gray-400 text-sm font-medium p-4">Approval</th>
                 <th className="text-right text-gray-400 text-sm font-medium p-4">{t('admin.manageVendors.actionsHeader')}</th>
               </tr>
             </thead>
@@ -304,23 +367,18 @@ const ManageVendors = () => {
                   <td className="p-4 text-gray-400">{vendor.products_count || 0}</td>
                   <td className="p-4 text-gray-400">¥{(vendor.total_sales || 0).toLocaleString()}</td>
                   <td className="p-4">
-                    <div className="flex flex-col gap-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                        vendor.is_verified ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {vendor.is_verified ? t('admin.manageVendors.statusVerified') : t('admin.manageVendors.statusPending')}
-                      </span>
-                      {vendor.is_featured && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-yellow-500/20 text-yellow-400">
-                          {t('admin.manageVendors.badgeFeatured')}
-                        </span>
-                      )}
-                      {vendor.status === 'suspended' && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-red-500/20 text-red-400">
-                          Suspended
-                        </span>
-                      )}
-                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit inline-block ${
+                      vendor.is_verified ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                    }`}>
+                      {vendor.is_verified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit inline-block ${
+                      vendor.is_approved ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'
+                    }`}>
+                      {vendor.is_approved ? 'Approved' : 'Not Approved'}
+                    </span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
@@ -328,19 +386,42 @@ const ManageVendors = () => {
                         <button
                           onClick={() => handleVerify(vendor.id)}
                           disabled={actionLoading === `verify-${vendor.id}`}
-                          className="p-2 hover:bg-white/10 rounded-lg text-green-400"
-                          title={t('admin.manageVendors.verifyTitle')}
+                          className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-green-400 text-xs font-medium"
+                          title="Verify vendor (premium badge)"
                         >
-                          {actionLoading === `verify-${vendor.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          {actionLoading === `verify-${vendor.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                          Verify
                         </button>
                       ) : (
                         <button
                           onClick={() => handleUnverify(vendor.id)}
                           disabled={actionLoading === `unverify-${vendor.id}`}
-                          className="p-2 hover:bg-white/10 rounded-lg text-orange-400"
-                          title="Unverify"
+                          className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-orange-400 text-xs font-medium"
+                          title="Unverify vendor"
                         >
-                          {actionLoading === `unverify-${vendor.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                          {actionLoading === `unverify-${vendor.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                          Unverify
+                        </button>
+                      )}
+                      {!vendor.is_approved ? (
+                        <button
+                          onClick={() => handleApprove(vendor.id)}
+                          disabled={actionLoading === `approve-${vendor.id}`}
+                          className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-blue-400 text-xs font-medium"
+                          title="Approve vendor account"
+                        >
+                          {actionLoading === `approve-${vendor.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3 h-3" />}
+                          Approve
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnapprove(vendor.id)}
+                          disabled={actionLoading === `unapprove-${vendor.id}`}
+                          className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-gray-400 text-xs font-medium"
+                          title="Unapprove vendor account"
+                        >
+                          {actionLoading === `unapprove-${vendor.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Lock className="w-3 h-3" />}
+                          Unapprove
                         </button>
                       )}
                       <button

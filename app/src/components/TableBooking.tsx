@@ -28,9 +28,12 @@ interface TablePackage {
 interface TableBookingProps {
   eventId: number;
   eventTitle: string;
+  wechatQrUrl?: string | null;
+  alipayQrUrl?: string | null;
+  paymentInstructions?: string | null;
 }
 
-export default function TableBooking({ eventId, eventTitle }: TableBookingProps) {
+export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQrUrl, paymentInstructions }: TableBookingProps) {
   const { t } = useTranslation();
   const { session, isAuthenticated } = useAuthStore();
   const token = session?.access_token;
@@ -57,8 +60,8 @@ export default function TableBooking({ eventId, eventTitle }: TableBookingProps)
       setLoading(true);
       const res = await axios.get(`${API_BASE_URL}/tables/events/${eventId}/packages`);
       setPackages(res.data);
-    } catch {
-      console.error('Failed to load table packages');
+    } catch (err) {
+      console.error('Failed to load table packages', err);
     } finally {
       setLoading(false);
     }
@@ -356,7 +359,12 @@ export default function TableBooking({ eventId, eventTitle }: TableBookingProps)
                   </p>
 
                   {/* Payment QR Codes */}
-                  <MobileQrPayment amount={selectedPackage.price} />
+                  <MobileQrPayment 
+                    amount={selectedPackage.price} 
+                    wechatQrUrl={wechatQrUrl}
+                    alipayQrUrl={alipayQrUrl}
+                    paymentInstructions={paymentInstructions}
+                  />
 
                   {/* Payment Screenshot Upload */}
                   <div>

@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { WEB_ORIGIN } from '@/lib/appUrl';
 import {
   Select,
   SelectContent,
@@ -223,7 +224,7 @@ const Community = () => {
         await navigator.share({
           title: t('community.shareTitle'),
           text: t('community.shareText'),
-          url: `${window.location.origin}/community?post=${postId}`
+          url: `${WEB_ORIGIN}/community?post=${postId}`
         });
       } catch {
         // User cancelled
@@ -231,7 +232,7 @@ const Community = () => {
     }
     if (platform === 'copy') {
       try {
-        await navigator.clipboard.writeText(`${window.location.origin}/community?post=${postId}`);
+        await navigator.clipboard.writeText(`${WEB_ORIGIN}/community?post=${postId}`);
         toast.success(t('community.linkCopied') || 'Link copied');
       } catch {
         // ignore

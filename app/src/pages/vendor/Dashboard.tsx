@@ -1276,12 +1276,25 @@ const VendorDashboard = () => {
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-black text-white">{t('vendor.dashboard.vendorProfile')}</h3>
-                            {vendorProfile?.is_verified && (
-                                <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold flex items-center gap-1">
-                                    <Check className="w-3 h-3" />
-                                    {t('vendor.dashboard.verified')}
-                                </span>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {vendorProfile?.is_approved ? (
+                                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                        <Check className="w-3 h-3" />
+                                        {t('vendor.dashboard.approved') || 'Approved'}
+                                    </span>
+                                ) : (
+                                    <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        {t('vendor.dashboard.pendingApproval') || 'Pending Approval'}
+                                    </span>
+                                )}
+                                {vendorProfile?.is_verified && (
+                                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                        <Check className="w-3 h-3" />
+                                        {t('vendor.dashboard.verified')}
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className="grid lg:grid-cols-3 gap-8">

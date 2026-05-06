@@ -539,8 +539,6 @@ const CityGuide = () => {
 
           {/* Controls */}
           <div className="flex flex-col md:flex-row gap-3">
-            <CityDropdown selectedCity={selectedCity} onSelect={(id) => { setSelectedCity(id); setSelectedItem(null); }} />
-
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
