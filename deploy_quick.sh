@@ -22,6 +22,6 @@ echo "▶ Deploying frontend build..."
 eval "$RSYNC \"$LOCAL_DIR/app/dist/\" \"$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/app/dist/\""
 
 echo "▶ Restarting service..."
-eval "$SSH $SERVER_USER@$SERVER_HOST 'cd $REMOTE_DIR && source venv/bin/activate && systemctl restart soundit'"
+eval "$SSH $SERVER_USER@$SERVER_HOST 'cd $REMOTE_DIR && source .venv/bin/activate && systemctl restart soundit'"
 
 echo "▶ Done!"
