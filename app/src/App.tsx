@@ -86,6 +86,7 @@ import ArtistCommunity from './pages/artist/Community';
 import CreateEvent from './pages/organizer/CreateEvent';
 import EditEvent from './pages/organizer/EditEvent';
 import ManageEvents from './pages/organizer/ManageEvents';
+import EventPromoters from './pages/organizer/EventPromoters';
 import Analytics from './pages/organizer/Analytics';
 import OrganizerRecaps from './pages/organizer/Recaps';
 
@@ -315,6 +316,11 @@ function App() {
             <Route path="/dashboard/business/events/:id/edit" element={
               <ResponsiveLayout>
                 <EditEvent />
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/business/events/:id/promoters" element={
+              <ResponsiveLayout>
+                <EventPromoters />
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/analytics" element={
