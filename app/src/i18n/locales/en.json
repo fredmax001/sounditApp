@@ -170,7 +170,11 @@
     "showLess": "Show less",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
-    "available": "Available"
+    "available": "Available",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "actions": "Actions",
+    "none": "None"
   },
   "auth": {
     "login": {
