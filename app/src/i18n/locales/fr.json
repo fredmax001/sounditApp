@@ -171,7 +171,11 @@
     "showLess": "Voir moins",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
-    "available": "Available"
+    "available": "Available",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "actions": "Actions",
+    "none": "Aucun"
   },
   "auth": {
     "login": {

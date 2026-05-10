@@ -170,7 +170,11 @@
     "showLess": "显示更少",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
-    "available": "Available"
+    "available": "Available",
+    "firstName": "名字",
+    "lastName": "姓氏",
+    "actions": "操作",
+    "none": "无"
   },
   "auth": {
     "login": {

@@ -35,3 +35,4 @@ function Root() {
 }
 
 createRoot(document.getElementById('root')!).render(<Root />)
+/* build: 1778355000 */
