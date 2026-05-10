@@ -83,6 +83,8 @@ sshpass -p "$SSH_PASS" rsync -avz --delete \
   --exclude='.playwright-mcp/' \
   --exclude='node_modules/' \
   --exclude='app/node_modules/' \
+  --exclude='app/android/' \
+  --exclude='app/ios/' \
   --exclude='.vscode/' \
   --exclude='sound-it-platform/' \
   --exclude='Web images/' \

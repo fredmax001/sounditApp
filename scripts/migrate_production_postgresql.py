@@ -85,6 +85,8 @@ with engine.connect() as conn:
         print("Added ticket_orders.quantity")
     else:
         print("Skipped ticket_orders.quantity")
+    
+
 
     # table_packages
     cols = [c['name'] for c in insp.get_columns('table_packages')]
