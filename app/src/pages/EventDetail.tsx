@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -35,6 +35,15 @@ export default function EventDetail() {
   const [referralCode, setReferralCode] = useState('');
   const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'ticket' | 'save' | null>(null);
+  const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -146,7 +155,8 @@ export default function EventDetail() {
     }
     const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
     if (!token) {
-      navigate('/login', { state: { from: `/events/${id}` } });
+      setPendingAction('ticket');
+      setShowAuthModal(true);
       return;
     }
 
@@ -502,7 +512,8 @@ export default function EventDetail() {
                           return;
                         }
                         if (!profile) {
-                          navigate('/login', { state: { from: `/events/${id}` } });
+                          setPendingAction('ticket');
+                          setShowAuthModal(true);
                           return;
                         }
                         setShowQrModal(true);
@@ -524,7 +535,8 @@ export default function EventDetail() {
                     <button
                       onClick={() => {
                         if (!profile) {
-                          navigate('/login', { state: { from: `/events/${id}` } });
+                          setPendingAction('ticket');
+                          setShowAuthModal(true);
                           return;
                         }
                         setShowQrModal(true);
@@ -808,6 +820,211 @@ export default function EventDetail() {
                 {t('eventDetail.continueBrowsing')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Modal — Login / Register inline */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setAuthTab('login')}
+                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'login' ? 'text-[#d3da0c] border-[#d3da0c]' : 'text-white/40 border-transparent'}`}
+                >
+                  {t('nav.login')}
+                </button>
+                <button
+                  onClick={() => setAuthTab('register')}
+                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'register' ? 'text-[#d3da0c] border-[#d3da0c]' : 'text-white/40 border-transparent'}`}
+                >
+                  {t('nav.register')}
+                </button>
+              </div>
+              <button onClick={() => setShowAuthModal(false)} className="p-2 hover:bg-white/10 rounded-lg">
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {authTab === 'login' ? (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!authEmail.trim() || !authPassword) {
+                  toast.error(t('auth.login.enterIdentifierError', { method: t('auth.login.email') }));
+                  return;
+                }
+                setAuthLoading(true);
+                try {
+                  const { loginWithEmail } = useAuthStore.getState();
+                  await loginWithEmail(authEmail.trim(), authPassword);
+                  toast.success(t('auth.login.welcomeBack'));
+                  setShowAuthModal(false);
+                  setAuthEmail('');
+                  setAuthPassword('');
+                  if (pendingAction === 'ticket') {
+                    setShowQrModal(true);
+                  }
+                  setPendingAction(null);
+                } catch (err) {
+                  toast.error((err as Error).message || t('auth.login.loginFailed'));
+                } finally {
+                  setAuthLoading(false);
+                }
+              }} className="space-y-4">
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.emailLabel')}</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder={t('auth.login.emailPlaceholder')}
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.passwordLabel')}</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <input
+                      type={showAuthPassword ? 'text' : 'password'}
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder={t('auth.login.passwordPlaceholder')}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword(!showAuthPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                    >
+                      {showAuthPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {authLoading ? <LogIn className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
+                  {t('nav.login')}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!authEmail.trim() || !authPassword || !authFirstName.trim()) {
+                  toast.error(t('auth.register.fillAllFieldsError'));
+                  return;
+                }
+                if (authPassword.length < 8) {
+                  toast.error(t('auth.register.passwordMinLength'));
+                  return;
+                }
+                setAuthLoading(true);
+                try {
+                  const { registerWithEmail } = useAuthStore.getState();
+                  await registerWithEmail({
+                    email: authEmail.trim(),
+                    password: authPassword,
+                    first_name: authFirstName.trim(),
+                    last_name: authLastName.trim(),
+                    role_type: 'user',
+                  });
+                  toast.success(t('auth.register.accountCreated'));
+                  // Auto-login after register
+                  const { loginWithEmail } = useAuthStore.getState();
+                  await loginWithEmail(authEmail.trim(), authPassword);
+                  setShowAuthModal(false);
+                  setAuthEmail('');
+                  setAuthPassword('');
+                  setAuthFirstName('');
+                  setAuthLastName('');
+                  if (pendingAction === 'ticket') {
+                    setShowQrModal(true);
+                  }
+                  setPendingAction(null);
+                } catch (err) {
+                  toast.error((err as Error).message || t('auth.register.registrationFailed'));
+                } finally {
+                  setAuthLoading(false);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-white/60 text-sm block mb-2">{t('common.firstName') || 'First Name'} *</label>
+                    <input
+                      type="text"
+                      value={authFirstName}
+                      onChange={(e) => setAuthFirstName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder="John"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-white/60 text-sm block mb-2">{t('common.lastName') || 'Last Name'}</label>
+                    <input
+                      type="text"
+                      value={authLastName}
+                      onChange={(e) => setAuthLastName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.emailLabel')}</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder={t('auth.login.emailPlaceholder')}
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.passwordLabel')}</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <input
+                      type={showAuthPassword ? 'text' : 'password'}
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      placeholder={t('auth.login.passwordPlaceholder')}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword(!showAuthPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                    >
+                      {showAuthPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {authLoading ? <UserPlus className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
+                  {t('nav.register')}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

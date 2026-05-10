@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-06
+2026-05-09
 
 ---
 
@@ -26,6 +26,26 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 28. Smooth Inline Auth for Ticket Buyers (2026-05-09)
+- **Objective**: Instead of guest checkout, make the login/register experience seamless for new users who want to buy tickets.
+- **Reverted Changes**
+  - Reverted all guest checkout changes from the previous attempt:
+    - `models.py`: Restored `TicketOrder.user_id` to `nullable=False`. Removed `guest_email` and `guest_phone` columns.
+    - `api/tickets.py`: Disabled `/tickets/guest-order` endpoint (returns 403). Restored notification calls without conditional guards.
+    - `services/ticketing_service.py`: Restored original ticket code format and notification logic.
+    - `scripts/migrate_all_missing_columns.py` & `migrate_production_postgresql.py`: Removed guest checkout column migrations.
+    - `app/src/i18n/locales/*.json`: Removed guest checkout translation keys.
+- **New Implementation**
+  - `app/src/pages/EventDetail.tsx`: Added inline `AuthModal` with Login/Register tabs.
+    - When a non-logged-in user clicks "Buy Ticket", the AuthModal opens instead of redirecting to `/login`.
+    - After successful login or registration, the modal closes and the QR payment modal (`showQrModal`) opens automatically — no page redirect, no lost context.
+    - The save button still shows the "login to save" toast (unchanged).
+    - Auth modal uses existing `authStore.loginWithEmail()` and `authStore.registerWithEmail()` methods.
+    - Includes form validation, password visibility toggle, and loading states.
+  - Translations: Uses existing `auth.login.*` and `auth.register.*` keys from locale files.
+- **Table Booking**: Still requires authentication — unchanged.
+- **Build Status**: Frontend compiles successfully, backend imports OK.
 
 ### 27. Post-Deployment UI Regression Fixes (2026-04-17)
 - **Missing `artistDetail.followed` translation key**

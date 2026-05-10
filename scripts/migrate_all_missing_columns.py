@@ -315,6 +315,8 @@ with engine.connect() as conn:
         else:
             print(f"Skipped table_orders.{col}")
     
+
+    
     # 15) table_packages table
     if 'table_packages' not in insp.get_table_names():
         conn.execute(text("""
