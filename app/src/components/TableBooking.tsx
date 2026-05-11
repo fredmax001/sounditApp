@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { 
   Wine, Users, Ticket, Check, X, Loader2, 
-  ChevronRight, CreditCard, Upload, PartyPopper
+  ChevronRight, CreditCard, Upload, PartyPopper,
+  ImageIcon, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -22,6 +23,7 @@ interface TablePackage {
   ticket_quantity: number;
   max_people: number | null;
   image_url: string | null;
+  drink_menu_image_url: string | null;
   tables_remaining?: number;
 }
 
@@ -182,6 +184,24 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                 <p className="text-white/60 text-sm mb-4 line-clamp-2">{pkg.description}</p>
               )}
 
+              {/* Drink Menu Preview */}
+              {pkg.drink_menu_image_url && (
+                <div className="mb-4">
+                  <div 
+                    className="relative h-24 rounded-xl bg-cover bg-center cursor-pointer border border-white/10 hover:border-[#d3da0c]/50 transition-colors group"
+                    style={{ backgroundImage: `url(${pkg.drink_menu_image_url})` }}
+                    onClick={() => window.open(pkg.drink_menu_image_url!, '_blank')}
+                  >
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors rounded-xl flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-white">
+                        <ImageIcon className="w-4 h-4" />
+                        <span className="text-xs font-medium">{t('tableBooking.viewDrinkMenu') || 'View Drink Menu'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Included Items */}
               <div className="space-y-2 mb-4">
                 {pkg.included_items?.slice(0, 3).map((item, idx) => (
@@ -290,6 +310,24 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                   </div>
                 </div>
 
+                {/* Drink Menu */}
+                {selectedPackage.drink_menu_image_url && (
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[#d3da0c]" />
+                      {t('tableBooking.drinkMenu') || 'Drink Menu'}
+                    </h3>
+                    <div 
+                      className="h-48 rounded-xl bg-cover bg-center cursor-pointer border border-white/10 hover:border-[#d3da0c]/50 transition-colors"
+                      style={{ backgroundImage: `url(${selectedPackage.drink_menu_image_url})` }}
+                      onClick={() => window.open(selectedPackage.drink_menu_image_url!, '_blank')}
+                    />
+                    <p className="text-white/40 text-xs mt-2">
+                      {t('tableBooking.drinkMenuHint') || 'Tap to view full menu. Tell us what you want in the message to organizer below.'}
+                    </p>
+                  </div>
+                )}
+
                 {/* Contact Info */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -337,12 +375,15 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                 </div>
 
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('tableBooking.specialRequests')}</label>
+                  <label className="block text-white/60 text-sm mb-2 flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    {t('tableBooking.specialRequests') || 'Message to Organizer'}
+                  </label>
                   <textarea
                     value={formData.special_requests}
                     onChange={(e) => setFormData({...formData, special_requests: e.target.value})}
                     rows={3}
-                    placeholder={t('tableBooking.specialRequestsPlaceholder')}
+                    placeholder={t('tableBooking.specialRequestsPlaceholder') || 'Tell us what drinks or arrangements you want...'}
                     className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
@@ -358,12 +399,13 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                     {t('tableBooking.pleaseTransfer')} <span className="text-[#d3da0c] font-bold">¥{selectedPackage.price}</span> {t('tableBooking.toComplete')}
                   </p>
 
-                  {/* Payment QR Codes */}
+                  {/* Payment QR Codes - QR Only, No YooPay */}
                   <MobileQrPayment 
                     amount={selectedPackage.price} 
                     wechatQrUrl={wechatQrUrl}
                     alipayQrUrl={alipayQrUrl}
                     paymentInstructions={paymentInstructions}
+                    hideYoopay={true}
                   />
 
                   {/* Payment Screenshot Upload */}

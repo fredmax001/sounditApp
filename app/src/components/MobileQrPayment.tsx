@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Smartphone, QrCode, Monitor, Check } from 'lucide-react';
+import { Smartphone, QrCode, Monitor, Check, Download } from 'lucide-react';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 
 interface MobileQrPaymentProps {
@@ -8,12 +8,13 @@ interface MobileQrPaymentProps {
   wechatQrUrl?: string | null;
   alipayQrUrl?: string | null;
   paymentInstructions?: string | null;
+  hideYoopay?: boolean;
 }
 
 const YOOPAY_MOBILE_LINK = 'https://yoopay.cn/tc/603316601';
 const YOOPAY_QR_PATH = '/static/yoopay_qr.jpg';
 
-const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentInstructions }: MobileQrPaymentProps) => {
+const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentInstructions, hideYoopay = false }: MobileQrPaymentProps) => {
   const [isMobile, setIsMobile] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'wechat' | 'alipay'>('wechat');
 
@@ -26,6 +27,16 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
 
   const yoopayQrUrl = `${WEB_ORIGIN}${YOOPAY_QR_PATH}`;
   const hasOrganizerQr = !!wechatQrUrl || !!alipayQrUrl;
+
+  const handleDownloadQr = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // If organizer has custom QRs, show those
   if (hasOrganizerQr) {
@@ -71,12 +82,21 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
 
         {/* QR Display */}
         {hasCurrent ? (
-          <div className="flex justify-center">
-            <img
-              src={currentQrUrl!}
-              alt={`${activeTab === 'wechat' ? 'WeChat' : 'Alipay'} QR`}
-              className="w-48 h-48 object-contain rounded-lg bg-white p-2"
-            />
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <img
+                src={currentQrUrl!}
+                alt={`${activeTab === 'wechat' ? 'WeChat' : 'Alipay'} QR`}
+                className="w-48 h-48 object-contain rounded-lg bg-white p-2"
+              />
+            </div>
+            <button
+              onClick={() => handleDownloadQr(currentQrUrl!, `${activeTab}_qr_code.png`)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors text-sm"
+            >
+              <Download className="w-4 h-4" />
+              Download QR Code to Pay
+            </button>
           </div>
         ) : (
           <div className="text-center py-4">
@@ -94,34 +114,36 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
           </div>
         )}
 
-        {/* Fallback YOOPAY option */}
-        <div className="grid grid-cols-2 gap-3">
-          <a
-            href={YOOPAY_MOBILE_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
-          >
-            <Smartphone className="w-6 h-6 text-[#d3da0c]" />
-            <span className="text-white text-sm font-medium">YOOPAY</span>
-          </a>
-          <div className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl">
-            <QrCode className="w-6 h-6 text-[#d3da0c]" />
-            <span className="text-white text-sm font-medium">Scan QR</span>
+        {/* Fallback YOOPAY option (only if not hidden) */}
+        {!hideYoopay && (
+          <div className="grid grid-cols-2 gap-3">
+            <a
+              href={YOOPAY_MOBILE_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+            >
+              <Smartphone className="w-6 h-6 text-[#d3da0c]" />
+              <span className="text-white text-sm font-medium">YOOPAY</span>
+            </a>
+            <div className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl">
+              <QrCode className="w-6 h-6 text-[#d3da0c]" />
+              <span className="text-white text-sm font-medium">Scan QR</span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="bg-white/5 rounded-xl p-4 flex items-start gap-3">
           <Monitor className="w-4 h-4 text-[#d3da0c] shrink-0 mt-0.5" />
           <p className="text-gray-400 text-xs leading-relaxed">
-            Scan the QR code above with your phone's {activeTab === 'wechat' ? 'WeChat' : 'Alipay'} app to complete payment. After paying, click "I Have Paid" to upload your screenshot.
+            Scan the QR code above with your phone's {activeTab === 'wechat' ? 'WeChat' : 'Alipay'} app to complete payment. Or download the QR and scan from your photos. After paying, upload your screenshot below.
           </p>
         </div>
 
         <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl space-y-1">
           <p className="text-yellow-400 text-xs flex items-start gap-2">
             <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            1. Scan the QR code with your phone
+            1. Download or scan the QR code with your phone
           </p>
           <p className="text-yellow-400 text-xs flex items-start gap-2">
             <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -129,7 +151,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
           </p>
           <p className="text-yellow-400 text-xs flex items-start gap-2">
             <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            3. Click "I Have Paid" and upload screenshot
+            3. Upload your payment screenshot below
           </p>
         </div>
 
@@ -150,7 +172,31 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
     );
   }
 
-  // Fallback: YOOPAY (original behavior when no organizer QR)
+  // When hideYoopay is true and no organizer QR, show a message
+  if (hideYoopay) {
+    return (
+      <div className="space-y-4">
+        {paymentInstructions && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+            <p className="text-blue-400 text-sm leading-relaxed">{paymentInstructions}</p>
+          </div>
+        )}
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
+          <p className="text-red-400 text-sm">
+            The organizer has not uploaded payment QR codes yet. Please contact the organizer directly for payment instructions.
+          </p>
+        </div>
+        {amount !== undefined && amount !== null && (
+          <div className="p-3 bg-white/5 rounded-xl flex items-center justify-between">
+            <span className="text-white/60 text-sm">Amount to Pay</span>
+            <span className="text-xl font-bold text-[#d3da0c]">¥{amount}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback: YOOPAY (original behavior when no organizer QR and hideYoopay is false)
   const qrUrl = yoopayQrUrl;
 
   // Desktop view: large QR code for phone scanning
