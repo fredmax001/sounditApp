@@ -56,6 +56,7 @@ export default function EventPromoters() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState<EventPromoter | null>(null);
   const [newPromoterUserId, setNewPromoterUserId] = useState('');
+  const [newPromoterName, setNewPromoterName] = useState('');
   const [newCommissionRate, setNewCommissionRate] = useState('');
   const [newDiscountPercent, setNewDiscountPercent] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -145,6 +146,7 @@ export default function EventPromoters() {
         },
         body: JSON.stringify({
           promoter_user_id: parseInt(newPromoterUserId),
+          promoter_name: newPromoterName.trim() || null,
           commission_rate: newCommissionRate ? parseFloat(newCommissionRate) : null,
           discount_percent: newDiscountPercent ? parseFloat(newDiscountPercent) : null,
         }),
@@ -154,6 +156,7 @@ export default function EventPromoters() {
         toast.success(t('organizer.eventPromoters.promoterAdded'));
         setShowAddModal(false);
         setNewPromoterUserId('');
+        setNewPromoterName('');
         setNewCommissionRate('');
         setNewDiscountPercent('');
         fetchPromoters();
@@ -463,6 +466,18 @@ export default function EventPromoters() {
                     onChange={(e) => setNewPromoterUserId(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
                     placeholder={t('organizer.eventPromoters.userIdPlaceholder')}
+                  />
+                </div>
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">
+                    {t('organizer.eventPromoters.promoterName') || 'Promoter Name'} <span className="text-gray-500">{t('organizer.eventPromoters.optional')}</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newPromoterName}
+                    onChange={(e) => setNewPromoterName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
+                    placeholder={t('organizer.eventPromoters.promoterNamePlaceholder') || 'e.g. DJ Sparky'}
                   />
                 </div>
                 <div>

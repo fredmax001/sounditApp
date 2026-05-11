@@ -13,7 +13,6 @@ import {
   Users,
   Store,
   Building2,
-  PartyPopper,
   Star,
   Heart,
   Map as MapIcon,
@@ -72,10 +71,9 @@ const PIN_COLORS: Record<string, string> = {
   artist: '#ec4899',
   vendor: '#8b5cf6',
   business: '#06b6d4',
-  organizer: '#f97316',
 };
 
-type FilterTab = 'all' | 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'business' | 'organizer';
+type FilterTab = 'all' | 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'business';
 
 const TAB_CONFIG: { key: FilterTab; labelKey: string; fallback: string; icon: typeof MapPin }[] = [
   { key: 'all', labelKey: 'cityGuide.all', fallback: 'All', icon: MapPin },
@@ -85,7 +83,6 @@ const TAB_CONFIG: { key: FilterTab; labelKey: string; fallback: string; icon: ty
   { key: 'artist', labelKey: 'discovery.artists', fallback: 'Artists', icon: Users },
   { key: 'vendor', labelKey: 'discovery.vendors', fallback: 'Vendors', icon: Store },
   { key: 'business', labelKey: 'discovery.businesses', fallback: 'Businesses', icon: Building2 },
-  { key: 'organizer', labelKey: 'discovery.organizers', fallback: 'Organizers', icon: PartyPopper },
 ];
 
 // Only these types appear on the map
@@ -99,7 +96,6 @@ function EntityBadge({ type }: { type: GuideItem['type'] }) {
     artist: 'bg-pink-500/20 text-pink-400',
     vendor: 'bg-violet-500/20 text-violet-400',
     business: 'bg-cyan-500/20 text-cyan-400',
-    organizer: 'bg-orange-500/20 text-orange-400',
   };
   const labels: Record<string, string> = {
     event: 'Event',
@@ -108,7 +104,6 @@ function EntityBadge({ type }: { type: GuideItem['type'] }) {
     artist: 'Artist',
     vendor: 'Vendor',
     business: 'Business',
-    organizer: 'Organizer',
   };
   return (
     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors[type] || 'bg-gray-500/20 text-gray-400'}`}>
@@ -429,7 +424,7 @@ const CityGuide = () => {
     const infoWindow = infoWindowRef.current;
     if (!map || !infoWindow) return;
 
-    // Only map events, venues, and food — NOT artists/vendors/businesses/organizers
+    // Only map events, venues, and food — NOT artists/vendors/businesses
     const mappable =
       activeTab === 'all'
         ? guideItems.filter((i) => MAPPABLE_TYPES.has(i.type))
@@ -514,7 +509,7 @@ const CityGuide = () => {
       const events = Number(i.meta.events_count || 0);
       if (i.type === 'artist') return isVerified || followers > 0;
       if (i.type === 'vendor') return isVerified || rating >= 4;
-      if (i.type === 'organizer' || i.type === 'business') return isVerified || events > 0;
+      if (i.type === 'business') return isVerified || events > 0;
       if (i.type === 'venue') return true;
       return false;
     }).slice(0, 6);
@@ -533,7 +528,7 @@ const CityGuide = () => {
               {t('discovery.title') || 'Discovery'} <span className="text-[#d3da0c]">{t('discovery.hub') || 'Hub'}</span>
             </h1>
             <p className="text-gray-400 text-sm">
-              {t('discovery.subtitle') || 'Find artists, vendors, businesses, organizers, clubs, bars, events, and food spots in your city.'}
+              {t('discovery.subtitle') || 'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
             </p>
           </div>
 
@@ -590,7 +585,7 @@ const CityGuide = () => {
                 onClick={() => {
                   if (item.type === 'artist') navigate(`/artists/${item.id}`);
                   else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                  else if ((item.type === 'business' || item.type === 'organizer') && item.user_id) navigate(`/profiles/${item.user_id}`);
+                  else if (item.type === 'business' && item.user_id) navigate(`/profiles/${item.user_id}`);
                   else if (item.type === 'event') navigate(`/events/${item.id}`);
                   else {
                     setSelectedItem(item);
@@ -655,7 +650,7 @@ const CityGuide = () => {
                   onClick={() => {
                     if (item.type === 'artist') navigate(`/artists/${item.id}`);
                     else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                    else if ((item.type === 'business' || item.type === 'organizer') && item.user_id) navigate(`/profiles/${item.user_id}`);
+                    else if (item.type === 'business' && item.user_id) navigate(`/profiles/${item.user_id}`);
                     else if (item.type === 'event') navigate(`/events/${item.id}`);
                     else {
                       setSelectedItem(item);
@@ -733,7 +728,7 @@ const CityGuide = () => {
                           <MetricPill icon={Users} value={`${Number(item.meta.reviews_count || 0)}`} />
                         </>
                       )}
-                      {(item.type === 'business' || item.type === 'organizer') && (
+                      {item.type === 'business' && (
                         <MetricPill icon={Calendar} value={`${Number(item.meta.events_count || 0)}`} />
                       )}
 

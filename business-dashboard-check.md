@@ -1,0 +1,168 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e27]:
+        - img [ref=e29]
+        - generic [ref=e32]: User does not have an organizer or business profile
+      - listitem [ref=e33]:
+        - img [ref=e35]
+        - generic [ref=e38]: User does not have an organizer or business profile
+  - generic [ref=e39]:
+    - complementary [ref=e40]:
+      - generic [ref=e41]:
+        - link "Sound It" [ref=e42] [cursor=pointer]:
+          - /url: /
+          - img "Sound It" [ref=e43]
+        - paragraph [ref=e44]: ADMIN PORTAL
+      - navigation [ref=e45]:
+        - link "Dashboard" [ref=e46] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e47]
+          - generic [ref=e52]: Dashboard
+        - link "Users" [ref=e53] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e54]
+          - generic [ref=e59]: Users
+        - link "Artists" [ref=e60] [cursor=pointer]:
+          - /url: /admin/artists
+          - img [ref=e61]
+          - generic [ref=e65]: Artists
+        - link "Vendors" [ref=e66] [cursor=pointer]:
+          - /url: /admin/vendors
+          - img [ref=e67]
+          - generic [ref=e70]: Vendors
+        - link "Businesses" [ref=e71] [cursor=pointer]:
+          - /url: /admin/businesses
+          - img [ref=e72]
+          - generic [ref=e76]: Businesses
+        - link "Events" [ref=e77] [cursor=pointer]:
+          - /url: /admin/events
+          - img [ref=e78]
+          - generic [ref=e80]: Events
+        - link "Bookings" [ref=e81] [cursor=pointer]:
+          - /url: /admin/bookings
+          - img [ref=e82]
+          - generic [ref=e84]: Bookings
+        - link "Financial" [ref=e85] [cursor=pointer]:
+          - /url: /admin/financial
+          - img [ref=e86]
+          - generic [ref=e89]: Financial
+        - link "Withdrawals" [ref=e90] [cursor=pointer]:
+          - /url: /admin/withdrawals
+          - img [ref=e91]
+          - generic [ref=e93]: Withdrawals
+        - link "Reports" [ref=e94] [cursor=pointer]:
+          - /url: /admin/reports
+          - img [ref=e95]
+          - generic [ref=e97]: Reports
+        - link "CMS" [ref=e98] [cursor=pointer]:
+          - /url: /admin/cms
+          - img [ref=e99]
+          - generic [ref=e101]: CMS
+        - link "Notifications" [ref=e102] [cursor=pointer]:
+          - /url: /admin/notifications
+          - img [ref=e103]
+          - generic [ref=e106]: Notifications
+        - link "Roles" [ref=e107] [cursor=pointer]:
+          - /url: /admin/roles
+          - img [ref=e108]
+          - generic [ref=e111]: Roles
+        - link "Settings" [ref=e112] [cursor=pointer]:
+          - /url: /admin/settings
+          - img [ref=e113]
+          - generic [ref=e116]: Settings
+        - link "Logs" [ref=e117] [cursor=pointer]:
+          - /url: /admin/logs
+          - img [ref=e118]
+          - generic [ref=e121]: Logs
+        - link "API" [ref=e122] [cursor=pointer]:
+          - /url: /admin/api
+          - img [ref=e123]
+          - generic [ref=e126]: API
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - img [ref=e130]
+          - generic [ref=e133]:
+            - paragraph [ref=e134]: Admin SoundIt
+            - paragraph [ref=e135]: admin@sounditent.com
+        - generic [ref=e136]:
+          - link "Settings" [ref=e137] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e138]
+            - generic [ref=e141]: Settings
+          - button "Logout" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+            - generic [ref=e146]: Logout
+      - generic "Drag to resize sidebar" [ref=e147]
+    - main [ref=e148]:
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - heading "Welcome Back" [level=1] [ref=e151]
+          - paragraph [ref=e152]: Manage your events and business operations.
+        - generic [ref=e153]:
+          - generic [ref=e154]:
+            - generic [ref=e155]:
+              - img [ref=e157]
+              - generic [ref=e159]: Total Events
+            - paragraph [ref=e160]: "0"
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - img [ref=e164]
+              - generic [ref=e166]: Tickets Sold
+            - paragraph [ref=e167]: "0"
+          - generic [ref=e168]:
+            - generic [ref=e169]:
+              - img [ref=e171]
+              - generic [ref=e173]: Total Revenue
+            - paragraph [ref=e174]: ¥0
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - img [ref=e178]
+              - generic [ref=e181]: Pending Artist Payments
+            - paragraph [ref=e182]: ¥0
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - heading "Ticket Orders" [level=2] [ref=e185]
+            - generic [ref=e186]:
+              - combobox [ref=e187]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Approved"
+                - option "Rejected"
+              - combobox [ref=e188]:
+                - option "All Events" [selected]
+          - generic [ref=e189]: No ticket orders found.
+        - generic [ref=e190]:
+          - generic [ref=e191]:
+            - heading "Live Events" [level=2] [ref=e192]
+            - link "Manage All" [ref=e193] [cursor=pointer]:
+              - /url: /dashboard/business/events
+          - generic [ref=e194]:
+            - img [ref=e195]
+            - heading "No events yet" [level=3] [ref=e197]
+            - paragraph [ref=e198]: Create your first event to get started
+            - link "Create Event" [ref=e199] [cursor=pointer]:
+              - /url: /dashboard/business/create-event
+        - generic [ref=e200]:
+          - heading "Quick Actions" [level=2] [ref=e201]
+          - generic [ref=e202]:
+            - button "Create Event Launch a new event" [ref=e203] [cursor=pointer]:
+              - img [ref=e204]
+              - heading "Create Event" [level=3] [ref=e205]
+              - paragraph [ref=e206]: Launch a new event
+            - button "My Events Manage your events" [ref=e207] [cursor=pointer]:
+              - img [ref=e208]
+              - heading "My Events" [level=3] [ref=e210]
+              - paragraph [ref=e211]: Manage your events
+            - button "Promoters Referral codes & QR" [ref=e212] [cursor=pointer]:
+              - img [ref=e213]
+              - heading "Promoters" [level=3] [ref=e219]
+              - paragraph [ref=e220]: Referral codes & QR
+            - button "Analytics View insights and stats" [ref=e221] [cursor=pointer]:
+              - img [ref=e222]
+              - heading "Analytics" [level=3] [ref=e224]
+              - paragraph [ref=e225]: View insights and stats
+            - button "Payouts View earnings and request payouts" [ref=e226] [cursor=pointer]:
+              - img [ref=e227]
+              - heading "Payouts" [level=3] [ref=e230]
+              - paragraph [ref=e231]: View earnings and request payouts

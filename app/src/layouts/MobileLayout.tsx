@@ -27,6 +27,7 @@ import {
   Wallet,
   Wine,
   MessageSquare,
+  Share2,
   Users,
   User,
   LayoutDashboard,
@@ -134,6 +135,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     if (isBusiness) {
       return [
         { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket },
+        { path: '/dashboard/business/promoters', label: t('nav.promoters') || 'Promoters', icon: Share2 },
         { path: '/dashboard/business/staff', label: t('business.staff.title') || 'Staff', icon: Users },
         { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
         { path: '/dashboard/business/followers', label: t('nav.followers') || 'Followers', icon: Heart },

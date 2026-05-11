@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image as ImageIcon
+  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image as ImageIcon, Share2
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -69,6 +69,7 @@ const BusinessDashboard = () => {
   const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
   const [ticketOrdersLoading, setTicketOrdersLoading] = useState(false);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [eventFilter, setEventFilter] = useState<string>('all');
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
@@ -174,7 +175,11 @@ const BusinessDashboard = () => {
     if (!session?.access_token) return;
     setTicketOrdersLoading(true);
     try {
-      const url = `${API_BASE_URL}/tickets/business/tickets${ticketFilter !== 'all' ? `?status=${ticketFilter}` : ''}`;
+      const params = new URLSearchParams();
+      if (ticketFilter !== 'all') params.append('status', ticketFilter);
+      if (eventFilter !== 'all') params.append('event_id', eventFilter);
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const url = `${API_BASE_URL}/tickets/business/tickets${query}`;
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
@@ -191,7 +196,7 @@ const BusinessDashboard = () => {
     } finally {
       setTicketOrdersLoading(false);
     }
-  }, [session, ticketFilter, t]);
+  }, [session, ticketFilter, eventFilter, t]);
 
   const handleApproveOrder = async (orderId: number) => {
     if (!session?.access_token) return;
@@ -252,7 +257,7 @@ const BusinessDashboard = () => {
 
   useEffect(() => {
     fetchTicketOrders();
-  }, [ticketFilter]);
+  }, [ticketFilter, eventFilter]);
 
   const bizStats = dashboardStats?.business_stats;
 
@@ -277,11 +282,11 @@ const BusinessDashboard = () => {
   return (
     <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
       {/* Welcome Header */}
-      <div className="mb-8 lg:mb-10">
-        <h1 className="text-lg lg:text-3xl font-display text-white mb-1 lg:mb-2">
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-base lg:text-2xl font-display text-white mb-1">
           {t('business.dashboard.welcomeBack')}
         </h1>
-        <p className="text-gray-400">
+        <p className="text-gray-400 text-sm">
           {businessProfile?.business_name
             ? t('business.dashboard.welcomeMessageNamed', { name: businessProfile.business_name })
             : t('business.dashboard.welcomeMessage')}
@@ -289,23 +294,23 @@ const BusinessDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
+      <div className="grid grid-cols-4 gap-2 lg:gap-4 mb-6">
         {stats.map((stat, idx) => (
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="bg-[#111111] border border-white/5 rounded-xl p-3 lg:rounded-2xl lg:p-6 hover:border-white/10 transition-all"
+            className="bg-[#111111] border border-white/5 rounded-lg p-2 lg:rounded-xl lg:p-4 hover:border-white/10 transition-all"
           >
-            <div className="flex items-center gap-4 mb-4">
-              <div className={`p-2 bg-white/5 rounded-lg lg:p-3 lg:rounded-xl ${stat.color}`}>
-                <stat.icon className="w-6 h-6" />
+            <div className="flex items-center gap-1.5 mb-1 lg:mb-2">
+              <div className={`p-1 bg-white/5 rounded ${stat.color}`}>
+                <stat.icon className="w-3 h-3 lg:w-4 lg:h-4" />
               </div>
-              <span className="text-gray-400 text-xs font-medium lg:text-sm">{stat.label}</span>
+              <span className="text-gray-400 text-[9px] font-medium whitespace-nowrap lg:text-xs">{stat.label}</span>
             </div>
-            <p className="text-xl font-bold text-white tracking-tight lg:text-3xl">
-              {statsLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : stat.value}
+            <p className="text-sm font-bold text-white tracking-tight lg:text-xl">
+              {statsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : stat.value}
             </p>
           </motion.div>
         ))}
@@ -314,19 +319,47 @@ const BusinessDashboard = () => {
       {/* Ticket Orders */}
       <section className="mb-10">
         <div className="flex flex-col gap-3 mb-6">
-          <h2 className="text-base font-semibold text-white lg:text-xl">{t('business.dashboard.ticketOrders') || 'Ticket Orders'}</h2>
-          <select
-            value={ticketFilter}
-            onChange={(e) => setTicketFilter(e.target.value as any)}
-            className="bg-[#111111] border border-white/10 text-white px-4 py-2 rounded-lg"
-          >
-            <option value="all">{t('business.dashboard.all')}</option>
-            <option value="pending">{t('business.dashboard.pending')}</option>
-            <option value="approved">{t('business.dashboard.approved')}</option>
-            <option value="rejected">{t('business.dashboard.rejected')}</option>
-          </select>
+          <h2 className="text-sm font-semibold text-white lg:text-base">{t('business.dashboard.ticketOrders') || 'Ticket Orders'}</h2>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={ticketFilter}
+              onChange={(e) => setTicketFilter(e.target.value as any)}
+              className="bg-[#111111] border border-white/10 text-white text-sm px-3 py-2 rounded-lg"
+            >
+              <option value="all">{t('business.dashboard.all')}</option>
+              <option value="pending">{t('business.dashboard.pending')}</option>
+              <option value="approved">{t('business.dashboard.approved')}</option>
+              <option value="rejected">{t('business.dashboard.rejected')}</option>
+            </select>
+            <select
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value)}
+              className="bg-[#111111] border border-white/10 text-white text-sm px-3 py-2 rounded-lg"
+            >
+              <option value="all">All Events</option>
+              {events.map((event) => (
+                <option key={event.id} value={String(event.id)}>{event.title}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
+        {eventFilter !== 'all' && ticketOrders.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="bg-[#111111] border border-white/5 rounded-lg p-2 text-center">
+              <p className="text-gray-500 text-[9px] uppercase font-bold mb-0.5">Orders</p>
+              <p className="text-white font-bold text-sm">{ticketOrders.length}</p>
+            </div>
+            <div className="bg-[#111111] border border-white/5 rounded-lg p-2 text-center">
+              <p className="text-gray-500 text-[9px] uppercase font-bold mb-0.5">Revenue</p>
+              <p className="text-white font-bold text-sm">¥{ticketOrders.reduce((sum, o) => sum + (o.payment_amount || 0), 0).toLocaleString()}</p>
+            </div>
+            <div className="bg-[#111111] border border-white/5 rounded-lg p-2 text-center">
+              <p className="text-gray-500 text-[9px] uppercase font-bold mb-0.5">Checked In</p>
+              <p className="text-white font-bold text-sm">{ticketOrders.filter(o => o.status === 'used').length}</p>
+            </div>
+          </div>
+        )}
         {ticketOrdersLoading ? (
           <div className="text-center py-12"><Loader2 className="w-8 h-8 animate-spin text-[#d3da0c] mx-auto" /></div>
         ) : ticketOrders.length === 0 ? (
@@ -334,22 +367,19 @@ const BusinessDashboard = () => {
             {t('business.dashboard.noTicketOrders') || 'No ticket orders found.'}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-2">
             {ticketOrders.map((order) => (
-              <div key={order.id} className="bg-[#111111] border border-white/5 rounded-xl p-3 lg:rounded-2xl lg:p-5">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 lg:w-12 lg:h-12 lg:rounded-xl flex items-center justify-center">
-                      <User className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium text-sm lg:font-semibold lg:text-base">{order.payer_name || order.user?.name || 'Unknown'}</p>
-                      <p className="text-gray-400 text-xs lg:text-sm">{order.user?.email}</p>
-                      <p className="text-gray-500 text-[10px] mt-0.5 lg:text-xs">{order.event?.title} • Qty: {order.quantity || 1} • {new Date(order.created_at).toLocaleString()}</p>
-                    </div>
+              <div key={order.id} className="bg-[#111111] border border-white/5 rounded-lg p-2 lg:rounded-xl lg:p-4">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="w-8 h-8 rounded-md bg-white/5 lg:w-9 lg:h-9 lg:rounded-lg flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-gray-400" />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold lg:px-3 lg:py-1 lg:text-xs ${
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-medium text-xs truncate lg:text-sm">{order.payer_name || order.user?.name || 'Unknown'}</p>
+                    <p className="text-gray-400 text-[10px] truncate lg:text-xs">{order.event?.title} • Qty: {order.quantity || 1} • {new Date(order.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap ${
                       order.status === 'approved' ? 'bg-green-500/10 text-green-400' :
                       order.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
                       order.status === 'cancelled' ? 'bg-gray-500/10 text-gray-400' :
@@ -358,48 +388,48 @@ const BusinessDashboard = () => {
                       {order.status}
                     </span>
                     {order.auto_approved && (
-                      <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400">
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/10 text-blue-400 whitespace-nowrap">
                         Auto
                       </span>
                     )}
-                    <p className="text-white font-semibold">¥{order.payment_amount}</p>
+                    <p className="text-white font-semibold text-xs whitespace-nowrap">¥{order.payment_amount}</p>
                     {order.status === 'pending' && !order.auto_approved && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => handleApproveOrder(order.id)}
                           disabled={processingOrderId === order.id}
-                          className="w-10 h-10 bg-green-500/20 text-green-500 rounded-lg touch-target hover:bg-green-500/30 disabled:opacity-50"
+                          className="w-7 h-7 bg-green-500/20 text-green-500 rounded-md hover:bg-green-500/30 disabled:opacity-50 flex items-center justify-center"
                         >
-                          {processingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                         </button>
                         <button
                           onClick={() => handleRejectOrder(order.id)}
                           disabled={processingOrderId === order.id}
-                          className="w-10 h-10 bg-red-500/20 text-red-500 rounded-lg touch-target hover:bg-red-500/30 disabled:opacity-50"
+                          className="w-7 h-7 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30 disabled:opacity-50 flex items-center justify-center"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 rounded-lg text-xs text-white lg:px-3 lg:py-2 lg:text-sm hover:bg-white/10"
+                    className="flex items-center gap-1 px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-white hover:bg-white/10"
                   >
-                    <ImageIcon className="w-4 h-4" /> View Screenshot
+                    <ImageIcon className="w-3 h-3" /> Screenshot
                   </button>
                   {order.ticket_qr && (
                     <button
                       onClick={() => setSelectedQr(order.ticket_qr!)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 rounded-lg text-xs text-white lg:px-3 lg:py-2 lg:text-sm hover:bg-white/10"
+                      className="flex items-center gap-1 px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-white hover:bg-white/10"
                     >
-                      <Ticket className="w-4 h-4" /> View QR
+                      <Ticket className="w-3 h-3" /> QR
                     </button>
                   )}
                   {order.ticket_code && (
-                    <span className="px-3 py-2 bg-[#d3da0c]/10 text-[#d3da0c] rounded-lg text-sm font-mono">
+                    <span className="px-1.5 py-0.5 bg-[#d3da0c]/10 text-[#d3da0c] rounded text-[10px] font-mono">
                       {order.ticket_code}
                     </span>
                   )}
@@ -413,7 +443,7 @@ const BusinessDashboard = () => {
       {/* Recent Events */}
       <section className="mb-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-white lg:text-xl">{t('business.dashboard.liveEvents')}</h2>
+          <h2 className="text-base font-semibold text-white lg:text-lg">{t('business.dashboard.liveEvents')}</h2>
           <Link
             to="/dashboard/business/events"
             className="text-[#d3da0c] text-sm font-bold hover:underline"
@@ -437,51 +467,49 @@ const BusinessDashboard = () => {
         ) : (
           <div className="grid gap-4">
             {events.slice(0, 5).map((event) => (
-              <div key={event.id} className="bg-white/5 border border-white/5 p-3 rounded-xl lg:p-5 lg:rounded-2xl flex flex-col gap-4 group hover:border-[#d3da0c]/30 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg lg:w-14 lg:h-14 lg:rounded-xl overflow-hidden bg-gray-800 flex items-center justify-center">
-                    {event.flyer_image ? (
-                      <img src={event.flyer_image} alt={event.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <Calendar className="w-8 h-8 text-gray-600" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium text-sm lg:font-semibold lg:text-base">{event.title}</h3>
-                    <p className="text-gray-400 text-sm">
-                      {event.start_date ? new Date(event.start_date).toLocaleDateString() : t('business.dashboard.tbd')} • {event.venue?.name || event.city || t('business.dashboard.tbd')}
-                    </p>
-                  </div>
+              <div key={event.id} className="bg-white/5 border border-white/5 p-2 rounded-lg lg:p-4 lg:rounded-xl flex items-center gap-3 group hover:border-[#d3da0c]/30 transition-all">
+                <div className="w-10 h-10 rounded-md lg:w-12 lg:h-12 lg:rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center shrink-0">
+                  {event.flyer_image ? (
+                    <img src={event.flyer_image} alt={event.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Calendar className="w-6 h-6 text-gray-600" />
+                  )}
                 </div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="text-center">
-                    <p className="text-gray-500 text-[10px] uppercase font-bold mb-0.5 lg:text-xs">{t('business.dashboard.sales')}</p>
-                    <p className="text-white font-bold">{event.tickets_sold || 0} / {event.capacity || '∞'}</p>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-white font-medium text-xs truncate lg:text-sm lg:font-semibold">{event.title}</h3>
+                  <p className="text-gray-400 text-[10px] truncate lg:text-xs">
+                    {event.start_date ? new Date(event.start_date).toLocaleDateString() : t('business.dashboard.tbd')} • {event.venue?.name || event.city || t('business.dashboard.tbd')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-gray-500 text-[9px] uppercase font-bold">{t('business.dashboard.sales')}</p>
+                    <p className="text-white font-bold text-xs">{event.tickets_sold || 0}/{event.capacity || '∞'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-500 text-xs uppercase font-black mb-1">{t('business.dashboard.status')}</p>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${event.status === 'live' ? 'bg-green-500/10 text-green-400' :
+                    <p className="text-gray-500 text-[9px] uppercase font-bold">{t('business.dashboard.status')}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap ${event.status === 'live' ? 'bg-green-500/10 text-green-400' :
                         event.status === 'draft' ? 'bg-gray-500/10 text-gray-400' :
                           'bg-blue-500/10 text-blue-400'
                       }`}>
                       {event.status || t('business.dashboard.active')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleEditEvent(event)}
-                      className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-all"
                       title={t('business.dashboard.editEvent')}
                     >
-                      <Edit className="w-4 h-4 text-gray-400" />
+                      <Edit className="w-3.5 h-3.5 text-gray-400" />
                     </button>
                     <button
                       onClick={() => handleDeleteEvent(event.id, event.title)}
                       disabled={isDeletingEvent}
-                      className="p-2 bg-white/5 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50"
+                      className="p-1.5 bg-white/5 hover:bg-red-500/20 rounded-md transition-all disabled:opacity-50"
                       title={t('business.dashboard.deleteEvent')}
                     >
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
                     </button>
                   </div>
                 </div>
@@ -493,43 +521,52 @@ const BusinessDashboard = () => {
 
       {/* Quick Actions */}
       <section className="mb-10">
-        <h2 className="text-base font-semibold text-white lg:text-xl mb-6">{t('business.dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <h2 className="text-base font-semibold text-white lg:text-lg mb-6">{t('business.dashboard.quickActions')}</h2>
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
           <motion.button
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate('/dashboard/business/create-event')}
-            className="bg-white/5 border border-white/10 rounded-xl p-4 lg:rounded-2xl lg:p-5 text-left hover:border-[#d3da0c]/30 transition-all"
+            className="bg-white/5 border border-white/10 rounded-lg p-3 lg:p-4 text-left hover:border-[#d3da0c]/30 transition-all"
           >
-            <PlusIcon className="w-8 h-8 text-[#d3da0c] mb-2 lg:mb-3" />
-            <h3 className="text-white font-medium text-sm lg:font-semibold lg:text-base mb-1">{t('business.dashboard.createEvent')}</h3>
-            <p className="text-gray-400 text-sm">{t('business.dashboard.launchNewEvent')}</p>
+            <PlusIcon className="w-6 h-6 text-[#d3da0c] mb-1.5 lg:mb-2" />
+            <h3 className="text-white font-medium text-xs lg:text-sm mb-0.5">{t('business.dashboard.createEvent')}</h3>
+            <p className="text-gray-400 text-[11px] lg:text-xs">{t('business.dashboard.launchNewEvent')}</p>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate('/dashboard/business/events')}
-            className="bg-white/5 border border-white/10 rounded-xl p-4 lg:rounded-2xl lg:p-5 text-left hover:border-[#d3da0c]/30 transition-all"
+            className="bg-white/5 border border-white/10 rounded-lg p-3 lg:p-4 text-left hover:border-[#d3da0c]/30 transition-all"
           >
-            <Calendar className="w-8 h-8 text-blue-400 mb-2 lg:mb-3" />
-            <h3 className="text-white font-medium text-sm lg:font-semibold lg:text-base mb-1">{t('business.dashboard.myEvents')}</h3>
-            <p className="text-gray-400 text-sm">{t('business.dashboard.manageYourEvents')}</p>
+            <Calendar className="w-6 h-6 text-blue-400 mb-1.5 lg:mb-2" />
+            <h3 className="text-white font-medium text-xs lg:text-sm mb-0.5">{t('business.dashboard.myEvents')}</h3>
+            <p className="text-gray-400 text-[11px] lg:text-xs">{t('business.dashboard.manageYourEvents')}</p>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            onClick={() => navigate('/dashboard/business/promoters')}
+            className="bg-white/5 border border-white/10 rounded-lg p-3 lg:p-4 text-left hover:border-purple-500/30 transition-all"
+          >
+            <Share2 className="w-6 h-6 text-purple-400 mb-1.5 lg:mb-2" />
+            <h3 className="text-white font-medium text-xs lg:text-sm mb-0.5">{t('business.dashboard.promoters') || 'Promoters'}</h3>
+            <p className="text-gray-400 text-[11px] lg:text-xs">{t('business.dashboard.promotersDesc') || 'Referral codes & QR'}</p>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate('/dashboard/business/analytics')}
-            className="bg-white/5 border border-white/10 rounded-xl p-4 lg:rounded-2xl lg:p-5 text-left hover:border-[#d3da0c]/30 transition-all"
+            className="bg-white/5 border border-white/10 rounded-lg p-3 lg:p-4 text-left hover:border-[#d3da0c]/30 transition-all"
           >
-            <BarChart3 className="w-8 h-8 text-purple-400 mb-2 lg:mb-3" />
-            <h3 className="text-white font-medium text-sm lg:font-semibold lg:text-base mb-1">{t('business.dashboard.analytics')}</h3>
-            <p className="text-gray-400 text-sm">{t('business.dashboard.viewInsights')}</p>
+            <BarChart3 className="w-6 h-6 text-purple-400 mb-1.5 lg:mb-2" />
+            <h3 className="text-white font-medium text-xs lg:text-sm mb-0.5">{t('business.dashboard.analytics')}</h3>
+            <p className="text-gray-400 text-[11px] lg:text-xs">{t('business.dashboard.viewInsights')}</p>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate('/dashboard/business/payouts')}
-            className="bg-white/5 border border-white/10 rounded-xl p-4 lg:rounded-2xl lg:p-5 text-left hover:border-[#d3da0c]/30 transition-all"
+            className="bg-white/5 border border-white/10 rounded-lg p-3 lg:p-4 text-left hover:border-[#d3da0c]/30 transition-all"
           >
-            <Wallet className="w-8 h-8 text-green-400 mb-2 lg:mb-3" />
-            <h3 className="text-white font-medium text-sm lg:font-semibold lg:text-base mb-1">{t('business.dashboard.payouts')}</h3>
-            <p className="text-gray-400 text-sm">{t('business.dashboard.viewEarnings')}</p>
+            <Wallet className="w-6 h-6 text-green-400 mb-1.5 lg:mb-2" />
+            <h3 className="text-white font-medium text-xs lg:text-sm mb-0.5">{t('business.dashboard.payouts')}</h3>
+            <p className="text-gray-400 text-[11px] lg:text-xs">{t('business.dashboard.viewEarnings')}</p>
           </motion.button>
         </div>
       </section>

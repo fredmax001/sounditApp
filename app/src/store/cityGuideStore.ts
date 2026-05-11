@@ -72,7 +72,7 @@ export interface Review {
 export interface GuideItem {
     id: number;
     user_id?: number;
-    type: 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'business' | 'organizer';
+    type: 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'business';
     name: string;
     lat: number;
     lng: number;
@@ -359,24 +359,6 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                     meta: {
                         events_count: biz.events_count,
                         is_verified: biz.is_verified,
-                    },
-                });
-            });
-
-            (data.organizers || []).forEach((org: Record<string, unknown>) => {
-                items.push({
-                    id: org.id as number,
-                    user_id: org.user_id as number | undefined,
-                    type: 'organizer',
-                    name: org.organization_name as string,
-                    lat: org.latitude as number,
-                    lng: org.longitude as number,
-                    image: org.avatar_url as string | undefined,
-                    address: org.address as string | undefined,
-                    description: org.description as string | undefined,
-                    meta: {
-                        events_count: org.events_count,
-                        is_verified: org.is_verified,
                     },
                 });
             });

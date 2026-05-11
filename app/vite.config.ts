@@ -12,4 +12,21 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React framework
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI & animation libraries
+          'ui-vendor': ['framer-motion', 'lucide-react', 'sonner'],
+          // Data visualization & 3D (heavy)
+          'viz-3d': ['recharts', 'three', '@react-three/fiber', '@react-three/drei'],
+          // Admin dashboard pages (heavy, rarely visited)
+          'admin-vendor': ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 });

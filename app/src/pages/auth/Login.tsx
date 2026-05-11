@@ -179,7 +179,19 @@ const Login = () => {
 
       if (response.ok) {
         localStorage.setItem('auth-token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Update Zustand store immediately so auth state is consistent
+        useAuthStore.setState({
+          session: {
+            access_token: data.access_token,
+            token_type: 'bearer',
+            expires_in: 3600 * 24,
+            refresh_token: '',
+            user: data.user,
+          },
+          user: data.user,
+          profile: data.user,
+          isAuthenticated: true,
+        });
         const googleCity = data.user?.preferred_city || data.user?.city_id || '';
         if (googleCity) {
           setSelectedCity(googleCity);

@@ -341,54 +341,67 @@ const Register = () => {
       </form>
 
       {/* Google Sign Up */}
-      {selectedRole && (
-        <>
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#111111] text-gray-500">{t('auth.register.orSignUpWith')}</span>
-            </div>
+      <>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10"></div>
           </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-[#111111] text-gray-500">{t('auth.register.orSignUpWith')}</span>
+          </div>
+        </div>
 
-          <div className="flex justify-center mb-6">
-            <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                try {
-                  const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      token: credentialResponse.credential,
-                      role: selectedRole.toUpperCase()
-                    }),
+        <div className="flex justify-center mb-6">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                // Normalize role the same way as email registration
+                // Default to 'user' if no role selected
+                const normalizedRole = selectedRole === 'artist_dj' ? 'artist' : (selectedRole || 'user');
+                const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    token: credentialResponse.credential,
+                    role: normalizedRole.toUpperCase()
+                  }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                  localStorage.setItem('auth-token', data.access_token);
+                  // Update Zustand store immediately so auth state is consistent
+                  useAuthStore.setState({
+                    session: {
+                      access_token: data.access_token,
+                      token_type: 'bearer',
+                      expires_in: 3600 * 24,
+                      refresh_token: '',
+                      user: data.user,
+                    },
+                    user: data.user,
+                    profile: data.user,
+                    isAuthenticated: true,
                   });
-
-                  const data = await response.json();
-
-                  if (response.ok) {
-                    localStorage.setItem('auth-token', data.access_token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    toast.success(t('auth.register.accountCreated'));
-                    navigate(data.redirect_url || '/');
-                  } else {
-                    toast.error(data.detail || t('auth.register.googleSignUpFailed'));
-                  }
-                } catch (error) {
-                  toast.error('Google sign up error');
-                  console.error(error);
+                  toast.success(t('auth.register.accountCreated'));
+                  navigate(data.redirect_url || '/');
+                } else {
+                  toast.error(data.detail || t('auth.register.googleSignUpFailed'));
                 }
-              }}
-              onError={() => toast.error(t('auth.register.googleSignUpFailed'))}
-              useOneTap
-              theme="filled_black"
-              shape="pill"
-              text="signup_with"
-            />
-          </div>
-        </>
-      )}
+              } catch (error) {
+                toast.error('Google sign up error');
+                console.error(error);
+              }
+            }}
+            onError={() => toast.error(t('auth.register.googleSignUpFailed'))}
+            useOneTap
+            theme="filled_black"
+            shape="pill"
+            text="signup_with"
+          />
+        </div>
+      </>
 
       {/* Sign In Link */}
       <p className="text-center text-gray-400 text-sm mt-8 pb-8">

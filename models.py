@@ -835,8 +835,8 @@ class Event(Base):
     __tablename__ = "events"
     
     id = Column(Integer, primary_key=True, index=True)
-    organizer_id = Column(Integer, ForeignKey("organizer_profiles.id"))
-    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=True)
+    organizer_id = Column(Integer, ForeignKey("organizer_profiles.id"), index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=True, index=True)
     
     # Event Info
     title = Column(String(200), nullable=False)
@@ -845,11 +845,11 @@ class Event(Base):
     description_cn = Column(Text, nullable=True)
     
     # Date & Time
-    start_date = Column(DateTime(timezone=True), nullable=False)
+    start_date = Column(DateTime(timezone=True), nullable=False, index=True)
     end_date = Column(DateTime(timezone=True), nullable=True)
     
     # Location
-    city = Column(Enum(City), nullable=False)
+    city = Column(Enum(City), nullable=False, index=True)
     address = Column(String(500), nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
@@ -860,7 +860,7 @@ class Event(Base):
     
     # Capacity & Status
     capacity = Column(Integer, nullable=True)
-    status = Column(Enum(EventStatus), default=EventStatus.DRAFT)
+    status = Column(Enum(EventStatus), default=EventStatus.DRAFT, index=True)
     
     # Stats
     views_count = Column(Integer, default=0)
@@ -1921,7 +1921,7 @@ class TicketOrder(Base):
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
     
     # Order status
-    status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING)
+    status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING, index=True)
     quantity = Column(Integer, default=1)
     ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"), nullable=True)
     
@@ -1978,7 +1978,7 @@ class ProductOrder(Base):
     payment_reference = Column(String(100), nullable=True)
     
     # Order status (reuse TicketOrderStatus values)
-    status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING)
+    status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING, index=True)
     
     # QR Code for approved order
     order_qr_code = Column(String(1500), nullable=True)
@@ -2322,6 +2322,9 @@ class EventPromoter(Base):
     status = Column(Enum(EventPromoterStatus), default=EventPromoterStatus.PENDING)
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     assigned_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Display name (override user's profile name)
+    promoter_name = Column(String(100), nullable=True)
     
     # Performance
     clicks = Column(Integer, default=0)

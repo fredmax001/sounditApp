@@ -38,6 +38,7 @@ import {
   ScanLine,
   Crown,
   MessageSquare,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -153,6 +154,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/dashboard/business', label: t('nav.dashboard') || 'Dashboard Overview', icon: LayoutDashboard, locked: false },
     { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: CalendarDays, locked: false },
     { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket, locked: false },
+    { path: '/dashboard/business/promoters', label: t('nav.promoters') || 'Promoters', icon: Share2, locked: false },
     { path: '/dashboard/business/staff', label: t('business.staff.title') || 'Staff', icon: Users, locked: false },
     { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
     { path: '/dashboard/business/followers', label: t('nav.followers') || 'Followers', icon: Heart, locked: false },

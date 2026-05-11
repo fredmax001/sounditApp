@@ -1,0 +1,42 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T"
+  - generic [ref=e28]:
+    - generic [ref=e29]:
+      - link "Sound It" [ref=e30] [cursor=pointer]:
+        - /url: /
+        - img "Sound It" [ref=e31]
+      - paragraph [ref=e32]: 5 YEARS OF EXCELLENCE IN ENTERTAINMENT
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - heading "Welcome Back" [level=1] [ref=e36]
+        - paragraph [ref=e37]: Sign in to continue to Sound It
+      - generic [ref=e38]:
+        - button "Email" [ref=e39] [cursor=pointer]:
+          - img [ref=e40]
+          - text: Email
+        - button "Phone" [ref=e43] [cursor=pointer]:
+          - img [ref=e44]
+          - text: Phone
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]: Email Address
+          - generic [ref=e49]:
+            - img [ref=e50]
+            - textbox "your@email.com" [ref=e53]: admin@sounditent.com
+        - generic [ref=e54]:
+          - generic [ref=e55]: Password
+          - generic [ref=e56]:
+            - img [ref=e57]
+            - textbox "••••••••" [ref=e60]: SoundIt2026!Admin
+            - button [ref=e61] [cursor=pointer]:
+              - img [ref=e62]
+          - link "Forgot password?" [ref=e66] [cursor=pointer]:
+            - /url: /forgot-password
+        - button "Sign In" [ref=e67] [cursor=pointer]
+      - generic [ref=e72]: Or continue with
+      - paragraph [ref=e74]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e75] [cursor=pointer]:
+          - /url: /register
+    - link "← Back to Home" [ref=e77] [cursor=pointer]:
+      - /url: /

@@ -61,6 +61,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success(t('admin.manageArtists.artistVerified'));
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || t('admin.manageArtists.failedToVerifyArtist'));
       }
     } catch {
       toast.error(t('admin.manageArtists.failedToVerifyArtist'));
@@ -79,6 +82,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success('Artist unverified');
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || 'Failed to unverify artist');
       }
     } catch {
       toast.error('Failed to unverify artist');
@@ -97,6 +103,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success('Artist approved');
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || 'Failed to approve artist');
       }
     } catch {
       toast.error('Failed to approve artist');
@@ -115,6 +124,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success('Artist unapproved');
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || 'Failed to unapprove artist');
       }
     } catch {
       toast.error('Failed to unapprove artist');
@@ -132,8 +144,11 @@ const ManageArtists = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        toast.success(data.is_featured ? t('admin.manageArtists.artistFeatured') : t('admin.manageArtists.artistUnfeatured'));;
+        toast.success(data.is_featured ? t('admin.manageArtists.artistFeatured') : t('admin.manageArtists.artistUnfeatured'));
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || t('admin.manageArtists.failedToUpdateFeaturedStatus'));
       }
     } catch {
       toast.error(t('admin.manageArtists.failedToUpdateFeaturedStatus'));
@@ -153,6 +168,9 @@ const ManageArtists = () => {
       if (res.ok) {
         toast.success(t('admin.manageArtists.artistDeleted'));
         loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || t('admin.manageArtists.failedToDeleteArtist'));
       }
     } catch {
       toast.error(t('admin.manageArtists.failedToDeleteArtist'));

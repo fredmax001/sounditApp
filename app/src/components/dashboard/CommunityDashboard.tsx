@@ -374,16 +374,16 @@ export default function CommunityDashboard({
                 {t('dashboard.community.section')}
               </label>
               <Select
-                value={form.section_id}
+                value={form.section_id || 'none'}
                 onValueChange={(val) =>
-                  setForm({ ...form, section_id: val })
+                  setForm({ ...form, section_id: val === 'none' ? '' : val })
                 }
               >
                 <SelectTrigger className="bg-white/5 border-white/10 text-white w-full">
                   <SelectValue placeholder={t('community.selectSection') || ''} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                  <SelectItem value="">{t('common.none') || 'None'}</SelectItem>
+                  <SelectItem value="none">{t('common.none') || 'None'}</SelectItem>
                   {sections.map((s) => (
                     <SelectItem key={s.id} value={String(s.id)}>
                       {s.name}

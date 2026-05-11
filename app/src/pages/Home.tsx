@@ -76,7 +76,8 @@ const Home = () => {
 
   const [cityGuideCounts, setCityGuideCounts] = useState({
     venues: 0,
-    foodSpots: 0,
+    organizers: 0,
+    vendors: 0,
     events: 0,
     artists: 0,
   });
@@ -116,7 +117,8 @@ const Home = () => {
       if (data) {
         setCityGuideCounts({
           venues: (data.venues || []).length,
-          foodSpots: (data.foodSpots || []).length,
+          organizers: (data.organizers || []).length,
+          vendors: (data.vendors || []).length,
           events: (data.events || []).length,
           artists: (data.artists || []).length,
         });
@@ -151,10 +153,10 @@ const Home = () => {
   ];
 
   const stats = [
-    { value: platformStats.total_events > 0 ? `${platformStats.total_events.toLocaleString()}+` : '0', label: t('home.stats.events'), icon: Calendar },
-    { value: platformStats.total_artists > 0 ? `${platformStats.total_artists.toLocaleString()}+` : '0', label: t('home.stats.artists'), icon: Music },
-    { value: platformStats.total_users > 0 ? `${platformStats.total_users.toLocaleString()}+` : '0', label: t('home.stats.community'), icon: Users },
-    { value: platformStats.active_cities > 0 ? `${platformStats.active_cities}` : '0', label: t('home.stats.cities'), icon: MapPin },
+    { value: `${(platformStats.total_events || 0).toLocaleString()}+`, label: t('home.stats.events') || 'Events', icon: Calendar },
+    { value: `${(platformStats.total_artists || 0).toLocaleString()}+`, label: t('home.stats.artists') || 'Artists', icon: Music },
+    { value: `${(platformStats.total_users || 0).toLocaleString()}+`, label: t('home.stats.community') || 'Community', icon: Users },
+    { value: `${platformStats.active_cities || 0}`, label: t('home.stats.cities') || 'Cities', icon: MapPin },
   ];
 
   const sectionVariants = {
@@ -378,6 +380,8 @@ const Home = () => {
                       src={event.flyer_image || '/placeholder_event.jpg'}
                       alt={event.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     <div className="absolute top-1.5 left-1.5 glass-pill-premium px-2 py-0.5">
@@ -489,8 +493,8 @@ const Home = () => {
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { title: 'Clubs & Bars', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.venues || 0} venues`, color: '#d3da0c' },
-              { title: 'Restaurants', image: '/about-bg.jpg', count: `${cityGuideCounts.foodSpots || 0} spots`, color: '#FF2D8F' },
+              { title: 'Venues/Organizers', image: '/party_crowd_bg.jpg', count: `${(cityGuideCounts.venues || 0) + (cityGuideCounts.organizers || 0)} venues`, color: '#d3da0c' },
+              { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0} vendors`, color: '#FF2D8F' },
               { title: 'Events', image: '/hero-bg.jpg', count: `${cityGuideCounts.events || 0} upcoming`, color: '#00E5FF' },
               { title: 'Artists', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.artists || 0} DJs`, color: '#C8A000' },
             ].map((item, index) => (
@@ -510,6 +514,8 @@ const Home = () => {
                     src={item.image}
                     alt={item.title}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                   <div className="absolute inset-0 glass-panel-dark opacity-0 group-hover:opacity-30 transition-opacity" />

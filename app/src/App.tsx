@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
@@ -11,7 +11,7 @@ import ResponsiveLayout from './layouts/ResponsiveLayout';
 import AdminLayout from './pages/admin/AdminLayout';
 import HomeRedirect from './components/HomeRedirect';
 
-// Pages
+// Public Pages (eager — most visited)
 import Home from './pages/Home';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
@@ -27,20 +27,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Scan from './pages/Scan';
 
-// Legal Pages
-import Press from './pages/Press';
-import Careers from './pages/Careers';
-import Help from './pages/Help';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import RefundPolicy from './pages/RefundPolicy';
-import UserAgreement from './pages/UserAgreement';
-import OrganizerAgreement from './pages/OrganizerAgreement';
-import CrossBorderConsent from './pages/CrossBorderConsent';
-import VerificationPolicy from './pages/VerificationPolicy';
-import Validate from './pages/Validate';
-
-// Auth Pages
+// Auth Pages (eager — entry points)
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -48,89 +35,110 @@ import ResetPassword from './pages/auth/ResetPassword';
 import VerifyOTP from './pages/auth/VerifyOTP';
 import EmailVerification from './pages/auth/EmailVerification';
 
-// User Pages
-import Profile from './pages/user/Profile';
-import Tickets from './pages/user/Tickets';
-import TableBookings from './pages/user/TableBookings';
-import Favorites from './pages/user/Favorites';
-import Followers from './pages/user/Followers';
-import Settings from './pages/user/Settings';
-import UserDashboard from './pages/user/Dashboard';
-
-// Business Pages
-import BusinessDashboard from './pages/business/Dashboard';
-import BusinessStaff from './pages/business/Staff';
-import BusinessFollowers from './pages/business/Followers';
-import BusinessPayouts from './pages/business/Payouts';
-import BusinessProfile from './pages/business/Profile';
-import BusinessCommunity from './pages/business/Community';
-
-// Vendor Pages
-import VendorDashboard from './pages/vendor/Dashboard';
-import VendorProducts from './pages/vendor/Products';
-import VendorOrders from './pages/vendor/Orders';
-import VendorEvents from './pages/vendor/Events';
-import VendorEarnings from './pages/vendor/Earnings';
-import VendorProfile from './pages/vendor/Profile';
-import VendorCommunity from './pages/vendor/Community';
-
-// Artist Pages
-import ArtistDashboard from './pages/artist/Dashboard';
-import ArtistBookings from './pages/artist/Bookings';
-import ArtistPerformances from './pages/artist/Performances';
-import ArtistAnalytics from './pages/artist/Analytics';
-import ArtistRecaps from './pages/artist/Recaps';
-import ArtistCommunity from './pages/artist/Community';
-
-// Organizer Pages
-import CreateEvent from './pages/organizer/CreateEvent';
-import EditEvent from './pages/organizer/EditEvent';
-import ManageEvents from './pages/organizer/ManageEvents';
-import EventPromoters from './pages/organizer/EventPromoters';
-import Analytics from './pages/organizer/Analytics';
-import OrganizerRecaps from './pages/organizer/Recaps';
-
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard';
-import ManageUsers from './pages/admin/ManageUsers';
-import ManageArtists from './pages/admin/ManageArtists';
-import ManageVendors from './pages/admin/ManageVendors';
-import ManageBusinesses from './pages/admin/ManageBusinesses';
-import AdminManageEvents from './pages/admin/ManageEvents';
-import ManageBookings from './pages/admin/ManageBookings';
-import ManageRecaps from './pages/admin/ManageRecaps';
-import FinancialControl from './pages/admin/FinancialControl';
-import WithdrawalRequests from './pages/admin/WithdrawalRequests';
-import ReportsModeration from './pages/admin/ReportsModeration';
-import CMSContent from './pages/admin/CMSContent';
-import NotificationCenter from './pages/admin/NotificationCenter';
-import RolePermissions from './pages/admin/RolePermissions';
-import SystemSettings from './pages/admin/SystemSettings';
-import SecurityLogs from './pages/admin/SecurityLogs';
-import APIIntegrations from './pages/admin/APIIntegrations';
-import AdsManager from './pages/admin/AdsManager';
-import AdminSubscriptions from './pages/admin/AdminSubscriptions';
-import VerificationCenter from './pages/admin/VerificationCenter';
-import CommunityMetrics from './pages/admin/CommunityMetrics';
-import ManageCommunitySections from './pages/admin/ManageCommunitySections';
-import ManageCommunityPosts from './pages/admin/ManageCommunityPosts';
-import ManageCommunityComments from './pages/admin/ManageCommunityComments';
-import Subscriptions from './pages/Subscriptions';
-import BusinessTableReservations from './pages/business/TableReservations';
-import BusinessTicketOrders from './pages/business/TicketOrders';
-
-// Payment
-import Checkout from './pages/payment/Checkout';
-import PaymentSuccess from './pages/payment/PaymentSuccess';
-import Cart from './pages/Cart';
-
 // Components
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
-// Device Detection Hook
+// ── Lazy-loaded pages (code-split by route) ──
+
+// Legal Pages
+const Press = lazy(() => import('./pages/Press'));
+const Careers = lazy(() => import('./pages/Careers'));
+const Help = lazy(() => import('./pages/Help'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const UserAgreement = lazy(() => import('./pages/UserAgreement'));
+const OrganizerAgreement = lazy(() => import('./pages/OrganizerAgreement'));
+const CrossBorderConsent = lazy(() => import('./pages/CrossBorderConsent'));
+const VerificationPolicy = lazy(() => import('./pages/VerificationPolicy'));
+const Validate = lazy(() => import('./pages/Validate'));
+
+// User Dashboard
+const Profile = lazy(() => import('./pages/user/Profile'));
+const Tickets = lazy(() => import('./pages/user/Tickets'));
+const TableBookings = lazy(() => import('./pages/user/TableBookings'));
+const Favorites = lazy(() => import('./pages/user/Favorites'));
+const Followers = lazy(() => import('./pages/user/Followers'));
+const Settings = lazy(() => import('./pages/user/Settings'));
+const UserDashboard = lazy(() => import('./pages/user/Dashboard'));
+
+// Business Dashboard
+const BusinessDashboard = lazy(() => import('./pages/business/Dashboard'));
+const BusinessStaff = lazy(() => import('./pages/business/Staff'));
+const BusinessFollowers = lazy(() => import('./pages/business/Followers'));
+const BusinessPayouts = lazy(() => import('./pages/business/Payouts'));
+const BusinessPromoters = lazy(() => import('./pages/business/Promoters'));
+const BusinessProfile = lazy(() => import('./pages/business/Profile'));
+const BusinessCommunity = lazy(() => import('./pages/business/Community'));
+const BusinessTableReservations = lazy(() => import('./pages/business/TableReservations'));
+const BusinessTicketOrders = lazy(() => import('./pages/business/TicketOrders'));
+
+// Vendor Dashboard
+const VendorDashboard = lazy(() => import('./pages/vendor/Dashboard'));
+const VendorProducts = lazy(() => import('./pages/vendor/Products'));
+const VendorOrders = lazy(() => import('./pages/vendor/Orders'));
+const VendorEvents = lazy(() => import('./pages/vendor/Events'));
+const VendorEarnings = lazy(() => import('./pages/vendor/Earnings'));
+const VendorProfile = lazy(() => import('./pages/vendor/Profile'));
+const VendorCommunity = lazy(() => import('./pages/vendor/Community'));
+
+// Artist Dashboard
+const ArtistDashboard = lazy(() => import('./pages/artist/Dashboard'));
+const ArtistBookings = lazy(() => import('./pages/artist/Bookings'));
+const ArtistPerformances = lazy(() => import('./pages/artist/Performances'));
+const ArtistAnalytics = lazy(() => import('./pages/artist/Analytics'));
+const ArtistRecaps = lazy(() => import('./pages/artist/Recaps'));
+const ArtistCommunity = lazy(() => import('./pages/artist/Community'));
+
+// Organizer Pages
+const CreateEvent = lazy(() => import('./pages/organizer/CreateEvent'));
+const EditEvent = lazy(() => import('./pages/organizer/EditEvent'));
+const ManageEvents = lazy(() => import('./pages/organizer/ManageEvents'));
+const EventPromoters = lazy(() => import('./pages/organizer/EventPromoters'));
+const Analytics = lazy(() => import('./pages/organizer/Analytics'));
+const OrganizerRecaps = lazy(() => import('./pages/organizer/Recaps'));
+
+// Admin Pages
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const ManageUsers = lazy(() => import('./pages/admin/ManageUsers'));
+const ManageArtists = lazy(() => import('./pages/admin/ManageArtists'));
+const ManageVendors = lazy(() => import('./pages/admin/ManageVendors'));
+const ManageBusinesses = lazy(() => import('./pages/admin/ManageBusinesses'));
+const AdminManageEvents = lazy(() => import('./pages/admin/ManageEvents'));
+const ManageBookings = lazy(() => import('./pages/admin/ManageBookings'));
+const ManageRecaps = lazy(() => import('./pages/admin/ManageRecaps'));
+const FinancialControl = lazy(() => import('./pages/admin/FinancialControl'));
+const WithdrawalRequests = lazy(() => import('./pages/admin/WithdrawalRequests'));
+const ReportsModeration = lazy(() => import('./pages/admin/ReportsModeration'));
+const CMSContent = lazy(() => import('./pages/admin/CMSContent'));
+const NotificationCenter = lazy(() => import('./pages/admin/NotificationCenter'));
+const RolePermissions = lazy(() => import('./pages/admin/RolePermissions'));
+const SystemSettings = lazy(() => import('./pages/admin/SystemSettings'));
+const SecurityLogs = lazy(() => import('./pages/admin/SecurityLogs'));
+const APIIntegrations = lazy(() => import('./pages/admin/APIIntegrations'));
+const AdsManager = lazy(() => import('./pages/admin/AdsManager'));
+const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'));
+const VerificationCenter = lazy(() => import('./pages/admin/VerificationCenter'));
+const CommunityMetrics = lazy(() => import('./pages/admin/CommunityMetrics'));
+const ManageCommunitySections = lazy(() => import('./pages/admin/ManageCommunitySections'));
+const ManageCommunityPosts = lazy(() => import('./pages/admin/ManageCommunityPosts'));
+const ManageCommunityComments = lazy(() => import('./pages/admin/ManageCommunityComments'));
+
+// Payment & Subscriptions
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const Checkout = lazy(() => import('./pages/payment/Checkout'));
+const PaymentSuccess = lazy(() => import('./pages/payment/PaymentSuccess'));
+const Cart = lazy(() => import('./pages/Cart'));
+
+// Simple inline fallback while lazy chunks load
+const PageLoader = () => (
+  <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -247,18 +255,18 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/press" element={<Press />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/help" element={<Help />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/user-agreement" element={<UserAgreement />} />
-            <Route path="/organizer-agreement" element={<OrganizerAgreement />} />
-            <Route path="/cross-border-consent" element={<CrossBorderConsent />} />
-            <Route path="/verification-policy" element={<VerificationPolicy />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout/:eventId" element={<Checkout />} />
+            <Route path="/press" element={<Suspense fallback={<PageLoader />}><Press /></Suspense>} />
+            <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
+            <Route path="/help" element={<Suspense fallback={<PageLoader />}><Help /></Suspense>} />
+            <Route path="/terms" element={<Suspense fallback={<PageLoader />}><Terms /></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><Privacy /></Suspense>} />
+            <Route path="/refund-policy" element={<Suspense fallback={<PageLoader />}><RefundPolicy /></Suspense>} />
+            <Route path="/user-agreement" element={<Suspense fallback={<PageLoader />}><UserAgreement /></Suspense>} />
+            <Route path="/organizer-agreement" element={<Suspense fallback={<PageLoader />}><OrganizerAgreement /></Suspense>} />
+            <Route path="/cross-border-consent" element={<Suspense fallback={<PageLoader />}><CrossBorderConsent /></Suspense>} />
+            <Route path="/verification-policy" element={<Suspense fallback={<PageLoader />}><VerificationPolicy /></Suspense>} />
+            <Route path="/cart" element={<Suspense fallback={<PageLoader />}><Cart /></Suspense>} />
+            <Route path="/checkout/:eventId" element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
           </Route>
 
           {/* Auth Routes */}
@@ -274,174 +282,175 @@ function App() {
           {/* Protected User Routes - Public Layout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/dashboard" element={<UserDashboard />} />
-              <Route path="/dashboard/user" element={<UserDashboard />} />
-              <Route path="/tickets" element={<Tickets />} />
-              <Route path="/table-bookings" element={<TableBookings />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/followers" element={<Followers />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
+              <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
+              <Route path="/dashboard/user" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
+              <Route path="/tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
+              <Route path="/table-bookings" element={<Suspense fallback={<PageLoader />}><TableBookings /></Suspense>} />
+              <Route path="/favorites" element={<Suspense fallback={<PageLoader />}><Favorites /></Suspense>} />
+              <Route path="/followers" element={<Suspense fallback={<PageLoader />}><Followers /></Suspense>} />
+              <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
+              <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
             </Route>
 
             {/* Scan Page - Works on all devices */}
             <Route path="/scan" element={<Scan />} />
 
             {/* Validate Page - QR code validation route */}
-            <Route path="/validate/:token" element={<Validate />} />
+            <Route path="/validate/:token" element={<Suspense fallback={<PageLoader />}><Validate /></Suspense>} />
 
-            {/* 
-              Dashboard Routes - Auto-switch between Mobile and Desktop layouts
-              Mobile: Uses MobileLayout (Mini Program style with bottom nav)
-              Desktop: Uses DashboardLayout (Full sidebar)
-            */}
+            {/* Dashboard Routes - Auto-switch between Mobile and Desktop layouts */}
 
             {/* Business Routes */}
             <Route path="/dashboard/business" element={
               <ResponsiveLayout>
-                <BusinessDashboard />
+                <Suspense fallback={<PageLoader />}><BusinessDashboard /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/create-event" element={
               <ResponsiveLayout>
-                <CreateEvent />
+                <Suspense fallback={<PageLoader />}><CreateEvent /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/events" element={
               <ResponsiveLayout>
-                <ManageEvents />
+                <Suspense fallback={<PageLoader />}><ManageEvents /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/events/:id/edit" element={
               <ResponsiveLayout>
-                <EditEvent />
+                <Suspense fallback={<PageLoader />}><EditEvent /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/events/:id/promoters" element={
               <ResponsiveLayout>
-                <EventPromoters />
+                <Suspense fallback={<PageLoader />}><EventPromoters /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/business/promoters" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><BusinessPromoters /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/analytics" element={
               <ResponsiveLayout>
-                <Analytics />
+                <Suspense fallback={<PageLoader />}><Analytics /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/staff" element={
               <ResponsiveLayout>
-                <BusinessStaff />
+                <Suspense fallback={<PageLoader />}><BusinessStaff /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/followers" element={
               <ResponsiveLayout>
-                <BusinessFollowers />
+                <Suspense fallback={<PageLoader />}><BusinessFollowers /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/payouts" element={
               <ResponsiveLayout>
-                <BusinessPayouts />
+                <Suspense fallback={<PageLoader />}><BusinessPayouts /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/profile" element={
               <ResponsiveLayout>
-                <BusinessProfile />
+                <Suspense fallback={<PageLoader />}><BusinessProfile /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/recaps" element={
               <ResponsiveLayout>
-                <OrganizerRecaps />
+                <Suspense fallback={<PageLoader />}><OrganizerRecaps /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/tables" element={
               <ResponsiveLayout>
-                <BusinessTableReservations />
+                <Suspense fallback={<PageLoader />}><BusinessTableReservations /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/ticket-orders" element={
               <ResponsiveLayout>
-                <BusinessTicketOrders />
+                <Suspense fallback={<PageLoader />}><BusinessTicketOrders /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/community" element={
               <ResponsiveLayout>
-                <BusinessCommunity />
+                <Suspense fallback={<PageLoader />}><BusinessCommunity /></Suspense>
               </ResponsiveLayout>
             } />
 
             {/* Vendor Routes */}
             <Route path="/dashboard/vendor" element={
               <ResponsiveLayout>
-                <VendorDashboard />
+                <Suspense fallback={<PageLoader />}><VendorDashboard /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/products" element={
               <ResponsiveLayout>
-                <VendorProducts />
+                <Suspense fallback={<PageLoader />}><VendorProducts /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/orders" element={
               <ResponsiveLayout>
-                <VendorOrders />
+                <Suspense fallback={<PageLoader />}><VendorOrders /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/events" element={
               <ResponsiveLayout>
-                <VendorEvents />
+                <Suspense fallback={<PageLoader />}><VendorEvents /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/earnings" element={
               <ResponsiveLayout>
-                <VendorEarnings />
+                <Suspense fallback={<PageLoader />}><VendorEarnings /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/profile" element={
               <ResponsiveLayout>
-                <VendorProfile />
+                <Suspense fallback={<PageLoader />}><VendorProfile /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/vendor/community" element={
               <ResponsiveLayout>
-                <VendorCommunity />
+                <Suspense fallback={<PageLoader />}><VendorCommunity /></Suspense>
               </ResponsiveLayout>
             } />
 
             {/* Artist Routes */}
             <Route path="/dashboard/artist" element={
               <ResponsiveLayout>
-                <ArtistDashboard />
+                <Suspense fallback={<PageLoader />}><ArtistDashboard /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/bookings" element={
               <ResponsiveLayout>
-                <ArtistBookings />
+                <Suspense fallback={<PageLoader />}><ArtistBookings /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/performances" element={
               <ResponsiveLayout>
-                <ArtistPerformances />
+                <Suspense fallback={<PageLoader />}><ArtistPerformances /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/analytics" element={
               <ResponsiveLayout>
-                <ArtistAnalytics />
+                <Suspense fallback={<PageLoader />}><ArtistAnalytics /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/recaps" element={
               <ResponsiveLayout>
-                <ArtistRecaps />
+                <Suspense fallback={<PageLoader />}><ArtistRecaps /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/community" element={
               <ResponsiveLayout>
-                <ArtistCommunity />
+                <Suspense fallback={<PageLoader />}><ArtistCommunity /></Suspense>
               </ResponsiveLayout>
             } />
 
             {/* Subscription Route */}
             <Route path="/subscriptions" element={
               <ResponsiveLayout>
-                <Subscriptions />
+                <Suspense fallback={<PageLoader />}><Subscriptions /></Suspense>
               </ResponsiveLayout>
             } />
 
@@ -449,123 +458,123 @@ function App() {
             <Route path="/admin" element={
               <ErrorBoundary>
                 <AdminLayout>
-                  <AdminDashboard />
+                  <Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense>
                 </AdminLayout>
               </ErrorBoundary>
             } />
             <Route path="/admin/users" element={
               <AdminLayout>
-                <ManageUsers />
+                <Suspense fallback={<PageLoader />}><ManageUsers /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/artists" element={
               <AdminLayout>
-                <ManageArtists />
+                <Suspense fallback={<PageLoader />}><ManageArtists /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/vendors" element={
               <AdminLayout>
-                <ManageVendors />
+                <Suspense fallback={<PageLoader />}><ManageVendors /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/businesses" element={
               <AdminLayout>
-                <ManageBusinesses />
+                <Suspense fallback={<PageLoader />}><ManageBusinesses /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/events" element={
               <AdminLayout>
-                <AdminManageEvents />
+                <Suspense fallback={<PageLoader />}><AdminManageEvents /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/bookings" element={
               <AdminLayout>
-                <ManageBookings />
+                <Suspense fallback={<PageLoader />}><ManageBookings /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/financial" element={
               <AdminLayout>
-                <FinancialControl />
+                <Suspense fallback={<PageLoader />}><FinancialControl /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/withdrawals" element={
               <AdminLayout>
-                <WithdrawalRequests />
+                <Suspense fallback={<PageLoader />}><WithdrawalRequests /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/reports" element={
               <AdminLayout>
-                <ReportsModeration />
+                <Suspense fallback={<PageLoader />}><ReportsModeration /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/recaps" element={
               <AdminLayout>
-                <ManageRecaps />
+                <Suspense fallback={<PageLoader />}><ManageRecaps /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/cms" element={
               <AdminLayout>
-                <CMSContent />
+                <Suspense fallback={<PageLoader />}><CMSContent /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/notifications" element={
               <AdminLayout>
-                <NotificationCenter />
+                <Suspense fallback={<PageLoader />}><NotificationCenter /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/roles" element={
               <AdminLayout>
-                <RolePermissions />
+                <Suspense fallback={<PageLoader />}><RolePermissions /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/settings" element={
               <AdminLayout>
-                <SystemSettings />
+                <Suspense fallback={<PageLoader />}><SystemSettings /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/logs" element={
               <AdminLayout>
-                <SecurityLogs />
+                <Suspense fallback={<PageLoader />}><SecurityLogs /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/api" element={
               <AdminLayout>
-                <APIIntegrations />
+                <Suspense fallback={<PageLoader />}><APIIntegrations /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/ads" element={
               <AdminLayout>
-                <AdsManager />
+                <Suspense fallback={<PageLoader />}><AdsManager /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/subscriptions" element={
               <AdminLayout>
-                <AdminSubscriptions />
+                <Suspense fallback={<PageLoader />}><AdminSubscriptions /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/verification-center" element={
               <AdminLayout>
-                <VerificationCenter />
+                <Suspense fallback={<PageLoader />}><VerificationCenter /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/community" element={
               <AdminLayout>
-                <CommunityMetrics />
+                <Suspense fallback={<PageLoader />}><CommunityMetrics /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/community/sections" element={
               <AdminLayout>
-                <ManageCommunitySections />
+                <Suspense fallback={<PageLoader />}><ManageCommunitySections /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/community/posts" element={
               <AdminLayout>
-                <ManageCommunityPosts />
+                <Suspense fallback={<PageLoader />}><ManageCommunityPosts /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/community/comments" element={
               <AdminLayout>
-                <ManageCommunityComments />
+                <Suspense fallback={<PageLoader />}><ManageCommunityComments /></Suspense>
               </AdminLayout>
             } />
 

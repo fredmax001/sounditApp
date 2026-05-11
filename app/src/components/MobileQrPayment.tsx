@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Smartphone, QrCode, Monitor, Check, Download } from 'lucide-react';
-import { WEB_ORIGIN } from '@/lib/appUrl';
 
 interface MobileQrPaymentProps {
   amount?: number | null;
@@ -12,7 +11,7 @@ interface MobileQrPaymentProps {
 }
 
 const YOOPAY_MOBILE_LINK = 'https://yoopay.cn/tc/603316601';
-const YOOPAY_QR_PATH = '/static/yoopay_qr.jpg';
+const YOOPAY_QR_PATH = '/yoopay_qr.jpg';
 
 const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentInstructions, hideYoopay = false }: MobileQrPaymentProps) => {
   const [isMobile, setIsMobile] = useState<boolean>(true);
@@ -25,7 +24,8 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const yoopayQrUrl = `${WEB_ORIGIN}${YOOPAY_QR_PATH}`;
+  // Use current origin so QR works in local dev, preview, and production
+  const yoopayQrUrl = `${window.location.origin}${YOOPAY_QR_PATH}`;
   const hasOrganizerQr = !!wechatQrUrl || !!alipayQrUrl;
 
   const handleDownloadQr = (url: string, filename: string) => {
@@ -88,6 +88,8 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
                 src={currentQrUrl!}
                 alt={`${activeTab === 'wechat' ? 'WeChat' : 'Alipay'} QR`}
                 className="w-48 h-48 object-contain rounded-lg bg-white p-2"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <button
@@ -116,21 +118,60 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
 
         {/* Fallback YOOPAY option (only if not hidden) */}
         {!hideYoopay && (
-          <div className="grid grid-cols-2 gap-3">
-            <a
-              href={YOOPAY_MOBILE_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
-            >
-              <Smartphone className="w-6 h-6 text-[#d3da0c]" />
-              <span className="text-white text-sm font-medium">YOOPAY</span>
-            </a>
-            <div className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl">
-              <QrCode className="w-6 h-6 text-[#d3da0c]" />
-              <span className="text-white text-sm font-medium">Scan QR</span>
-            </div>
-          </div>
+          <>
+            {/* Desktop: show actual Yoopay QR alongside organizer QR */}
+            {!isMobile && (
+              <div className="border-t border-white/10 pt-4 space-y-3">
+                <p className="text-gray-400 text-xs text-center">Or pay via YOOPAY</p>
+                <div className="flex justify-center">
+                  <img
+                    src={yoopayQrUrl}
+                    alt="YOOPAY QR"
+                    className="w-40 h-40 object-contain rounded-lg bg-white p-2"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <a
+                    href={YOOPAY_MOBILE_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors text-sm"
+                  >
+                    <Smartphone className="w-4 h-4 text-[#d3da0c]" />
+                    Mobile Pay
+                  </a>
+                  <button
+                    onClick={() => handleDownloadQr(yoopayQrUrl, 'yoopay_qr.png')}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors text-sm"
+                  >
+                    <Download className="w-4 h-4 text-[#d3da0c]" />
+                    Download
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* Mobile: compact YOOPAY link */}
+            {isMobile && (
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href={YOOPAY_MOBILE_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <Smartphone className="w-6 h-6 text-[#d3da0c]" />
+                  <span className="text-white text-sm font-medium">YOOPAY</span>
+                </a>
+                <div className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-xl">
+                  <QrCode className="w-6 h-6 text-[#d3da0c]" />
+                  <span className="text-white text-sm font-medium">Scan QR</span>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <div className="bg-white/5 rounded-xl p-4 flex items-start gap-3">
@@ -224,6 +265,9 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, paymentI
             src={qrUrl}
             alt="YOOPAY QR"
             className="w-48 h-48 object-contain rounded-lg bg-white p-2"
+            loading="lazy"
+            decoding="async"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </div>
 
