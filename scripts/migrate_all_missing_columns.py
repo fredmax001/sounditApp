@@ -294,6 +294,7 @@ with engine.connect() as conn:
     tp_cols = [c['name'] for c in insp.get_columns('table_packages')]
     for col, col_type in [
         ('total_tables', 'INTEGER DEFAULT 1'),
+        ('drink_menu_image_url', 'VARCHAR(500)'),
     ]:
         if col not in tp_cols:
             conn.execute(text(f"ALTER TABLE table_packages ADD COLUMN {col} {col_type}"))
@@ -336,6 +337,7 @@ with engine.connect() as conn:
                 display_order INTEGER DEFAULT 0,
                 is_active BOOLEAN DEFAULT 1,
                 image_url VARCHAR(500),
+                drink_menu_image_url VARCHAR(500),
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME
             )

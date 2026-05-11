@@ -35,6 +35,7 @@ interface TablePackage {
   max_people: number | null;
   is_active: boolean;
   image_url: string | null;
+  drink_menu_image_url: string | null;
 }
 
 interface TableOrder {
@@ -82,6 +83,8 @@ export default function BusinessTableReservations() {
   const [selectedQrOrder, setSelectedQrOrder] = useState<TableOrder | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [drinkMenuImageFile, setDrinkMenuImageFile] = useState<File | null>(null);
+  const [editDrinkMenuImageFile, setEditDrinkMenuImageFile] = useState<File | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -148,12 +151,18 @@ export default function BusinessTableReservations() {
       Object.entries(formData).forEach(([key, value]) => {
         if (Array.isArray(value)) {
           form.append(key, JSON.stringify(value.filter(v => v.trim())));
+        } else if (key === 'total_tables' && value === '') {
+          // Default to 1 if not specified
+          form.append(key, '1');
         } else {
           form.append(key, value);
         }
       });
       if (imageFile) {
         form.append('image', imageFile);
+      }
+      if (drinkMenuImageFile) {
+        form.append('drink_menu_image', drinkMenuImageFile);
       }
 
       await axios.post(`${API_BASE_URL}/tables/business/packages`, form, {
@@ -163,6 +172,7 @@ export default function BusinessTableReservations() {
       toast.success(t('business.tableReservations.packageCreated'));
       setShowCreateModal(false);
       resetForm();
+      setDrinkMenuImageFile(null);
       fetchData();
     } catch (error) {
       const axiosError = error as { response?: { data?: { detail?: string } } };
@@ -181,10 +191,16 @@ export default function BusinessTableReservations() {
           form.append(key, JSON.stringify(value.filter(v => v.trim())));
         } else if (value !== '' && value !== undefined && value !== null) {
           form.append(key, value);
+        } else if (key === 'total_tables' && value === '') {
+          // Explicitly send 0 when cleared
+          form.append(key, '0');
         }
       });
       if (editImageFile) {
         form.append('image', editImageFile);
+      }
+      if (editDrinkMenuImageFile) {
+        form.append('drink_menu_image', editDrinkMenuImageFile);
       }
 
       await axios.put(`${API_BASE_URL}/tables/business/packages/${editingPackage.id}`, form, {
@@ -195,6 +211,7 @@ export default function BusinessTableReservations() {
       setShowEditModal(false);
       setEditingPackage(null);
       setEditImageFile(null);
+      setEditDrinkMenuImageFile(null);
       resetForm();
       fetchData();
     } catch (error) {
@@ -266,10 +283,11 @@ export default function BusinessTableReservations() {
       drinks: pkg.drinks?.length ? [...pkg.drinks] : [''],
       extras: pkg.extras?.length ? [...pkg.extras] : [''],
       ticket_quantity: String(pkg.ticket_quantity || 0),
-      total_tables: String(pkg.total_tables || ''),
+      total_tables: String(pkg.total_tables ?? ''),
       max_people: String(pkg.max_people || ''),
     });
     setEditImageFile(null);
+    setEditDrinkMenuImageFile(null);
     setShowEditModal(true);
   };
 
@@ -288,6 +306,8 @@ export default function BusinessTableReservations() {
     });
     setImageFile(null);
     setEditImageFile(null);
+    setDrinkMenuImageFile(null);
+    setEditDrinkMenuImageFile(null);
   };
 
   const addArrayField = (field: 'included_items' | 'drinks' | 'extras') => {
@@ -415,7 +435,7 @@ export default function BusinessTableReservations() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-white/60 text-sm mb-4">
+                  <div className="flex items-center gap-4 text-white/60 text-sm mb-4 flex-wrap">
                     {pkg.ticket_quantity > 0 && (
                       <div className="flex items-center gap-1">
                         <Ticket className="w-4 h-4" />
@@ -426,6 +446,18 @@ export default function BusinessTableReservations() {
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
                         {t('business.tableReservations.maxPeople', { count: pkg.max_people })}
+                      </div>
+                    )}
+                    {pkg.total_tables !== undefined && pkg.total_tables !== null && (
+                      <div className="flex items-center gap-1">
+                        <Wine className="w-4 h-4" />
+                        {pkg.total_tables} tables
+                      </div>
+                    )}
+                    {pkg.drink_menu_image_url && (
+                      <div className="flex items-center gap-1 text-[#d3da0c]">
+                        <ImageIcon className="w-4 h-4" />
+                        Menu
                       </div>
                     )}
                   </div>
@@ -725,6 +757,33 @@ export default function BusinessTableReservations() {
                 </div>
               </div>
 
+              {/* Drink Menu Image */}
+              <div>
+                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>{drinkMenuImageFile ? drinkMenuImageFile.name : (t('business.tableReservations.chooseDrinkMenu') || 'Choose drink menu image')}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setDrinkMenuImageFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </label>
+                  {drinkMenuImageFile && (
+                    <button
+                      type="button"
+                      onClick={() => setDrinkMenuImageFile(null)}
+                      className="text-red-500 text-sm hover:underline"
+                    >
+                      {t('business.tableReservations.remove') || 'Remove'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
+              </div>
+
               {/* Included Items */}
               <div>
                 <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.includedItemsLabel')}</label>
@@ -959,6 +1018,38 @@ export default function BusinessTableReservations() {
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Drink Menu Image */}
+              <div>
+                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
+                <div className="flex items-center gap-4">
+                  {editingPackage.drink_menu_image_url && !editDrinkMenuImageFile && (
+                    <div className="relative">
+                      <img src={editingPackage.drink_menu_image_url} alt="Drink Menu" className="w-16 h-16 object-cover rounded-xl" />
+                    </div>
+                  )}
+                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>{editDrinkMenuImageFile ? editDrinkMenuImageFile.name : (t('business.tableReservations.chooseDrinkMenu') || 'Choose drink menu image')}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setEditDrinkMenuImageFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </label>
+                  {(editDrinkMenuImageFile || editingPackage.drink_menu_image_url) && (
+                    <button
+                      type="button"
+                      onClick={() => { setEditDrinkMenuImageFile(null); }}
+                      className="text-red-500 text-sm hover:underline"
+                    >
+                      {t('business.tableReservations.remove') || 'Remove'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
               </div>
 
               {/* Included Items */}
