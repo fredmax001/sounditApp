@@ -1,0 +1,240 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T"
+  - generic [ref=e27]:
+    - complementary [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e32]: S
+        - generic [ref=e33]:
+          - heading "Sound It" [level=1] [ref=e34]
+          - paragraph [ref=e35]: Admin Panel
+      - navigation [ref=e36]:
+        - button "Dashboard" [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
+          - generic [ref=e43]: Dashboard
+        - button "Users Management" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+          - generic [ref=e51]: Users Management
+        - button "Artists Management" [ref=e52] [cursor=pointer]:
+          - img [ref=e53]
+          - generic [ref=e57]: Artists Management
+        - button "Vendors Management" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+          - generic [ref=e62]: Vendors Management
+        - button "Businesses Management" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+          - generic [ref=e68]: Businesses Management
+        - button "Events Management" [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+          - generic [ref=e72]: Events Management
+        - button "Booking Management" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+          - generic [ref=e77]: Booking Management
+        - button "Financial & Commission" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - generic [ref=e81]: Financial & Commission
+        - button "Subscriptions" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - generic [ref=e87]: Subscriptions
+        - button "Withdrawal Requests" [ref=e88] [cursor=pointer]:
+          - img [ref=e89]
+          - generic [ref=e91]: Withdrawal Requests
+        - button "Reports & Moderation" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+          - generic [ref=e95]: Reports & Moderation
+        - button "Community" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+          - generic [ref=e99]: Community
+        - button "CMS / Content" [ref=e100] [cursor=pointer]:
+          - img [ref=e101]
+          - generic [ref=e103]: CMS / Content
+        - button "Recaps" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+          - generic [ref=e107]: Recaps
+        - button "Ads Manager" [ref=e108] [cursor=pointer]:
+          - img [ref=e109]
+          - generic [ref=e112]: Ads Manager
+        - button "Verification Center" [ref=e113] [cursor=pointer]:
+          - img [ref=e114]
+          - generic [ref=e117]: Verification Center
+        - button "Notification Center" [ref=e118] [cursor=pointer]:
+          - img [ref=e119]
+          - generic [ref=e122]: Notification Center
+        - button "Role & Permissions" [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e126]: Role & Permissions
+        - button "System Settings" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e131]: System Settings
+        - button "Security Logs" [ref=e132] [cursor=pointer]:
+          - img [ref=e133]
+          - generic [ref=e136]: Security Logs
+        - button "API & Integrations" [ref=e137] [cursor=pointer]:
+          - img [ref=e138]
+          - generic [ref=e141]: API & Integrations
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - generic [ref=e144]: A
+          - generic [ref=e145]:
+            - paragraph [ref=e146]: Admin SoundIt
+            - paragraph [ref=e147]: Admin
+        - button "Logout" [ref=e148] [cursor=pointer]:
+          - img [ref=e149]
+          - generic [ref=e152]: Logout
+    - generic [ref=e153]:
+      - banner [ref=e154]:
+        - generic [ref=e155]:
+          - button [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - generic [ref=e160]:
+            - generic [ref=e161]: Admin
+            - img [ref=e162]
+            - generic [ref=e164]: Dashboard
+        - generic [ref=e165]:
+          - button [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button [ref=e171] [cursor=pointer]:
+            - img [ref=e172]
+      - main [ref=e175]:
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - heading "Admin Dashboard" [level=1] [ref=e180]
+                - paragraph [ref=e181]: Platform overview and key metrics
+              - generic [ref=e182]:
+                - button "Refresh" [disabled] [ref=e183]:
+                  - img [ref=e184]
+                  - text: Refresh
+                - generic [ref=e189]:
+                  - generic [ref=e190]: A
+                  - generic [ref=e191]: Admin
+            - generic [ref=e192]:
+              - button "Overview" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+                - text: Overview
+              - button "Users" [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+                - text: Users
+              - button "Admins" [ref=e202] [cursor=pointer]:
+                - img [ref=e203]
+                - text: Admins
+              - button "Businesses" [ref=e205] [cursor=pointer]:
+                - img [ref=e206]
+                - text: Businesses
+              - button "Artists" [ref=e210] [cursor=pointer]:
+                - img [ref=e211]
+                - text: Artists
+              - button "Vendors" [ref=e215] [cursor=pointer]:
+                - img [ref=e216]
+                - text: Vendors
+              - button "Events" [ref=e219] [cursor=pointer]:
+                - img [ref=e220]
+                - text: Events
+              - button "Payments" [ref=e222] [cursor=pointer]:
+                - img [ref=e223]
+                - text: Payments
+          - generic [ref=e225]:
+            - generic [ref=e226]:
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - paragraph [ref=e230]: Total Users
+                  - heading [level=3] [ref=e231]:
+                    - img [ref=e232]
+                - img [ref=e235]
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - paragraph [ref=e243]: Businesses
+                  - heading [level=3] [ref=e244]:
+                    - img [ref=e245]
+                - img [ref=e248]
+              - generic [ref=e253]:
+                - generic [ref=e254]:
+                  - paragraph [ref=e255]: Artists
+                  - heading [level=3] [ref=e256]:
+                    - img [ref=e257]
+                - img [ref=e260]
+              - generic [ref=e265]:
+                - generic [ref=e266]:
+                  - paragraph [ref=e267]: Vendors
+                  - heading [level=3] [ref=e268]:
+                    - img [ref=e269]
+                - img [ref=e272]
+            - generic [ref=e275]:
+              - generic [ref=e277]:
+                - generic [ref=e278]:
+                  - paragraph [ref=e279]: Events
+                  - heading [level=3] [ref=e280]:
+                    - img [ref=e281]
+                - img [ref=e284]
+              - generic [ref=e287]:
+                - generic [ref=e288]:
+                  - paragraph [ref=e289]: Total Tickets
+                  - heading [level=3] [ref=e290]:
+                    - img [ref=e291]
+                - img [ref=e294]
+              - generic [ref=e297]:
+                - generic [ref=e298]:
+                  - paragraph [ref=e299]: Total Revenue
+                  - heading [level=3] [ref=e300]:
+                    - img [ref=e301]
+                - img [ref=e304]
+              - generic [ref=e307]:
+                - generic [ref=e308]:
+                  - paragraph [ref=e309]: Pending Payouts
+                  - heading [level=3] [ref=e310]:
+                    - img [ref=e311]
+                - img [ref=e314]
+            - generic [ref=e316]:
+              - generic [ref=e318]:
+                - generic [ref=e319]:
+                  - paragraph [ref=e320]: Pending Verifications
+                  - heading [level=3] [ref=e321]:
+                    - img [ref=e322]
+                - img [ref=e325]
+              - generic [ref=e328]:
+                - generic [ref=e329]:
+                  - paragraph [ref=e330]: Pending Vendor Approvals
+                  - heading [level=3] [ref=e331]:
+                    - img [ref=e332]
+                - img [ref=e335]
+              - generic [ref=e339]:
+                - generic [ref=e340]:
+                  - paragraph [ref=e341]: Active Cities
+                  - heading [level=3] [ref=e342]:
+                    - img [ref=e343]
+                - img [ref=e346]
+            - generic [ref=e349]:
+              - generic [ref=e350]:
+                - heading "Recent Activity" [level=3] [ref=e352]
+                - generic [ref=e353]:
+                  - generic [ref=e354]:
+                    - img [ref=e356]
+                    - generic [ref=e358]:
+                      - paragraph
+                      - paragraph [ref=e359]: 5/11/2026, 8:54:40 AM
+                  - generic [ref=e360]:
+                    - img [ref=e362]
+                    - generic [ref=e364]:
+                      - paragraph
+                      - paragraph [ref=e365]: 5/10/2026, 3:10:17 PM
+                  - generic [ref=e366]:
+                    - img [ref=e368]
+                    - generic [ref=e370]:
+                      - paragraph
+                      - paragraph [ref=e371]: 5/10/2026, 9:20:59 AM
+                  - generic [ref=e372]:
+                    - img [ref=e374]
+                    - generic [ref=e376]:
+                      - paragraph
+                      - paragraph [ref=e377]: 5/9/2026, 10:06:23 PM
+                  - generic [ref=e378]:
+                    - img [ref=e380]
+                    - generic [ref=e382]:
+                      - paragraph
+                      - paragraph [ref=e383]: 5/9/2026, 7:00:16 PM
+              - generic [ref=e384]:
+                - heading "Pending Actions" [level=3] [ref=e386]
+                - generic [ref=e387]:
+                  - img [ref=e388]
+                  - paragraph [ref=e391]: No Pending Actions
+                  - paragraph [ref=e392]: All Caught Up

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ export default function EventDetail() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile } = useAuthStore();
   const { currentEvent, fetchEventById, isLoading, events } = useEventStore();
   const [isLiked, setIsLiked] = useState(false);
@@ -44,6 +45,29 @@ export default function EventDetail() {
   const [authLastName, setAuthLastName] = useState('');
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+
+  // Read referral code from URL ?ref= and track click
+  useEffect(() => {
+    const refFromUrl = searchParams.get('ref');
+    if (refFromUrl && id) {
+      const code = refFromUrl.toUpperCase();
+      setReferralCode(code);
+      // Track referral click
+      fetch(`${API_BASE_URL}/promoters/track-click/${code}?event_id=${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(() => {});
+      // Validate referral code for discount
+      fetch(`${API_BASE_URL}/promoters/validate/${code}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid && data.discount_percent) {
+            setReferralDiscount(data.discount_percent);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [searchParams, id]);
 
   useEffect(() => {
     if (id) {

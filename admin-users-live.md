@@ -1,0 +1,530 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T"
+  - generic [ref=e27]:
+    - complementary [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e32]: S
+        - generic [ref=e33]:
+          - heading "Sound It" [level=1] [ref=e34]
+          - paragraph [ref=e35]: Admin Panel
+      - navigation [ref=e36]:
+        - button "Dashboard" [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
+          - generic [ref=e43]: Dashboard
+        - button "Users Management" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e50]: Users Management
+        - button "Artists Management" [ref=e52] [cursor=pointer]:
+          - img [ref=e53]
+          - generic [ref=e57]: Artists Management
+        - button "Vendors Management" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+          - generic [ref=e62]: Vendors Management
+        - button "Businesses Management" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+          - generic [ref=e68]: Businesses Management
+        - button "Events Management" [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+          - generic [ref=e72]: Events Management
+        - button "Booking Management" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+          - generic [ref=e77]: Booking Management
+        - button "Financial & Commission" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - generic [ref=e81]: Financial & Commission
+        - button "Subscriptions" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - generic [ref=e87]: Subscriptions
+        - button "Withdrawal Requests" [ref=e88] [cursor=pointer]:
+          - img [ref=e89]
+          - generic [ref=e91]: Withdrawal Requests
+        - button "Reports & Moderation" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+          - generic [ref=e95]: Reports & Moderation
+        - button "Community" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+          - generic [ref=e99]: Community
+        - button "CMS / Content" [ref=e100] [cursor=pointer]:
+          - img [ref=e101]
+          - generic [ref=e103]: CMS / Content
+        - button "Recaps" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+          - generic [ref=e107]: Recaps
+        - button "Ads Manager" [ref=e108] [cursor=pointer]:
+          - img [ref=e109]
+          - generic [ref=e112]: Ads Manager
+        - button "Verification Center" [ref=e113] [cursor=pointer]:
+          - img [ref=e114]
+          - generic [ref=e117]: Verification Center
+        - button "Notification Center" [ref=e118] [cursor=pointer]:
+          - img [ref=e119]
+          - generic [ref=e122]: Notification Center
+        - button "Role & Permissions" [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e126]: Role & Permissions
+        - button "System Settings" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e131]: System Settings
+        - button "Security Logs" [ref=e132] [cursor=pointer]:
+          - img [ref=e133]
+          - generic [ref=e136]: Security Logs
+        - button "API & Integrations" [ref=e137] [cursor=pointer]:
+          - img [ref=e138]
+          - generic [ref=e141]: API & Integrations
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - generic [ref=e144]: A
+          - generic [ref=e145]:
+            - paragraph [ref=e146]: Admin SoundIt
+            - paragraph [ref=e147]: Admin
+        - button "Logout" [ref=e148] [cursor=pointer]:
+          - img [ref=e149]
+          - generic [ref=e152]: Logout
+    - generic [ref=e153]:
+      - banner [ref=e154]:
+        - generic [ref=e155]:
+          - button [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - generic [ref=e160]:
+            - generic [ref=e161]: Admin
+            - img [ref=e162]
+            - generic [ref=e164]: Users Management
+        - generic [ref=e165]:
+          - button [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button [ref=e171] [cursor=pointer]:
+            - img [ref=e172]
+      - main [ref=e175]:
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - heading "Users" [level=1] [ref=e179]
+              - paragraph [ref=e180]: Manage platform users
+            - button "Invite User" [ref=e181] [cursor=pointer]:
+              - img [ref=e182]
+              - text: Invite User
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - img [ref=e187]
+              - textbox "Search users..." [ref=e190]
+            - combobox [ref=e191]:
+              - option "All Roles" [selected]
+              - option "User"
+              - option "Business"
+              - option "Artist"
+              - option "Admin"
+            - button "Refresh" [ref=e192] [cursor=pointer]:
+              - img [ref=e193]
+              - text: Refresh
+          - table [ref=e196]:
+            - rowgroup [ref=e197]:
+              - row "Identity Role Joined Status Actions" [ref=e198]:
+                - columnheader "Identity" [ref=e199]
+                - columnheader "Role" [ref=e200]
+                - columnheader "Joined" [ref=e201]
+                - columnheader "Status" [ref=e202]
+                - columnheader "Actions" [ref=e203]
+            - rowgroup [ref=e204]:
+              - row "Missy Njobe missyprincessa@qq.com User 5/11/2026 Active" [ref=e205]:
+                - cell "Missy Njobe missyprincessa@qq.com" [ref=e206]:
+                  - generic [ref=e207]:
+                    - img [ref=e209]
+                    - generic [ref=e212]:
+                      - paragraph [ref=e213]: Missy Njobe
+                      - paragraph [ref=e214]: missyprincessa@qq.com
+                - cell "User" [ref=e215]:
+                  - combobox [ref=e216] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/11/2026" [ref=e217]
+                - cell "Active" [ref=e218]:
+                  - generic [ref=e219]: Active
+                - cell [ref=e221]:
+                  - generic [ref=e222]:
+                    - button "Delete user" [ref=e223] [cursor=pointer]:
+                      - img [ref=e224]
+                    - button "Grant verification badge" [ref=e227] [cursor=pointer]:
+                      - img [ref=e228]
+                    - button "Freeze account" [ref=e231] [cursor=pointer]:
+                      - img [ref=e232]
+              - row "Sneha Sunny snehasunny1997@gmail.com User 5/10/2026 Active" [ref=e235]:
+                - cell "Sneha Sunny snehasunny1997@gmail.com" [ref=e236]:
+                  - generic [ref=e237]:
+                    - img [ref=e239]
+                    - generic [ref=e242]:
+                      - paragraph [ref=e243]: Sneha Sunny
+                      - paragraph [ref=e244]: snehasunny1997@gmail.com
+                - cell "User" [ref=e245]:
+                  - combobox [ref=e246] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/10/2026" [ref=e247]
+                - cell "Active" [ref=e248]:
+                  - generic [ref=e249]: Active
+                - cell [ref=e251]:
+                  - generic [ref=e252]:
+                    - button "Delete user" [ref=e253] [cursor=pointer]:
+                      - img [ref=e254]
+                    - button "Grant verification badge" [ref=e257] [cursor=pointer]:
+                      - img [ref=e258]
+                    - button "Freeze account" [ref=e261] [cursor=pointer]:
+                      - img [ref=e262]
+              - row "Nigel Croner Zin User 5/10/2026 Active" [ref=e265]:
+                - cell "Nigel Croner Zin" [ref=e266]:
+                  - generic [ref=e267]:
+                    - img [ref=e269]
+                    - generic [ref=e272]:
+                      - paragraph [ref=e273]: Nigel Croner Zin
+                      - paragraph
+                - cell "User" [ref=e274]:
+                  - combobox [ref=e275] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/10/2026" [ref=e276]
+                - cell "Active" [ref=e277]:
+                  - generic [ref=e278]: Active
+                - cell [ref=e280]:
+                  - generic [ref=e281]:
+                    - button "Delete user" [ref=e282] [cursor=pointer]:
+                      - img [ref=e283]
+                    - button "Grant verification badge" [ref=e286] [cursor=pointer]:
+                      - img [ref=e287]
+                    - button "Freeze account" [ref=e290] [cursor=pointer]:
+                      - img [ref=e291]
+              - row "Nigel Croner Zin cronerzin1@gmail.com User 5/9/2026 Active" [ref=e294]:
+                - cell "Nigel Croner Zin cronerzin1@gmail.com" [ref=e295]:
+                  - generic [ref=e298]:
+                    - paragraph [ref=e299]: Nigel Croner Zin
+                    - paragraph [ref=e300]: cronerzin1@gmail.com
+                - cell "User" [ref=e301]:
+                  - combobox [ref=e302] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/9/2026" [ref=e303]
+                - cell "Active" [ref=e304]:
+                  - generic [ref=e305]: Active
+                - cell [ref=e307]:
+                  - generic [ref=e308]:
+                    - button "Delete user" [ref=e309] [cursor=pointer]:
+                      - img [ref=e310]
+                    - button "Grant verification badge" [ref=e313] [cursor=pointer]:
+                      - img [ref=e314]
+                    - button "Freeze account" [ref=e317] [cursor=pointer]:
+                      - img [ref=e318]
+              - row "Courtney courtneypg@suisqp.com User 5/9/2026 Active" [ref=e321]:
+                - cell "Courtney courtneypg@suisqp.com" [ref=e322]:
+                  - generic [ref=e323]:
+                    - img [ref=e325]
+                    - generic [ref=e328]:
+                      - paragraph [ref=e329]: Courtney
+                      - paragraph [ref=e330]: courtneypg@suisqp.com
+                - cell "User" [ref=e331]:
+                  - combobox [ref=e332] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/9/2026" [ref=e333]
+                - cell "Active" [ref=e334]:
+                  - generic [ref=e335]: Active
+                - cell [ref=e337]:
+                  - generic [ref=e338]:
+                    - button "Delete user" [ref=e339] [cursor=pointer]:
+                      - img [ref=e340]
+                    - button "Grant verification badge" [ref=e343] [cursor=pointer]:
+                      - img [ref=e344]
+                    - button "Freeze account" [ref=e347] [cursor=pointer]:
+                      - img [ref=e348]
+              - row "Lucia Ma luciaxma@gmail.com User 5/9/2026 Active" [ref=e351]:
+                - cell "Lucia Ma luciaxma@gmail.com" [ref=e352]:
+                  - generic [ref=e353]:
+                    - img [ref=e355]
+                    - generic [ref=e358]:
+                      - paragraph [ref=e359]: Lucia Ma
+                      - paragraph [ref=e360]: luciaxma@gmail.com
+                - cell "User" [ref=e361]:
+                  - combobox [ref=e362] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/9/2026" [ref=e363]
+                - cell "Active" [ref=e364]:
+                  - generic [ref=e365]: Active
+                - cell [ref=e367]:
+                  - generic [ref=e368]:
+                    - button "Delete user" [ref=e369] [cursor=pointer]:
+                      - img [ref=e370]
+                    - button "Grant verification badge" [ref=e373] [cursor=pointer]:
+                      - img [ref=e374]
+                    - button "Freeze account" [ref=e377] [cursor=pointer]:
+                      - img [ref=e378]
+              - row "Jayel jayvanpersie@gmail.com Admin 5/8/2026 Active" [ref=e381]:
+                - cell "Jayel jayvanpersie@gmail.com" [ref=e382]:
+                  - generic [ref=e383]:
+                    - img [ref=e385]
+                    - generic [ref=e388]:
+                      - paragraph [ref=e389]: Jayel
+                      - paragraph [ref=e390]: jayvanpersie@gmail.com
+                - cell "Admin" [ref=e391]:
+                  - combobox [disabled] [ref=e392] [cursor=pointer]:
+                    - option "User"
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin" [selected]
+                - cell "5/8/2026" [ref=e393]
+                - cell "Active" [ref=e394]:
+                  - generic [ref=e395]: Active
+                - cell [ref=e397]:
+                  - generic [ref=e398]:
+                    - button "Delete user" [disabled] [ref=e399]:
+                      - img [ref=e400]
+                    - button "Remove verification badge" [disabled] [ref=e403]:
+                      - img [ref=e404]
+                    - button "Freeze account" [disabled] [ref=e407]:
+                      - img [ref=e408]
+              - row "Zoe. P T Kortee chuckytraub622@gmail.com User 5/1/2026 Active" [ref=e411]:
+                - cell "Zoe. P T Kortee chuckytraub622@gmail.com" [ref=e412]:
+                  - generic [ref=e415]:
+                    - paragraph [ref=e416]: Zoe. P T Kortee
+                    - paragraph [ref=e417]: chuckytraub622@gmail.com
+                - cell "User" [ref=e418]:
+                  - combobox [ref=e419] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "5/1/2026" [ref=e420]
+                - cell "Active" [ref=e421]:
+                  - generic [ref=e422]: Active
+                - cell [ref=e424]:
+                  - generic [ref=e425]:
+                    - button "Delete user" [ref=e426] [cursor=pointer]:
+                      - img [ref=e427]
+                    - button "Grant verification badge" [ref=e430] [cursor=pointer]:
+                      - img [ref=e431]
+                    - button "Freeze account" [ref=e434] [cursor=pointer]:
+                      - img [ref=e435]
+              - row "Chucky Traub chuckytraub230@gmail.com Artist 5/1/2026 Active" [ref=e438]:
+                - cell "Chucky Traub chuckytraub230@gmail.com" [ref=e439]:
+                  - generic [ref=e442]:
+                    - paragraph [ref=e443]: Chucky Traub
+                    - paragraph [ref=e444]: chuckytraub230@gmail.com
+                - cell "Artist" [ref=e445]:
+                  - combobox [ref=e446] [cursor=pointer]:
+                    - option "User"
+                    - option "Business"
+                    - option "Artist" [selected]
+                    - option "Admin"
+                - cell "5/1/2026" [ref=e447]
+                - cell "Active" [ref=e448]:
+                  - generic [ref=e449]: Active
+                - cell [ref=e451]:
+                  - generic [ref=e452]:
+                    - button "Delete user" [ref=e453] [cursor=pointer]:
+                      - img [ref=e454]
+                    - button "Grant verification badge" [ref=e457] [cursor=pointer]:
+                      - img [ref=e458]
+                    - button "Freeze account" [ref=e461] [cursor=pointer]:
+                      - img [ref=e462]
+              - row "Andelu topgoodz92@gmail.com Business 4/30/2026 Active" [ref=e465]:
+                - cell "Andelu topgoodz92@gmail.com" [ref=e466]:
+                  - generic [ref=e467]:
+                    - img [ref=e469]
+                    - generic [ref=e472]:
+                      - paragraph [ref=e473]: Andelu
+                      - paragraph [ref=e474]: topgoodz92@gmail.com
+                - cell "Business" [ref=e475]:
+                  - combobox [ref=e476] [cursor=pointer]:
+                    - option "User"
+                    - option "Business" [selected]
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/30/2026" [ref=e477]
+                - cell "Active" [ref=e478]:
+                  - generic [ref=e479]: Active
+                - cell [ref=e481]:
+                  - generic [ref=e482]:
+                    - button "Delete user" [ref=e483] [cursor=pointer]:
+                      - img [ref=e484]
+                    - button "Grant verification badge" [ref=e487] [cursor=pointer]:
+                      - img [ref=e488]
+                    - button "Freeze account" [ref=e491] [cursor=pointer]:
+                      - img [ref=e492]
+              - row "Thembi thembimabuza02@gmail.com User 4/29/2026 Active" [ref=e495]:
+                - cell "Thembi thembimabuza02@gmail.com" [ref=e496]:
+                  - generic [ref=e497]:
+                    - img [ref=e499]
+                    - generic [ref=e502]:
+                      - paragraph [ref=e503]: Thembi
+                      - paragraph [ref=e504]: thembimabuza02@gmail.com
+                - cell "User" [ref=e505]:
+                  - combobox [ref=e506] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/29/2026" [ref=e507]
+                - cell "Active" [ref=e508]:
+                  - generic [ref=e509]: Active
+                - cell [ref=e511]:
+                  - generic [ref=e512]:
+                    - button "Delete user" [ref=e513] [cursor=pointer]:
+                      - img [ref=e514]
+                    - button "Remove verification badge" [ref=e517] [cursor=pointer]:
+                      - img [ref=e518]
+                    - button "Freeze account" [ref=e521] [cursor=pointer]:
+                      - img [ref=e522]
+              - row "RNB rnbnslowsessions@gmail.com User 4/25/2026 Active" [ref=e525]:
+                - cell "RNB rnbnslowsessions@gmail.com" [ref=e526]:
+                  - generic [ref=e527]:
+                    - img [ref=e529]
+                    - generic [ref=e532]:
+                      - paragraph [ref=e533]: RNB
+                      - paragraph [ref=e534]: rnbnslowsessions@gmail.com
+                - cell "User" [ref=e535]:
+                  - combobox [ref=e536] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/25/2026" [ref=e537]
+                - cell "Active" [ref=e538]:
+                  - generic [ref=e539]: Active
+                - cell [ref=e541]:
+                  - generic [ref=e542]:
+                    - button "Delete user" [ref=e543] [cursor=pointer]:
+                      - img [ref=e544]
+                    - button "Remove verification badge" [ref=e547] [cursor=pointer]:
+                      - img [ref=e548]
+                    - button "Freeze account" [ref=e551] [cursor=pointer]:
+                      - img [ref=e552]
+              - row "Fred Macauley maxrick221@gmail.com User 4/17/2026 Active" [ref=e555]:
+                - cell "Fred Macauley maxrick221@gmail.com" [ref=e556]:
+                  - generic [ref=e559]:
+                    - paragraph [ref=e560]: Fred Macauley
+                    - paragraph [ref=e561]: maxrick221@gmail.com
+                - cell "User" [ref=e562]:
+                  - combobox [ref=e563] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/17/2026" [ref=e564]
+                - cell "Active" [ref=e565]:
+                  - generic [ref=e566]: Active
+                - cell [ref=e568]:
+                  - generic [ref=e569]:
+                    - button "Delete user" [ref=e570] [cursor=pointer]:
+                      - img [ref=e571]
+                    - button "Remove verification badge" [ref=e574] [cursor=pointer]:
+                      - img [ref=e575]
+                    - button "Freeze account" [ref=e578] [cursor=pointer]:
+                      - img [ref=e579]
+              - row "Fred Max djfredmax221@gmail.com Artist 4/17/2026 Active" [ref=e582]:
+                - cell "Fred Max djfredmax221@gmail.com" [ref=e583]:
+                  - generic [ref=e586]:
+                    - paragraph [ref=e587]: Fred Max
+                    - paragraph [ref=e588]: djfredmax221@gmail.com
+                - cell "Artist" [ref=e589]:
+                  - combobox [ref=e590] [cursor=pointer]:
+                    - option "User"
+                    - option "Business"
+                    - option "Artist" [selected]
+                    - option "Admin"
+                - cell "4/17/2026" [ref=e591]
+                - cell "Active" [ref=e592]:
+                  - generic [ref=e593]: Active
+                - cell [ref=e595]:
+                  - generic [ref=e596]:
+                    - button "Delete user" [ref=e597] [cursor=pointer]:
+                      - img [ref=e598]
+                    - button "Remove verification badge" [ref=e601] [cursor=pointer]:
+                      - img [ref=e602]
+                    - button "Freeze account" [ref=e605] [cursor=pointer]:
+                      - img [ref=e606]
+              - row "Sound It Events sounditmusic232@gmail.com Business 4/17/2026 Active" [ref=e609]:
+                - cell "Sound It Events sounditmusic232@gmail.com" [ref=e610]:
+                  - generic [ref=e613]:
+                    - paragraph [ref=e614]: Sound It Events
+                    - paragraph [ref=e615]: sounditmusic232@gmail.com
+                - cell "Business" [ref=e616]:
+                  - combobox [ref=e617] [cursor=pointer]:
+                    - option "User"
+                    - option "Business" [selected]
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/17/2026" [ref=e618]
+                - cell "Active" [ref=e619]:
+                  - generic [ref=e620]: Active
+                - cell [ref=e622]:
+                  - generic [ref=e623]:
+                    - button "Delete user" [ref=e624] [cursor=pointer]:
+                      - img [ref=e625]
+                    - button "Remove verification badge" [ref=e628] [cursor=pointer]:
+                      - img [ref=e629]
+                    - button "Freeze account" [ref=e632] [cursor=pointer]:
+                      - img [ref=e633]
+              - row "Admin SoundIt admin@soundit.com User 4/16/2026 Active" [ref=e636]:
+                - cell "Admin SoundIt admin@soundit.com" [ref=e637]:
+                  - generic [ref=e638]:
+                    - img [ref=e640]
+                    - generic [ref=e643]:
+                      - paragraph [ref=e644]: Admin SoundIt
+                      - paragraph [ref=e645]: admin@soundit.com
+                - cell "User" [ref=e646]:
+                  - combobox [ref=e647] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/16/2026" [ref=e648]
+                - cell "Active" [ref=e649]:
+                  - generic [ref=e650]: Active
+                - cell [ref=e652]:
+                  - generic [ref=e653]:
+                    - button "Delete user" [ref=e654] [cursor=pointer]:
+                      - img [ref=e655]
+                    - button "Remove verification badge" [ref=e658] [cursor=pointer]:
+                      - img [ref=e659]
+                    - button "Freeze account" [ref=e662] [cursor=pointer]:
+                      - img [ref=e663]
+              - row "Admin SoundIt admin@sounditent.com User 4/16/2026 Active" [ref=e666]:
+                - cell "Admin SoundIt admin@sounditent.com" [ref=e667]:
+                  - generic [ref=e668]:
+                    - img [ref=e670]
+                    - generic [ref=e673]:
+                      - paragraph [ref=e674]: Admin SoundIt
+                      - paragraph [ref=e675]: admin@sounditent.com
+                - cell "User" [ref=e676]:
+                  - combobox [ref=e677] [cursor=pointer]:
+                    - option "User" [selected]
+                    - option "Business"
+                    - option "Artist"
+                    - option "Admin"
+                - cell "4/16/2026" [ref=e678]
+                - cell "Active" [ref=e679]:
+                  - generic [ref=e680]: Active
+                - cell [ref=e682]:
+                  - generic [ref=e683]:
+                    - button "Delete user" [ref=e684] [cursor=pointer]:
+                      - img [ref=e685]
+                    - button "Remove verification badge" [ref=e688] [cursor=pointer]:
+                      - img [ref=e689]
+                    - button "Freeze account" [ref=e692] [cursor=pointer]:
+                      - img [ref=e693]
+          - generic [ref=e696]:
+            - generic [ref=e697]:
+              - img [ref=e699]
+              - generic [ref=e702]:
+                - paragraph [ref=e703]: Broadcast
+                - paragraph [ref=e704]: Send a message to all users
+            - button "Draft Message" [ref=e705] [cursor=pointer]

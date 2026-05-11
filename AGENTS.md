@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-09
+2026-05-11
 
 ---
 
@@ -710,6 +710,134 @@
   - PostgreSQL schema migrations for new columns executed live.
 - **Build Status**: Backend imports OK, frontend build passes, deployed live to sounditent.com.
 
+
+### 40. Admin Security Logs — Functional Fix (2026-05-11)
+- **Problem**: Admin Security Logs page was "not functional" — table always empty, stats showed 0.
+- **Root causes found**
+  1. `SecurityLog` and `AdminActivityLog` models were never imported in `database.py init_db()`, so their tables were never created.
+  2. `log_security_event()` helper existed in `api/admin.py` but was **never called anywhere** — no code wrote security logs.
+  3. Frontend `SecurityLogs.tsx` expected `user_name` from API, but backend returned `user_email`.
+  4. No empty-state UI when there were no logs.
+- **Fixes applied**
+  - `database.py`: Added `SecurityLog` and `AdminActivityLog` to both SQLite and PostgreSQL `init_db()` import blocks.
+  - `app/src/pages/admin/SecurityLogs.tsx`:
+    - Fixed interface: `user_name` → `user_email`.
+    - Fixed search filter and table rendering to use `user_email`.
+    - Added empty state with "No security logs found" message + `FileX` icon.
+  - `api/auth.py`: Added fire-and-forget `_log_security()` wrapper and instrumented:
+    - **Email login**: logs `login` on success, `failed_login` on invalid password / suspended / inactive / not found.
+    - **Email registration**: logs `create` on successful registration.
+    - **Google login**: logs `failed_login` for invalid token, invalid audience, unverified email; logs `create` for new Google users; logs `update` for Google account linking; logs `login` on success.
+- **Build Status**: Frontend compiles successfully, backend imports cleanly.
+
+### 39. Google Sign-Up Audit & Fixes (2026-05-11)
+- **Objective**: Audit and fix Google OAuth sign-up/sign-in flow for all roles including plain users.
+- **Critical Fixes**
+  1. **Artist Google sign-up broken** (`app/src/pages/auth/Register.tsx:364`)
+     - Frontend sent `role: "ARTIST_DJ"` which Pydantic rejected.
+     - Fix: Normalized `artist_dj` → `artist` before sending.
+  2. **Token substitution security vulnerability** (`api/auth.py:598-617`)
+     - Backend never verified the `aud` claim.
+     - Fix: Added `aud` verification + `email_verified` check.
+  3. **Business organizer profile not linked** (`api/auth.py:670-685`)
+     - Missing `db.flush()` before referencing `business_profile.id`.
+     - Fix: Added `db.flush()`.
+  4. **Auth store not updated after Google login** (`app/src/pages/auth/Login.tsx:170-196`)
+     - Login stored token in `localStorage` but never updated Zustand store.
+     - Fix: Immediately call `useAuthStore.setState()` with full session, user, profile.
+  5. **Auth store not updated after Google sign-up** (`app/src/pages/auth/Register.tsx:372-376`)
+     - Register page navigated away without updating Zustand — user appeared logged out.
+     - Fix: Added `useAuthStore.setState()` after successful Google sign-up.
+  6. **Dead localStorage writes removed** (`Login.tsx:182`, `Register.tsx:374`)
+     - Both pages wrote `localStorage.setItem('user', ...)` but `initialize()` never reads that key.
+- **Plain USER role verdict**: Backend correctly skips profile creation for plain users. No trial subscription created. User record is created safely. Main bug was frontend auth state not updating.
+- **Build Status**: Frontend compiles successfully, backend imports cleanly.
+- **Objective**: Audit and fix Google OAuth sign-up/sign-in flow.
+- **Critical Fixes**
+  1. **Artist Google sign-up broken** (`app/src/pages/auth/Register.tsx:364`)
+     - Frontend sent `role: "ARTIST_DJ"` which Pydantic rejected (backend enum only accepts `"ARTIST"`).
+     - Fix: Normalized role before sending — `selectedRole === 'artist_dj' ? 'artist' : selectedRole`.
+  2. **Token substitution security vulnerability** (`api/auth.py:598-617`)
+     - Backend called Google's tokeninfo endpoint but never verified the `aud` claim against our `GOOGLE_CLIENT_ID`.
+     - Fix: Added `aud` verification + `email_verified` check before trusting the token.
+  3. **Business/Organizer profile not linked** (`api/auth.py:670-685`)
+     - `OrganizerProfile` referenced `business_profile.id` before `db.flush()`.
+     - Fix: Added `db.flush()` after `db.add(business_profile)`.
+  4. **Auth store not updated after Google login** (`app/src/pages/auth/Login.tsx:170-196`)
+     - Login stored token in `localStorage` but never updated the Zustand store, causing a brief auth flicker.
+     - Fix: After successful Google login, immediately call `useAuthStore.setState()` with session, user, profile, and `isAuthenticated: true`.
+- **Build Status**: Frontend compiles successfully, backend imports cleanly.
+
+### 38. ArtistProfile Invalid Keyword Argument Fix (2026-05-11)
+- **Bug**: Users trying to create an artist account got `'instagram' is an invalid keyword argument for ArtistProfile` error.
+- **Root cause**: The `ArtistProfile` SQLAlchemy model does not have an `instagram` column (it's on the `User` model instead). Two backend functions were incorrectly passing `instagram` (and `hearthis_url`, `youtube_url`, `audiomack_url`) to `ArtistProfile()`.
+- **Fixes applied**
+  - `api/auth.py` line 304: Removed `instagram=data.instagram` from the `ArtistProfile()` instantiation during user registration.
+  - `api/artist_dashboard.py` lines 107-109: Removed `hearthis_url`, `youtube_url`, and `audiomack_url` from the `ArtistProfile()` instantiation during artist dashboard profile creation — these columns do not exist on the model.
+- **Build Status**: Backend imports cleanly.
+
+### 37. Landing Page Metrics — Real Data + Label Fixes (2026-05-11)
+- **Objective**: Fix city guide cards showing 0 and wrong labels; ensure platform stats display real data.
+- **Frontend (`app/src/pages/Home.tsx`)**
+  - **City guide state**: Expanded `cityGuideCounts` to include `organizers` and `vendors` from the API response.
+  - **Label changes**:
+    - "Clubs & Bars" → **"Venues/Organizers"** — count = `venues + organizers`
+    - "Restaurants" → **"Vendors"** — count = `vendors`
+    - "Events" and "Artists" remain unchanged
+  - **Platform stats display**: Removed the `> 0` conditional that was hiding numbers. Now always displays the actual count with `+` (e.g., "5+", "12+"). If the API returns 0, it shows "0+" instead of plain "0".
+  - **Data fetching**: `fetchCityGuideCounts` now reads `data.vendors` and `data.organizers` from the `/cities/{city}/guide` endpoint.
+- **Backend**: `/cities/{city}/guide` already returns `vendors` and `organizers` in the response. `/dashboard/platform-stats` already queries real DB counts.
+- **Build Status**: Frontend compiles successfully.
+
+### 36. Performance Optimization + Yoopay QR Fix + Image Lazy Loading (2026-05-11)
+- **Objective**: Fix platform slowness, Yoopay QR not displaying on web, and slow image loading.
+- **Frontend Bundle Optimization**
+  - `app/vite.config.ts`: Added `manualChunks` to split vendor bundles — `react-vendor`, `ui-vendor` (framer-motion, lucide, sonner), `viz-3d` (recharts, three.js).
+  - `app/src/App.tsx`: Converted all dashboard, admin, legal, and payment pages to `React.lazy()` with `Suspense` fallback. Main bundle reduced from **3,331 KB → 1,627 KB** (51% smaller initial payload).
+- **Image Performance**
+  - `app/src/components/EventCard.tsx`: Added `loading="lazy"` + `decoding="async"` to flyer images.
+  - `app/src/pages/Home.tsx`: Added `loading="lazy"` + `decoding="async"` to event and city guide images.
+  - `app/src/components/MobileQrPayment.tsx`: Added `loading="lazy"` + `decoding="async"` to all QR images.
+- **Yoopay QR Fix**
+  - Copied `static/yoopay_qr.jpg` → `app/public/yoopay_qr.jpg` so Vite includes it in the build.
+  - `app/src/lib/appUrl.ts`: `WEB_ORIGIN` now uses `import.meta.env.VITE_WEB_ORIGIN || window.location.origin` instead of hardcoded production domain.
+  - `app/src/components/MobileQrPayment.tsx`: On desktop, when organizer has custom QR codes, the Yoopay QR is now displayed below the organizer QR (previously hidden entirely). Uses `window.location.origin` for the QR URL so it works in dev, preview, and production.
+- **Backend N+1 Query Fixes**
+  - `api/cities.py`: Added `joinedload(Event.venue)` to city guide events query and `joinedload(User.artist_profile)` to artists query — eliminates per-row DB queries.
+  - `api/tickets.py`: Added `joinedload(TicketOrder.event)`, `joinedload(TicketOrder.user)`, `joinedload(TicketOrder.ticket_tier)` to both `get_my_ticket_orders` and `get_business_ticket_orders`.
+  - `api/events.py`: `get_event` view count increment is now fire-and-forget via background thread — no longer blocks the read response with a synchronous `db.commit()`.
+- **Database Indexes**
+  - `models.py`: Added `index=True` to hot columns:
+    - `Event`: `organizer_id`, `venue_id`, `start_date`, `city`, `status`
+    - `TicketOrder`: `event_id`, `user_id`, `status`
+    - `TicketOrder` (approval table): `status`
+- **Build Status**: Frontend compiles successfully with code splitting. Backend imports OK.
+
+### 35. Business Ticket Orders — Event Filter + Compact Row Layout (2026-05-11)
+- **Objective**: Add event-based filtering and reduce text sizes so desktop table rows stay on a single straight line.
+- **Frontend (`app/src/pages/business/TicketOrders.tsx`)**
+  - Added `eventFilter` state (`'all' | number`) and an "All Events" dropdown that populates from unique events in the loaded orders.
+  - Updated `fetchOrders` to pass `event_id` query param when a specific event is selected.
+  - **Compact desktop row layout**:
+    - Reduced all cell text to `text-xs` (12px).
+    - Reduced grid gap from `gap-4` to `gap-2`.
+    - Reduced horizontal padding from `px-6 py-4` to `px-4 py-3`.
+    - Action buttons are now icon-only or ultra-compact (`Ok`/`No` instead of `Approve`/`Reject`) with minimal padding.
+    - Added an **Amount** column (`col-span-1`) so all key data is visible in one line.
+    - Removed `flex-wrap` from the actions column to prevent wrapping.
+  - Mobile card layout unchanged.
+- **Backend**: Already supported `event_id` query param on `GET /tickets/business/tickets`.
+- **Build Status**: Frontend compiles successfully.
+
+### 34. Promoter Name Persistence Fix (2026-05-11)
+- **Problem**: The "Add Promoter" modal collected a custom `promoter_name` field, but it wasn't persisted to the database because the `EventPromoter` model lacked a `promoter_name` column.
+- **Fixes Applied**
+  - `models.py`: Added `promoter_name = Column(String(100), nullable=True)` to `EventPromoter` model.
+  - `api/promoters.py`: Updated `add_event_promoter` to persist `data.promoter_name`.
+  - `api/promoters.py`: Updated `get_event_promoters` and `validate_referral_code` to use `ep.promoter_name` when set, falling back to the associated user's name.
+  - `scripts/migrate_all_missing_columns.py`: Added migration block for `event_promoters.promoter_name` (both SQLite and PostgreSQL).
+  - `app/src/pages/organizer/EventPromoters.tsx`: Table now displays custom promoter names.
+- **Build Status**: Backend imports OK.
 
 ### 33. Mobile Glassmorphism Upgrade + Logo & Favicon Refresh (2026-05-06)
 - **Objective**: Upgrade mobile UI to premium glassmorphism design, replace platform logo, fix mock data, and separate web/app favicons.

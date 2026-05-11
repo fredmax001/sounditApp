@@ -24,7 +24,6 @@ import {
   LayoutDashboard,
   Globe,
   MessageCircle,
-  Share2,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
@@ -278,13 +277,6 @@ const Navbar = () => {
                           >
                             <Heart className="w-4 h-4" />
                             <span className="text-sm">{t('nav.favorites')}</span>
-                          </Link>
-                          <Link
-                            to="/promoter"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            <span className="text-sm">{t('nav.promoter') || 'Promoter'}</span>
                           </Link>
                           <Link
                             to="/settings"

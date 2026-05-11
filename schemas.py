@@ -748,6 +748,7 @@ class EventListResponse(BaseModel):
     tags: Optional[List[str]] = None
     ticket_tiers: Optional[List[TicketTierResponse]] = None
     venue: Optional[VenueResponse] = None
+    promoter_enabled: bool = False
     
     class Config:
         from_attributes = True

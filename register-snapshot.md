@@ -1,0 +1,139 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T"
+  - generic [ref=e28]:
+    - generic [ref=e29]:
+      - link "Sound It" [ref=e30] [cursor=pointer]:
+        - /url: /
+        - img "Sound It" [ref=e31]
+      - paragraph [ref=e32]: 5 YEARS OF EXCELLENCE IN ENTERTAINMENT
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - heading "Create Account" [level=1] [ref=e36]
+        - paragraph [ref=e37]: Join the Sound It community in China
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - img [ref=e41]
+            - text: Choose Your Role *
+          - combobox [ref=e44] [cursor=pointer]:
+            - option "Select your role..." [selected]
+            - option "User - Discover events and buy tickets"
+            - option "Business - Bar, Club, or Event Organizer"
+            - option "Vendor - Food, drink & service providers"
+            - option "Artist / DJ - Performers & creators"
+          - paragraph [ref=e45]: Select the role that best describes you
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: Full Name
+            - generic [ref=e49]:
+              - img [ref=e50]
+              - textbox "Your name" [ref=e53]
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - img [ref=e56]
+              - text: Select Your City in China *
+            - combobox [ref=e59] [cursor=pointer]:
+              - option "Choose your city..." [selected]
+              - option "Shanghai 上海"
+              - option "Beijing 北京"
+              - option "Guangzhou 广州"
+              - option "Shenzhen 深圳"
+              - option "Chengdu 成都"
+              - option "Hangzhou 杭州"
+              - option "Ningbo 宁波"
+              - option "Yiwu 义乌"
+              - option "Nanjing 南京"
+              - option "Wuhan 武汉"
+              - option "Xi'an 西安"
+              - option "Chongqing 重庆"
+              - option "Suzhou 苏州"
+              - option "Tianjin 天津"
+              - option "Qingdao 青岛"
+              - option "Dalian 大连"
+              - option "Xiamen 厦门"
+              - option "Kunming 昆明"
+              - option "Changsha 长沙"
+              - option "Zhengzhou 郑州"
+              - option "Harbin 哈尔滨"
+              - option "Changchun 长春"
+              - option "Shenyang 沈阳"
+              - option "Shijiazhuang 石家庄"
+              - option "Taiyuan 太原"
+              - option "Jinan 济南"
+              - option "Hefei 合肥"
+              - option "Nanchang 南昌"
+              - option "Fuzhou 福州"
+              - option "Nanning 南宁"
+              - option "Guiyang 贵阳"
+              - option "Lanzhou 兰州"
+              - option "Haikou 海口"
+              - option "Hohhot 呼和浩特"
+              - option "Urumqi 乌鲁木齐"
+              - option "Lhasa 拉萨"
+              - option "Yinchuan 银川"
+              - option "Xining 西宁"
+              - option "Wuxi 无锡"
+              - option "Nantong 南通"
+              - option "Changzhou 常州"
+              - option "Xuzhou 徐州"
+              - option "Yangzhou 扬州"
+              - option "Shaoxing 绍兴"
+              - option "Jiaxing 嘉兴"
+              - option "Taizhou 台州"
+              - option "Wenzhou 温州"
+              - option "Jinhua 金华"
+              - option "Quzhou 衢州"
+              - option "Zhoushan 舟山"
+              - option "Dongguan 东莞"
+              - option "Foshan 佛山"
+              - option "Zhuhai 珠海"
+              - option "Zhongshan 中山"
+              - option "Jiangmen 江门"
+              - option "Huizhou 惠州"
+              - option "Shantou 汕头"
+              - option "Zhanjiang 湛江"
+              - option "Zhaoqing 肇庆"
+              - option "Maoming 茂名"
+              - option "Meizhou 梅州"
+              - option "Qingyuan 清远"
+              - option "Other City 其他城市"
+          - generic [ref=e60]:
+            - button "Email" [ref=e61] [cursor=pointer]:
+              - img [ref=e62]
+              - text: Email
+            - button "Phone" [ref=e65] [cursor=pointer]:
+              - img [ref=e66]
+              - text: Phone
+          - generic [ref=e68]:
+            - generic [ref=e69]: Email Address
+            - generic [ref=e70]:
+              - img [ref=e71]
+              - textbox "your@email.com" [ref=e74]
+          - generic [ref=e75]:
+            - generic [ref=e76]: Password
+            - generic [ref=e77]:
+              - img [ref=e78]
+              - textbox "••••••••" [ref=e81]
+              - button [ref=e82] [cursor=pointer]:
+                - img [ref=e83]
+          - generic [ref=e86]:
+            - generic [ref=e87]: Confirm Password
+            - generic [ref=e88]:
+              - img [ref=e89]
+              - textbox "••••••••" [ref=e92]
+        - generic [ref=e93]:
+          - button [ref=e94] [cursor=pointer]
+          - paragraph [ref=e95]:
+            - text: I agree to the
+            - link "Terms of Service" [ref=e96] [cursor=pointer]:
+              - /url: /about
+            - text: and
+            - link "Privacy Policy" [ref=e97] [cursor=pointer]:
+              - /url: /about
+        - button "Create Account" [ref=e98] [cursor=pointer]
+      - paragraph [ref=e99]:
+        - text: Already have an account?
+        - link "Sign in" [ref=e100] [cursor=pointer]:
+          - /url: /login
+    - link "← Back to Home" [ref=e102] [cursor=pointer]:
+      - /url: /

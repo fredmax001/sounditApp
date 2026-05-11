@@ -6,12 +6,12 @@ import { toast } from 'sonner';
 import {
   Search, AlertTriangle, Loader2,
   User, Lock, Unlock, Trash2, LogIn, LogOut, Edit,
-  Download, Activity
+  Download, Activity, FileX
 } from 'lucide-react';
 
 interface SecurityLog {
   id: string | number;
-  user_name?: string;
+  user_email?: string;
   action?: string;
   ip_address?: string;
   event_type?: string;
@@ -93,8 +93,8 @@ const SecurityLogs = () => {
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = !searchQuery || 
-      log.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.event_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.ip_address?.includes(searchQuery);
     return matchesSearch;
   });
@@ -190,6 +190,12 @@ const SecurityLogs = () => {
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <FileX className="w-12 h-12 mb-4 text-gray-600" />
+            <p className="text-lg font-medium text-white mb-1">{t('admin.securityLogs.noLogs') || 'No security logs found'}</p>
+            <p className="text-sm">{t('admin.securityLogs.noLogsHint') || 'Logs will appear here once security events are recorded.'}</p>
+          </div>
         ) : (
           <table className="w-full">
             <thead className="bg-white/5">
@@ -215,13 +221,13 @@ const SecurityLogs = () => {
                       <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
                         <User className="w-4 h-4 text-gray-400" />
                       </div>
-                      <span className="text-white">{log.user_name}</span>
+                      <span className="text-white">{log.user_email || t('admin.securityLogs.unknownUser') || 'Unknown'}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-gray-400 font-mono text-sm">{log.ip_address}</td>
-                  <td className="p-4 text-gray-400 text-sm max-w-xs truncate">{log.details}</td>
+                  <td className="p-4 text-gray-400 font-mono text-sm">{log.ip_address || '-'}</td>
+                  <td className="p-4 text-gray-400 text-sm max-w-xs truncate">{log.details || '-'}</td>
                   <td className="p-4 text-gray-400 text-sm">
-                    {new Date(log.created_at).toLocaleString()}
+                    {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
                   </td>
                 </tr>
               ))}

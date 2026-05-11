@@ -1,0 +1,229 @@
+- generic [ref=e26]:
+  - region "Notifications alt+T"
+  - generic [ref=e27]:
+    - complementary [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e32]: S
+        - generic [ref=e33]:
+          - heading "admin.adminLayout.appName" [level=1] [ref=e34]
+          - paragraph [ref=e35]: admin.adminLayout.adminPanel
+      - navigation [ref=e36]:
+        - button "admin.adminLayout.dashboard" [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
+          - generic [ref=e43]: admin.adminLayout.dashboard
+        - button "admin.adminLayout.users" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+          - generic [ref=e51]: admin.adminLayout.users
+        - button "admin.adminLayout.artists" [ref=e52] [cursor=pointer]:
+          - img [ref=e53]
+          - generic [ref=e57]: admin.adminLayout.artists
+        - button "admin.adminLayout.vendors" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+          - generic [ref=e62]: admin.adminLayout.vendors
+        - button "admin.adminLayout.businesses" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+          - generic [ref=e68]: admin.adminLayout.businesses
+        - button "admin.adminLayout.events" [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+          - generic [ref=e72]: admin.adminLayout.events
+        - button "admin.adminLayout.bookings" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+          - generic [ref=e77]: admin.adminLayout.bookings
+        - button "admin.adminLayout.financial" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - generic [ref=e81]: admin.adminLayout.financial
+        - button "admin.adminLayout.subscriptions" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - generic [ref=e87]: admin.adminLayout.subscriptions
+        - button "admin.adminLayout.withdrawals" [ref=e88] [cursor=pointer]:
+          - img [ref=e89]
+          - generic [ref=e91]: admin.adminLayout.withdrawals
+        - button "admin.adminLayout.reports" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+          - generic [ref=e95]: admin.adminLayout.reports
+        - button "admin.adminLayout.community" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+          - generic [ref=e99]: admin.adminLayout.community
+        - button "admin.adminLayout.cms" [ref=e100] [cursor=pointer]:
+          - img [ref=e101]
+          - generic [ref=e103]: admin.adminLayout.cms
+        - button "admin.adminLayout.recaps" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+          - generic [ref=e107]: admin.adminLayout.recaps
+        - button "admin.adminLayout.ads" [ref=e108] [cursor=pointer]:
+          - img [ref=e109]
+          - generic [ref=e112]: admin.adminLayout.ads
+        - button "admin.adminLayout.verification" [ref=e113] [cursor=pointer]:
+          - img [ref=e114]
+          - generic [ref=e117]: admin.adminLayout.verification
+        - button "admin.adminLayout.notifications" [ref=e118] [cursor=pointer]:
+          - img [ref=e119]
+          - generic [ref=e122]: admin.adminLayout.notifications
+        - button "admin.adminLayout.roles" [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e126]: admin.adminLayout.roles
+        - button "admin.adminLayout.settings" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e131]: admin.adminLayout.settings
+        - button "admin.adminLayout.logs" [ref=e132] [cursor=pointer]:
+          - img [ref=e133]
+          - generic [ref=e136]: admin.adminLayout.logs
+        - button "admin.adminLayout.api" [ref=e137] [cursor=pointer]:
+          - img [ref=e138]
+          - generic [ref=e141]: admin.adminLayout.api
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - generic [ref=e144]: A
+          - generic [ref=e145]:
+            - paragraph [ref=e146]: Admin SoundIt
+            - paragraph [ref=e147]: admin.adminLayout.admin
+        - button "admin.adminLayout.logout" [ref=e148] [cursor=pointer]:
+          - img [ref=e149]
+          - generic [ref=e152]: admin.adminLayout.logout
+    - generic [ref=e153]:
+      - banner [ref=e154]:
+        - generic [ref=e155]:
+          - button [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - generic [ref=e160]:
+            - generic [ref=e161]: admin.adminLayout.breadcrumbAdmin
+            - img [ref=e162]
+            - generic [ref=e164]: admin.adminLayout.dashboard
+        - generic [ref=e165]:
+          - button [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button [ref=e171] [cursor=pointer]:
+            - img [ref=e172]
+      - main [ref=e175]:
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - heading "Admin Dashboard" [level=1] [ref=e180]
+                - paragraph [ref=e181]: Platform overview and key metrics
+              - generic [ref=e182]:
+                - button "Refresh" [ref=e183] [cursor=pointer]:
+                  - img [ref=e184]
+                  - text: Refresh
+                - generic [ref=e189]:
+                  - generic [ref=e190]: A
+                  - generic [ref=e191]: Admin
+            - generic [ref=e192]:
+              - button "Overview" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+                - text: Overview
+              - button "Users" [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+                - text: Users
+              - button "Admins" [ref=e202] [cursor=pointer]:
+                - img [ref=e203]
+                - text: Admins
+              - button "Businesses" [ref=e205] [cursor=pointer]:
+                - img [ref=e206]
+                - text: Businesses
+              - button "Artists" [ref=e210] [cursor=pointer]:
+                - img [ref=e211]
+                - text: Artists
+              - button "Vendors" [ref=e215] [cursor=pointer]:
+                - img [ref=e216]
+                - text: Vendors
+              - button "Events" [ref=e219] [cursor=pointer]:
+                - img [ref=e220]
+                - text: Events
+              - button "Payments" [ref=e222] [cursor=pointer]:
+                - img [ref=e223]
+                - text: Payments
+          - generic [ref=e225]:
+            - generic [ref=e226]:
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - paragraph [ref=e230]: Total Users
+                  - heading "17" [level=3] [ref=e231]
+                - img [ref=e233]
+              - generic [ref=e239]:
+                - generic [ref=e240]:
+                  - paragraph [ref=e241]: Businesses
+                  - heading "2" [level=3] [ref=e242]
+                - img [ref=e244]
+              - generic [ref=e249]:
+                - generic [ref=e250]:
+                  - paragraph [ref=e251]: Artists
+                  - heading "1" [level=3] [ref=e252]
+                - img [ref=e254]
+              - generic [ref=e259]:
+                - generic [ref=e260]:
+                  - paragraph [ref=e261]: Vendors
+                  - heading "1" [level=3] [ref=e262]
+                - img [ref=e264]
+            - generic [ref=e267]:
+              - generic [ref=e269]:
+                - generic [ref=e270]:
+                  - paragraph [ref=e271]: Events
+                  - heading "2" [level=3] [ref=e272]
+                - img [ref=e274]
+              - generic [ref=e277]:
+                - generic [ref=e278]:
+                  - paragraph [ref=e279]: Total Tickets
+                  - heading "10" [level=3] [ref=e280]
+                - img [ref=e282]
+              - generic [ref=e285]:
+                - generic [ref=e286]:
+                  - paragraph [ref=e287]: Total Revenue
+                  - heading "¥0" [level=3] [ref=e288]
+                - img [ref=e290]
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - paragraph [ref=e295]: Pending Payouts
+                  - heading "0" [level=3] [ref=e296]
+                - img [ref=e298]
+            - generic [ref=e300]:
+              - generic [ref=e302]:
+                - generic [ref=e303]:
+                  - paragraph [ref=e304]: Pending Verifications
+                  - heading "0" [level=3] [ref=e305]
+                - img [ref=e307]
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - paragraph [ref=e312]: Pending Vendor Approvals
+                  - heading "0" [level=3] [ref=e313]
+                - img [ref=e315]
+              - generic [ref=e319]:
+                - generic [ref=e320]:
+                  - paragraph [ref=e321]: Active Cities
+                  - heading "2" [level=3] [ref=e322]
+                - img [ref=e324]
+            - generic [ref=e327]:
+              - generic [ref=e328]:
+                - heading "Recent Activity" [level=3] [ref=e330]
+                - generic [ref=e331]:
+                  - generic [ref=e332]:
+                    - img [ref=e334]
+                    - generic [ref=e336]:
+                      - paragraph
+                      - paragraph [ref=e337]: 5/11/2026, 8:54:40 AM
+                  - generic [ref=e338]:
+                    - img [ref=e340]
+                    - generic [ref=e342]:
+                      - paragraph
+                      - paragraph [ref=e343]: 5/10/2026, 3:10:17 PM
+                  - generic [ref=e344]:
+                    - img [ref=e346]
+                    - generic [ref=e348]:
+                      - paragraph
+                      - paragraph [ref=e349]: 5/10/2026, 9:20:59 AM
+                  - generic [ref=e350]:
+                    - img [ref=e352]
+                    - generic [ref=e354]:
+                      - paragraph
+                      - paragraph [ref=e355]: 5/9/2026, 10:06:23 PM
+                  - generic [ref=e356]:
+                    - img [ref=e358]
+                    - generic [ref=e360]:
+                      - paragraph
+                      - paragraph [ref=e361]: 5/9/2026, 7:00:16 PM
+              - generic [ref=e362]:
+                - heading "Pending Actions" [level=3] [ref=e364]
+                - generic [ref=e365]:
+                  - img [ref=e366]
+                  - paragraph [ref=e369]: No Pending Actions
+                  - paragraph [ref=e370]: All Caught Up

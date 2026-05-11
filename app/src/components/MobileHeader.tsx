@@ -19,7 +19,6 @@ import {
   LayoutDashboard,
   X,
   ScanLine,
-  Share2,
   Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -82,7 +81,7 @@ const MobileHeader = () => {
         { icon: Heart, label: t('nav.favorites') || 'Favorites', onClick: () => navigate('/favorites') },
         { icon: LayoutDashboard, label: t('nav.dashboard') || 'Dashboard', onClick: () => navigate('/dashboard') },
         { icon: Crown, label: t('nav.subscriptions') || 'Subscriptions', onClick: () => navigate('/subscriptions') },
-        { icon: Share2, label: t('nav.promoter') || 'Promoter', onClick: () => navigate('/promoter') },
+
         { icon: Settings, label: t('nav.settings') || 'Settings', onClick: () => navigate('/settings') },
       ]
     : [

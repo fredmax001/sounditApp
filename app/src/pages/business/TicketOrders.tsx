@@ -44,6 +44,7 @@ const TicketOrdersPage = () => {
   const [orders, setOrders] = useState<TicketOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'used'>('all');
+  const [eventFilter, setEventFilter] = useState<number | 'all'>('all');
   const [search, setSearch] = useState('');
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
@@ -53,7 +54,10 @@ const TicketOrdersPage = () => {
     if (!session?.access_token) return;
     setLoading(true);
     try {
-      const url = `${API_BASE_URL}/tickets/business/tickets${filter !== 'all' ? `?status=${filter}` : ''}`;
+      const params = new URLSearchParams();
+      if (filter !== 'all') params.append('status', filter);
+      if (eventFilter !== 'all') params.append('event_id', String(eventFilter));
+      const url = `${API_BASE_URL}/tickets/business/tickets${params.toString() ? `?${params.toString()}` : ''}`;
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
@@ -72,7 +76,7 @@ const TicketOrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [session, filter]);
+  }, [session, filter, eventFilter]);
 
   const handleApprove = async (id: number) => {
     if (!session?.access_token) return;
@@ -122,6 +126,11 @@ const TicketOrdersPage = () => {
     }
   };
 
+  // Unique events for the filter dropdown
+  const uniqueEvents = Array.from(
+    new Map(orders.map((o) => [o.event.id, o.event])).values()
+  ).sort((a, b) => a.title.localeCompare(b.title));
+
   const filteredOrders = orders.filter((o) => {
     const term = search.toLowerCase();
     return (
@@ -153,7 +162,7 @@ const TicketOrdersPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('common.search') || 'Search orders...'}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64"
+              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64 text-sm"
             />
           </div>
           <div className="relative">
@@ -161,13 +170,26 @@ const TicketOrdersPage = () => {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none"
+              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none text-sm"
             >
               <option value="all">{t('business.dashboard.all') || 'All'}</option>
               <option value="pending">{t('business.dashboard.pending') || 'Pending'}</option>
               <option value="approved">{t('business.dashboard.approved') || 'Approved'}</option>
               <option value="rejected">{t('business.dashboard.rejected') || 'Rejected'}</option>
               <option value="used">{t('business.dashboard.used') || 'Used'}</option>
+            </select>
+          </div>
+          <div className="relative">
+            <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <select
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-52 appearance-none text-sm"
+            >
+              <option value="all">{t('business.dashboard.allEvents') || 'All Events'}</option>
+              {uniqueEvents.map((ev) => (
+                <option key={ev.id} value={ev.id}>{ev.title}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -187,13 +209,14 @@ const TicketOrdersPage = () => {
       ) : (
         <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
           {/* Desktop Header */}
-          <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 text-gray-400 text-sm font-medium border-b border-white/5">
+          <div className="hidden lg:grid grid-cols-12 gap-2 px-4 py-3 bg-white/5 text-gray-400 text-xs font-medium border-b border-white/5">
             <div className="col-span-2">{t('business.dashboard.name') || 'Name'}</div>
             <div className="col-span-2">{t('business.dashboard.email') || 'Email'}</div>
-            <div className="col-span-2">{t('business.dashboard.mobile') || 'Mobile'}</div>
-            <div className="col-span-2">{t('business.dashboard.eventName') || 'Event Name'}</div>
-            <div className="col-span-1">{t('business.dashboard.ticketType') || 'Ticket Type'}</div>
-            <div className="col-span-1 text-center">{t('business.dashboard.checkIn') || 'Check In'}</div>
+            <div className="col-span-1">{t('business.dashboard.mobile') || 'Mobile'}</div>
+            <div className="col-span-2">{t('business.dashboard.eventName') || 'Event'}</div>
+            <div className="col-span-1">{t('business.dashboard.ticketType') || 'Type'}</div>
+            <div className="col-span-1 text-center">{t('business.dashboard.checkIn') || 'Check'}</div>
+            <div className="col-span-1 text-center">{t('business.dashboard.amount') || 'Amt'}</div>
             <div className="col-span-2 text-right">{t('common.actions') || 'Actions'}</div>
           </div>
 
@@ -209,61 +232,58 @@ const TicketOrdersPage = () => {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.02 }}
-                  className="px-6 py-4"
+                  className="px-4 py-3"
                 >
-                  {/* Desktop Row */}
-                  <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
+                  {/* Desktop Row — single straight line, compact */}
+                  <div className="hidden lg:grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-2">
-                      <p className="text-white font-medium truncate">{order.payer_name || order.user?.name || '-'}</p>
+                      <p className="text-white text-xs font-medium truncate">{order.payer_name || order.user?.name || '-'}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-300 text-sm truncate">{order.user?.email || '-'}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-2 text-gray-300 text-sm">
-                        <Smartphone className="w-3.5 h-3.5 text-gray-500" />
-                        <span className="truncate">{order.user?.phone || '-'}</span>
-                      </div>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-2 text-gray-300 text-sm">
-                        <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                        <span className="truncate">{order.event?.title || '-'}</span>
-                      </div>
+                      <p className="text-gray-300 text-xs truncate">{order.user?.email || '-'}</p>
                     </div>
                     <div className="col-span-1">
-                      <span className="text-gray-300 text-sm truncate">{order.ticket_tier?.name || '-'}</span>
+                      <p className="text-gray-300 text-xs truncate">{order.user?.phone || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-300 text-xs truncate">{order.event?.title || '-'}</p>
+                    </div>
+                    <div className="col-span-1">
+                      <p className="text-gray-300 text-xs truncate">{order.ticket_tier?.name || '-'}</p>
                     </div>
                     <div className="col-span-1 flex justify-center">
                       {isCheckIn ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
                           <CheckCircle2 className="w-3 h-3" />
-                          {t('business.dashboard.checkedIn') || 'In'}
+                          {t('business.dashboard.in') || 'In'}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-500/10 text-gray-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gray-500/10 text-gray-400 text-xs font-medium">
                           <Clock className="w-3 h-3" />
-                          {t('business.dashboard.notCheckedIn') || 'Out'}
+                          {t('business.dashboard.out') || 'Out'}
                         </span>
                       )}
                     </div>
-                    <div className="col-span-2 flex items-center justify-end gap-2 flex-wrap">
+                    <div className="col-span-1 text-center">
+                      <p className="text-gray-300 text-xs">¥{order.payment_amount?.toLocaleString?.() || order.payment_amount}</p>
+                    </div>
+                    <div className="col-span-2 flex items-center justify-end gap-1">
                       {order.payment_screenshot && (
                         <button
                           onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                          className="px-2 py-1.5 rounded-lg bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          className="px-1.5 py-1 rounded bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          title={t('business.tableReservations.viewPaymentProof') || 'Proof'}
                         >
-                          <Eye className="w-3.5 h-3.5" />
-                          {t('business.tableReservations.viewPaymentProof') || 'Proof'}
+                          <Eye className="w-3 h-3" />
                         </button>
                       )}
                       {order.ticket_qr && (
                         <button
                           onClick={() => setSelectedQr(order.ticket_qr)}
-                          className="px-2 py-1.5 rounded-lg bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          className="px-1.5 py-1 rounded bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          title={t('business.tableReservations.ticketQr') || 'QR'}
                         >
-                          <QrCode className="w-3.5 h-3.5" />
-                          {t('business.tableReservations.ticketQr') || 'QR'}
+                          <QrCode className="w-3 h-3" />
                         </button>
                       )}
                       {order.status === 'pending' && (
@@ -271,21 +291,21 @@ const TicketOrdersPage = () => {
                           <button
                             onClick={() => handleApprove(order.id)}
                             disabled={processingId === order.id}
-                            className="px-2 py-1.5 rounded-lg bg-green-500/10 text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                            className="px-1.5 py-1 rounded bg-green-500/10 text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
                           >
-                            {processingId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (t('business.dashboard.approve') || 'Approve')}
+                            {processingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : (t('business.dashboard.approve') || 'Ok')}
                           </button>
                           <button
                             onClick={() => handleReject(order.id)}
                             disabled={processingId === order.id}
-                            className="px-2 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                            className="px-1.5 py-1 rounded bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
                           >
-                            {t('business.dashboard.reject') || 'Reject'}
+                            {t('business.dashboard.reject') || 'No'}
                           </button>
                         </>
                       )}
                       {order.status !== 'pending' && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
+                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
                           <StatusIcon className="w-3 h-3" />
                           {status.label}
                         </span>

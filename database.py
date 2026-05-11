@@ -51,7 +51,8 @@ def init_db():
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
             CommunityCommentLike, CommunityShare,
             ProductOrder, TablePackage, TableOrder,
-            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout
+            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout,
+            SecurityLog, AdminActivityLog
         )
         Base.metadata.create_all(bind=engine)
         
@@ -326,7 +327,8 @@ def init_db():
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
             CommunityCommentLike, CommunityShare,
             ProductOrder, TablePackage, TableOrder,
-            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout
+            PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout,
+            SecurityLog, AdminActivityLog
         )
         try:
             Base.metadata.create_all(bind=engine)

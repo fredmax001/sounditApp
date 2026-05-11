@@ -83,7 +83,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}) {
 // TYPES
 // ============================================
 export type UserRole = 'user' | 'business' | 'artist' | 'admin' | 'super_admin' | 'moderator' | 'vendor';
-export type BusinessType = 'club' | 'bar' | 'lounge' | 'restaurant' | 'organizer' | 'promoter' | 'venue' | 'other';
+export type BusinessType = 'club' | 'bar' | 'lounge' | 'restaurant' | 'organizer' | 'venue' | 'other';
 export type ArtistType = 'Artist' | 'DJ' | 'MC' | 'dj' | 'singer' | 'rapper' | 'band' | 'producer' | 'instrumentalist' | 'other';
 
 export interface City {

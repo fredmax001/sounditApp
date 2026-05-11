@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-type StaffRole = 'Manager' | 'Cashier' | 'Guest Check-In' | 'Promoter' | 'Scanner';
+type StaffRole = 'Manager' | 'Cashier' | 'Guest Check-In' | 'Scanner';
 
 interface StaffMember {
   id: string;
@@ -20,7 +20,7 @@ interface StaffMember {
   };
 }
 
-const STAFF_ROLES: StaffRole[] = ['Manager', 'Cashier', 'Guest Check-In', 'Promoter', 'Scanner'];
+const STAFF_ROLES: StaffRole[] = ['Manager', 'Cashier', 'Guest Check-In', 'Scanner'];
 
 const getRoleBadgeClass = (role: StaffRole) => {
   switch (role) {
@@ -30,8 +30,7 @@ const getRoleBadgeClass = (role: StaffRole) => {
       return 'bg-green-500/20 text-green-400';
     case 'Guest Check-In':
       return 'bg-blue-500/20 text-blue-400';
-    case 'Promoter':
-      return 'bg-pink-500/20 text-pink-400';
+
     case 'Scanner':
       return 'bg-orange-500/20 text-orange-400';
     default:
