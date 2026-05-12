@@ -14,10 +14,12 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import VerificationBadge from '@/components/VerificationBadge';
+import MessageModal from '@/components/MessageModal';
 
 // Types
 interface ArtistProfile {
   id: number;
+  user_id?: number;
   stage_name: string;
   artist_type: string;
   genre: string;
@@ -741,6 +743,7 @@ const ArtistDetail = () => {
   const [activeTab, setActiveTab] = useState<'about' | 'reviews' | 'gallery'>('about');
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   const fetchArtistData = useCallback(async () => {
     if (!id) return;
@@ -913,7 +916,7 @@ const ArtistDetail = () => {
                   {t('artistDetail.bookNow')}
                 </button>
                 <button
-                  onClick={() => toast.info(t('artistDetail.messagingComingSoon'), { description: t('artistDetail.messagingDescription') })}
+                  onClick={() => setShowMessageModal(true)}
                   className="px-8 py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2"
                 >
                   <MessageSquare className="w-5 h-5" />{t('artistDetail.message')}</button>
@@ -1307,6 +1310,16 @@ const ArtistDetail = () => {
           artist={artist}
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
+        />
+      )}
+
+      {/* Message Modal */}
+      {showMessageModal && (
+        <MessageModal
+          recipientId={artist.user_id || artist.id}
+          recipientName={artist.stage_name}
+          isOpen={showMessageModal}
+          onClose={() => setShowMessageModal(false)}
         />
       )}
     </div>

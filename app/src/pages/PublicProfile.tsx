@@ -16,6 +16,7 @@ import {
   Heart,
 } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
+import ReviewsSection from '@/components/ReviewsSection';
 
 interface PublicProfileData {
   id: number;
@@ -359,6 +360,26 @@ export default function PublicProfile() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Reviews (for organizer and business) */}
+        {(profile.organizer_profile || profile.business_profile) && (
+          <div className="mt-8">
+            {profile.organizer_profile && (
+              <ReviewsSection
+                entityId={profile.organizer_profile.id}
+                entityType="organizer"
+                entityName={profile.organizer_profile.organization_name}
+              />
+            )}
+            {profile.business_profile && (
+              <ReviewsSection
+                entityId={profile.business_profile.id}
+                entityType="business"
+                entityName={profile.business_profile.business_name}
+              />
+            )}
           </div>
         )}
       </div>

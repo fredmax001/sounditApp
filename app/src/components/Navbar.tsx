@@ -143,7 +143,7 @@ const Navbar = () => {
 
                 {/* City Dropdown */}
                 <div className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
-                  <div className="p-2">
+                  <div className="p-2 max-h-80 overflow-y-auto">
                     {chinaCities.map((city) => (
                       <button
                         key={city.id}

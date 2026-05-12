@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import EventCard from '@/components/EventCard';
 import ArtistCard from '@/components/ArtistCard';
 import AdBanner from '@/components/AdBanner';
+import WeatherWidget from '@/components/WeatherWidget';
 
 import axios from 'axios';
 import type { DJ } from '@/store/eventStore';
@@ -85,9 +86,7 @@ const Home = () => {
 
   const fetchDJs = useCallback(async () => {
     try {
-      const params: Record<string, string> = {};
-      if (selectedCity) params.city = selectedCity;
-      const { data } = await axios.get(`${API_URL}/artists/featured`, { params });
+      const { data } = await axios.get(`${API_URL}/artists/featured`);
       if (data) {
         const formattedDJs = data.map((artist: { id: number; stage_name?: string; avatar_url?: string; genres?: string[] }) => ({
           id: String(artist.id),
@@ -173,21 +172,44 @@ const Home = () => {
     <div className="relative">
       {/* ==================== HERO SECTION ==================== */}
       <section ref={heroRef} className="relative h-[85vh] md:h-screen overflow-hidden">
-        {/* Background Image with Ken Burns + Parallax */}
+        {/* Background Image with Ken Burns + Parallax — sharp, no blur */}
         <motion.div
-          className="absolute inset-0 bg-cover bg-center animate-ken-burns"
-          style={{ y: heroY, backgroundImage: "url('/hero-bg.jpg')" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            y: heroY,
+            backgroundImage: "url('/hero-event.jpg')",
+            scale: 1.15,
+          }}
+          animate={{
+            scale: [1.15, 1.25, 1.15],
+            x: [0, -8, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
         />
 
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#0A0A0F]/70 to-[#0A0A0F]/40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/80 to-transparent" />
+        {/* Black overlay for readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/50" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            boxShadow: 'inset 0 0 200px 80px rgba(0,0,0,0.6)',
+          }}
+        />
 
-        {/* Animated gradient mesh overlay */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#d3da0c]/8 rounded-full blur-[100px] animate-mesh-drift" />
-          <div className="absolute bottom-1/3 right-1/4 w-56 h-56 bg-[#FF2D8F]/8 rounded-full blur-[80px] animate-mesh-drift" style={{ animationDelay: '-5s' }} />
-          <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-[#00E5FF]/5 rounded-full blur-[90px] animate-mesh-drift" style={{ animationDelay: '-8s' }} />
+        {/* Light sweep overlay — gives a subtle "video" feel */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
+          <div
+            className="absolute top-0 left-0 h-full w-1/3 animate-light-sweep"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)',
+            }}
+          />
         </div>
 
         {/* Floating particles */}
@@ -198,7 +220,8 @@ const Home = () => {
           className="relative z-10 h-full flex flex-col justify-end pb-8 md:justify-center md:pb-0 px-5"
           style={{ opacity: heroOpacity }}
         >
-          <div className="max-w-2xl">
+          <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="max-w-2xl">
             {/* Welcome Pill */}
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -284,6 +307,10 @@ const Home = () => {
               })}
             </motion.div>
           </div>
+
+          {/* Weather Widget — right side on desktop */}
+          <WeatherWidget city={selectedCity || 'Shanghai'} />
+        </div>
         </motion.div>
       </section>
 

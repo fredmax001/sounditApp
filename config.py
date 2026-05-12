@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = ""  # Must be set via environment variable in production
     BASE_URL: str = "https://sounditent.com"
+    CN_BASE_URL: str = "https://sounditent.cn"  # China domain
     
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/soundit"
@@ -63,6 +64,20 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str = ""
     AWS_S3_BUCKET: str = "sound-it-uploads"
     AWS_REGION: str = "us-east-1"
+    
+    # Alibaba Cloud (SMS / API Gateway)
+    ALIBABA_APP_KEY: str = ""
+    ALIBABA_APP_SECRET: str = ""
+    ALIBABA_APP_CODE: str = ""
+    ALIBABA_SMS_SIGN_NAME: str = "SoundIt"  # SMS signature name registered in Alibaba Cloud
+    ALIBABA_SMS_TEMPLATE_CODE: str = ""  # OTP template code
+    ALIBABA_SMS_ENABLED: bool = False  # Toggle to use Alibaba Cloud instead of Twilio
+    
+    # Alibaba Cloud SMS Template Codes (register each template in Alibaba Cloud console)
+    ALIBABA_SMS_TEMPLATE_CODE_TICKET_APPROVED: str = ""   # e.g. SMS_12345678
+    ALIBABA_SMS_TEMPLATE_CODE_TICKET_REJECTED: str = ""   # e.g. SMS_12345679
+    ALIBABA_SMS_TEMPLATE_CODE_WELCOME: str = ""           # e.g. SMS_12345680
+    ALIBABA_SMS_TEMPLATE_CODE_EVENT_REMINDER: str = ""    # e.g. SMS_12345681
     
 
     class Config:

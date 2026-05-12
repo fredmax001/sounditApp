@@ -732,7 +732,7 @@ const VendorDashboard = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex flex-wrap gap-2 mb-8 bg-[#111111] p-1.5 rounded-2xl w-fit border border-white/5">
+            <div className="flex gap-2 mb-8 bg-[#111111] p-1.5 rounded-2xl w-full overflow-x-auto hide-scrollbar border border-white/5">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
@@ -768,7 +768,7 @@ const VendorDashboard = () => {
                                 <div className={`p-3 rounded-lg ${stat.color === 'text-[#d3da0c]' ? 'bg-[#d3da0c]/10' : stat.color === 'text-blue-400' ? 'bg-blue-500/10' : stat.color === 'text-purple-400' ? 'bg-purple-500/10' : 'bg-green-500/10'}`}>
                                     <stat.icon className={`w-5 h-5 ${stat.color}`} />
                                 </div>
-                                <span className="text-gray-400 text-sm font-bold">{stat.label}</span>
+                                <span className="text-gray-400 text-xs sm:text-sm font-bold truncate">{stat.label}</span>
                             </div>
                             <p className="text-2xl font-black text-white">{stat.value}</p>
                         </motion.div>
@@ -782,7 +782,7 @@ const VendorDashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-[#111111] border border-white/10 rounded-2xl p-8"
+                className="bg-[#111111] border border-white/10 rounded-2xl p-4 md:p-8"
             >
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
@@ -793,12 +793,12 @@ const VendorDashboard = () => {
                             {orders.length > 0 ? (
                                 <div className="space-y-3">
                                     {orders.slice(0, 5).map((order) => (
-                                        <div key={order.id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:border-[#d3da0c]/30 transition-all">
-                                            <div className="flex-1">
-                                                <p className="text-white font-bold">{order.customer || order.customer_name || t('vendor.dashboard.unknownCustomer')}</p>
-                                                <p className="text-gray-400 text-sm">{t('vendor.dashboard.orderProductQty', { product: order.product || order.product_name || t('vendor.dashboard.unknownProduct'), qty: order.qty || order.quantity || 1 })}</p>
+                                        <div key={order.id} className="flex items-center justify-between gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:border-[#d3da0c]/30 transition-all">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white font-bold truncate">{order.customer || order.customer_name || t('vendor.dashboard.unknownCustomer')}</p>
+                                                <p className="text-gray-400 text-sm truncate">{t('vendor.dashboard.orderProductQty', { product: order.product || order.product_name || t('vendor.dashboard.unknownProduct'), qty: order.qty || order.quantity || 1 })}</p>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="text-right flex-shrink-0">
                                                 <p className="text-[#d3da0c] font-bold">¥{order.total || order.amount || 0}</p>
                                                 <span className={`text-xs font-bold ${order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
                                                     {order.status === 'completed' ? t('vendor.dashboard.statusCompleted') : order.status === 'cancelled' ? t('vendor.dashboard.statusCancelled') : t('vendor.dashboard.statusPending')}
@@ -876,7 +876,7 @@ const VendorDashboard = () => {
                                         onChange={(e) => handleProductChange('name', e.target.value)}
                                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
                                     />
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <input
                                             type="number"
                                             placeholder={t('vendor.dashboard.pricePlaceholder')}
@@ -947,8 +947,8 @@ const VendorDashboard = () => {
                                                     <Package className="w-8 h-8 text-gray-500" />
                                                 </div>
                                             )}
-                                            <div className="flex-1">
-                                                <h4 className="text-white font-bold text-lg">{product.name}</h4>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-white font-bold text-lg truncate">{product.name}</h4>
                                                 <p className="text-gray-400 text-sm mt-1">{t('vendor.dashboard.productId', { id: String(product.id).slice(0, 8) })}</p>
                                                 {product.category && (
                                                     <span className="inline-block mt-1 px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400 capitalize">
@@ -956,7 +956,7 @@ const VendorDashboard = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${product.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${product.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                                                 {product.status === 'active' ? t('vendor.dashboard.statusActive') : t('vendor.dashboard.statusInactive')}
                                             </span>
                                         </div>
@@ -1019,7 +1019,9 @@ const VendorDashboard = () => {
                                 <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                             </div>
                         ) : productOrders.length > 0 ? (
-                            <div className="overflow-x-auto">
+                            <>
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead className="border-b border-white/10">
                                         <tr className="text-gray-400 text-xs uppercase font-bold">
@@ -1099,6 +1101,77 @@ const VendorDashboard = () => {
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Mobile Cards */}
+                            <div className="md:hidden grid gap-3">
+                                {productOrders.map((order) => (
+                                    <div key={order.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 space-y-3">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="text-white font-medium text-sm">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
+                                                <p className="text-gray-500 text-xs">{order.user?.email}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'approved' ? 'bg-green-500/20 text-green-400' : order.status === 'rejected' ? 'bg-red-500/20 text-red-400' : order.status === 'used' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                                {order.status === 'approved' ? (t('vendor.dashboard.statusApproved') || 'Approved') : order.status === 'rejected' ? (t('vendor.dashboard.statusRejected') || 'Rejected') : order.status === 'used' ? (t('vendor.dashboard.statusUsed') || 'Used') : (t('vendor.dashboard.statusPending') || 'Pending')}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</span>
+                                            <span className="text-[#d3da0c] font-bold">¥{order.payment_amount}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                                            {order.payment_screenshot ? (
+                                                <button
+                                                    onClick={() => setViewScreenshotOrder(order)}
+                                                    className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 hover:border-[#d3da0c]/50 transition-all flex-shrink-0"
+                                                >
+                                                    <img
+                                                        src={order.payment_screenshot.startsWith('http') ? order.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${order.payment_screenshot}`}
+                                                        alt="Screenshot"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ) : (
+                                                <span className="text-gray-500 text-xs">-</span>
+                                            )}
+                                            <div className="flex-1 flex items-center justify-end gap-2">
+                                                {order.status === 'pending' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => approveOrder(order.id)}
+                                                            disabled={processingOrderId === order.id}
+                                                            className="px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/30 transition-all disabled:opacity-50"
+                                                        >
+                                                            {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.approve') || 'Approve'}</>}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setRejectingOrder(order); setRejectReason(''); }}
+                                                            disabled={processingOrderId === order.id}
+                                                            className="px-3 py-1.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50"
+                                                        >
+                                                            <X className="w-3 h-3 inline mr-1" />
+                                                            {t('vendor.dashboard.reject') || 'Reject'}
+                                                        </button>
+                                                    </>
+                                                ) : order.status === 'approved' && order.order_qr_code ? (
+                                                    <button
+                                                        onClick={() => setViewQrOrder(order)}
+                                                        className="px-3 py-1.5 bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-bold rounded-lg hover:bg-[#d3da0c]/30 transition-all flex items-center gap-1"
+                                                    >
+                                                        <QrCode className="w-3 h-3" />
+                                                        {t('vendor.dashboard.viewQr') || 'QR'}
+                                                    </button>
+                                                ) : order.status === 'rejected' && order.rejection_reason ? (
+                                                    <span className="text-red-400 text-xs">{order.rejection_reason}</span>
+                                                ) : (
+                                                    <span className="text-gray-500 text-xs">-</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            </>
                         ) : (
                             <EmptyState message={t('vendor.dashboard.noOrdersReceived')} icon={ShoppingBag} />
                         )}

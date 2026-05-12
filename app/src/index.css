@@ -933,6 +933,16 @@ input, textarea, select, button {
   animation: glow-pulse-brand 3s ease-in-out infinite;
 }
 
+@keyframes light-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.animate-light-sweep {
+  animation: light-sweep 8s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
 @keyframes badge-bounce {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.15); }
