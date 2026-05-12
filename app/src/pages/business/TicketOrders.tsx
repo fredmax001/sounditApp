@@ -10,6 +10,16 @@ import { useTranslation } from 'react-i18next';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+interface OrderTicket {
+  id: number;
+  ticket_number: string;
+  qr_code: string;
+  qr_token: string;
+  is_used: boolean;
+  used_at?: string;
+  status: string;
+}
+
 interface TicketOrder {
   id: number;
   event: { id: number; title: string };
@@ -26,6 +36,7 @@ interface TicketOrder {
   used_at?: string;
   used_by?: number;
   ticket_tier?: { id: number; name: string } | null;
+  tickets?: OrderTicket[];
   created_at: string;
 }
 
@@ -49,6 +60,7 @@ const TicketOrdersPage = () => {
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
+  const [selectedOrderTickets, setSelectedOrderTickets] = useState<TicketOrder | null>(null);
 
   const fetchOrders = async () => {
     if (!session?.access_token) return;
@@ -277,13 +289,14 @@ const TicketOrdersPage = () => {
                           <Eye className="w-3 h-3" />
                         </button>
                       )}
-                      {order.ticket_qr && (
+                      {order.tickets && order.tickets.length > 0 && (
                         <button
-                          onClick={() => setSelectedQr(order.ticket_qr)}
+                          onClick={() => setSelectedOrderTickets(order)}
                           className="px-1.5 py-1 rounded bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
-                          title={t('business.tableReservations.ticketQr') || 'QR'}
+                          title={`${order.tickets.length} ticket(s)`}
                         >
                           <QrCode className="w-3 h-3" />
+                          <span className="text-[10px]">{order.tickets.length}</span>
                         </button>
                       )}
                       {order.status === 'pending' && (
@@ -365,13 +378,13 @@ const TicketOrdersPage = () => {
                           {t('business.tableReservations.viewPaymentProof') || 'Proof'}
                         </button>
                       )}
-                      {order.ticket_qr && (
+                      {order.tickets && order.tickets.length > 0 && (
                         <button
-                          onClick={() => setSelectedQr(order.ticket_qr)}
+                          onClick={() => setSelectedOrderTickets(order)}
                           className="px-3 py-2 rounded-lg bg-white/5 text-gray-300 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
                         >
                           <QrCode className="w-4 h-4" />
-                          {t('business.tableReservations.ticketQr') || 'QR'}
+                          {order.tickets.length} {order.tickets.length === 1 ? 'Ticket' : 'Tickets'}
                         </button>
                       )}
                       {order.status === 'pending' && (
@@ -447,6 +460,81 @@ const TicketOrdersPage = () => {
               <button
                 onClick={() => setSelectedQr(null)}
                 className="px-4 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
+              >
+                {t('common.close') || 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Individual Tickets Modal — for organizer check-in scanning */}
+      {selectedOrderTickets && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedOrderTickets(null)}
+        >
+          <div
+            className="bg-[#141414] rounded-2xl p-6 max-w-2xl w-full border border-white/10 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white">
+                  {selectedOrderTickets.payer_name || selectedOrderTickets.user?.name || 'Guest'}
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  {selectedOrderTickets.event?.title} · {selectedOrderTickets.quantity} ticket(s)
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedOrderTickets(null)}
+                className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {selectedOrderTickets.tickets?.map((ticket, idx) => (
+                <div
+                  key={ticket.id}
+                  className={`bg-white rounded-xl p-4 text-center ${ticket.is_used ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-black font-bold text-sm">#{idx + 1}</span>
+                    {ticket.is_used ? (
+                      <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
+                        USED
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  {ticket.qr_code ? (
+                    <img
+                      src={ticket.qr_code}
+                      alt={`Ticket QR #${idx + 1}`}
+                      className="w-full h-auto rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-black text-xs">
+                      No QR
+                    </div>
+                  )}
+                  <p className="text-black text-[10px] font-mono mt-2 truncate">
+                    {ticket.ticket_number}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setSelectedOrderTickets(null)}
+                className="px-6 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
               >
                 {t('common.close') || 'Close'}
               </button>

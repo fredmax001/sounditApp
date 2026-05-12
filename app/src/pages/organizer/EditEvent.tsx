@@ -660,8 +660,8 @@ const EditEvent = () => {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/10">
+      {/* Header - Desktop only */}
+      <div className="sticky top-0 z-30 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/10 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -708,8 +708,35 @@ const EditEvent = () => {
         </div>
       </div>
 
+      {/* Mobile Floating Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-t border-white/10 md:hidden pb-safe">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => navigate('/dashboard/business/events')}
+            disabled={isSubmitting}
+            className="px-4 py-2.5 text-gray-400 hover:text-white transition-colors disabled:opacity-50 text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !businessProfile}
+            className="flex-1 py-2.5 bg-[#d3da0c] text-black rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 font-semibold text-sm"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('organizer.manageEvents.saving')}
+              </span>
+            ) : (
+              t('organizer.manageEvents.saveChanges')
+            )}
+          </button>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Flyer Upload */}
@@ -985,24 +1012,33 @@ const EditEvent = () => {
 
                 <div>
                   <Label>DJ Line-up</Label>
-                  <select
-                    multiple
-                    value={selectedDjs.map(String)}
-                    onChange={(e) => {
-                      const options = Array.from(e.target.selectedOptions);
-                      const ids = options.map(o => Number(o.value));
-                      setSelectedDjs(ids);
-                    }}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors"
-                    size={Math.min(artists.length, 5)}
-                  >
-                    {artists.map(artist => (
-                      <option key={artist.id} value={artist.id} className="bg-[#111111]">
-                        {artist.stage_name || artist.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-gray-500 text-xs mt-1">Hold Ctrl/Cmd to select multiple DJs</p>
+                  {artists.length === 0 ? (
+                    <p className="text-gray-500 text-sm">{t('organizer.createEvent.noArtistsAvailable') || 'No artists available'}</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {artists.map(artist => (
+                        <button
+                          key={artist.id}
+                          type="button"
+                          onClick={() => {
+                            if (selectedDjs.includes(artist.id)) {
+                              setSelectedDjs(prev => prev.filter(id => id !== artist.id));
+                            } else {
+                              setSelectedDjs(prev => [...prev, artist.id]);
+                            }
+                          }}
+                          className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                            selectedDjs.includes(artist.id)
+                              ? 'bg-[#d3da0c] text-black font-medium'
+                              : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                          }`}
+                        >
+                          <span className="w-2 h-2 rounded-full border-2 border-current" />
+                          {artist.stage_name || artist.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {selectedDjs.length > 0 && (
@@ -1030,9 +1066,9 @@ const EditEvent = () => {
                     <img src={preview} alt="" className="w-full h-full object-cover" />
                     <button
                       onClick={() => removeGalleryImage(index)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
+                      className="absolute top-1 right-1 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -1064,7 +1100,7 @@ const EditEvent = () => {
                         <button
                           onClick={() => removeTicketTier(tier.id)}
                           disabled={ticketTiers.length <= 1}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30"
+                          className="p-2.5 w-9 h-9 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30 rounded-lg hover:bg-white/5 flex items-center justify-center"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1416,11 +1452,12 @@ const EditEvent = () => {
 
       {/* Success Modal */}
       {showSuccessModal && currentEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex md:items-center md:justify-center bg-black/80 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="bg-[#111111] border border-white/10 w-full md:max-w-md md:rounded-2xl md:shadow-2xl p-6 mt-auto md:mt-0 rounded-t-2xl max-h-[90vh] overflow-y-auto"
           >
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-[#d3da0c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
