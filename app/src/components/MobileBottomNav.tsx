@@ -22,7 +22,6 @@ import {
   ShoppingBag,
   BarChart3,
   Users,
-  Plus,
 } from 'lucide-react';
 
 interface NavItem {
@@ -50,7 +49,7 @@ const MobileBottomNav = () => {
       return [
         { path: '/dashboard/business', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
         { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: Calendar },
-        { path: '/dashboard/business/create-event', label: t('business.dashboard.createEvent') || 'Create', icon: Plus, isCenter: true },
+        { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine, isCenter: true },
         { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Tickets', icon: Ticket },
         { path: '/dashboard/business/profile', label: t('nav.profile') || 'Profile', icon: User },
       ];
