@@ -11,6 +11,8 @@ from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads
+import api.reviews as reviews
+import api.messaging as messaging
 # monitoring module temporarily disabled
 
 settings = get_settings()
@@ -198,6 +200,8 @@ app.include_router(product_orders.router, prefix="/api/v1")
 app.include_router(table_reservations.router, prefix="/api/v1")
 app.include_router(cities.router, prefix="/api/v1")
 app.include_router(promoters.router, prefix="/api/v1")
+app.include_router(reviews.router, prefix="/api/v1")
+app.include_router(messaging.router, prefix="/api/v1")
 
 
 @app.get("/")

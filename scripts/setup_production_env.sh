@@ -51,8 +51,16 @@ read -p "Twilio Phone Number: " TWILIO_PHONE_NUMBER
 read -p "Database URL (postgresql://...): " DATABASE_URL
 read -p "Redis URL (redis://localhost:6379/0): " REDIS_URL
 
-# Default Redis URL if not provided
+# Alibaba Cloud SMS
+read -p "Alibaba Cloud App Key: " ALIBABA_APP_KEY
+read -p "Alibaba Cloud App Secret: " ALIBABA_APP_SECRET
+read -p "Alibaba Cloud App Code: " ALIBABA_APP_CODE
+read -p "Alibaba Cloud SMS Sign Name (default: SoundIt): " ALIBABA_SMS_SIGN_NAME
+read -p "Alibaba Cloud SMS Template Code: " ALIBABA_SMS_TEMPLATE_CODE
+
+# Default values
 REDIS_URL=${REDIS_URL:-"redis://localhost:6379/0"}
+ALIBABA_SMS_SIGN_NAME=${ALIBABA_SMS_SIGN_NAME:-"SoundIt"}
 
 echo ""
 echo "[SAVE] Creating .env.production file..."
@@ -121,9 +129,17 @@ AWS_CLOUDFRONT_URL=""
 HEARTHIS_API_KEY=""
 HEARTHIS_API_URL="https://hearthis.at/api/v1/"
 
+# Alibaba Cloud (SMS / API Gateway)
+ALIBABA_APP_KEY="${ALIBABA_APP_KEY:-}"
+ALIBABA_APP_SECRET="${ALIBABA_APP_SECRET:-}"
+ALIBABA_APP_CODE="${ALIBABA_APP_CODE:-}"
+ALIBABA_SMS_SIGN_NAME="${ALIBABA_SMS_SIGN_NAME:-SoundIt}"
+ALIBABA_SMS_TEMPLATE_CODE="${ALIBABA_SMS_TEMPLATE_CODE:-}"
+ALIBABA_SMS_ENABLED="${ALIBABA_SMS_ENABLED:-false}"
+
 # Server Configuration
-ALLOWED_HOSTS="sounditent.com,www.sounditent.com,api.sounditent.com"
-CORS_ORIGINS="https://sounditent.com,https://www.sounditent.com"
+ALLOWED_HOSTS="sounditent.com,www.sounditent.com,api.sounditent.com,app.sounditent.com,sounditent.cn,www.sounditent.cn"
+CORS_ORIGINS="https://sounditent.com,https://www.sounditent.com,https://sounditent.cn,https://www.sounditent.cn"
 EOF
 
 echo ""

@@ -176,7 +176,7 @@ const VendorProfile = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
+    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -219,9 +219,9 @@ const VendorProfile = () => {
         transition={{ duration: 0.3 }}
         className="bg-[#111111] border border-white/10 rounded-2xl p-6 lg:p-8"
       >
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Logo & Basic Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 order-2 lg:order-1">
             {/* Logo Upload */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6">
               <label className="block text-sm text-gray-400 mb-4">{t('vendor.profile.businessLogo')}</label>
@@ -280,7 +280,7 @@ const VendorProfile = () => {
           </div>
 
           {/* Right Column - Form Fields */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
             {/* Business Information */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
               <h4 className="text-white font-bold text-lg">{t('vendor.profile.businessInformation')}</h4>
@@ -429,7 +429,7 @@ const VendorProfile = () => {
       </motion.div>
 
       {/* Logout Section */}
-      <div className="max-w-4xl mx-auto mt-6">
+      <div className="mt-6">
         <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
           <h4 className="text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h4>
           <button

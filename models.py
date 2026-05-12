@@ -243,6 +243,8 @@ class User(Base):
     tickets = relationship("Ticket", back_populates="user", foreign_keys="Ticket.user_id")
     vendor_profile = relationship("VendorProfile", back_populates="user", uselist=False)
     verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
+    conversations = relationship("Conversation", primaryjoin="or_(User.id==Conversation.participant_1_id, User.id==Conversation.participant_2_id)")
+    sent_messages = relationship("Message", primaryjoin="User.id==Message.sender_id")
 
 
 class PageVisit(Base):
@@ -375,6 +377,8 @@ class OrganizerProfile(Base):
     # Stats
     events_count = Column(Integer, default=0)
     total_revenue = Column(Float, default=0.0)
+    rating = Column(Float, default=0.0)
+    reviews_count = Column(Integer, default=0)
     
     # Link to unified BusinessProfile
     business_profile_id = Column(Integer, ForeignKey("business_profiles.id"), nullable=True)
@@ -387,6 +391,7 @@ class OrganizerProfile(Base):
     events = relationship("Event", back_populates="organizer")
     business_profile = relationship("BusinessProfile", back_populates="organizer_profiles")
     followers = relationship("OrganizerFollow", back_populates="organizer")
+    reviews = relationship("OrganizerReview", back_populates="organizer")
 
 
 class BusinessProfile(Base):
@@ -410,6 +415,8 @@ class BusinessProfile(Base):
     # Stats
     total_revenue = Column(Float, default=0.0)
     events_count = Column(Integer, default=0)
+    rating = Column(Float, default=0.0)
+    reviews_count = Column(Integer, default=0)
     
     # Location
     city = Column(Enum(City), nullable=True)
@@ -425,6 +432,7 @@ class BusinessProfile(Base):
     organizer_profiles = relationship("OrganizerProfile", back_populates="business_profile")
     clubs = relationship("Club", back_populates="business_claimed_by")
     food_spots = relationship("FoodSpot", back_populates="business_claimed_by")
+    reviews = relationship("BusinessReview", back_populates="business")
 
 
 class Club(Base):
@@ -552,6 +560,7 @@ class VendorProfile(Base):
     products = relationship("Product", back_populates="vendor")
     events = relationship("EventVendor", back_populates="vendor")
     followers = relationship("VendorFollow", back_populates="vendor")
+    reviews = relationship("VendorReview", back_populates="vendor")
     
     @property
     def city_id(self):
@@ -671,7 +680,7 @@ class BookingMessage(Base):
     
     # Relationships
     booking = relationship("BookingRequest", back_populates="messages")
-    sender = relationship("User")
+    sender = relationship("User", overlaps="conversations,sent_messages")
 
 
 class ArtistReview(Base):
@@ -694,6 +703,82 @@ class ArtistReview(Base):
     artist = relationship("ArtistProfile", back_populates="reviews")
     booking = relationship("BookingRequest", back_populates="reviews")
     reviewer = relationship("User")
+
+
+class VendorReview(Base):
+    __tablename__ = "vendor_reviews"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    vendor = relationship("VendorProfile", back_populates="reviews")
+    reviewer = relationship("User")
+
+
+class BusinessReview(Base):
+    __tablename__ = "business_reviews"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("business_profiles.id"), nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    business = relationship("BusinessProfile", back_populates="reviews")
+    reviewer = relationship("User")
+
+
+class OrganizerReview(Base):
+    __tablename__ = "organizer_reviews"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    organizer_id = Column(Integer, ForeignKey("organizer_profiles.id"), nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    organizer = relationship("OrganizerProfile", back_populates="reviews")
+    reviewer = relationship("User")
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    participant_1_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    participant_2_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    participant_1 = relationship("User", foreign_keys=[participant_1_id], overlaps="conversations")
+    participant_2 = relationship("User", foreign_keys=[participant_2_id], overlaps="conversations")
+    messages = relationship("Message", back_populates="conversation", order_by="Message.created_at", overlaps="sender")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    conversation = relationship("Conversation", back_populates="messages")
+    sender = relationship("User")
 
 
 class ArtistAvailability(Base):

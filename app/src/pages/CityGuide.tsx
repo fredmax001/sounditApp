@@ -21,6 +21,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { chinaCities } from '@/data/constants';
+import { useAuthStore } from '@/store/authStore';
 import { useCityGuideStore } from '@/store/cityGuideStore';
 import type { GuideItem } from '@/store/cityGuideStore';
 import { openDirections } from '@/lib/directions';
@@ -273,7 +274,7 @@ function CityDropdown({
 const CityGuide = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState('shanghai');
+  const { selectedCity, setSelectedCity } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [mapReady, setMapReady] = useState(false);
@@ -534,6 +535,7 @@ const CityGuide = () => {
 
           {/* Controls */}
           <div className="flex flex-col md:flex-row gap-3">
+            <CityDropdown selectedCity={selectedCity || 'shanghai'} onSelect={setSelectedCity} />
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input

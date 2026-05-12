@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import VerificationBadge from '@/components/VerificationBadge';
+import ReviewsSection from '@/components/ReviewsSection';
 
 interface Product {
   id: number;
@@ -284,6 +285,11 @@ export default function VendorDetail() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-12">
+          <ReviewsSection entityId={vendor.id} entityType="vendor" entityName={vendor.business_name} />
         </div>
       </div>
     </div>

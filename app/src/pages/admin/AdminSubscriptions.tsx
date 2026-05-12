@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Loader2, Search, AlertCircle } from 'lucide-react';
+import { Check, X, Loader2, Search, AlertCircle, Eye, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
@@ -19,6 +19,11 @@ export default function AdminSubscriptions() {
     plan_type?: string;
     price?: number;
     status?: string;
+    start_date?: string;
+    end_date?: string;
+    created_at?: string;
+    approved_by?: string;
+    admin_notes?: string;
   }
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +31,7 @@ export default function AdminSubscriptions() {
   const [search, setSearch] = useState('');
   const [processing, setProcessing] = useState<number | null>(null);
   const [checkingExpired, setCheckingExpired] = useState(false);
+  const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
 
   const token = session?.access_token;
 
@@ -166,6 +172,8 @@ export default function AdminSubscriptions() {
               <th className="text-left text-white/60 font-medium px-6 py-4">{t('admin.adminSubscriptions.plan')}</th>
               <th className="text-left text-white/60 font-medium px-6 py-4">{t('admin.adminSubscriptions.price')}</th>
               <th className="text-left text-white/60 font-medium px-6 py-4">{t('admin.adminSubscriptions.status')}</th>
+              <th className="text-left text-white/60 font-medium px-6 py-4">Start</th>
+              <th className="text-left text-white/60 font-medium px-6 py-4">End</th>
               <th className="text-left text-white/60 font-medium px-6 py-4">{t('admin.adminSubscriptions.actions')}</th>
             </tr>
           </thead>
@@ -198,36 +206,52 @@ export default function AdminSubscriptions() {
                   <span className={`px-3 py-1 rounded-full text-sm ${
                     sub.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
                     sub.status === 'active' ? 'bg-green-500/20 text-green-500' :
+                    sub.status === 'expired' ? 'bg-orange-500/20 text-orange-500' :
                     'bg-red-500/20 text-red-500'
                   }`}>
                     {sub.status}
                   </span>
                 </td>
+                <td className="px-6 py-4 text-white/70 text-sm">
+                  {sub.start_date ? new Date(sub.start_date).toLocaleDateString() : '-'}
+                </td>
+                <td className="px-6 py-4 text-white/70 text-sm">
+                  {sub.end_date ? new Date(sub.end_date).toLocaleDateString() : '-'}
+                </td>
                 <td className="px-6 py-4">
-                  {sub.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(sub.id)}
-                        disabled={processing === sub.id}
-                        className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 disabled:opacity-50"
-                      >
-                        {processing === sub.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => handleReject(sub.id)}
-                        disabled={processing === sub.id}
-                        className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 disabled:opacity-50"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedSub(sub)}
+                      className="p-2 bg-white/5 text-white rounded-lg hover:bg-white/10"
+                      title="View details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    {sub.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(sub.id)}
+                          disabled={processing === sub.id}
+                          className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 disabled:opacity-50"
+                        >
+                          {processing === sub.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={() => handleReject(sub.id)}
+                          disabled={processing === sub.id}
+                          className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
             {subscriptions.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-white/40">
+                <td colSpan={9} className="px-6 py-12 text-center text-white/40">
                   <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   {t('admin.adminSubscriptions.noSubscriptionsFound')}
                 </td>
@@ -236,6 +260,68 @@ export default function AdminSubscriptions() {
           </tbody>
         </table>
       </div>
+
+      {/* Detail Modal */}
+      {selectedSub && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSub(null)}>
+          <div className="bg-[#141414] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Subscription Details</h2>
+              <button onClick={() => setSelectedSub(null)} className="p-1 hover:bg-white/5 rounded">
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-white/50">User</span>
+                <span className="text-white">{selectedSub.user?.name || '-'} ({selectedSub.user?.email})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Plan</span>
+                <span className="text-[#d3da0c] capitalize">{selectedSub.plan_type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Role</span>
+                <span className="text-white capitalize">{selectedSub.role}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Price</span>
+                <span className="text-white">¥{selectedSub.price}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Status</span>
+                <span className="text-white capitalize">{selectedSub.status}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">Start Date</span>
+                <span className="text-white">{selectedSub.start_date ? new Date(selectedSub.start_date).toLocaleDateString() : '-'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/50">End Date</span>
+                <span className="text-white">{selectedSub.end_date ? new Date(selectedSub.end_date).toLocaleDateString() : '-'}</span>
+              </div>
+              {selectedSub.payment_reference && (
+                <div className="flex justify-between">
+                  <span className="text-white/50">Reference</span>
+                  <span className="text-white">{selectedSub.payment_reference}</span>
+                </div>
+              )}
+              {selectedSub.approved_by && (
+                <div className="flex justify-between">
+                  <span className="text-white/50">Approved By</span>
+                  <span className="text-white">{selectedSub.approved_by}</span>
+                </div>
+              )}
+              {selectedSub.admin_notes && (
+                <div className="pt-2 border-t border-white/10">
+                  <span className="text-white/50 block mb-1">Admin Notes</span>
+                  <span className="text-white">{selectedSub.admin_notes}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

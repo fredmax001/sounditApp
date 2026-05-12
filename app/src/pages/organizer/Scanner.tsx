@@ -117,12 +117,13 @@ const Scanner = () => {
 
     return () => {
       clearTimeout(timer);
-      if (html5QrCodeRef.current) {
-        html5QrCodeRef.current
+      const scanner = html5QrCodeRef.current;
+      if (scanner) {
+        scanner
           .stop()
-          .catch(() => {
-            // ignore
-          })
+          .catch(() => {})
+          .then(() => scanner.clear())
+          .catch(() => {})
           .finally(() => {
             html5QrCodeRef.current = null;
             setCameraReady(false);
@@ -255,20 +256,42 @@ const Scanner = () => {
     }
   }, [t]);
 
-  const resetScanner = () => {
+  const resetScanner = async () => {
+    // Fully stop and clear any existing scanner
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch {
+        // ignore
+      }
+      try {
+        await html5QrCodeRef.current.clear();
+      } catch {
+        // ignore
+      }
+      html5QrCodeRef.current = null;
+    }
+
+    // Clear the DOM element so Html5Qrcode can re-initialize cleanly
+    const scannerContainer = document.getElementById('scanner-video');
+    if (scannerContainer) {
+      scannerContainer.innerHTML = '';
+    }
+
     setScannedTicket(null);
     setScanResult(null);
     setValidationError(null);
     setScannerError(null);
     setCameraReady(false);
-    setScanning(true);
 
+    // Small delay to let DOM settle before starting new scanner
     setTimeout(() => {
+      setScanning(true);
       if (inputRef.current) {
         inputRef.current.value = '';
         inputRef.current.focus();
       }
-    }, 100);
+    }, 300);
   };
 
   const clearRecentScans = () => {

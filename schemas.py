@@ -1761,3 +1761,99 @@ class ProductOrderResponse(BaseModel):
 
 class ProductOrderListResponse(BaseModel):
     orders: List[ProductOrderResponse]
+
+
+# ==================== REVIEW SCHEMAS ====================
+
+class VendorReviewCreate(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+
+
+class VendorReviewResponse(BaseModel):
+    id: int
+    vendor_id: int
+    reviewer_id: int
+    rating: int
+    comment: Optional[str] = None
+    is_verified: bool
+    created_at: datetime
+    reviewer: Optional[ReviewerInfo] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class BusinessReviewCreate(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+
+
+class BusinessReviewResponse(BaseModel):
+    id: int
+    business_id: int
+    reviewer_id: int
+    rating: int
+    comment: Optional[str] = None
+    is_verified: bool
+    created_at: datetime
+    reviewer: Optional[ReviewerInfo] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class OrganizerReviewCreate(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+
+
+class OrganizerReviewResponse(BaseModel):
+    id: int
+    organizer_id: int
+    reviewer_id: int
+    rating: int
+    comment: Optional[str] = None
+    is_verified: bool
+    created_at: datetime
+    reviewer: Optional[ReviewerInfo] = None
+    
+    class Config:
+        from_attributes = True
+
+
+# ==================== MESSAGING SCHEMAS ====================
+
+class MessageCreate(BaseModel):
+    content: str
+
+
+class MessageResponse(BaseModel):
+    id: int
+    conversation_id: int
+    sender_id: int
+    content: str
+    is_read: bool
+    created_at: datetime
+    sender: Optional[SenderInfo] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class ConversationCreate(BaseModel):
+    participant_id: int
+
+
+class ConversationResponse(BaseModel):
+    id: int
+    participant_1_id: int
+    participant_2_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    other_participant: Optional[SenderInfo] = None
+    last_message: Optional[MessageResponse] = None
+    unread_count: int = 0
+    
+    class Config:
+        from_attributes = True

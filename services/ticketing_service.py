@@ -14,6 +14,11 @@ from models import (
     UserRole, Notification, TicketTier
 )
 from services.subscription_service import SubscriptionService
+from services.sms_notifications import (
+    notify_user_ticket_approved,
+    notify_user_ticket_rejected,
+    notify_user_order_cancelled,
+)
 
 
 def _create_notification(db: Session, user_id: int, title: str, message: str,
@@ -231,6 +236,12 @@ def auto_process_ticket_order(db: Session, order_id: int) -> Tuple[bool, str]:
             notification_type="ticket_rejected",
             data={"order_id": order.id, "event_id": event.id, "reason": notes}
         )
+        notify_user_ticket_rejected(
+            db=db,
+            user_id=order.user_id,
+            event_title=event.title or "",
+            reason=notes
+        )
         return False, f"Auto-rejected: {notes}"
     
     count, _ = generate_tickets_from_order(db, order, event, auto_approved=True)
@@ -242,6 +253,13 @@ def auto_process_ticket_order(db: Session, order_id: int) -> Tuple[bool, str]:
         message=f"Your ticket for '{event.title}' has been approved. Show your QR code at the entrance.",
         notification_type="ticket_approved",
         data={"order_id": order.id, "event_id": event.id, "tickets_count": count, "auto_approved": True}
+    )
+    notify_user_ticket_approved(
+        db=db,
+        user_id=order.user_id,
+        event_title=event.title or "",
+        quantity=count,
+        ticket_code=order.ticket_code
     )
     
     return True, f"Ticket approved. Generated {count} ticket(s)."
@@ -272,6 +290,11 @@ def cancel_stale_orders(db: Session, hours: int = 24) -> int:
             message="Your ticket order was cancelled because the payment was not confirmed in time.",
             notification_type="ticket_cancelled",
             data={"order_id": order.id, "event_id": order.event_id}
+        )
+        notify_user_order_cancelled(
+            db=db,
+            user_id=order.user_id,
+            event_title=None
         )
         count += 1
     

@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-11
+2026-05-13
 
 ---
 
@@ -26,6 +26,108 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 34. Hero Background — Sharp, Black Overlay & Weather Widget (2026-05-13)
+- **Changes**:
+  - Swapped hero background from blurred `hero-bg.jpg` to sharp `hero-event.jpg` (crowd photo)
+  - Removed animated gradient mesh blur orbs
+  - Added solid black overlay (`bg-black/40`) + gradient overlays for text readability
+  - Added CSS vignette via `box-shadow: inset` for edge darkening
+  - Richer Framer Motion animation: slow 25s zoom cycle (1.15× → 1.25×) + subtle horizontal pan
+  - Added `animate-light-sweep` — glossy beam sweeps across hero every 8s
+  - **WeatherWidget** (`app/src/components/WeatherWidget.tsx`): New component on the right side of the hero (desktop only)
+    - Fetches real weather from Open-Meteo API (free, no key)
+    - Animated icons: rotating sun, floating clouds, falling rain, lightning, snowflakes, moon
+    - Shows temperature, condition, humidity, wind speed
+    - Auto-updates when user changes city in the navbar
+    - Glass-morphism card with backdrop blur
+- **Build**: Frontend compiles successfully.
+
+### 33. SMS Notifications via Alibaba Cloud (2026-05-13)
+- **Features built**:
+  1. **Ticket purchase confirmation SMS** — Sent when ticket order is approved (manual or auto)
+  2. **Ticket rejection SMS** — Sent when ticket order is rejected or auto-rejected
+  3. **Order cancellation SMS** — Sent when stale pending orders are auto-cancelled
+  4. **Welcome SMS** — Sent to all new users on registration (if phone provided)
+  5. **Event reminder SMS** — Infrastructure ready for future use
+  6. **Test endpoint** — `POST /api/v1/sms-test/send` for admin testing
+- **Backend changes**:
+  - `services/sms_notifications.py` (new): Centralized SMS notification service with non-blocking delivery, phone normalization (+86 prefix), template-based sending with raw-message fallback, and convenience functions `notify_user_ticket_approved()`, `notify_user_ticket_rejected()`, `notify_user_order_cancelled()`
+  - `config.py`: Added `ALIBABA_SMS_TEMPLATE_CODE_TICKET_APPROVED`, `ALIBABA_SMS_TEMPLATE_CODE_TICKET_REJECTED`, `ALIBABA_SMS_TEMPLATE_CODE_WELCOME`, `ALIBABA_SMS_TEMPLATE_CODE_EVENT_REMINDER`
+  - `api/tickets.py`: Added `notify_user_ticket_approved()` call after email in `approve_ticket_order()`; added `notify_user_ticket_rejected()` call after notification in `reject_ticket_order()`
+  - `services/ticketing_service.py`: Added SMS calls in `auto_process_ticket_order()` (auto-approve + auto-reject) and `cancel_stale_orders()`
+  - `api/auth.py`: Added `send_sms_welcome()` call after registration (all roles, non-blocking)
+  - `api/sms_test.py` (new): Admin-only endpoints `POST /sms-test/send` and `GET /sms-test/config`
+  - `main.py`: Registered `sms_test.router`
+  - `.env`, `.env.local`, `.env.production`: Set `ALIBABA_SMS_ENABLED=true` and added template code env vars
+- **Known issue**: Alibaba Cloud SMS delivery blocked — `AppKey: 205007762` is not a valid Dysmsapi AccessKey ID. Marketplace endpoints return 403/404. The credentials likely belong to a specific Alibaba Cloud Marketplace SMS product with an unknown endpoint. To resolve:
+  - **Option A**: Provide the correct marketplace SMS endpoint + template codes from the Alibaba Cloud console
+  - **Option B**: Register an Alibaba Cloud AccessKey ID/Secret at https://ram.console.aliyun.com/ and SMS templates at https://dysms.console.aliyun.com/
+- **Deploy**: Not yet deployed — SMS endpoint discovery needed first.
+
+### 32. Reviews & Messaging System (2026-05-12)
+- **Features built**:
+  1. **Direct Messaging** — Users can now message artists directly from profile pages
+  2. **Reviews for Vendors, Businesses & Organizers** — Users can leave star ratings + comments
+  3. **Real review data on all profile pages** — Reviews display with rating summary, star breakdown, and review cards
+- **Backend changes**:
+  - `models.py`: Added `Conversation`, `Message`, `VendorReview`, `BusinessReview`, `OrganizerReview` models. Added `rating` + `reviews_count` to `BusinessProfile` and `OrganizerProfile`.
+  - `api/messaging.py` (new): `GET /messages/conversations`, `POST /messages/conversations`, `GET /messages/conversations/{id}`, `POST /messages/conversations/{id}/messages`, `PUT /messages/{id}/read`
+  - `api/reviews.py` (new): `GET/POST /reviews/vendors/{id}`, `GET/POST /reviews/businesses/{id}`, `GET/POST /reviews/organizers/{id}`
+  - `schemas.py`: Added review + messaging schemas
+  - `main.py`: Registered new routers
+- **Frontend changes**:
+  - `app/src/components/ReviewsSection.tsx` (new): Reusable reviews component with rating summary, star breakdown bars, review cards, and authenticated review submission form (5-star picker + textarea)
+  - `app/src/components/MessageModal.tsx` (new): Modal for sending direct messages — creates conversation then sends message
+  - `app/src/pages/ArtistDetail.tsx`: Message button now opens MessageModal instead of toast placeholder
+  - `app/src/pages/VendorDetail.tsx`: Added ReviewsSection at bottom
+  - `app/src/pages/PublicProfile.tsx`: Added ReviewsSection for organizer and business profiles
+- **Database migration**: Created `vendor_reviews`, `business_reviews`, `organizer_reviews`, `conversations`, `messages` tables. Added `rating` + `reviews_count` columns to `business_profiles`.
+- **Deploy**: Synced backend + frontend to production. Restarted service.
+
+### 31. Discovery Page City Filter Fix (2026-05-12)
+- **Problem**: Discovery page only showed 1 artist regardless of city. City filter didn't work effectively across all sections.
+- **Root causes**:
+  1. `CityGuide.tsx` had a `CityDropdown` component defined but **never rendered it** in the page.
+  2. `CityGuide.tsx` used isolated local state `useState('shanghai')` instead of global `authStore.selectedCity`, so navbar city changes had zero effect.
+  3. Backend `api/cities.py` filtered artists by `User.preferred_city` instead of `ArtistProfile.city`.
+  4. 2 of 3 featured artists had `artist.city = NULL`, so they were hidden in ALL city filters.
+- **Fixes applied**:
+  - `app/src/pages/CityGuide.tsx`:
+    - Replaced local state with `const { selectedCity, setSelectedCity } = useAuthStore()`
+    - Rendered `<CityDropdown>` in the controls section alongside the search input
+    - `fetchCityGuide` already depended on `selectedCity`, so it auto-refreshes when city changes
+  - `api/cities.py`:
+    - Changed artist filter from `User.preferred_city` to `ArtistProfile.city`
+    - Added `or_(column == City(validated_city), column == None)` for artists, vendors, businesses, and organizers so entities without a city aren't hidden
+    - Fixed enum column bug: removed `== ''` comparisons that crashed PostgreSQL (`invalid input value for enum city: ""`)
+- **Deploy**: Synced `api/cities.py` + `app/dist/` to production. Restarted backend.
+- **Verification**:
+  - `GET /cities/shanghai/guide` → 3 artists (Fred Max, Euphoria, Chucky Traub)
+  - `GET /cities/beijing/guide` → 2 artists (Euphoria, Chucky Traub — Fred Max is Shanghai-specific)
+
+### 30. Footer Redesign — Less Scattered (2026-05-12)
+- **Problem**: Footer looked scattered with uneven columns, misaligned support section, distracting animated background text, and inconsistent grid layout.
+- **Changes to `app/src/components/Footer.tsx`**:
+  - Removed distracting giant animated "SOUND IT" background text
+  - Replaced broken `grid-cols-2 md:grid-cols-2 lg:grid-cols-5` with clean `grid-cols-12` layout
+  - Brand column now spans 4 cols on desktop (left-aligned, consistent)
+  - 4 balanced link columns: Discover, Company, Support, Legal (each 2 cols on desktop)
+  - Split oversized Support column into Support (4 links) + Legal (3 links) for visual balance
+  - Removed `lg:items-end` misalignment on Support column — all columns now top-left aligned
+  - Contact info uses consistent hover states (lime on hover)
+  - Social icons: slightly smaller (w-9 h-9), rounded-lg instead of rounded-full, more subtle
+  - Bottom bar: cleaner spacing, better responsive stacking
+- **Build & Deploy**: Compiled and synced `app/dist/` to production.
+
+### 29. Featured Artists Only Showing 1 of 3 (2026-05-12)
+- **Problem**: Admin panel showed 3 featured artists, but only 1 displayed on the live home page.
+- **Root cause**: The frontend sent `selectedCity` to `/artists/featured`, and the backend filtered by `User.preferred_city == city_enum`. Only 1 of the 3 featured artists had `preferred_city` matching the current user's selected city.
+- **Fixes applied**:
+  - `app/src/pages/Home.tsx`: Removed the `city` parameter from the featured artists API call.
+  - `api/artists.py`: Updated `get_featured_artists()` so that when a city IS provided, it fetches ALL featured artists from every city first, then fills remaining slots with non-featured artists from the selected city. This ensures featured artists are always visible regardless of city selection.
+- **Deployment**: Full fresh deploy to `sounditent.com`. SSH dropped during `pip install` (known issue), but venv/requirements were already intact. Manually completed remaining setup steps (permissions, nginx, systemd). Service confirmed running.
+- **Verification**: `GET /api/v1/artists/featured` now returns all 3 featured artists (Fred Max, Euphoria, Chucky Traub).
 
 ### 28. Smooth Inline Auth for Ticket Buyers (2026-05-09)
 - **Objective**: Instead of guest checkout, make the login/register experience seamless for new users who want to buy tickets.
