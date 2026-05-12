@@ -2099,7 +2099,9 @@
       "messageLabel": "消息",
       "broadcastPlaceholder": "输入公告内容...",
       "sendBroadcast": "发送广播",
-      "broadcastHint": "这将向所有活跃用户发送通知。"
+      "broadcastHint": "这将向所有活跃用户发送电子邮件。",
+      "subjectLabel": "主题（可选）",
+      "subjectPlaceholder": "来自 Sound It 的公告"
     },
     "reviewEvents": {
       "showEventTitle": "Show Event",
@@ -2803,7 +2805,8 @@
     "notificationCenter": {
       "untitled": "Untitled",
       "audienceArtist": "audience Artist",
-      "typePush": "type Push",
+      "typeBoth": "通知+邮件",
+      "typePush": "应用通知",
       "recentNotifications": "Recent Notifications",
       "titlePlaceholder": "Enter title...",
       "title": "notification Center",
@@ -2824,11 +2827,11 @@
       "status.sent": "sent",
       "failedToSendNotification": "Failed to send notification",
       "titleAndMessageRequired": "Title and message are required",
-      "typeSms": "type Sms",
+      "typeSms": "短信",
       "audienceUser": "audience User",
       "scheduleLabel": "Schedule",
       "notificationSent": "Notification sent",
-      "typeEmail": "type Email",
+      "typeEmail": "电子邮件",
       "audienceVendor": "audience Vendor",
       "notificationType": "Type"
     },
@@ -3997,6 +4000,8 @@
   },
   "eventDetail": {
     "selectTicketType": "Select Ticket Type",
+    "standardTicket": "标准票",
+    "ticket": "票",
     "linkCopied": "Link Copied",
     "toBeAnnounced": "To Be Announced",
     "ticketsRemaining": "Tickets Remaining",
@@ -4022,6 +4027,8 @@
     "notifyMe": "Notify Me",
     "limitedAvailability": "Limited Availability",
     "quantity": "Quantity",
+    "selectQuantity": "选择数量",
+    "proceedToPayment": "继续支付",
     "noTicketsAvailable": "No Tickets Available",
     "shareEvent": "Share Event",
     "artist": "Artist",

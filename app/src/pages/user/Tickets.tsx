@@ -61,6 +61,10 @@ const Tickets = () => {
   const [productOrdersLoading, setProductOrdersLoading] = useState(false);
   const [selectedProductOrder, setSelectedProductOrder] = useState<ProductOrder | null>(null);
 
+  // Individual tickets for a selected order (when quantity > 1)
+  const [orderIndividualTickets, setOrderIndividualTickets] = useState<Array<{id: number; ticket_number: string; qr_token: string; qr_code: string}>>([]);
+  const [loadingOrderTickets, setLoadingOrderTickets] = useState(false);
+
   useEffect(() => {
     fetchUserTickets();
     fetchTicketOrders();
@@ -446,7 +450,27 @@ const Tickets = () => {
                               </button>
                             ) : ticketOrder && status === 'active' ? (
                               <button
-                                onClick={() => setSelectedOrder(ticketOrder)}
+                                onClick={async () => {
+                                  setSelectedOrder(ticketOrder);
+                                  // Fetch individual tickets for multi-ticket orders
+                                  if (ticketOrder.quantity > 1) {
+                                    setLoadingOrderTickets(true);
+                                    try {
+                                      const token = localStorage.getItem('auth-token');
+                                      const res = await fetch(
+                                        `${import.meta.env.VITE_API_URL}/tickets/my-orders/${ticketOrder.id}/tickets`,
+                                        { headers: { Authorization: `Bearer ${token}` } }
+                                      );
+                                      if (res.ok) {
+                                        const data = await res.json();
+                                        setOrderIndividualTickets(data.tickets || []);
+                                      }
+                                    } catch {}
+                                    setLoadingOrderTickets(false);
+                                  } else {
+                                    setOrderIndividualTickets([]);
+                                  }
+                                }}
                                 className="flex-1 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
                               >
                                 Show QR Code
@@ -513,7 +537,7 @@ const Tickets = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={() => { setSelectedTicket(null); setSelectedOrder(null); setSelectedProductOrder(null); }}
+            onClick={() => { setSelectedTicket(null); setSelectedOrder(null); setSelectedProductOrder(null); setOrderIndividualTickets([]); }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -525,7 +549,7 @@ const Tickets = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-white">{t('user.tickets.yourTicket')}</h3>
                 <button
-                  onClick={() => { setSelectedTicket(null); setSelectedOrder(null); setSelectedProductOrder(null); }}
+                  onClick={() => { setSelectedTicket(null); setSelectedOrder(null); setSelectedProductOrder(null); setOrderIndividualTickets([]); }}
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:text-white"
                 >
                   <X className="w-5 h-5" />
@@ -550,19 +574,62 @@ const Tickets = () => {
                 </>
               ) : selectedOrder ? (
                 <>
-                  <div className="bg-white rounded-xl p-6 mb-6">
-                    {selectedOrder.ticket_qr ? (
-                      <img src={selectedOrder.ticket_qr} alt="Ticket QR" className="w-full h-auto" />
-                    ) : (
-                      <div className="text-center text-black">{t('user.tickets.noQrAvailable')}</div>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-white font-semibold mb-1">
-                      {selectedOrder.event?.title || t('user.tickets.event')}
-                    </p>
-                    <p className="text-[#d3da0c] text-sm mt-2 font-mono">{selectedOrder.ticket_code}</p>
-                  </div>
+                  {selectedOrder.quantity > 1 ? (
+                    <>
+                      <div className="mb-4">
+                        <p className="text-white font-semibold text-center mb-1">
+                          {selectedOrder.event?.title || t('user.tickets.event')}
+                        </p>
+                        <p className="text-gray-400 text-sm text-center">
+                          {selectedOrder.quantity} {selectedOrder.quantity > 1 ? t('user.tickets.tickets') : t('user.tickets.ticket')}
+                        </p>
+                      </div>
+                      {loadingOrderTickets ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                          {orderIndividualTickets.map((ticket, idx) => (
+                            <div key={ticket.id} className="bg-white rounded-xl p-3">
+                              <p className="text-center text-black text-xs font-semibold mb-2">
+                                #{idx + 1}
+                              </p>
+                              {ticket.qr_code ? (
+                                <img src={ticket.qr_code} alt={`Ticket QR #${idx + 1}`} className="w-full h-auto" />
+                              ) : (
+                                <QRCodeSVG
+                                  value={ticket.ticket_number}
+                                  size={120}
+                                  className="w-full"
+                                  level="H"
+                                />
+                              )}
+                              <p className="text-center text-black text-[10px] font-mono mt-2 truncate">
+                                {ticket.ticket_number}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-white rounded-xl p-6 mb-6">
+                        {selectedOrder.ticket_qr ? (
+                          <img src={selectedOrder.ticket_qr} alt="Ticket QR" className="w-full h-auto" />
+                        ) : (
+                          <div className="text-center text-black">{t('user.tickets.noQrAvailable')}</div>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-white font-semibold mb-1">
+                          {selectedOrder.event?.title || t('user.tickets.event')}
+                        </p>
+                        <p className="text-[#d3da0c] text-sm mt-2 font-mono">{selectedOrder.ticket_code}</p>
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (() => {
                 const ticket = tickets.find(t => t.id === selectedTicket);

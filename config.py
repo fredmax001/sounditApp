@@ -34,9 +34,12 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "https://sounditent.com/auth/google/callback"
     
-    # SendGrid (Email)
-    SENDGRID_API_KEY: str = ""
-    SENDGRID_FROM_EMAIL: str = ""  # e.g., noreply@soundit.com
+    # SMTP (Email)
+    SMTP_HOST: str = "smtp.hostinger.com"
+    SMTP_PORT: int = 465
+    SMTP_USER: str = ""  # e.g., otp@sounditent.com
+    SMTP_PASS: str = ""  # Email password
+    SMTP_FROM: str = ""  # e.g., "Sound It <otp@sounditent.com>"
     
     # Stripe
     STRIPE_SECRET_KEY: str = ""

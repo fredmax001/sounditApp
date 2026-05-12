@@ -40,6 +40,7 @@ const ManageUsers = () => {
     const [sendingInvite, setSendingInvite] = useState(false);
 
     // Broadcast form state
+    const [broadcastSubject, setBroadcastSubject] = useState('');
     const [broadcastMessage, setBroadcastMessage] = useState('');
     const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
@@ -148,12 +149,13 @@ const ManageUsers = () => {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message: broadcastMessage })
+                body: JSON.stringify({ subject: broadcastSubject.trim() || undefined, message: broadcastMessage })
             });
 
             if (res.ok) {
                 toast.success(t('admin.manageUsers.broadcastSent'));
                 setShowBroadcastModal(false);
+                setBroadcastSubject('');
                 setBroadcastMessage('');
             } else {
                 const err = await res.json();
@@ -546,6 +548,16 @@ const ManageUsers = () => {
                             </button>
                         </div>
                         <form onSubmit={handleSendBroadcast} className="space-y-4">
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.subjectLabel') || 'Subject (optional)'}</label>
+                                <input
+                                    type="text"
+                                    value={broadcastSubject}
+                                    onChange={(e) => setBroadcastSubject(e.target.value)}
+                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    placeholder={t('admin.manageUsers.subjectPlaceholder') || 'Announcement from Sound It'}
+                                />
+                            </div>
                             <div>
                                 <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.messageLabel')}</label>
                                 <textarea

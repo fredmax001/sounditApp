@@ -14,8 +14,8 @@ interface Ad {
   description?: string;
   image_url?: string;
   link_url?: string;
-  position: 'homepage' | 'sidebar' | 'events' | 'banner';
-  status: 'active' | 'paused' | 'ended';
+  position: 'homepage_hero' | 'homepage_sidebar' | 'events_page' | 'artists_page' | 'mobile_banner';
+  status: 'active' | 'paused' | 'scheduled' | 'expired';
   start_date?: string;
   end_date?: string;
   impressions: number;
@@ -160,7 +160,8 @@ const AdsManager = () => {
     switch (status) {
       case 'active': return 'bg-green-500/20 text-green-400';
       case 'paused': return 'bg-yellow-500/20 text-yellow-400';
-      case 'ended': return 'bg-gray-500/20 text-gray-400';
+      case 'expired': return 'bg-gray-500/20 text-gray-400';
+      case 'scheduled': return 'bg-blue-500/20 text-blue-400';
       default: return 'bg-gray-500/20 text-gray-400';
     }
   };
@@ -178,7 +179,7 @@ const AdsManager = () => {
             setEditingAd({ 
               title: '', 
               description: '', 
-              position: 'homepage', 
+              position: 'homepage_hero', 
               status: 'paused',
               link_url: '',
               image_url: ''
@@ -258,10 +259,11 @@ const AdsManager = () => {
           className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
         >
           <option value="">{t('admin.adsManager.allPositions')}</option>
-          <option value="homepage">{t('admin.adsManager.positionHomepage')}</option>
-          <option value="sidebar">{t('admin.adsManager.positionSidebar')}</option>
-          <option value="events">{t('admin.adsManager.positionEvents')}</option>
-          <option value="banner">{t('admin.adsManager.positionBanner')}</option>
+          <option value="homepage_hero">{t('admin.adsManager.positionHomepageHero') || 'Homepage Hero'}</option>
+          <option value="homepage_sidebar">{t('admin.adsManager.positionHomepageSidebar') || 'Homepage Sidebar'}</option>
+          <option value="events_page">{t('admin.adsManager.positionEvents') || 'Events Page'}</option>
+          <option value="artists_page">{t('admin.adsManager.positionArtists') || 'Artists Page'}</option>
+          <option value="mobile_banner">{t('admin.adsManager.positionBanner') || 'Mobile Banner'}</option>
         </select>
         <select
           value={statusFilter}
@@ -414,14 +416,15 @@ const AdsManager = () => {
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.position')}</label>
                   <select
-                    value={editingAd.position || 'homepage'}
+                    value={editingAd.position || 'homepage_hero'}
                     onChange={(e) => setEditingAd({ ...editingAd, position: e.target.value as Ad['position'] })}
                     className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
                   >
-                    <option value="homepage">{t('admin.adsManager.positionHomepage')}</option>
-                    <option value="sidebar">{t('admin.adsManager.positionSidebar')}</option>
-                    <option value="events">{t('admin.adsManager.positionEvents')}</option>
-                    <option value="banner">{t('admin.adsManager.positionBanner')}</option>
+                    <option value="homepage_hero">{t('admin.adsManager.positionHomepageHero') || 'Homepage Hero'}</option>
+                    <option value="homepage_sidebar">{t('admin.adsManager.positionHomepageSidebar') || 'Homepage Sidebar'}</option>
+                    <option value="events_page">{t('admin.adsManager.positionEvents') || 'Events Page'}</option>
+                    <option value="artists_page">{t('admin.adsManager.positionArtists') || 'Artists Page'}</option>
+                    <option value="mobile_banner">{t('admin.adsManager.positionBanner') || 'Mobile Banner'}</option>
                   </select>
                 </div>
                 <div>

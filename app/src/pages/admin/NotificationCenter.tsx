@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
-  Bell, Send, Loader2, Mail, Smartphone, Clock
+  Bell, Send, Loader2, Mail, Smartphone, Clock, Layers
 } from 'lucide-react';
 
 interface NotificationHistoryItem {
@@ -26,7 +26,7 @@ const NotificationCenter = () => {
   const [notification, setNotification] = useState({
     title: '',
     message: '',
-    type: 'push',
+    type: 'both',
     target_role: 'all',
     scheduled_at: ''
   });
@@ -109,13 +109,25 @@ const NotificationCenter = () => {
           <form onSubmit={handleSend} className="space-y-4">
             <div>
               <label className="block text-gray-400 text-sm mb-2">{t('admin.notificationCenter.notificationType')}</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNotification({ ...notification, type: 'both' })}
+                  className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    notification.type === 'both'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
+                      : 'border-white/10 text-gray-400 hover:border-white/20'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 mx-auto mb-1" />
+                  {t('admin.notificationCenter.typeBoth') || 'Both'}
+                </button>
                 <button
                   type="button"
                   onClick={() => setNotification({ ...notification, type: 'push' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    notification.type === 'push' 
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]' 
+                    notification.type === 'push'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
                       : 'border-white/10 text-gray-400 hover:border-white/20'
                   }`}
                 >
@@ -126,8 +138,8 @@ const NotificationCenter = () => {
                   type="button"
                   onClick={() => setNotification({ ...notification, type: 'email' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    notification.type === 'email' 
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]' 
+                    notification.type === 'email'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
                       : 'border-white/10 text-gray-400 hover:border-white/20'
                   }`}
                 >
@@ -138,8 +150,8 @@ const NotificationCenter = () => {
                   type="button"
                   onClick={() => setNotification({ ...notification, type: 'sms' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    notification.type === 'sms' 
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]' 
+                    notification.type === 'sms'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
                       : 'border-white/10 text-gray-400 hover:border-white/20'
                   }`}
                 >

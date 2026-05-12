@@ -2100,7 +2100,9 @@
       "messageLabel": "Message",
       "broadcastPlaceholder": "Tapez votre annonce...",
       "sendBroadcast": "Envoyer la diffusion",
-      "broadcastHint": "Cela enverra une notification à tous les utilisateurs actifs."
+      "broadcastHint": "Cela enverra un e-mail à tous les utilisateurs actifs.",
+      "subjectLabel": "Sujet (optionnel)",
+      "subjectPlaceholder": "Annonce de Sound It"
     },
     "reviewEvents": {
       "showEventTitle": "Show Event",
@@ -2804,7 +2806,8 @@
     "notificationCenter": {
       "untitled": "Untitled",
       "audienceArtist": "audience Artist",
-      "typePush": "type Push",
+      "typeBoth": "Les deux",
+      "typePush": "Notification",
       "recentNotifications": "Recent Notifications",
       "titlePlaceholder": "Enter title...",
       "title": "notification Center",
@@ -2825,11 +2828,11 @@
       "status.sent": "sent",
       "failedToSendNotification": "Failed to send notification",
       "titleAndMessageRequired": "Title and message are required",
-      "typeSms": "type Sms",
+      "typeSms": "SMS",
       "audienceUser": "audience User",
       "scheduleLabel": "Schedule",
       "notificationSent": "Notification sent",
-      "typeEmail": "type Email",
+      "typeEmail": "E-mail",
       "audienceVendor": "audience Vendor",
       "notificationType": "Type"
     },
@@ -3999,6 +4002,8 @@
   },
   "eventDetail": {
     "selectTicketType": "Select Ticket Type",
+    "standardTicket": "Billet Standard",
+    "ticket": "Billet",
     "linkCopied": "Link Copied",
     "toBeAnnounced": "To Be Announced",
     "ticketsRemaining": "Tickets Remaining",
@@ -4024,6 +4029,8 @@
     "notifyMe": "Notify Me",
     "limitedAvailability": "Limited Availability",
     "quantity": "Quantity",
+    "selectQuantity": "Sélectionner la quantité",
+    "proceedToPayment": "Procéder au paiement",
     "noTicketsAvailable": "No Tickets Available",
     "shareEvent": "Share Event",
     "artist": "Artist",

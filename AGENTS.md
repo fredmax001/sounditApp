@@ -885,3 +885,42 @@
   - Android: all `mipmap-*` densities (ldpi/mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi) with `ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png`, `ic_launcher_background.png`
 
 - **Build Status**: Frontend compiles successfully, deployed live to sounditent.com.
+
+
+### 34. Multi-Ticket QR Display & Scanner Fix (2026-05-11)
+- **Problem**: Buying 6 tickets created 6 unique `Ticket` records but `Tickets.tsx` only showed `TicketOrder.ticket_qr` (first ticket's QR). Scanning ticket #1 at the door matched the `TicketOrder` and marked the entire order as used.
+- **Frontend fix (`app/src/pages/user/Tickets.tsx`)**:
+  - Added `orderIndividualTickets` state to store per-ticket data fetched from `GET /tickets/my-orders/{order_id}/tickets`.
+  - "Show QR Code" button for ticket orders now fetches individual tickets when `quantity > 1`.
+  - Modal displays a 2-column scrollable grid of all ticket QR codes for multi-ticket orders, each labeled with `#1`, `#2`, etc.
+  - Single-ticket orders still show the legacy single-QR layout unchanged.
+  - Modal close handlers clear `orderIndividualTickets` state.
+- **Backend scanner (`api/ticketing_organizer.py`)**:
+  - Already fixed — `validate_ticket` checks individual `Ticket` records **first**, then falls back to `TicketOrder`.
+  - When a `Ticket` is validated, it only marks the parent `TicketOrder` as `USED` when **all** tickets in the order are consumed.
+- **Build Status**: Frontend compiles successfully.
+
+
+### 35. Email Notifications — SMTP + SendGrid (2026-05-11)
+- **Problem**: The only emails being sent were welcome emails (broken — called `send_email` with `html_content` instead of `html_body`) and password reset. No emails for ticket approvals, account approvals, or OTP.
+- **Solution**: Completely rewrote `email_service.py` to use SMTP SSL only:
+  - **SMTP SSL** — uses Python `smtplib.SMTP_SSL` with Hostinger settings (`smtp.hostinger.com:465`)
+  - **Console log** (dev fallback) — logs email to stdout if SMTP is not configured
+- **New email templates**:
+  - `send_welcome_email()` — branded HTML welcome with CTA button
+  - `send_otp_email()` — verification code with styled big digits
+  - `send_ticket_approved_email()` — event details + embedded QR code image + "View My Tickets" CTA
+  - `send_account_approved_email()` — congratulations + dashboard link for business/artist/vendor
+  - `send_account_rejected_email()` — rejection notice with optional reason
+  - `send_password_reset_email()` — updated with branded HTML wrapper
+- **Wired up triggers**:
+  - `api/auth.py` — welcome email on email/password registration AND Google OAuth sign-up (was missing for Google)
+  - `api/auth.py` — fixed bug: old code called `send_email(..., html_content=...)` which didn't match the function signature (`html_body`)
+  - `api/tickets.py` — ticket approval email with QR code to buyer
+  - `api/ticketing_organizer.py` — ticket approval email with QR code to buyer
+  - `api/admin.py` — account approval email when admin approves business/artist/vendor
+- **Config** (`config.py` + `.env.example`):
+  - Removed SendGrid settings (`SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`)
+  - Added `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- **Build Status**: Backend imports OK, frontend build passes, deployed live.
+
