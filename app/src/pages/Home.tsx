@@ -20,6 +20,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import EventCard from '@/components/EventCard';
 import ArtistCard from '@/components/ArtistCard';
+import AdBanner from '@/components/AdBanner';
 
 import axios from 'axios';
 import type { DJ } from '@/store/eventStore';
@@ -286,6 +287,16 @@ const Home = () => {
         </motion.div>
       </section>
 
+      {/* ==================== AD BANNER (DESKTOP HERO) ==================== */}
+      <section className="hidden md:block px-5 pt-6 pb-2">
+        <AdBanner position="homepage_hero" />
+      </section>
+
+      {/* ==================== AD BANNER (MOBILE) ==================== */}
+      <section className="md:hidden px-5 pt-4 pb-2">
+        <AdBanner position="mobile_banner" />
+      </section>
+
       {/* ==================== TRENDING NOW ==================== */}
       <section className="py-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#d3da0c]/[0.04] to-transparent pointer-events-none" />
@@ -466,6 +477,11 @@ const Home = () => {
             )}
           </div>
         </div>
+      </section>
+
+      {/* ==================== SIDEBAR AD (DESKTOP) ==================== */}
+      <section className="hidden md:block px-5 py-4">
+        <AdBanner position="homepage_sidebar" />
       </section>
 
       {/* ==================== CITY GUIDE GRID ==================== */}

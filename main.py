@@ -10,7 +10,7 @@ from config import get_settings
 from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads
 # monitoring module temporarily disabled
 
 settings = get_settings()
@@ -187,6 +187,7 @@ app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(business.router, prefix="/api/v1")
 app.include_router(recaps.router, prefix="/api/v1")
 app.include_router(artist_dashboard.router, prefix="/api/v1")
+app.include_router(ads.router, prefix="/api/v1")
 # app.include_router(monitoring.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(subscriptions.router, prefix="/api/v1")

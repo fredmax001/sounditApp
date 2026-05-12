@@ -25,6 +25,7 @@ export default function EventDetail() {
   // Ticket order flow
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [payerName, setPayerName] = useState('');
@@ -540,7 +541,7 @@ export default function EventDetail() {
                           setShowAuthModal(true);
                           return;
                         }
-                        setShowQrModal(true);
+                        setShowQuantityModal(true);
                       }}
                       className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer"
                     >
@@ -563,7 +564,7 @@ export default function EventDetail() {
                           setShowAuthModal(true);
                           return;
                         }
-                        setShowQrModal(true);
+                        setShowQuantityModal(true);
                       }}
                       className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer mb-4"
                     >
@@ -591,6 +592,70 @@ export default function EventDetail() {
         </div>
       </div>
 
+      {/* Quantity Selector Modal */}
+      {showQuantityModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">{t('eventDetail.selectQuantity')}</h3>
+              <button onClick={() => { setShowQuantityModal(false); setQuantity(1); }} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
+            </div>
+            {/* Tier info */}
+            {selectedTierId && currentEvent?.ticket_tiers?.length > 0 && (
+              <div className="mb-4 p-3 bg-white/5 rounded-xl">
+                <p className="text-white font-medium">
+                  {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.name}
+                </p>
+                <p className="text-[#d3da0c] font-bold">
+                  {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.currency || '¥'}
+                  {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.price || 0}
+                  <span className="text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
+                </p>
+              </div>
+            )}
+            {!selectedTierId && (
+              <div className="mb-4 p-3 bg-white/5 rounded-xl">
+                <p className="text-white font-medium">{t('eventDetail.standardTicket')}</p>
+                <p className="text-[#d3da0c] font-bold">
+                  ¥{currentEvent?.ticket_price || 0}
+                  <span className="text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
+                </p>
+              </div>
+            )}
+            {/* Quantity */}
+            <div className="mb-4">
+              <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')}</label>
+              <div className="flex items-center gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="w-12 h-12 rounded-xl bg-white/5 text-white hover:bg-white/10 text-xl font-bold"
+                >-</button>
+                <span className="text-white font-bold text-2xl w-12 text-center">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="w-12 h-12 rounded-xl bg-white/5 text-white hover:bg-white/10 text-xl font-bold"
+                >+</button>
+              </div>
+            </div>
+            {/* Total */}
+            <div className="mb-6 p-3 bg-[#d3da0c]/10 rounded-xl text-center">
+              <p className="text-white/60 text-sm">{t('eventDetail.total')}</p>
+              <p className="text-[#d3da0c] text-2xl font-bold">
+                ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
+              </p>
+            </div>
+            <button
+              onClick={() => { setShowQuantityModal(false); setShowQrModal(true); }}
+              className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+            >
+              {t('eventDetail.proceedToPayment')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -598,6 +663,14 @@ export default function EventDetail() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">{t('eventDetail.scanToPay')}</h3>
               <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
+            </div>
+            <div className="mb-3 text-center">
+              <p className="text-white/60 text-xs">
+                {quantity > 1 ? `${quantity} × ` : ''}
+                {selectedTierId && currentEvent?.ticket_tiers
+                  ? currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.name
+                  : t('eventDetail.standardTicket')}
+              </p>
             </div>
             <MobileQrPayment
               amount={(currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent.ticket_price ?? 0) * quantity}
@@ -636,19 +709,14 @@ export default function EventDetail() {
                 />
               </div>
               <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')} *</label>
+                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')}</label>
                 <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-10 h-10 rounded-lg bg-white/5 text-white hover:bg-white/10"
-                  >-</button>
-                  <span className="text-white font-medium w-8 text-center">{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="w-10 h-10 rounded-lg bg-white/5 text-white hover:bg-white/10"
-                  >+</button>
+                  <div className="px-4 py-2 rounded-lg bg-white/5 text-white font-medium">
+                    {quantity} {quantity === 1 ? t('eventDetail.ticket') : t('eventDetail.tickets')}
+                  </div>
+                  <span className="text-[#d3da0c] font-bold">
+                    ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div>
