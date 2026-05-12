@@ -677,6 +677,7 @@ export default function EventDetail() {
               wechatQrUrl={currentEvent.wechat_qr_url}
               alipayQrUrl={currentEvent.alipay_qr_url}
               paymentInstructions={currentEvent.payment_instructions}
+              hideYoopay={!!currentEvent.wechat_qr_url || !!currentEvent.alipay_qr_url}
             />
             <button
               onClick={() => { setShowQrModal(false); setShowOrderModal(true); }}

@@ -304,10 +304,10 @@ const BusinessDashboard = () => {
             className="bg-[#111111] border border-white/5 rounded-lg p-2 lg:rounded-xl lg:p-4 hover:border-white/10 transition-all"
           >
             <div className="flex items-center gap-1.5 mb-1 lg:mb-2">
-              <div className={`p-1 bg-white/5 rounded ${stat.color}`}>
+              <div className={`p-1.5 bg-white/5 rounded ${stat.color}`}>
                 <stat.icon className="w-3 h-3 lg:w-4 lg:h-4" />
               </div>
-              <span className="text-gray-400 text-[9px] font-medium whitespace-nowrap lg:text-xs">{stat.label}</span>
+              <span className="text-gray-400 text-[10px] leading-tight font-medium whitespace-nowrap lg:text-xs">{stat.label}</span>
             </div>
             <p className="text-sm font-bold text-white tracking-tight lg:text-xl">
               {statsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : stat.value}
@@ -379,7 +379,7 @@ const BusinessDashboard = () => {
                     <p className="text-gray-400 text-[10px] truncate lg:text-xs">{order.event?.title} • Qty: {order.quantity || 1} • {new Date(order.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap ${
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
                       order.status === 'approved' ? 'bg-green-500/10 text-green-400' :
                       order.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
                       order.status === 'cancelled' ? 'bg-gray-500/10 text-gray-400' :
@@ -388,26 +388,26 @@ const BusinessDashboard = () => {
                       {order.status}
                     </span>
                     {order.auto_approved && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/10 text-blue-400 whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 whitespace-nowrap">
                         Auto
                       </span>
                     )}
                     <p className="text-white font-semibold text-xs whitespace-nowrap">¥{order.payment_amount}</p>
                     {order.status === 'pending' && !order.auto_approved && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-1.5">
                         <button
                           onClick={() => handleApproveOrder(order.id)}
                           disabled={processingOrderId === order.id}
-                          className="w-7 h-7 bg-green-500/20 text-green-500 rounded-md hover:bg-green-500/30 disabled:opacity-50 flex items-center justify-center"
+                          className="w-9 h-9 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 disabled:opacity-50 flex items-center justify-center"
                         >
-                          {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                          {processingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         </button>
                         <button
                           onClick={() => handleRejectOrder(order.id)}
                           disabled={processingOrderId === order.id}
-                          className="w-7 h-7 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30 disabled:opacity-50 flex items-center justify-center"
+                          className="w-9 h-9 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 disabled:opacity-50 flex items-center justify-center"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
                     )}
@@ -498,18 +498,18 @@ const BusinessDashboard = () => {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleEditEvent(event)}
-                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-all"
+                      className="p-2.5 w-9 h-9 bg-white/5 hover:bg-white/10 rounded-lg transition-all flex items-center justify-center"
                       title={t('business.dashboard.editEvent')}
                     >
-                      <Edit className="w-3.5 h-3.5 text-gray-400" />
+                      <Edit className="w-4 h-4 text-gray-400" />
                     </button>
                     <button
                       onClick={() => handleDeleteEvent(event.id, event.title)}
                       disabled={isDeletingEvent}
-                      className="p-1.5 bg-white/5 hover:bg-red-500/20 rounded-md transition-all disabled:opacity-50"
+                      className="p-2.5 w-9 h-9 bg-white/5 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center"
                       title={t('business.dashboard.deleteEvent')}
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   </div>
                 </div>
@@ -684,7 +684,7 @@ const BusinessDashboard = () => {
       {selectedScreenshot && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setSelectedScreenshot(null)}>
           <div className="relative max-w-3xl w-full">
-            <button onClick={() => setSelectedScreenshot(null)} className="absolute -top-10 right-0 text-white hover:text-gray-300"><X className="w-8 h-8" /></button>
+            <button onClick={() => setSelectedScreenshot(null)} className="absolute top-2 right-2 z-10 p-2 bg-black/50 rounded-full text-white hover:text-gray-300"><X className="w-6 h-6" /></button>
             <img src={selectedScreenshot} alt="Screenshot" className="w-full h-auto rounded-xl" />
           </div>
         </div>
@@ -693,8 +693,8 @@ const BusinessDashboard = () => {
       {/* QR Modal */}
       {selectedQr && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setSelectedQr(null)}>
-          <div className="bg-white p-6 rounded-2xl text-center" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedQr} alt="Ticket QR" className="w-64 h-64 mx-auto" />
+          <div className="bg-white p-4 sm:p-6 rounded-2xl text-center max-w-sm w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedQr} alt="Ticket QR" className="w-full max-w-[80vw] max-h-[80vw] aspect-square mx-auto" />
             <p className="text-black mt-4 font-semibold">Ticket QR Code</p>
           </div>
         </div>

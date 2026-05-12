@@ -112,6 +112,42 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
   const isVendor = role === 'vendor';
   const isAdmin = role === 'admin' || role === 'super_admin';
 
+  const getPageTitle = useMemo(() => {
+    const path = location.pathname;
+    if (path === '/dashboard/business/create-event') return t('organizer.createEvent.newEvent') || 'Create Event';
+    if (path === '/dashboard/business/events') return t('nav.events') || 'My Events';
+    if (path === '/dashboard/business/ticket-orders') return t('business.dashboard.ticketOrders') || 'Ticket Orders';
+    if (path === '/dashboard/business/profile') return t('nav.profile') || 'Profile';
+    if (path === '/dashboard/business/staff') return t('business.staff.title') || 'Staff';
+    if (path === '/dashboard/business/promoters') return t('nav.promoters') || 'Promoters';
+    if (path === '/dashboard/business/analytics') return t('upgrade.analytics') || 'Analytics';
+    if (path === '/dashboard/business/followers') return t('nav.followers') || 'Followers';
+    if (path === '/dashboard/business/payouts') return t('upgrade.payouts') || 'Payouts';
+    if (path === '/dashboard/business/community') return t('upgrade.communityPosts') || 'Community';
+    if (path === '/dashboard/business/tables') return t('upgrade.tableReservations') || 'Tables';
+    if (path === '/dashboard/business/recaps') return t('organizer.recaps') || 'Recaps';
+    if (path.startsWith('/dashboard/business/events/') && path.endsWith('/edit')) return t('business.dashboard.editEvent') || 'Edit Event';
+    if (path.startsWith('/dashboard/business/events/') && path.endsWith('/promoters')) return t('nav.promoters') || 'Promoters';
+    if (path === '/dashboard/artist') return t('nav.dashboard') || 'Dashboard';
+    if (path === '/dashboard/artist/bookings') return t('artist.bookings.title') || 'Bookings';
+    if (path === '/dashboard/artist/performances') return t('artist.performances.title') || 'Gigs';
+    if (path === '/dashboard/artist/analytics') return t('upgrade.analytics') || 'Analytics';
+    if (path === '/dashboard/artist/community') return t('upgrade.fanFeed') || 'Fan Feed';
+    if (path === '/dashboard/artist/recaps') return t('artist.recaps') || 'Recaps';
+    if (path === '/dashboard/vendor') return t('nav.dashboard') || 'Dashboard';
+    if (path === '/dashboard/vendor/products') return t('vendor.myProducts') || 'Products';
+    if (path === '/dashboard/vendor/orders') return t('vendor.orders.navLabel') || 'Orders';
+    if (path === '/dashboard/vendor/events') return t('upgrade.eventBooths') || 'Event Booths';
+    if (path === '/dashboard/vendor/earnings') return t('upgrade.earnings') || 'Earnings';
+    if (path === '/dashboard/vendor/community') return t('upgrade.communityPosts') || 'Community';
+    if (path === '/admin') return t('nav.dashboard') || 'Dashboard';
+    if (path.startsWith('/admin/')) return t('nav.admin') || 'Admin';
+    if (path === '/scan') return t('nav.scan') || 'Scan';
+    if (path === '/subscriptions') return t('nav.subscriptions') || 'Subscription';
+    // Fallback to path-based parsing
+    return location.pathname.split('/').pop()?.replace(/-/g, ' ') || t('nav.dashboard');
+  }, [location.pathname, t]);
+
   const handleLockedClick = (e: React.MouseEvent, item: NavItem) => {
     e.preventDefault();
     const feature = item.feature || item.path.split('/').pop()?.replace(/-/g, '_') || 'premium';
@@ -234,8 +270,8 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
             </svg>
           </button>
 
-          <span className="text-white font-semibold text-sm truncate max-w-[50vw]">
-            {location.pathname.split('/').pop()?.replace(/-/g, ' ') || t('nav.dashboard')}
+          <span className="text-white font-semibold text-sm truncate max-w-[50vw] capitalize">
+            {getPageTitle}
           </span>
 
           <button
