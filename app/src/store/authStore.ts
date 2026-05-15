@@ -84,7 +84,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}) {
 // ============================================
 export type UserRole = 'user' | 'business' | 'artist' | 'admin' | 'super_admin' | 'moderator' | 'vendor';
 export type BusinessType = 'club' | 'bar' | 'lounge' | 'restaurant' | 'organizer' | 'venue' | 'other';
-export type ArtistType = 'Artist' | 'DJ' | 'MC' | 'dj' | 'singer' | 'rapper' | 'band' | 'producer' | 'instrumentalist' | 'other';
+export type ArtistType = 'Artist' | 'DJ' | 'MC' | 'Dancer' | 'Photographer' | 'dj' | 'singer' | 'rapper' | 'band' | 'producer' | 'instrumentalist' | 'other';
 
 export interface City {
   id: string;
@@ -151,26 +151,39 @@ export interface BusinessProfile {
   rating: number;
 }
 
+
+
+export interface MusicLink {
+  platform: string;
+  title: string;
+  url: string;
+}
+
 export interface ArtistProfile {
   id: string;
   user_id: string;
   stage_name: string;
-  real_name: string;
   artist_type: ArtistType;
   genres: string[];
   bio: string;
-  profile_image_url: string;
-  banner_url: string;
-  gallery_images: string[];
-  soundcloud_url: string;
-  spotify_url: string;
-  instagram: string;
-  is_available_for_booking: boolean;
-  booking_fee_range: string;
+  soundcloud_url?: string;
+  spotify_url?: string;
+  apple_music_url?: string;
+  youtube_url?: string;
+  audiomack_url?: string;
+  hearthis_url?: string;
+  instagram?: string;
   is_verified: boolean;
-  verification_status: string;
   follower_count: number;
   rating: number;
+  // Role-specific media
+  dj_mix_url?: string;
+  dj_mix_title?: string;
+  dj_mix_duration?: number;
+  dance_video_url?: string;
+  dance_video_title?: string;
+  dance_video_duration?: number;
+  music_links?: MusicLink[];
 }
 
 export interface AuthState {

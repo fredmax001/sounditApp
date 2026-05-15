@@ -45,11 +45,20 @@ interface ArtistProfile {
   apple_music_url?: string;
   soundcloud_url?: string;
   hearthis_url?: string;
-  instagram_url?: string;
   youtube_url?: string;
+  audiomack_url?: string;
+  instagram_url?: string;
   wechat_qr_url?: string;
   alipay_qr_url?: string;
   payment_instructions?: string;
+  // Role-specific media
+  dj_mix_url?: string;
+  dj_mix_title?: string;
+  dj_mix_duration?: number;
+  dance_video_url?: string;
+  dance_video_title?: string;
+  dance_video_duration?: number;
+  music_links?: { platform: string; title: string; url: string }[];
 }
 
 interface Track {
@@ -108,6 +117,7 @@ const BookingModal = ({
     event_name: '',
     event_type: '',
     event_date: '',
+    event_time: '',
     event_city: '',
     event_location: '',
     budget: '',
@@ -131,6 +141,7 @@ const BookingModal = ({
         event_name: '',
         event_type: '',
         event_date: '',
+        event_time: '',
         event_city: '',
         event_location: '',
         budget: '',
@@ -339,6 +350,7 @@ const BookingModal = ({
                       />
                     </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.city')}</label>

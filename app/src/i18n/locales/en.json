@@ -846,8 +846,41 @@
       "artistType": {
         "artist": "Artist",
         "dj": "DJ",
-        "mc": "MC"
+        "mc": "MC",
+        "dancer": "Dancer",
+        "photographer": "Photographer"
       },
+      "label": {
+        "youtubeUrl": "YouTube URL",
+        "audiomackUrl": "Audiomack URL"
+      },
+      "placeholder": {
+        "youtube": "https://youtube.com/channel/...",
+        "audiomack": "https://audiomack.com/artist/..."
+      },
+      "djMixTitle": "DJ Mix",
+      "djMixSubtitle": "Upload your best mix (max 10 min, 10MB)",
+      "uploadMix": "Upload Mix",
+      "replaceMix": "Replace Mix",
+      "mixUploaded": "DJ mix uploaded successfully",
+      "mixUploadFailed": "Failed to upload DJ mix",
+      "mixTooLarge": "Mix must be under 10MB",
+      "mixRequirements": "Accepted: MP3, M4A, WAV. Max 10 min, 10MB.",
+      "danceVideoTitle": "Dance Video",
+      "danceVideoSubtitle": "Upload your performance video (max 3 min, 30MB)",
+      "uploadVideo": "Upload Video",
+      "replaceVideo": "Replace Video",
+      "videoUploaded": "Dance video uploaded successfully",
+      "videoUploadFailed": "Failed to upload dance video",
+      "videoTooLarge": "Video must be under 30MB",
+      "videoRequirements": "Accepted: MP4, MOV, WebM. Max 3 min, 30MB.",
+      "musicLinksTitle": "Music Links",
+      "musicLinksSubtitle": "Add links to your songs on streaming platforms",
+      "addMusicLink": "Add Music Link",
+      "linkPlatform": "Platform",
+      "linkTitle": "Song Title",
+      "linkUrl": "URL",
+      "uploading": "Uploading...",
       "charCount": "{{count}} / 500 characters",
       "maxCharReached": "Maximum character count reached (500 characters)",
       "saving": "Saving...",
@@ -3132,6 +3165,9 @@
     ]
   },
   "artistDetail": {
+    "djMix": "DJ Mix",
+    "danceVideo": "Dance Performance",
+    "eventTime": "Event Time",
     "pageTitle": "{{name}} | Sound It",
     "backToArtists": "Back to Artists",
     "events": "Events",

@@ -52,6 +52,16 @@ with engine.connect() as conn:
         ('wechat_qr_url', 'VARCHAR(500)'),
         ('alipay_qr_url', 'VARCHAR(500)'),
         ('payment_instructions', 'TEXT'),
+        ('youtube_url', 'VARCHAR(500)'),
+        ('audiomack_url', 'VARCHAR(500)'),
+        ('hearthis_url', 'VARCHAR(500)'),
+        ('dj_mix_url', 'VARCHAR(500)'),
+        ('dj_mix_title', 'VARCHAR(200)'),
+        ('dj_mix_duration', 'INTEGER'),
+        ('dance_video_url', 'VARCHAR(500)'),
+        ('dance_video_title', 'VARCHAR(200)'),
+        ('dance_video_duration', 'INTEGER'),
+        ('music_links', 'JSON'),
     ]:
         if col not in artist_cols:
             conn.execute(text(f"ALTER TABLE artist_profiles ADD COLUMN {col} {col_type}"))
@@ -69,6 +79,8 @@ with engine.connect() as conn:
         ("payment_status", "VARCHAR(20) DEFAULT 'pending'"),
         ('reviewed_at', 'DATETIME'),
         ('rejection_reason', 'TEXT'),
+        ('event_time', 'VARCHAR(50)'),
+        ('creative_role', 'VARCHAR(50)'),
     ]:
         if col not in booking_cols:
             conn.execute(text(f"ALTER TABLE booking_requests ADD COLUMN {col} {col_type}"))

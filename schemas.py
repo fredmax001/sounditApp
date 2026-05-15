@@ -281,6 +281,12 @@ class OTPVerify(BaseModel):
 
 # ==================== ARTIST SCHEMAS (formerly DJ) ====================
 
+class MusicLinkItem(BaseModel):
+    platform: str
+    title: str
+    url: str
+
+
 class ArtistProfileBase(BaseModel):
     stage_name: str
     genre: Optional[str] = None
@@ -290,10 +296,22 @@ class ArtistProfileBase(BaseModel):
     spotify_url: Optional[str] = None
     apple_music_url: Optional[str] = None
     soundcloud_url: Optional[str] = None
-    artist_type: Optional[str] = "Artist"  # Artist, DJ, or MC
+    youtube_url: Optional[str] = None
+    audiomack_url: Optional[str] = None
+    hearthis_url: Optional[str] = None
+    artist_type: Optional[str] = "Artist"  # Artist, DJ, MC, Dancer, Photographer
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
     payment_instructions: Optional[str] = None
+    
+    # Role-specific media
+    dj_mix_url: Optional[str] = None
+    dj_mix_title: Optional[str] = None
+    dj_mix_duration: Optional[int] = None
+    dance_video_url: Optional[str] = None
+    dance_video_title: Optional[str] = None
+    dance_video_duration: Optional[int] = None
+    music_links: Optional[List[MusicLinkItem]] = None
 
 
 class ArtistProfileCreate(ArtistProfileBase):
@@ -1416,6 +1434,18 @@ class ArtistProfileDetailed(BaseModel):
     spotify_url: Optional[str] = None
     apple_music_url: Optional[str] = None
     soundcloud_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    audiomack_url: Optional[str] = None
+    hearthis_url: Optional[str] = None
+    music_links: Optional[List[MusicLinkItem]] = None
+    
+    # Role-specific media
+    dj_mix_url: Optional[str] = None
+    dj_mix_title: Optional[str] = None
+    dj_mix_duration: Optional[int] = None
+    dance_video_url: Optional[str] = None
+    dance_video_title: Optional[str] = None
+    dance_video_duration: Optional[int] = None
     
     # Booking settings
     starting_price: Optional[float] = None

@@ -156,6 +156,8 @@ class ArtistType(str, enum.Enum):
     ARTIST = "Artist"
     DJ = "DJ"
     MC = "MC"
+    DANCER = "Dancer"
+    PHOTOGRAPHER = "Photographer"
 
 
 class BookingStatus(str, enum.Enum):
@@ -303,6 +305,20 @@ class ArtistProfile(Base):
     spotify_url = Column(String(500), nullable=True)
     apple_music_url = Column(String(500), nullable=True)
     soundcloud_url = Column(String(500), nullable=True)
+    youtube_url = Column(String(500), nullable=True)
+    audiomack_url = Column(String(500), nullable=True)
+    hearthis_url = Column(String(500), nullable=True)
+    
+    # Role-specific media
+    dj_mix_url = Column(String(500), nullable=True)
+    dj_mix_title = Column(String(200), nullable=True)
+    dj_mix_duration = Column(Integer, nullable=True)
+    
+    dance_video_url = Column(String(500), nullable=True)
+    dance_video_title = Column(String(200), nullable=True)
+    dance_video_duration = Column(Integer, nullable=True)
+    
+    music_links = Column(JSON, nullable=True)
     
     # Booking settings
     starting_price = Column(Float, nullable=True)
@@ -631,8 +647,12 @@ class BookingRequest(Base):
     event_name = Column(String(200), nullable=True)
     event_type = Column(String(100), nullable=True)
     event_date = Column(DateTime(timezone=True), nullable=True)
+    event_time = Column(String(50), nullable=True)
     event_city = Column(String(100), nullable=True)
     event_location = Column(String(255), nullable=True)
+    
+    # Creative role (derived from artist.artist_type at creation)
+    creative_role = Column(String(50), nullable=True)
     
     # Booking Details
     budget = Column(Float, nullable=True)

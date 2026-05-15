@@ -27,6 +27,46 @@
 
 ## Completed Audits & Fixes
 
+### 36. YooPay Subscription Audit & Config Fix (2026-05-13)
+- **Problem**: User asked to verify if subscription payments go through YooPay and if it's active.
+- **Findings**:
+  1. **CRITICAL BUG — YooPay Company ID Mismatch**: `api/subscriptions.py` hardcoded `https://yoopay.cn/tc/603316601` but `.env` has `YOOPAY_COMPANY_ID="20054261767892510057"`. Users were being sent to a DIFFERENT YooPay account than configured.
+  2. **Manual Payment Flow Only**: YooPay has NO API integration. The flow is: user pays externally via YooPay link → uploads screenshot → admin manually approves. No automatic payment verification.
+  3. **Subscription Plan Price Mismatch**: Database `subscription_plan_configs` has BASIC plans priced at ¥0 for all roles (Business, Artist, Vendor), while `subscription_config.py` hardcodes ¥100/¥50/¥80. Users can subscribe to BASIC for FREE.
+  4. **Most Subscriptions Are Free**: 7 of 8 active subscriptions are ¥0 (trials or auto-granted). Only 1 paid subscription exists (ID:1, ¥80, approved by admin).
+  5. **1 Pending Subscription**: User 92 (nacho_82@yahoo.com) created a BUSINESS BASIC subscription (¥100) on 2026-05-13 but has NOT uploaded payment proof yet.
+  6. **Ticket Orders Use Same Manual Flow**: ¥2,240 approved revenue from ticket orders also uses manual screenshot upload — not YooPay.
+- **Fixes applied**:
+  - `api/subscriptions.py`: Replaced hardcoded YooPay URL/QR with `os.getenv()` reads from `.env`:
+    - `YOOPAY_COMPANY_ID` (default: `20054261767892510057`)
+    - `YOOPAY_PAYMENT_URL`
+    - `YOOPAY_QR_IMAGE_PATH`
+  - Deployed to production and restarted service.
+- **Outstanding Issues**:
+  - Subscription plan prices in DB need to be updated to match `subscription_config.py`
+  - User 92's pending subscription needs payment proof or admin decision
+  - YooPay has no automatic payment verification — consider implementing webhook or API if YooPay supports it
+
+### 35. Admin Revenue Fix — Include All Revenue Sources (2026-05-13)
+- **Problem**: Admin dashboard showed ¥0 total revenue despite platform having actual revenue. Financial Control page showed no data.
+- **Root cause**: The `/admin/dashboard` and `/admin/financials` endpoints only queried the `orders` table, which had 0 rows. All actual revenue was in:
+  - `ticket_orders` (15 rows, ¥2,240 approved) — manual payment screenshot orders
+  - `subscriptions` (9 rows, ¥80 active) — recurring subscription revenue
+  - `table_orders` and `product_orders` (0 rows each but functional)
+- **Fixes applied**:
+  - `api/admin.py`:
+    - Added `TicketOrderStatus, TableOrderStatus` to imports
+    - Updated `get_dashboard_stats()` to calculate `total_revenue` from all 5 sources: `TicketOrder` (APPROVED), `TableOrder` (APPROVED), `ProductOrder` (APPROVED), `Subscription` (ACTIVE), and legacy `Order` (COMPLETED)
+    - Updated `total_tickets_sold` to count approved `TicketOrder.quantity` instead of relying on `Event.tickets_sold` counter
+    - Updated `get_financials()` to use scalar SQL queries (`func.coalesce(func.sum(...), 0)`) instead of full ORM fetches to avoid schema mismatch errors (e.g., `table_orders.payment_proof_hash` column doesn't exist in DB)
+    - Added `revenue_by_category` breakdown with percentages and colors for the Financial Control chart
+    - Added commission rate settings to the financials response
+  - Deployed `api/admin.py` to production (`/var/www/soundit/api/admin.py`) and restarted `soundit` service
+- **Verification**:
+  - `GET /admin/dashboard` → `total_revenue: 2320.0`, `total_tickets_sold: 21`
+  - `GET /admin/financials?days=365` → `total_revenue: 2320.0`, `total_commission: 240.0`, `revenue_by_category: [Event Tickets ¥2,240, Subscriptions ¥80]`
+- **No frontend changes needed**: `Dashboard.tsx` and `FinancialControl.tsx` already expected these fields.
+
 ### 34. Hero Background — Sharp, Black Overlay & Weather Widget (2026-05-13)
 - **Changes**:
   - Swapped hero background from blurred `hero-bg.jpg` to sharp `hero-event.jpg` (crowd photo)

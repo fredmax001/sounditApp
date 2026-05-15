@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
+import { useAuthStore } from '@/store/authStore';
 
 interface PublicProfileData {
   id: number;
@@ -32,9 +33,13 @@ interface PublicProfileData {
     id: number;
     stage_name: string;
     genre: string;
+    artist_type?: string;
     followers_count: number;
     events_count: number;
     is_verified: boolean;
+    dj_mix_url?: string;
+    dance_video_url?: string;
+    music_links?: { platform: string; title: string; url: string }[];
   };
   organizer_profile?: {
     id: number;
@@ -77,6 +82,8 @@ export default function PublicProfile() {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const { user } = useAuthStore();
+  const isOrganizer = user?.role === 'organizer' || user?.role === 'business';
 
   useEffect(() => {
     if (!id) return;
