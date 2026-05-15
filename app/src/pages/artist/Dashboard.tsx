@@ -37,7 +37,10 @@ const ArtistDashboard = () => {
     spotify_url: '',
     apple_music_url: '',
     soundcloud_url: '',
-    hearthis_url: ''
+    hearthis_url: '',
+    youtube_url: '',
+    audiomack_url: '',
+    music_links: [] as { platform: string; title: string; url: string }[]
   });
 
   // Booking filter state
@@ -64,9 +67,12 @@ const ArtistDashboard = () => {
         wechat: profile?.wechat_id || '',
         phone: profile?.phone || '',
         spotify_url: artistProfile?.spotify_url || '',
-        apple_music_url: '',
+        apple_music_url: artistProfile?.apple_music_url || '',
         soundcloud_url: artistProfile?.soundcloud_url || '',
-        hearthis_url: ''
+        hearthis_url: artistProfile?.hearthis_url || '',
+        youtube_url: artistProfile?.youtube_url || '',
+        audiomack_url: artistProfile?.audiomack_url || '',
+        music_links: artistProfile?.music_links || []
       });
     }
   }, [artistProfile, profile]);
@@ -151,7 +157,10 @@ const ArtistDashboard = () => {
             spotify_url: profileForm.spotify_url,
             apple_music_url: profileForm.apple_music_url,
             soundcloud_url: profileForm.soundcloud_url,
-            hearthis_url: profileForm.hearthis_url
+            hearthis_url: profileForm.hearthis_url,
+            youtube_url: profileForm.youtube_url,
+            audiomack_url: profileForm.audiomack_url,
+            music_links: profileForm.music_links
           })
         });
 
@@ -175,7 +184,10 @@ const ArtistDashboard = () => {
             spotify_url: profileForm.spotify_url,
             apple_music_url: profileForm.apple_music_url,
             soundcloud_url: profileForm.soundcloud_url,
-            hearthis_url: profileForm.hearthis_url
+            hearthis_url: profileForm.hearthis_url,
+            youtube_url: profileForm.youtube_url,
+            audiomack_url: profileForm.audiomack_url,
+            music_links: profileForm.music_links
           })
         });
 
@@ -216,6 +228,70 @@ const ArtistDashboard = () => {
       toast.error(t('artist.dashboard.saveProfileFailed'));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Upload DJ Mix
+  const [isUploadingMix, setIsUploadingMix] = useState(false);
+  const handleDjMixUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session?.access_token) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(t('artist.dashboard.mixTooLarge'));
+      return;
+    }
+    setIsUploadingMix(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
+      const res = await fetch(`${API_BASE_URL}/artist/upload-dj-mix`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Upload failed');
+      }
+      await useAuthStore.getState().fetchArtistProfile();
+      toast.success(t('artist.dashboard.mixUploaded'));
+    } catch (err: any) {
+      toast.error(err.message || t('artist.dashboard.mixUploadFailed'));
+    } finally {
+      setIsUploadingMix(false);
+    }
+  };
+
+  // Upload Dance Video
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const handleDanceVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session?.access_token) return;
+    if (file.size > 30 * 1024 * 1024) {
+      toast.error(t('artist.dashboard.videoTooLarge'));
+      return;
+    }
+    setIsUploadingVideo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
+      const res = await fetch(`${API_BASE_URL}/artist/upload-dance-video`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Upload failed');
+      }
+      await useAuthStore.getState().fetchArtistProfile();
+      toast.success(t('artist.dashboard.videoUploaded'));
+    } catch (err: any) {
+      toast.error(err.message || t('artist.dashboard.videoUploadFailed'));
+    } finally {
+      setIsUploadingVideo(false);
     }
   };
 
@@ -335,7 +411,11 @@ const ArtistDashboard = () => {
   // Music platform links from artist profile
   const musicLinks = [
     { url: artistProfile?.spotify_url || profileForm.spotify_url, key: 'spotify' },
+    { url: artistProfile?.apple_music_url || profileForm.apple_music_url, key: 'apple_music' },
     { url: artistProfile?.soundcloud_url || profileForm.soundcloud_url, key: 'soundcloud' },
+    { url: artistProfile?.hearthis_url || profileForm.hearthis_url, key: 'hearthis' },
+    { url: artistProfile?.youtube_url || profileForm.youtube_url, key: 'youtube' },
+    { url: artistProfile?.audiomack_url || profileForm.audiomack_url, key: 'audiomack' },
   ].filter(link => link.url);
 
   // Get display name - prioritize stage_name, then first_name + last_name
@@ -815,6 +895,36 @@ const ArtistDashboard = () => {
                         value={profileForm.hearthis_url}
                         onChange={(e) => handleProfileChange('hearthis_url', e.target.value)}
                         placeholder={t('artist.dashboard.placeholder.hearthis')}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      />
+                    </div>
+
+                    {/* YouTube */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
+                        {getPlatformInfo('https://youtube.com')?.iconSvg || <span className="w-6 h-6 bg-red-500/20 rounded flex items-center justify-center text-red-500 text-xs">YT</span>}
+                        {t('artist.dashboard.label.youtubeUrl')}
+                      </label>
+                      <input
+                        type="url"
+                        value={profileForm.youtube_url}
+                        onChange={(e) => handleProfileChange('youtube_url', e.target.value)}
+                        placeholder={t('artist.dashboard.placeholder.youtube')}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
+                      />
+                    </div>
+
+                    {/* Audiomack */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider lg:text-xs flex items-center gap-2">
+                        <span className="w-6 h-6 bg-orange-600/20 rounded flex items-center justify-center text-orange-600 text-xs font-bold">AM</span>
+                        {t('artist.dashboard.label.audiomackUrl')}
+                      </label>
+                      <input
+                        type="url"
+                        value={profileForm.audiomack_url}
+                        onChange={(e) => handleProfileChange('audiomack_url', e.target.value)}
+                        placeholder={t('artist.dashboard.placeholder.audiomack')}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 lg:rounded-2xl lg:px-6 lg:py-4 text-white focus:border-[#d3da0c] outline-none transition-all font-bold"
                       />
                     </div>
