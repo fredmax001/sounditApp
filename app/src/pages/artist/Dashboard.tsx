@@ -462,162 +462,150 @@ const ArtistDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-6 bg-white/5 p-3 rounded-2xl border border-white/5 lg:p-6 lg:rounded-3xl lg:mb-10">
-        <div className="flex items-center gap-3 lg:gap-6">
-          <div className="relative group flex-shrink-0">
-            <img
-              src={getAvatarUrl()}
-              alt={getDisplayName()}
-              className="w-14 h-14 rounded-xl object-cover ring-2 ring-[#d3da0c]/20 lg:w-28 lg:h-28 lg:rounded-3xl lg:ring-4 group-hover:ring-[#d3da0c]/50 transition-all duration-300 shadow-2xl"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/default-artist.png';
-              }}
-            />
-            <label className="absolute -bottom-1 -right-1 p-1.5 bg-[#d3da0c] rounded-lg text-black shadow-xl hover:scale-110 active:scale-90 transition-all cursor-pointer lg:-bottom-2 lg:-right-2 lg:p-3 lg:rounded-2xl">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-                disabled={isUploadingAvatar}
-              />
-              {isUploadingAvatar ? (
-                <Loader2 className="w-3.5 h-3.5 lg:w-5 lg:h-5 animate-spin" />
-              ) : (
-                <Camera className="w-3.5 h-3.5 lg:w-5 lg:h-5" />
-              )}
-            </label>
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 lg:gap-4 lg:mb-2">
-              <h1 className="text-base font-bold text-white tracking-tight truncate lg:text-3xl">
-                {getDisplayName()}
-              </h1>
-              {(profile?.is_verified || artistProfile?.is_verified) && (
-                <div className="bg-[#d3da0c] text-black p-0.5 rounded-full shadow-[0_0_15px_rgba(211, 218, 12,0.5)] flex-shrink-0 lg:p-1">
-                  <Check className="w-3 h-3 lg:w-3.5 lg:h-3.5 font-black" />
-                </div>
-              )}
+    <div className="min-h-screen bg-[#0A0A0A] pb-24 lg:pb-10">
+
+      {/* ── Hero Header ── */}
+      <div className="relative overflow-hidden">
+        {/* Lime glow orb */}
+        <div className="absolute top-0 left-1/4 w-64 h-32 bg-[#d3da0c]/[0.06] rounded-full blur-3xl pointer-events-none" />
+        <div className="px-4 pt-6 pb-5 lg:px-10 lg:pt-8 border-b border-white/[0.06]">
+          <div className="flex items-start gap-4 lg:gap-6">
+            {/* Avatar */}
+            <div className="relative group flex-shrink-0">
+              <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl overflow-hidden ring-2 ring-[#d3da0c]/20 group-hover:ring-[#d3da0c]/40 transition-all shadow-2xl">
+                <img src={getAvatarUrl()} alt={getDisplayName()}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/default-artist.png'; }} />
+              </div>
+              <label className="absolute -bottom-1.5 -right-1.5 w-7 h-7 lg:w-8 lg:h-8 bg-[#d3da0c] rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#bbc10b] transition-all shadow-lg">
+                <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" disabled={isUploadingAvatar} />
+                {isUploadingAvatar ? <Loader2 className="w-3 h-3 lg:w-3.5 lg:h-3.5 animate-spin text-black" /> : <Camera className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-black" />}
+              </label>
             </div>
-            {(() => {
-              const type = artistProfile?.artist_type || profileForm.artist_type;
-              const showType = type && type !== 'Artist';
-              const showGenres = artistProfile?.genres?.length > 0;
-              if (!showType && !showGenres) return null;
-              return (
-                <p className="text-[#d3da0c] font-semibold text-xs mb-1 tracking-wide truncate lg:text-base lg:mb-3">
-                  {showType ? type : ''}
-                  {showType && showGenres ? ' • ' : ''}
-                  {showGenres ? artistProfile.genres.join(' • ') : ''}
-                </p>
-              );
-            })()}
-            <div className="flex items-center gap-2 lg:gap-3">
-              {(profile?.instagram || profileForm.instagram) && (
-                <a
-                  href={(profile?.instagram || profileForm.instagram).startsWith('http')
-                    ? (profile?.instagram || profileForm.instagram)
-                    : `https://instagram.com/${profile?.instagram || profileForm.instagram}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
-                  title={t('artist.dashboard.social.instagram')}
-                >
-                  <Instagram className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                </a>
-              )}
-              {(profile?.twitter || profileForm.twitter) && (
-                <a
-                  href={(profile?.twitter || profileForm.twitter).startsWith('http')
-                    ? (profile?.twitter || profileForm.twitter)
-                    : `https://twitter.com/${profile?.twitter || profileForm.twitter}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
-                  title={t('artist.dashboard.social.twitter')}
-                >
-                  <Twitter className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                </a>
-              )}
-              {(profile?.wechat_id || profileForm.wechat) && (
-                <span
-                  className="p-1.5 bg-white/5 rounded-lg text-white/60 cursor-default lg:p-2 lg:rounded-xl"
-                  title={t('artist.dashboard.social.wechatTitle', { handle: profile?.wechat_id || profileForm.wechat })}
-                >
-                  <MessageCircle className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                </span>
-              )}
-              {(profile?.phone || profileForm.phone) && (
-                <a
-                  href={`tel:${profile?.phone || profileForm.phone}`}
-                  className="p-1.5 bg-white/5 rounded-lg hover:bg-white/10 text-white transition-all hover:text-[#d3da0c] lg:p-2 lg:rounded-xl"
-                  title={t('artist.dashboard.social.phone')}
-                >
-                  <Phone className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                </a>
-              )}
+
+            {/* Name & Info */}
+            <div className="min-w-0 flex-1 pt-1">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h1 className="text-xl font-bold text-white lg:text-3xl tracking-tight truncate">{getDisplayName()}</h1>
+                {(profile?.is_verified || artistProfile?.is_verified) && (
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-[#d3da0c] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-black font-black" />
+                  </div>
+                )}
+              </div>
+              {(() => {
+                const type = artistProfile?.artist_type || profileForm.artist_type;
+                const showType = type && type !== 'Artist';
+                const showGenres = artistProfile?.genres?.length > 0;
+                if (!showType && !showGenres) return null;
+                return (
+                  <p className="text-[#d3da0c] text-xs font-semibold tracking-wide truncate lg:text-sm">
+                    {showType ? type : ''}{showType && showGenres ? ' · ' : ''}{showGenres ? artistProfile.genres.join(' · ') : ''}
+                  </p>
+                );
+              })()}
+              <div className="flex items-center gap-2 mt-2">
+                {(profile?.instagram || profileForm.instagram) && (
+                  <a href={(profile?.instagram || profileForm.instagram).startsWith('http') ? (profile?.instagram || profileForm.instagram) : `https://instagram.com/${profile?.instagram || profileForm.instagram}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="w-7 h-7 bg-white/[0.06] hover:bg-white/[0.12] rounded-lg flex items-center justify-center text-gray-400 hover:text-[#d3da0c] transition-all">
+                    <Instagram className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {(profile?.twitter || profileForm.twitter) && (
+                  <a href={(profile?.twitter || profileForm.twitter).startsWith('http') ? (profile?.twitter || profileForm.twitter) : `https://twitter.com/${profile?.twitter || profileForm.twitter}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="w-7 h-7 bg-white/[0.06] hover:bg-white/[0.12] rounded-lg flex items-center justify-center text-gray-400 hover:text-[#d3da0c] transition-all">
+                    <Twitter className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {(profile?.phone || profileForm.phone) && (
+                  <a href={`tel:${profile?.phone || profileForm.phone}`}
+                    className="w-7 h-7 bg-white/[0.06] hover:bg-white/[0.12] rounded-lg flex items-center justify-center text-gray-400 hover:text-[#d3da0c] transition-all">
+                    <Phone className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="flex flex-col items-end gap-1 lg:gap-2 flex-shrink-0">
-          <span className="hidden lg:block text-gray-500 text-xs font-black uppercase tracking-[0.2em]">{t('artist.dashboard.accountStatus')}</span>
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-full lg:px-4 lg:py-2 lg:gap-2">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse lg:w-2 lg:h-2" />
-            <span className="text-green-500 text-[10px] font-bold uppercase tracking-wider lg:text-xs">{t('artist.dashboard.activePartner')}</span>
+
+            {/* Status badge */}
+            <div className="flex-shrink-0 pt-1">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-500/[0.08] border border-green-500/20 rounded-full">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-green-400 text-[10px] font-bold uppercase tracking-wider hidden sm:inline">{t('artist.dashboard.activePartner')}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex overflow-x-auto snap-tab-bar gap-2 mb-6 bg-[#111111] p-1.5 rounded-xl w-full border border-white/5 lg:w-fit lg:rounded-2xl">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold lg:px-6 lg:py-3 lg:rounded-xl lg:text-sm lg:font-bold transition-all capitalize flex items-center gap-2 ${activeTab === tab.id
-              ? 'bg-[#d3da0c] text-black shadow-[0_0_25px_rgba(211, 218, 12,0.2)]'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
+      {/* ── Tab Bar ── */}
+      <div className="px-4 pt-4 lg:px-10 lg:pt-5">
+        <div className="flex gap-1.5 overflow-x-auto bg-[#111111] p-1.5 rounded-xl border border-white/[0.06] w-full lg:w-fit hide-scrollbar">
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all lg:px-5 lg:text-sm ${
+                activeTab === tab.id
+                  ? 'bg-[#d3da0c] text-black shadow-[0_0_20px_rgba(211,218,12,0.15)]'
+                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+              }`}>
+              <tab.icon className="w-3.5 h-3.5" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
+
 
       {/* Main Content Area */}
+      <div className="px-4 pt-4 pb-4 lg:px-10 lg:pt-6">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4 min-h-[400px] lg:rounded-3xl lg:p-8 lg:min-h-[600px]"
+          className="bg-[#111111] border border-white/[0.07] rounded-2xl p-4 min-h-[400px] lg:rounded-2xl lg:p-6 lg:min-h-[500px]"
         >
           {activeTab === 'overview' && (
-            <div className="grid gap-12">
-              {/* Stats from backend */}
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <div className="grid gap-6">
+              {/* ── Bento Stats ── */}
+              <div className="grid grid-cols-2 lg:grid-cols-12 gap-3">
+                {/* Featured — Earnings */}
+                <div className="col-span-2 lg:col-span-4">
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                    className="h-full bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#d3da0c]/35 transition-all">
+                    <div className="p-2.5 bg-[#d3da0c]/15 rounded-xl w-fit">
+                      <DollarSign className="w-5 h-5 text-[#d3da0c]" />
+                    </div>
+                    <div>
+                      <p className="text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('artist.dashboard.stat.earnings')}</p>
+                      <p className="text-3xl font-bold text-white lg:text-4xl">¥{stats.totalRevenue.toLocaleString()}</p>
+                    </div>
+                  </motion.div>
+                </div>
                 {[
-                  { label: t('artist.dashboard.stat.followers'), value: stats.followers.toLocaleString(), icon: Users, color: 'text-blue-400' },
-                  { label: t('artist.dashboard.stat.avgRating'), value: stats.rating > 0 ? stats.rating.toFixed(1) : '-', icon: Star, color: 'text-yellow-400' },
-                  { label: t('artist.dashboard.stat.totalGigs'), value: stats.totalBookings.toString(), icon: Calendar, color: 'text-purple-400' },
-                  { label: t('artist.dashboard.stat.earnings'), value: `¥${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-[#d3da0c]' },
+                  { label: t('artist.dashboard.stat.followers'), value: stats.followers.toLocaleString(), icon: Users },
+                  { label: t('artist.dashboard.stat.avgRating'), value: stats.rating > 0 ? stats.rating.toFixed(1) : '–', icon: Star },
+                  { label: t('artist.dashboard.stat.totalGigs'), value: stats.totalBookings.toString(), icon: Calendar },
                 ].map((stat, idx) => (
-                  <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 hover:border-[#d3da0c]/30 transition-all group">
-                    <div className={`p-4 rounded-2xl w-fit mb-6 ${stat.color} bg-white/5`}>
-                      <stat.icon className="w-6 h-6" />
-                    </div>
-                    <p className="text-xl font-bold lg:text-3xl text-white mb-2">{stat.value}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-500 text-xs font-black uppercase tracking-widest">{stat.label}</p>
-                    </div>
+                  <div key={idx} className="lg:col-span-2 col-span-1">
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
+                      className="h-full bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-[#d3da0c]/25 transition-all group">
+                      <div className="p-2 bg-white/[0.05] rounded-xl w-fit group-hover:bg-[#d3da0c]/10 transition-colors">
+                        <stat.icon className="w-4 h-4 text-gray-400 group-hover:text-[#d3da0c] transition-colors" />
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
+                        <p className="text-xl font-bold text-white lg:text-2xl">{stat.value}</p>
+                      </div>
+                    </motion.div>
                   </div>
                 ))}
+                <div className="hidden lg:block lg:col-span-2" />
               </div>
+
 
               {/* Content Split */}
               <div className="grid lg:grid-cols-3 gap-10">
@@ -1103,6 +1091,7 @@ const ArtistDashboard = () => {
           )}
         </motion.div>
       </AnimatePresence>
+      </div>
     </div>
   );
 };

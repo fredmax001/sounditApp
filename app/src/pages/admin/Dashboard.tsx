@@ -251,7 +251,7 @@ const AdminDashboard = () => {
       });
       if (eventsRes.ok) {
         const eventsData = await eventsRes.json();
-        setEvents(eventsData.events || []);
+        setEvents(Array.isArray(eventsData) ? eventsData : (eventsData.events || []));
       }
 
       // Fetch real businesses (organizer profiles)
