@@ -827,7 +827,9 @@
         "hearthisUrl": "HearThis.at URL",
         "alipayQr": "Alipay QR Code",
         "paymentInstructions": "Payment Instructions",
-        "wechatQr": "WeChat QR Code"
+        "wechatQr": "WeChat QR Code",
+        "youtubeUrl": "YouTube URL",
+        "audiomackUrl": "Audiomack URL"
       },
       "placeholder": {
         "stageName": "Your artist name",
@@ -849,10 +851,6 @@
         "mc": "MC",
         "dancer": "Dancer",
         "photographer": "Photographer"
-      },
-      "label": {
-        "youtubeUrl": "YouTube URL",
-        "audiomackUrl": "Audiomack URL"
       },
       "placeholder": {
         "youtube": "https://youtube.com/channel/...",
