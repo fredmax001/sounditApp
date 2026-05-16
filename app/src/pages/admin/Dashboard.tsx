@@ -90,20 +90,44 @@ interface PendingActionItem {
 // Stats Card Component
 const StatCard = ({ title, value, icon: Icon, loading }: StatCardProps) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-[#111111] border border-white/10 rounded-xl p-4 lg:p-6"
+    transition={{ duration: 0.3 }}
+    className="bg-[#111111] border border-white/[0.07] rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-white/[0.14] transition-all group"
   >
     <div className="flex items-start justify-between">
-      <div>
-        <p className="text-gray-400 text-xs lg:text-sm">{title}</p>
-        <h3 className="text-xl font-bold text-white mt-1 lg:text-3xl lg:mt-2">
-          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : value}
-        </h3>
+      <div className="p-2.5 bg-[#d3da0c]/10 rounded-xl group-hover:bg-[#d3da0c]/15 transition-colors">
+        <Icon className="w-5 h-5 text-[#d3da0c]" />
       </div>
-      <div className="p-3 bg-[#d3da0c]/10 rounded-lg">
+    </div>
+    <div>
+      <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
+      <h3 className="text-2xl font-bold text-white lg:text-3xl">
+        {loading ? <Loader2 className="w-6 h-6 animate-spin text-[#d3da0c]" /> : value}
+      </h3>
+    </div>
+  </motion.div>
+);
+
+// Large featured stat card
+const FeaturedStatCard = ({ title, value, icon: Icon, loading, subtitle }: StatCardProps & { subtitle?: string }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="bg-[#d3da0c]/[0.08] border border-[#d3da0c]/20 rounded-2xl p-6 flex flex-col justify-between gap-6 hover:border-[#d3da0c]/30 transition-all"
+  >
+    <div className="flex items-start justify-between">
+      <div className="p-3 bg-[#d3da0c]/15 rounded-xl">
         <Icon className="w-6 h-6 text-[#d3da0c]" />
       </div>
+      {subtitle && <span className="text-[#d3da0c]/60 text-xs font-medium">{subtitle}</span>}
+    </div>
+    <div>
+      <p className="text-[#d3da0c]/70 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
+      <h3 className="text-4xl font-bold text-white lg:text-5xl">
+        {loading ? <Loader2 className="w-8 h-8 animate-spin text-[#d3da0c]" /> : value}
+      </h3>
     </div>
   </motion.div>
 );
@@ -112,10 +136,11 @@ const StatCard = ({ title, value, icon: Icon, loading }: StatCardProps) => (
 const TabButton = ({ active, onClick, icon: Icon, label }: TabButtonProps) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all lg:px-4 ${active
-      ? 'bg-[#d3da0c] text-black'
-      : 'text-gray-400 hover:text-white hover:bg-white/5'
-      }`}
+    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all ${
+      active
+        ? 'bg-[#d3da0c] text-black shadow-lg shadow-[#d3da0c]/20'
+        : 'text-gray-500 hover:text-white hover:bg-white/[0.06]'
+    }`}
   >
     <Icon className="w-4 h-4" />
     {label}
@@ -499,48 +524,70 @@ const AdminDashboard = () => {
 
   // Overview Tab
   const OverviewTab = () => (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard title={t('admin.dashboard.totalUsers')} value={stats.totalUsers} icon={Users} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.businesses')} value={stats.totalBusinesses} icon={Building2} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.artists')} value={stats.totalArtists} icon={Music} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.vendors')} value={stats.totalVendors} icon={ShoppingBag} loading={isLoading} />
-      </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard title={t('admin.dashboard.events')} value={stats.totalEvents} icon={Calendar} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.totalTickets')} value={stats.totalTickets} icon={Ticket} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.totalRevenue')} value={`¥${stats.totalRevenue.toLocaleString()}`} icon={BarChart3} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.pendingPayouts')} value={stats.pendingPayouts} icon={CreditCard} loading={isLoading} />
-      </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard title={t('admin.dashboard.pendingVerifications')} value={stats.pendingVerifications} icon={Shield} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.pendingVendorApprovals') || 'Pending Vendor Approvals'} value={stats.pendingVendorApprovals} icon={ShoppingBag} loading={isLoading} />
-        <StatCard title={t('admin.dashboard.totalCities') || 'Active Cities'} value={stats.totalCities} icon={MapPin} loading={isLoading} />
+    <div className="space-y-4">
+      {/* Bento Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4">
+        {/* Featured — Revenue */}
+        <div className="col-span-2 lg:col-span-4 lg:row-span-2">
+          <FeaturedStatCard title={t('admin.dashboard.totalRevenue')} value={`¥${stats.totalRevenue.toLocaleString()}`} icon={BarChart3} loading={isLoading} subtitle="Total Revenue" />
+        </div>
+        {/* Users */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.totalUsers')} value={stats.totalUsers} icon={Users} loading={isLoading} />
+        </div>
+        {/* Businesses */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.businesses')} value={stats.totalBusinesses} icon={Building2} loading={isLoading} />
+        </div>
+        {/* Artists */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.artists')} value={stats.totalArtists} icon={Music} loading={isLoading} />
+        </div>
+        {/* Vendors */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.vendors')} value={stats.totalVendors} icon={ShoppingBag} loading={isLoading} />
+        </div>
+        {/* Events */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.events')} value={stats.totalEvents} icon={Calendar} loading={isLoading} />
+        </div>
+        {/* Tickets */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.totalTickets')} value={stats.totalTickets} icon={Ticket} loading={isLoading} />
+        </div>
+        {/* Pending Payouts */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.pendingPayouts')} value={stats.pendingPayouts} icon={CreditCard} loading={isLoading} />
+        </div>
+        {/* Pending Verifications */}
+        <div className="lg:col-span-2">
+          <StatCard title={t('admin.dashboard.pendingVerifications')} value={stats.pendingVerifications} icon={Shield} loading={isLoading} />
+        </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.recentActivity')}</h3>
+      {/* Activity & Pending — 2-col */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Recent Activity */}
+        <div className="bg-[#111111] border border-white/[0.07] rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-semibold text-white">{t('admin.dashboard.recentActivity')}</h3>
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           </div>
           {activities.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{t('admin.dashboard.noRecentActivity')}</p>
-              <p className="text-sm mt-1">{t('admin.dashboard.activityWillAppearHere')}</p>
+            <div className="text-center py-10 text-gray-600">
+              <Activity className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">{t('admin.dashboard.noRecentActivity')}</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {activities.slice(0, 5).map((activity, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2.5 bg-white/5 rounded-lg lg:gap-3 lg:p-3">
-                  <div className="w-8 h-8 bg-[#d3da0c]/20 rounded-full flex items-center justify-center">
-                    <Activity className="w-4 h-4 text-[#d3da0c]" />
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
+                  <div className="w-7 h-7 bg-[#d3da0c]/15 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <Activity className="w-3.5 h-3.5 text-[#d3da0c]" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">{activity.description}</p>
-                    <p className="text-gray-500 text-xs">{new Date(activity.created_at).toLocaleString()}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm leading-snug">{activity.description}</p>
+                    <p className="text-gray-600 text-xs mt-0.5">{new Date(activity.created_at).toLocaleString()}</p>
                   </div>
                 </div>
               ))}
@@ -549,53 +596,52 @@ const AdminDashboard = () => {
         </div>
 
         {/* Pending Actions */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.pendingActions')}</h3>
+        <div className="bg-[#111111] border border-white/[0.07] rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-semibold text-white">{t('admin.dashboard.pendingActions')}</h3>
             {pendingActions.length > 0 && (
-              <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full">
+              <span className="bg-red-500/15 text-red-400 text-xs font-semibold px-2.5 py-1 rounded-full border border-red-500/20">
                 {pendingActions.length}
               </span>
             )}
           </div>
           {pendingActions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{t('admin.dashboard.noPendingActions')}</p>
-              <p className="text-sm mt-1">{t('admin.dashboard.allCaughtUp')}</p>
+            <div className="text-center py-10 text-gray-600">
+              <CheckCircle className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">{t('admin.dashboard.noPendingActions')}</p>
+              <p className="text-xs mt-1 text-gray-700">{t('admin.dashboard.allCaughtUp')}</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
               {pendingActions.slice(0, 5).map((action) => (
-                <div key={`${action.type}-${action.id}`} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={`${action.type}-${action.id}`} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
                     {action.type === 'event_approval' ? (
-                      <Calendar className="w-5 h-5 text-yellow-400" />
+                      <Calendar className="w-4 h-4 text-yellow-400 shrink-0" />
                     ) : action.type === 'user_verification' ? (
-                      <Shield className="w-5 h-5 text-blue-400" />
+                      <Shield className="w-4 h-4 text-blue-400 shrink-0" />
                     ) : (
-                      <CreditCard className="w-5 h-5 text-orange-400" />
+                      <CreditCard className="w-4 h-4 text-orange-400 shrink-0" />
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                       <p className="text-white text-sm truncate">{action.title}</p>
-                      <p className="text-gray-500 text-xs">{action.description}</p>
+                      <p className="text-gray-600 text-xs">{action.description}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
                       if (action.type === 'event_approval') navigate('/admin/events');
                       else if (action.type === 'vendor_approval') navigate('/admin/vendors');
                       else navigate('/admin/users');
                     }}
-                    className="text-[#d3da0c] text-sm hover:underline whitespace-nowrap ml-2"
+                    className="text-[#d3da0c] text-xs font-semibold hover:underline whitespace-nowrap ml-3 shrink-0"
                   >
                     {t('admin.dashboard.review')}
                   </button>
                 </div>
               ))}
               {pendingActions.length > 5 && (
-                <p className="text-center text-gray-500 text-sm py-2">
-                  +{pendingActions.length - 5} {t('admin.dashboard.moreActions')}</p>
+                <p className="text-center text-gray-600 text-xs py-2">+{pendingActions.length - 5} {t('admin.dashboard.moreActions')}</p>
               )}
             </div>
           )}
@@ -1388,34 +1434,26 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] px-4 py-6 lg:p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-[#0A0A0A]">
+      {/* Page Header */}
+      <div className="px-4 pt-6 pb-4 lg:px-8 lg:pt-8">
+        <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-white lg:text-3xl">{getTabTitle()}</h1>
-            <p className="text-gray-400 mt-1">{getTabSubtitle()}</p>
+            <h1 className="text-2xl font-bold text-white lg:text-4xl tracking-tight">{getTabTitle()}</h1>
+            <p className="text-gray-500 mt-1 text-sm">{getTabSubtitle()}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={loadDashboardData}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              {t('admin.dashboard.refresh')}
-            </button>
-            <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-lg">
-              <div className="w-8 h-8 bg-[#d3da0c] rounded-full flex items-center justify-center text-black font-bold">
-                {profile?.first_name?.[0] || 'A'}
-              </div>
-              <span className="text-white">{profile?.first_name || t('admin.dashboard.admin')}</span>
-            </div>
-          </div>
+          <button
+            onClick={loadDashboardData}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] border border-white/[0.08] rounded-xl text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-50 text-sm shrink-0"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('admin.dashboard.refresh')}</span>
+          </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex overflow-x-auto snap-tab-bar gap-2 hide-scrollbar">
+        {/* Tab Bar */}
+        <div className="flex overflow-x-auto gap-1.5 hide-scrollbar pb-0.5">
           <TabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={BarChart3} label={t('admin.dashboard.overview')} />
           <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={Users} label={t('admin.dashboard.users')} />
           <TabButton active={activeTab === 'admins'} onClick={() => setActiveTab('admins')} icon={Shield} label={t('admin.dashboard.admins')} />
@@ -1427,8 +1465,13 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Divider */}
+      <div className="h-px bg-white/[0.06] mb-0" />
+
       {/* Content */}
-      {renderTab()}
+      <div className="px-4 py-5 lg:px-8 lg:py-6">
+        {renderTab()}
+      </div>
 
       {/* {t('admin.dashboard.addAdmin')} Modal */}
       {showAddAdminModal && (
