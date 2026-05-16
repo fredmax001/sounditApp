@@ -716,74 +716,86 @@ const VendorDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] pt-20 lg:pt-10 pb-6 px-6 lg:px-10">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10">
+        <div className="min-h-screen bg-[#0A0A0A] pb-24 lg:pb-10">
+
+      {/* ── Page Header ── */}
+      <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[#d3da0c] text-xs font-bold uppercase tracking-widest mb-1">Vendor Dashboard</p>
+            <h1 className="text-2xl font-bold text-white lg:text-3xl tracking-tight">{displayName}</h1>
+          </div>
+          <button onClick={() => { setActiveTab('products'); setShowAddProduct(true); }}
+            className="flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-all shadow-[0_0_20px_rgba(211,218,12,0.2)]">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('vendor.dashboard.addProduct')}</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Tab Bar ── */}
+      <div className="px-4 pt-4 lg:px-10">
+        <div className="flex gap-1.5 overflow-x-auto bg-[#111111] p-1.5 rounded-xl border border-white/[0.06] w-full hide-scrollbar">
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all lg:px-5 lg:text-sm ${
+                activeTab === tab.id
+                  ? 'bg-[#d3da0c] text-black shadow-[0_0_20px_rgba(211,218,12,0.15)]'
+                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+              }`}>
+              <tab.icon className="w-3.5 h-3.5" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Bento Stats (overview only) ── */}
+      {activeTab === 'overview' && (
+        <div className="px-4 pt-4 lg:px-10">
+          <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 mb-4">
+            <div className="col-span-2 lg:col-span-4">
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                className="h-full bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#d3da0c]/35 transition-all">
+                <div className="p-2.5 bg-[#d3da0c]/15 rounded-xl w-fit">
+                  <DollarSign className="w-5 h-5 text-[#d3da0c]" />
+                </div>
                 <div>
-                    <h1 className="text-3xl font-black text-white">{t('vendor.dashboard.title')}</h1>
-                    <p className="text-gray-400 mt-1 font-bold">{t('vendor.dashboard.welcomeBack', { name: displayName })}</p>
+                  <p className="text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('vendor.dashboard.totalSalesLabel')}</p>
+                  <p className="text-3xl font-bold text-white lg:text-4xl">¥{stats.totalSales.toLocaleString()}</p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={() => { setActiveTab('products'); setShowAddProduct(true); }} className="flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black rounded-lg font-bold hover:bg-[#bbc10b] transition-all">
-                        <Plus className="w-4 h-4" />
-                        {t('vendor.dashboard.addProduct')}
-                    </button>
-                </div>
+              </motion.div>
             </div>
+            {[
+              { label: t('vendor.dashboard.activeListingsLabel'), value: stats.activeListings, icon: Store },
+              { label: t('vendor.dashboard.pendingOrdersLabel'), value: stats.pendingOrders, icon: ShoppingBag },
+              { label: t('vendor.dashboard.eventBoothsLabel'), value: stats.upcomingBooths, icon: Calendar },
+            ].map((stat, idx) => (
+              <div key={idx} className="lg:col-span-2 col-span-1">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
+                  className="h-full bg-[#111111] border border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-white/[0.14] transition-all group">
+                  <div className="p-2 bg-[#d3da0c]/10 rounded-xl w-fit group-hover:bg-[#d3da0c]/15 transition-colors">
+                    <stat.icon className="w-4 h-4 text-[#d3da0c]" />
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
+                    <p className="text-xl font-bold text-white lg:text-2xl">{stat.value}</p>
+                  </div>
+                </motion.div>
+              </div>
+            ))}
+            <div className="hidden lg:block lg:col-span-2" />
+          </div>
+        </div>
+      )}
 
-            {/* Tab Navigation */}
-            <div className="flex gap-2 mb-8 bg-[#111111] p-1.5 rounded-2xl w-full overflow-x-auto hide-scrollbar border border-white/5">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === tab.id
-                            ? 'bg-[#d3da0c] text-black'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
-                    >
-                        <tab.icon className="w-4 h-4" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Stats Grid - Only show on overview tab */}
-            {activeTab === 'overview' && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    {[
-                        { label: t('vendor.dashboard.totalSalesLabel'), value: `¥${stats.totalSales.toLocaleString()}`, icon: DollarSign, color: 'text-[#d3da0c]' },
-                        { label: t('vendor.dashboard.activeListingsLabel'), value: stats.activeListings, icon: Store, color: 'text-blue-400' },
-                        { label: t('vendor.dashboard.pendingOrdersLabel'), value: stats.pendingOrders, icon: ShoppingBag, color: 'text-purple-400' },
-                        { label: t('vendor.dashboard.eventBoothsLabel'), value: stats.upcomingBooths, icon: Calendar, color: 'text-green-400' },
-                    ].map((stat, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="bg-[#111111] border border-white/10 rounded-xl p-6"
-                        >
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className={`p-3 rounded-lg ${stat.color === 'text-[#d3da0c]' ? 'bg-[#d3da0c]/10' : stat.color === 'text-blue-400' ? 'bg-blue-500/10' : stat.color === 'text-purple-400' ? 'bg-purple-500/10' : 'bg-green-500/10'}`}>
-                                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                                </div>
-                                <span className="text-gray-400 text-xs sm:text-sm font-bold truncate">{stat.label}</span>
-                            </div>
-                            <p className="text-2xl font-black text-white">{stat.value}</p>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
-
-            {/* Content Area */}
-            <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-[#111111] border border-white/10 rounded-2xl p-4 md:p-8"
-            >
+      {/* ── Content Area ── */}
+      <div className="px-4 pt-4 pb-4 lg:px-10 lg:pt-4">
+      <motion.div key={activeTab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-[#111111] border border-white/[0.07] rounded-2xl p-4 md:p-6"
+      >
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                     <div className="grid lg:grid-cols-3 gap-8">
@@ -1644,8 +1656,9 @@ const VendorDashboard = () => {
                     </motion.div>
                 </div>
             )}
-        </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default VendorDashboard;
