@@ -187,7 +187,7 @@ export default function Subscriptions() {
           </div>
         )}
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className={`grid gap-6 ${plans.length === 1 ? 'md:grid-cols-1 max-w-md mx-auto' : 'md:grid-cols-3'}`}>
           {plans.map((plan) => (
             <motion.div
               key={plan.type}
@@ -204,11 +204,11 @@ export default function Subscriptions() {
               
               <div className="mb-6">
                 <span className="text-3xl font-bold text-white">¥{plan.price}</span>
-                <span className="text-white/60">{t('subscriptions.perMonth')}</span>
+                <span className="text-white/60">{(role === 'artist' || role === 'vendor') ? t('subscriptions.oneTime') || 'One-Time' : t('subscriptions.perMonth')}</span>
               </div>
 
               <ul className="space-y-3 mb-6">
-                {plan.features?.slice(0, 5).map((feature: string, idx: number) => (
+                {(Array.isArray(plan.features) ? plan.features : []).slice(0, 5).map((feature: string, idx: number) => (
                   <li key={idx} className="flex items-start gap-2 text-white/80 text-sm">
                     <Check className="w-4 h-4 text-[#d3da0c] flex-shrink-0 mt-0.5" />
                     {feature}
