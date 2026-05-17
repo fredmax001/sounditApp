@@ -10,7 +10,7 @@ import io
 import base64
 
 from models import (
-    Event, TicketOrder, TicketOrderStatus, Ticket, OrganizerProfile,
+    Event, TicketOrder, TicketOrderStatus, Ticket, TicketStatus, OrganizerProfile,
     UserRole, Notification, TicketTier
 )
 from services.subscription_service import SubscriptionService
