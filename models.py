@@ -2025,6 +2025,12 @@ class TicketOrder(Base):
     payer_notes = Column(Text, nullable=True)
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
     
+    # Guest order info (for organizer/staff-created tickets)
+    guest_name = Column(String(150), nullable=True)
+    guest_email = Column(String(255), nullable=True)
+    guest_phone = Column(String(50), nullable=True)
+    is_guest_order = Column(Boolean, default=False)
+    
     # Order status
     status = Column(Enum(TicketOrderStatus), default=TicketOrderStatus.PENDING, index=True)
     quantity = Column(Integer, default=1)

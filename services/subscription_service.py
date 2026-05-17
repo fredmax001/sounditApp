@@ -293,12 +293,6 @@ class SubscriptionService:
         )
         db.add(trial)
         
-        # Grant verification badge for the premium trial
-        user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            user.verification_badge = True
-            user.is_verified = True
-        
         db.commit()
         db.refresh(trial)
         return trial

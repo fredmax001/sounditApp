@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import {
   Ticket, Loader2, User, CheckCircle2, XCircle, Clock, Search, Eye,
-  QrCode, Calendar, Download, Filter, Smartphone
+  QrCode, Calendar, Download, Filter, Smartphone, Plus, X, UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +35,10 @@ interface TicketOrder {
   tickets_generated?: number;
   used_at?: string;
   used_by?: number;
+  is_guest_order?: boolean;
+  guest_name?: string;
+  guest_email?: string;
+  guest_phone?: string;
   ticket_tier?: { id: number; name: string } | null;
   tickets?: OrderTicket[];
   created_at: string;
@@ -61,6 +65,89 @@ const TicketOrdersPage = () => {
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
   const [selectedOrderTickets, setSelectedOrderTickets] = useState<TicketOrder | null>(null);
+
+  // Guest order modal state
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [events, setEvents] = useState<Array<{ id: number; title: string }>>([]);
+  const [ticketTiers, setTicketTiers] = useState<Array<{ id: number; name: string; price: number }>>([]);
+  const [guestForm, setGuestForm] = useState({
+    event_id: '',
+    guest_name: '',
+    guest_email: '',
+    guest_phone: '',
+    quantity: '1',
+    ticket_tier_id: '',
+  });
+  const [isSubmittingGuest, setIsSubmittingGuest] = useState(false);
+
+  const fetchEvents = async () => {
+    if (!session?.access_token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/my-events`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setEvents(data.map((e: any) => ({ id: e.id, title: e.title })));
+      }
+    } catch {
+      // silently fail
+    }
+  };
+
+  const fetchTicketTiers = async (eventId: number) => {
+    if (!session?.access_token || !eventId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/ticket-tiers`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setTicketTiers(data.map((t: any) => ({ id: t.id, name: t.name, price: t.price })));
+      }
+    } catch {
+      setTicketTiers([]);
+    }
+  };
+
+  const handleCreateGuestOrder = async () => {
+    if (!session?.access_token) return;
+    if (!guestForm.event_id || !guestForm.guest_name || !guestForm.guest_email) {
+      toast.error(t('business.ticketOrders.fillRequired') || 'Please fill in all required fields');
+      return;
+    }
+    setIsSubmittingGuest(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/ticketing/organizer/guest-order`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_id: Number(guestForm.event_id),
+          guest_name: guestForm.guest_name,
+          guest_email: guestForm.guest_email,
+          guest_phone: guestForm.guest_phone || undefined,
+          quantity: Number(guestForm.quantity) || 1,
+          ticket_tier_id: guestForm.ticket_tier_id ? Number(guestForm.ticket_tier_id) : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || t('business.ticketOrders.guestOrderCreated') || 'Guest ticket created');
+        setShowGuestModal(false);
+        setGuestForm({ event_id: '', guest_name: '', guest_email: '', guest_phone: '', quantity: '1', ticket_tier_id: '' });
+        fetchOrders();
+      } else {
+        toast.error(data.detail || t('business.ticketOrders.guestOrderFailed') || 'Failed to create guest ticket');
+      }
+    } catch {
+      toast.error(t('business.ticketOrders.guestOrderFailed') || 'Failed to create guest ticket');
+    } finally {
+      setIsSubmittingGuest(false);
+    }
+  };
 
   const fetchOrders = async () => {
     if (!session?.access_token) return;
@@ -167,6 +254,13 @@ const TicketOrdersPage = () => {
           <p className="text-gray-400">{t('business.dashboard.manageTicketOrders') || 'Manage and approve ticket orders for your events.'}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => { setShowGuestModal(true); fetchEvents(); }}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
+          >
+            <UserPlus className="w-4 h-4" />
+            {t('business.ticketOrders.addGuestTicket') || 'Add Guest Ticket'}
+          </button>
           <div className="relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -206,6 +300,114 @@ const TicketOrdersPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Guest Order Modal */}
+      {showGuestModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-[#d3da0c]" />
+                {t('business.ticketOrders.addGuestTicket') || 'Add Guest Ticket'}
+              </h2>
+              <button onClick={() => setShowGuestModal(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.event') || 'Event'} *</label>
+                <select
+                  value={guestForm.event_id}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setGuestForm({ ...guestForm, event_id: val, ticket_tier_id: '' });
+                    if (val) fetchTicketTiers(Number(val));
+                  }}
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                >
+                  <option value="">{t('business.ticketOrders.selectEvent') || 'Select event...'}</option>
+                  {events.map((ev) => (
+                    <option key={ev.id} value={ev.id}>{ev.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestName') || 'Guest Name'} *</label>
+                <input
+                  type="text"
+                  value={guestForm.guest_name}
+                  onChange={(e) => setGuestForm({ ...guestForm, guest_name: e.target.value })}
+                  placeholder="John Doe"
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestEmail') || 'Guest Email'} *</label>
+                <input
+                  type="email"
+                  value={guestForm.guest_email}
+                  onChange={(e) => setGuestForm({ ...guestForm, guest_email: e.target.value })}
+                  placeholder="john@example.com"
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestPhone') || 'Guest Phone'}</label>
+                <input
+                  type="tel"
+                  value={guestForm.guest_phone}
+                  onChange={(e) => setGuestForm({ ...guestForm, guest_phone: e.target.value })}
+                  placeholder="+86138xxxx"
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.quantity') || 'Quantity'} *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={guestForm.quantity}
+                    onChange={(e) => setGuestForm({ ...guestForm, quantity: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.ticketTier') || 'Ticket Tier'}</label>
+                  <select
+                    value={guestForm.ticket_tier_id}
+                    onChange={(e) => setGuestForm({ ...guestForm, ticket_tier_id: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  >
+                    <option value="">{t('business.ticketOrders.default') || 'Default'}</option>
+                    {ticketTiers.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name} (¥{t.price})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowGuestModal(false)}
+                className="flex-1 py-2.5 bg-white/5 text-white text-sm font-bold rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {t('common.cancel') || 'Cancel'}
+              </button>
+              <button
+                onClick={handleCreateGuestOrder}
+                disabled={isSubmittingGuest}
+                className="flex-1 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmittingGuest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {t('business.ticketOrders.create') || 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Orders Table */}
       {loading ? (
@@ -249,7 +451,12 @@ const TicketOrdersPage = () => {
                   {/* Desktop Row — single straight line, compact */}
                   <div className="hidden lg:grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-2">
-                      <p className="text-white text-xs font-medium truncate">{order.payer_name || order.user?.name || '-'}</p>
+                      <p className="text-white text-xs font-medium truncate flex items-center gap-1">
+                        {order.payer_name || order.user?.name || '-'}
+                        {order.is_guest_order && (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase">Guest</span>
+                        )}
+                      </p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-gray-300 text-xs truncate">{order.user?.email || '-'}</p>
@@ -330,7 +537,12 @@ const TicketOrdersPage = () => {
                   <div className="lg:hidden">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <p className="text-white font-semibold">{order.payer_name || order.user?.name || '-'}</p>
+                        <p className="text-white font-semibold flex items-center gap-1">
+                          {order.payer_name || order.user?.name || '-'}
+                          {order.is_guest_order && (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase">Guest</span>
+                          )}
+                        </p>
                         <p className="text-gray-400 text-sm">{order.user?.email || '-'}</p>
                         {order.user?.phone && (
                           <p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5">

@@ -7,7 +7,7 @@ import {
   Music, Calendar, Users, Star, TrendingUp, Edit, Camera, Check,
   X as CloseIcon, Clock, Loader2, Instagram, Twitter,
   DollarSign, Headphones,
-  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode
+  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode, Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ const ArtistDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isApplyingVerification, setIsApplyingVerification] = useState(false);
 
   // Profile form state - synced with backend data
   const [profileForm, setProfileForm] = useState({
@@ -487,10 +488,46 @@ const ArtistDashboard = () => {
             <div className="min-w-0 flex-1 pt-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <h1 className="text-xl font-bold text-white lg:text-3xl tracking-tight truncate">{getDisplayName()}</h1>
-                {(profile?.is_verified || artistProfile?.is_verified) && (
-                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-[#d3da0c] rounded-full flex items-center justify-center flex-shrink-0">
+                {(profile?.is_verified || artistProfile?.is_verified) ? (
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-[#d3da0c] rounded-full flex items-center justify-center flex-shrink-0" title={t('artist.dashboard.verified')}>
                     <Check className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-black font-black" />
                   </div>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      setIsApplyingVerification(true);
+                      try {
+                        const token = session?.access_token;
+                        const res = await fetch(`${API_BASE_URL}/verification/apply`, {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({ request_type: 'artist' })
+                        });
+                        if (res.ok) {
+                          toast.success(t('artist.dashboard.verificationApplied'));
+                        } else {
+                          const err = await res.json();
+                          toast.error(err.detail || t('artist.dashboard.verificationApplyFailed'));
+                        }
+                      } catch {
+                        toast.error(t('artist.dashboard.verificationApplyFailed'));
+                      } finally {
+                        setIsApplyingVerification(false);
+                      }
+                    }}
+                    disabled={isApplyingVerification}
+                    className="flex items-center gap-1 px-2 py-0.5 bg-white/10 hover:bg-[#d3da0c]/20 border border-white/10 hover:border-[#d3da0c]/40 rounded-full text-[10px] lg:text-xs text-gray-300 hover:text-[#d3da0c] transition-colors disabled:opacity-50"
+                  >
+                    {isApplyingVerification ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Shield className="w-3 h-3" />
+                    )}
+                    {t('artist.dashboard.applyForVerification')}
+                  </button>
                 )}
               </div>
               {(() => {

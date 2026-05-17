@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image, Share2
+  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image, Share2, UserPlus
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -507,10 +507,11 @@ const BusinessDashboard = () => {
         {/* ── Quick Actions ── */}
         <section>
           <h2 className="text-base font-semibold text-white mb-4">{t('business.dashboard.quickActions')}</h2>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-3">
             {[
               { icon: PlusIcon, color: 'text-[#d3da0c]', bg: 'bg-[#d3da0c]/10', label: t('business.dashboard.createEvent'), sub: t('business.dashboard.launchNewEvent'), path: '/dashboard/business/create-event', border: 'hover:border-[#d3da0c]/30' },
               { icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-400/10', label: t('business.dashboard.myEvents'), sub: t('business.dashboard.manageYourEvents'), path: '/dashboard/business/events', border: 'hover:border-blue-400/30' },
+              { icon: UserPlus, color: 'text-pink-400', bg: 'bg-pink-400/10', label: t('business.dashboard.addGuestTicket') || 'Add Guest Ticket', sub: t('business.dashboard.addGuestTicketDesc') || 'Create tickets for walk-ins', path: '/dashboard/business/ticket-orders', border: 'hover:border-pink-400/30' },
               { icon: Share2, color: 'text-purple-400', bg: 'bg-purple-400/10', label: t('business.dashboard.promoters') || 'Promoters', sub: t('business.dashboard.promotersDesc') || 'Referral codes', path: '/dashboard/business/promoters', border: 'hover:border-purple-400/30' },
               { icon: BarChart3, color: 'text-orange-400', bg: 'bg-orange-400/10', label: t('business.dashboard.analytics'), sub: t('business.dashboard.viewInsights'), path: '/dashboard/business/analytics', border: 'hover:border-orange-400/30' },
               { icon: Wallet, color: 'text-green-400', bg: 'bg-green-400/10', label: t('business.dashboard.payouts'), sub: t('business.dashboard.viewEarnings'), path: '/dashboard/business/payouts', border: 'hover:border-green-400/30' },

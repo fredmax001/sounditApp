@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useVendorStore } from '@/store/vendorStore';
 import { useTranslation } from 'react-i18next';
 import {
-  ArrowLeft, Store, Check, Loader2, Globe, Mail, Phone, MapPin, LogOut
+  ArrowLeft, Store, Check, Loader2, Globe, Mail, Phone, MapPin, LogOut, Shield
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ const VendorProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isApplyingVerification, setIsApplyingVerification] = useState(false);
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -261,11 +262,49 @@ const VendorProfile = () => {
                     {vendorProfile?.is_approved ? (t('vendor.profile.approved') || 'Approved') : (t('vendor.profile.pendingApproval') || 'Pending Approval')}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">{t('vendor.profile.verificationStatus') || 'Verification Status'}</span>
-                  <span className={`font-bold ${vendorProfile?.is_verified ? 'text-green-400' : 'text-gray-400'}`}>
-                    {vendorProfile?.is_verified ? (t('vendor.profile.verified') || 'Verified') : (t('vendor.profile.unverified') || 'Unverified')}
-                  </span>
+                  {vendorProfile?.is_verified ? (
+                    <span className="font-bold text-green-400">
+                      {t('vendor.profile.verified') || 'Verified'}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        setIsApplyingVerification(true);
+                        try {
+                          const token = session?.access_token;
+                          const res = await fetch(`${API_BASE_URL}/verification/apply`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ request_type: 'vendor' })
+                          });
+                          if (res.ok) {
+                            toast.success(t('vendor.profile.verificationApplied') || 'Verification request submitted');
+                          } else {
+                            const err = await res.json();
+                            toast.error(err.detail || (t('vendor.profile.verificationApplyFailed') || 'Failed to apply'));
+                          }
+                        } catch {
+                          toast.error(t('vendor.profile.verificationApplyFailed') || 'Failed to apply');
+                        } finally {
+                          setIsApplyingVerification(false);
+                        }
+                      }}
+                      disabled={isApplyingVerification}
+                      className="flex items-center gap-1 px-2 py-0.5 bg-white/10 hover:bg-[#d3da0c]/20 border border-white/10 hover:border-[#d3da0c]/40 rounded-full text-[10px] text-gray-300 hover:text-[#d3da0c] transition-colors disabled:opacity-50"
+                    >
+                      {isApplyingVerification ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Shield className="w-3 h-3" />
+                      )}
+                      {t('vendor.profile.applyForVerification') || 'Apply'}
+                    </button>
+                  )}
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">{t('vendor.profile.memberSince')}</span>
