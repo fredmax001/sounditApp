@@ -13,6 +13,7 @@ from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads
 import api.reviews as reviews
 import api.messaging as messaging
+import api.verification as verification
 # monitoring module temporarily disabled
 
 settings = get_settings()
@@ -89,15 +90,19 @@ if _settings.DEBUG:
         "https://sounditent.com",
         "https://www.sounditent.com",
         "https://app.sounditent.com",
+        "https://sounditent.cn",
+        "https://www.sounditent.cn",
         "http://localhost:3000",
         "http://localhost:5173",
     ]
 else:
-    # Production: Only allow production domains
+    # Production: Allow both global and China domains
     ALLOWED_ORIGINS = [
         "https://sounditent.com",
         "https://www.sounditent.com",
         "https://app.sounditent.com",
+        "https://sounditent.cn",
+        "https://www.sounditent.cn",
     ]
 
 app.add_middleware(
@@ -202,6 +207,7 @@ app.include_router(cities.router, prefix="/api/v1")
 app.include_router(promoters.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
 app.include_router(messaging.router, prefix="/api/v1")
+app.include_router(verification.router, prefix="/api/v1")
 
 
 @app.get("/")
