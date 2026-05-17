@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-17
+2026-05-18
 
 ---
 
@@ -26,6 +26,35 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 39. Admin Role-Based Access Control (RBAC) (2026-05-18)
+- **Objective**: Enable Super Admin to create custom admin roles (Finance, Marketing, Support, Content Moderator, Community Manager) with granular permissions. Each role sees only the sidebar nav items they are authorized for.
+- **Backend changes**:
+  - `models.py`: Added `AdminRole` model (table `admin_roles`) with `name`, `description`, `permissions` (JSON), `is_system`. Added `admin_role_id` FK to `User` model.
+  - `auth.py`: Added `require_permission(permission: str)` dependency factory — super admins and legacy admins (admin_role_id=null) pass all checks; custom-role admins are checked against their role's permissions.
+  - `api/admin.py`: Added CRUD endpoints under `/admin/admin-roles` (list, create, update, delete). Added `POST /admin/users/{id}/assign-role` to assign/unassign custom roles. Updated `GET /admin/admins/me/permissions` to read from DB. Updated `GET /admin/permissions` to return permission key/label/category list.
+  - `scripts/migrate_admin_roles.py`: Database migration + seed script. Creates table, adds column, seeds 7 roles (Super Admin, Admin, Finance, Marketing, Support, Content Moderator, Community Manager). Works on SQLite and PostgreSQL.
+- **Frontend changes**:
+  - `app/src/store/authStore.ts`: Added `permissions: string[]`, `isSuperAdmin()`, `hasPermission(permission)`, `fetchPermissions()`. Fetches permissions on admin login/init.
+  - `app/src/store/adminStore.ts`: Added `adminRoles` state + CRUD methods: `fetchAdminRoles`, `createAdminRole`, `updateAdminRole`, `deleteAdminRole`, `assignAdminRole`.
+  - `app/src/pages/admin/AdminLayout.tsx`: Added `permission` field to every nav item. Sidebar now filters items via `hasPermission()` — groups with zero visible items are hidden.
+  - `app/src/pages/admin/RolePermissions.tsx`: Complete rewrite. Real role CRUD: role list (left), role editor with permission toggles by category (right), current admin cards with role assignment dropdowns.
+  - `app/src/components/PermissionGuard.tsx`: New component for permission-based route guards.
+- **Default roles seeded**:
+  | Role | Permissions |
+  |---|---|
+  | Super Admin | all (system) |
+  | Admin | all (system, legacy fallback) |
+  | Finance | dashboard, analytics_read, financials_read, subscriptions_read |
+  | Marketing | dashboard, analytics_read, marketing_read, content_read |
+  | Support | dashboard, users_read, support_read, verifications_read |
+  | Content Moderator | dashboard, content_read, support_read, events_read |
+  | Community Manager | dashboard, support_read, marketing_read, users_read |
+- **Backward compatibility**: Users with `role=ADMIN` and `admin_role_id=null` retain full access. Only admins explicitly assigned a custom role are restricted.
+- **Verification**:
+  - Backend imports cleanly
+  - Frontend compiles successfully
+  - Migration ran locally: 7 roles seeded, `admin_role_id` column added to `users`
 
 ### 38. Enterprise Analytics System v2 (2026-05-17)
 - **Features built**:

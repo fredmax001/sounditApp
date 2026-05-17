@@ -44,6 +44,7 @@ interface EventFormData {
   eventType: string;
   refundPolicy: string;
   requireId: boolean;
+  showRemainingTickets: boolean;
   ticketPrice: string;
   promoterEnabled: boolean;
   commissionRate: string;
@@ -129,6 +130,7 @@ const EditEvent = () => {
     eventType: '',
     refundPolicy: 'Non-refundable',
     requireId: false,
+    showRemainingTickets: true,
     ticketPrice: '',
     promoterEnabled: false,
     commissionRate: '10',
@@ -211,6 +213,7 @@ const EditEvent = () => {
       eventType: currentEvent.event_type || '',
       refundPolicy: currentEvent.refund_policy || 'Non-refundable',
       requireId: currentEvent.require_id || false,
+      showRemainingTickets: currentEvent.show_remaining_tickets ?? true,
       ticketPrice: currentEvent.ticket_price != null ? String(currentEvent.ticket_price) : '',
       promoterEnabled: currentEvent.promoter_enabled || false,
       commissionRate: currentEvent.default_commission_rate != null ? String(currentEvent.default_commission_rate) : '10',
@@ -589,6 +592,7 @@ const EditEvent = () => {
         event_type: formData.eventType || undefined,
         refund_policy: formData.refundPolicy || undefined,
         require_id: formData.requireId,
+        show_remaining_tickets: formData.showRemainingTickets,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         dj_ids: selectedDjs.length > 0 ? selectedDjs : undefined,
@@ -1211,6 +1215,19 @@ const EditEvent = () => {
                 <div>
                   <p className="text-white text-sm font-medium">{t('organizer.createEvent.requireIdDocument')}</p>
                   <p className="text-gray-400 text-xs">{t('organizer.createEvent.requireIdDescription')}</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer mt-4">
+                <input
+                  type="checkbox"
+                  name="showRemainingTickets"
+                  checked={formData.showRemainingTickets}
+                  onChange={handleChange}
+                  className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">{t('organizer.createEvent.showTicketsRemaining')}</p>
+                  <p className="text-gray-400 text-xs">{t('organizer.createEvent.showTicketsRemainingDescription')}</p>
                 </div>
               </label>
             </SectionCard>

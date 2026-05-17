@@ -90,6 +90,7 @@ export interface LegacyEvent {
   // UI-specific properties
   isFeatured?: boolean;
   isSoldOut?: boolean;
+  showRemainingTickets?: boolean;
   sold?: number;
   tags?: string[];
   artists?: Artist[];
@@ -322,7 +323,8 @@ export function toLegacyEvent(event: EventWithDetails): LegacyEvent {
       event.status === 'completed' ? 'ended' : 'upcoming',
     featured: event.is_featured,
     isFeatured: event.is_featured,
-    isSoldOut: event.tickets_sold >= (event.capacity || 0),
+    isSoldOut: event.tickets_sold >= (event.capacity || 0) || (event.ticket_tiers || []).some((t: { status?: string }) => t.status === 'sold_out'),
+    showRemainingTickets: event.show_remaining_tickets !== false,
     sold: event.tickets_sold,
     tags: [],
     gallery: event.gallery_images || [],

@@ -185,11 +185,13 @@ def generate_tickets_from_order(
         event.tickets_sold = 0
     event.tickets_sold += tickets_to_generate
     
-    # If tier exists, increment quantity_sold
+    # If tier exists, increment quantity_sold and update status
     if order.ticket_tier_id:
         tier = db.query(TicketTier).filter(TicketTier.id == order.ticket_tier_id).first()
         if tier:
             tier.quantity_sold = (tier.quantity_sold or 0) + tickets_to_generate
+            if tier.quantity_sold >= tier.quantity:
+                tier.status = TicketStatus.SOLD_OUT
     
     db.commit()
     

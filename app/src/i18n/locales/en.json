@@ -1187,6 +1187,8 @@
       "securityVerification": "Security & Verification",
       "requireIdDocument": "Require ID document",
       "requireIdDescription": "Collect full name and document from each attendee for admission control.",
+      "showTicketsRemaining": "Show tickets remaining",
+      "showTicketsRemainingDescription": "Display the number of tickets left on the event page.",
       "paymentSetup": "Payment Setup",
       "paymentSetupDescription": "Upload your QR codes so attendees can pay you directly.",
       "paymentInstructionsLabel": "Payment Instructions",
@@ -4095,6 +4097,7 @@
   },
   "eventDetail": {
     "selectTicketType": "Select Ticket Type",
+    "ticketsAvailable": "Tickets Available",
     "standardTicket": "Standard Ticket",
     "ticket": "Ticket",
     "linkCopied": "Link Copied",

@@ -203,7 +203,7 @@ export default function Events() {
                           ? `${event.ticket_tiers[0].currency} ${event.ticket_tiers[0].price}`
                           : 'Free'}
                       </span>
-                      {event.capacity && (
+                      {event.capacity && event.show_remaining_tickets !== false && (
                         <span className="text-gray-500 text-xs">{event.capacity - (event.tickets_sold || 0)} left</span>
                       )}
                     </div>

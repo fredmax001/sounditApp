@@ -22,7 +22,8 @@ import type { AdminUser } from '@/store/adminStore';
 const ManageUsers = () => {
     const { t } = useTranslation();
     const { users, fetchUsers, frozenUserIds, freezeUser, unfreezeUser } = useAdminStore();
-    const { session } = useAuthStore();
+    const { session, profile } = useAuthStore();
+    const isSuperAdmin = profile?.role === 'super_admin' || profile?.role_type === 'super_admin';
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -89,6 +90,7 @@ const ManageUsers = () => {
 
     const getRoleColor = (role: string) => {
         switch (role) {
+            case 'super_admin': return 'text-purple-400 bg-purple-400/10';
             case 'admin': return 'text-red-500 bg-red-500/10';
             case 'business':
             case 'organizer': return 'text-purple-400 bg-purple-400/10';
@@ -286,6 +288,7 @@ const ManageUsers = () => {
                     <option value="artist">Artist</option>
                     <option value="organizer">Organizer</option>
                     <option value="admin">Admin</option>
+                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
                 </select>
                 <button
                     onClick={loadUsers}
@@ -350,7 +353,7 @@ const ManageUsers = () => {
                                         <select
                                             value={user.role}
                                             onChange={(e) => handleEditRole(user.id, e.target.value)}
-                                            disabled={actionLoading === `edit-${user.id}` || user.role === 'admin'}
+                                            disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
                                             className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
                                         >
                                             <option value="user" className="bg-[#111111]">User</option>
@@ -359,6 +362,7 @@ const ManageUsers = () => {
                                             <option value="artist" className="bg-[#111111]">Artist</option>
                                             <option value="organizer" className="bg-[#111111]">Organizer</option>
                                             <option value="admin" className="bg-[#111111]">Admin</option>
+                                            {isSuperAdmin && <option value="super_admin" className="bg-[#111111]">Super Admin</option>}
                                         </select>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-400">
@@ -381,7 +385,7 @@ const ManageUsers = () => {
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
-                                                disabled={actionLoading === `delete-${user.id}` || user.role === 'admin'}
+                                                disabled={actionLoading === `delete-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
                                                 className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                                                 title={t('admin.manageUsers.deleteUserTitle')}
                                             >
@@ -389,7 +393,7 @@ const ManageUsers = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleToggleVerification(user.id, !!user.is_verified)}
-                                                disabled={actionLoading === `verify-${user.id}` || user.role === 'admin'}
+                                                disabled={actionLoading === `verify-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
                                                 className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${user.is_verified ? 'bg-[#d3da0c]/20 text-[#d3da0c] hover:bg-[#d3da0c]/30' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                 title={user.is_verified ? (t('admin.manageUsers.removeVerificationTitle') || 'Remove verification badge') : (t('admin.manageUsers.grantVerificationTitle') || 'Grant verification badge')}
                                             >
@@ -420,7 +424,8 @@ const ManageUsers = () => {
                                             ) : (
                                                 <button
                                                     onClick={async () => {
-                                                        if (user.role === 'admin') return toast.error('Cannot freeze another admin');
+                                                        if (user.role === 'super_admin') return toast.error('Cannot freeze super admin');
+                                                        if (user.role === 'admin' && !isSuperAdmin) return toast.error('Cannot freeze another admin');
                                                         freezeUser(session?.access_token || '', user.id);
                                                         try {
                                                             const token = session?.access_token;
@@ -434,7 +439,7 @@ const ManageUsers = () => {
                                                             toast.error(t('admin.manageUsers.failedToLockAccount'));
                                                         }
                                                     }}
-                                                    disabled={user.role === 'admin'}
+                                                    disabled={user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
                                                     className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                                                     title={t('admin.manageUsers.freezeAccountTitle')}
                                                 >

@@ -645,6 +645,7 @@ class EventBase(BaseModel):
     event_type: Optional[str] = None
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
+    show_remaining_tickets: Optional[bool] = True
     tags: Optional[List[str]] = None
 
 
@@ -692,6 +693,7 @@ class EventUpdate(BaseModel):
     event_type: Optional[str] = None
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
+    show_remaining_tickets: Optional[bool] = None
     tags: Optional[List[str]] = None
     dj_ids: Optional[List[int]] = None
     promoter_enabled: Optional[bool] = False
@@ -718,6 +720,7 @@ class EventResponse(EventBase):
     event_type: Optional[str] = None
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
+    show_remaining_tickets: bool = True
     tags: Optional[List[str]] = None
     promoter_enabled: bool = False
     default_commission_rate: float = 10.0
