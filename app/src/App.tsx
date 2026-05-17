@@ -40,6 +40,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import CookieConsent from './components/CookieConsent';
 
 // ── Lazy-loaded pages (code-split by route) ──
 
@@ -121,6 +122,7 @@ const SecurityLogs = lazy(() => import('./pages/admin/SecurityLogs'));
 const APIIntegrations = lazy(() => import('./pages/admin/APIIntegrations'));
 const AdsManager = lazy(() => import('./pages/admin/AdsManager'));
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'));
+const PlatformAnalytics = lazy(() => import('./pages/admin/Analytics'));
 const VerificationCenter = lazy(() => import('./pages/admin/VerificationCenter'));
 const CommunityMetrics = lazy(() => import('./pages/admin/CommunityMetrics'));
 const ManageCommunitySections = lazy(() => import('./pages/admin/ManageCommunitySections'));
@@ -462,6 +464,11 @@ function App() {
                 </AdminLayout>
               </ErrorBoundary>
             } />
+            <Route path="/admin/analytics" element={
+              <AdminLayout>
+                <Suspense fallback={<PageLoader />}><PlatformAnalytics /></Suspense>
+              </AdminLayout>
+            } />
             <Route path="/admin/users" element={
               <AdminLayout>
                 <Suspense fallback={<PageLoader />}><ManageUsers /></Suspense>
@@ -587,6 +594,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       <PWAInstallPrompt />
+      <CookieConsent />
     </Router>
   );
 }

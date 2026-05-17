@@ -83,7 +83,7 @@ const TicketOrdersPage = () => {
   const fetchEvents = async () => {
     if (!session?.access_token) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/events/my-events`, {
+      const res = await fetch(`${API_BASE_URL}/events/me`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       const data = await res.json();

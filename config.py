@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     ALIBABA_SMS_SIGN_NAME: str = "SoundIt"  # SMS signature name registered in Alibaba Cloud
     ALIBABA_SMS_TEMPLATE_CODE: str = ""  # OTP template code
     ALIBABA_SMS_ENABLED: bool = False  # Toggle to use Alibaba Cloud instead of Twilio
+    ALIBABA_MARKETPLACE_ENDPOINT: str = "https://kzsms.market.alicloudapi.com/api/sms/send"  # Marketplace SMS endpoint
     
     # Alibaba Cloud SMS Template Codes (register each template in Alibaba Cloud console)
     ALIBABA_SMS_TEMPLATE_CODE_TICKET_APPROVED: str = ""   # e.g. SMS_12345678

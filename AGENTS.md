@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-13
+2026-05-17
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-04-17
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-17
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,61 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 38. Enterprise Analytics System v2 (2026-05-17)
+- **Features built**:
+  1. **Event Tracking Infrastructure** — `AnalyticsEvent` and `AnalyticsSession` models for event-based tracking
+  2. **User Demographics** — Added `gender` and `date_of_birth` to `User` model
+  3. **Custom Event Tracking** — `POST /analytics/events/track` for signup, login, booking, ticket purchase, follow, share, etc.
+  4. **Session Tracking** — Entry/exit paths, duration, bounce rate, page views per session
+  5. **Engagement Analytics** — `GET /analytics/engagement` — bookings, tickets, follows, posts, comments, likes, messages
+  6. **Role-Based Analytics** — `GET /analytics/roles` — breakdown by artist, DJ, vendor, business, organizer, user
+  7. **Event Performance** — `GET /analytics/events-performance` — views, conversion rate, revenue, check-ins
+  8. **Real-Time Metrics** — `GET /analytics/realtime` + `GET /analytics/live` — live visitors, sessions, today's stats
+  9. **AI Insights** — `GET /analytics/insights` — rule-based smart insights (traffic growth, top device, top country, etc.)
+  10. **Export** — `GET /analytics/export/{type}` — CSV and JSON exports for visits, events, engagement
+  11. **Enhanced Dashboard** — Tabbed interface: Overview, Traffic, Engagement, Events, Roles, AI Insights
+  12. **Frontend SDK** — `lib/analytics.ts` with `trackEvent()`, scroll depth, time on page, click tracking, error tracking
+  13. **Instrumented Pages** — EventDetail (event view, save, share, ticket purchase), ArtistDetail (profile view, follow)
+- **Backend changes**:
+  - `models.py`: Added `AnalyticsEvent`, `AnalyticsSession`, `User.gender`, `User.date_of_birth`
+  - `api/analytics.py`: Complete rewrite — 16 endpoints, 1428 lines
+  - Database migration: Created `analytics_events` and `analytics_sessions` tables with indexes
+- **Frontend changes**:
+  - `app/src/lib/analytics.ts`: Enterprise tracking SDK with batching, beacon, scroll, time tracking
+  - `app/src/hooks/useAnalytics.ts`: Uses new SDK, tracks all layouts (Main, Auth, Responsive)
+  - `app/src/pages/admin/Analytics.tsx`: Complete rewrite — tabbed dashboard with live stats, all chart types
+  - `app/src/layouts/AuthLayout.tsx` + `ResponsiveLayout.tsx`: Added `useAnalytics()`
+- **Deploy**: Frontend + backend deployed to main server and China server. Database migration ran on production PostgreSQL.
+- **Verification**:
+  - `POST /analytics/track` → ✅ `{"success":true}`
+  - `POST /analytics/events/track` → ✅ `{"success":true}`
+  - All 16 analytics routes registered and operational
+
+### 37. Admin Analytics Dashboard (2026-05-17)
+- **Features built**:
+  1. **Visitor Tracking** — `POST /api/v1/analytics/track` endpoint records every page visit with IP geolocation, device parsing, and user demographics
+  2. **Geography Analytics** — `GET /analytics/visits/geography` aggregates visits by country, city, region with lat/lng coordinates
+  3. **Demographics Analytics** — `GET /analytics/visits/demographics` aggregates gender and age group distributions
+  4. **Device Analytics** — `GET /analytics/visits/devices` aggregates browser, OS, and device type usage
+  5. **Traffic Trends** — `GET /analytics/visits/trends` returns daily visit counts for configurable period (7/30/90/365 days)
+  6. **Admin Analytics Dashboard** — New React page at `/admin/analytics` with Recharts bar charts for all metrics
+- **Backend changes**:
+  - `models.py`: Extended `PageVisit` with 13 new columns: `country`, `country_code`, `city`, `region`, `latitude`, `longitude`, `gender`, `age`, `browser`, `browser_version`, `os`, `os_version`, `device_type`
+  - `services/analytics_geo.py` (new): IP geolocation via ip-api.com (free, no key), user-agent parsing for browser/OS/device
+  - `api/analytics.py`: Complete rewrite with 6 endpoints — `/track`, `/visits/summary`, `/visits/geography`, `/visits/demographics`, `/visits/devices`, `/visits/trends`, `/visits/recent`
+  - `main.py`: Analytics router already registered at `/api/v1`
+- **Frontend changes**:
+  - `app/src/pages/admin/AdminAnalytics.tsx` (new): Full analytics dashboard with 6 chart sections, stat cards, period selector, loading states
+  - `app/src/pages/admin/AdminLayout.tsx`: Added Analytics nav link in Core group
+  - `app/src/App.tsx`: Added lazy-loaded route for `/admin/analytics`
+  - `app/src/hooks/useAnalytics.ts` (new): Auto-tracks page visits on route changes + periodic heartbeats, sends via `navigator.sendBeacon()` for reliable delivery
+  - `app/src/layouts/MainLayout.tsx`: Integrated `useAnalytics()` hook
+- **Database migration**: Ran `ALTER TABLE page_visits ADD COLUMN ...` on production PostgreSQL for all 13 new columns
+- **Deploy**: Frontend + backend deployed to main server (sounditent.com). Frontend deployed to China server (sounditent.cn). Backend service restarted.
+- **Verification**:
+  - `POST /api/v1/analytics/track` → `{"success":true}` (records visit with China geo-location)
+  - Backend imports cleanly, service running with 4 uvicorn workers
 
 ### 36. YooPay Subscription Audit & Config Fix (2026-05-13)
 - **Problem**: User asked to verify if subscription payments go through YooPay and if it's active.

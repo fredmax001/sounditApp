@@ -11,7 +11,8 @@ import {
   LogOut, Menu, X, ChevronRight,
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
-  MessageSquare, ChevronDown, Zap
+  MessageSquare, ChevronDown, Zap,
+  BarChart3
 } from 'lucide-react';
 
 // Grouped sidebar menu structure
@@ -20,6 +21,7 @@ const menuGroups = [
     label: 'Core',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+      { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
     ]
   },
   {

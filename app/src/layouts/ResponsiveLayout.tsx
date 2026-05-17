@@ -11,6 +11,7 @@ import { useRoleBasedLayout } from '@/hooks/useDeviceDetection';
 import MobileLayout from './MobileLayout';
 import DashboardLayout from './DashboardLayout';
 import { useAuthStore } from '@/store/authStore';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import type { ReactNode } from 'react';
 
 interface ResponsiveLayoutProps {
@@ -22,6 +23,7 @@ interface ResponsiveLayoutProps {
  * Uses device detection + user role to show appropriate layout
  */
 export const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
+  useAnalytics();
   const { profile } = useAuthStore();
   const userRole = profile?.role_type || profile?.role;
   const { isMobileLayout } = useRoleBasedLayout(userRole);
