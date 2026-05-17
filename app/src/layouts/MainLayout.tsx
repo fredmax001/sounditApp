@@ -6,9 +6,11 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobilePageTransition from '@/components/MobilePageTransition';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const MainLayout = () => {
   const isMobile = useIsMobile();
+  useAnalytics();
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] relative">

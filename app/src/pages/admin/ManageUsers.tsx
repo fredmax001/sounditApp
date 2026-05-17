@@ -282,7 +282,9 @@ const ManageUsers = () => {
                     <option value="">{t('admin.manageUsers.allRoles')}</option>
                     <option value="user">User</option>
                     <option value="business">Business</option>
+                    <option value="vendor">Vendor</option>
                     <option value="artist">Artist</option>
+                    <option value="organizer">Organizer</option>
                     <option value="admin">Admin</option>
                 </select>
                 <button
@@ -353,7 +355,9 @@ const ManageUsers = () => {
                                         >
                                             <option value="user" className="bg-[#111111]">User</option>
                                             <option value="business" className="bg-[#111111]">Business</option>
+                                            <option value="vendor" className="bg-[#111111]">Vendor</option>
                                             <option value="artist" className="bg-[#111111]">Artist</option>
+                                            <option value="organizer" className="bg-[#111111]">Organizer</option>
                                             <option value="admin" className="bg-[#111111]">Admin</option>
                                         </select>
                                     </td>
@@ -517,7 +521,9 @@ const ManageUsers = () => {
                                 >
                                     <option value="user" className="bg-[#111111]">User</option>
                                     <option value="business" className="bg-[#111111]">Business</option>
+                                    <option value="vendor" className="bg-[#111111]">Vendor</option>
                                     <option value="artist" className="bg-[#111111]">Artist</option>
+                                    <option value="organizer" className="bg-[#111111]">Organizer</option>
                                     <option value="admin" className="bg-[#111111]">Admin</option>
                                 </select>
                             </div>

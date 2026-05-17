@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const AuthLayout = () => {
+  useAnalytics();
   return (
     <div className="min-h-screen bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
       {/* Background Effects */}

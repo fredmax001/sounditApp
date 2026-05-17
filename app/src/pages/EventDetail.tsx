@@ -11,6 +11,7 @@ import VerificationBadge from '@/components/VerificationBadge';
 import TableBooking from '@/components/TableBooking';
 import { API_BASE_URL } from '@/config/api';
 import { WEB_ORIGIN } from '@/lib/appUrl';
+import { Analytics } from '@/lib/analytics';
 
 export default function EventDetail() {
   const { t } = useTranslation();
@@ -74,6 +75,7 @@ export default function EventDetail() {
     if (id) {
       fetchEventById(id);
       setSelectedTierId(null);
+      Analytics.trackEvent("event_view", "engagement", { event_id: id });
     }
   }, [id, fetchEventById]);
 
@@ -217,6 +219,7 @@ export default function EventDetail() {
         setRecentOrder({ status: data.status || 'pending', ticket_qr: undefined, ticket_code: undefined });
         setShowOrderModal(false);
         setShowSuccessModal(true);
+        Analytics.trackEvent("ticket_purchased", "conversion", { event_id: id, amount: unitPrice * quantity });
       } else {
         toast.error(data.detail || t('eventDetail.orderFailed'));
       }
@@ -268,13 +271,13 @@ export default function EventDetail() {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` }
                   });
-                  if (res.ok) setIsLiked(false);
+                  if (res.ok) { setIsLiked(false); Analytics.trackEvent("event_saved", "engagement", { event_id: id, action: "unsave" }); }
                 } else {
                   const res = await fetch(`${API_BASE_URL}/events/${id}/save`, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` }
                   });
-                  if (res.ok) setIsLiked(true);
+                  if (res.ok) { setIsLiked(true); Analytics.trackEvent("event_saved", "engagement", { event_id: id, action: "save" }); }
                 }
               } catch {
                 toast.error(t('eventDetail.saveError'));
@@ -288,7 +291,7 @@ export default function EventDetail() {
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
           </button>
           <button
-            onClick={() => setIsShareModalOpen(true)}
+            onClick={() => { setIsShareModalOpen(true); Analytics.trackEvent("event_shared", "social", { event_id: id }); }}
             className="p-3 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-md transition-colors"
           >
             <Share2 className="w-5 h-5" />

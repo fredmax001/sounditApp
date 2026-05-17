@@ -808,7 +808,12 @@ const ArtistDetail = () => {
 
   useEffect(() => {
     fetchArtistData();
-  }, [fetchArtistData]);
+    if (id) {
+      import('@/lib/analytics').then(({ Analytics }) => {
+        Analytics.trackEvent('profile_view', 'engagement', { profile_type: 'artist', profile_id: id });
+      });
+    }
+  }, [fetchArtistData, id]);
 
   // Check if current user is following this artist
   useEffect(() => {
@@ -950,10 +955,16 @@ const ArtistDetail = () => {
                         setIsFollowing(false);
                         setArtist(prev => prev ? { ...prev, followers_count: Math.max(0, (prev.followers_count || 0) - 1) } : prev);
                         toast.success(t('artistDetail.unfollowed'));
+                        import('@/lib/analytics').then(({ Analytics }) => {
+                          Analytics.trackEvent('profile_follow', 'social', { profile_type: 'artist', profile_id: artist.id, action: 'unfollow' });
+                        });
                       } else {
                         setIsFollowing(true);
                         setArtist(prev => prev ? { ...prev, followers_count: (prev.followers_count || 0) + 1 } : prev);
                         toast.success(t('artistDetail.followed'));
+                        import('@/lib/analytics').then(({ Analytics }) => {
+                          Analytics.trackEvent('profile_follow', 'social', { profile_type: 'artist', profile_id: artist.id, action: 'follow' });
+                        });
                       }
                     } else {
                       const err = await res.json().catch(() => ({}));

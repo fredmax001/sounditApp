@@ -90,6 +90,11 @@ const Login = () => {
         if (!userProfile) {
           userProfile = useAuthStore.getState().profile;
         }
+        if (userProfile) {
+          import('@/lib/analytics').then(({ Analytics }) => {
+            Analytics.trackEvent('login', 'engagement', { method: 'email' });
+          });
+        }
       } else {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',

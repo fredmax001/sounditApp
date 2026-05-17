@@ -18,6 +18,7 @@ settings = get_settings()
 # For Alibaba Cloud Direct SMS: dysmsapi.aliyuncs.com
 # For API Marketplace: varies by product
 ALIBABA_SMS_ENDPOINT = "https://sms.aliyuncs.com"
+ALIBABA_MARKETPLACE_ENDPOINT = getattr(settings, "ALIBABA_MARKETPLACE_ENDPOINT", "https://kzsms.market.alicloudapi.com/api/sms/send")
 
 
 def _percent_encode(string: str) -> str:
@@ -128,7 +129,8 @@ def send_sms_via_marketplace(
     phone_number: str,
     template_code: str,
     template_param: dict,
-    sign_name: Optional[str] = None
+    sign_name: Optional[str] = None,
+    raw_message: str = None
 ) -> dict:
     """
     Send SMS via Alibaba Cloud API Gateway / Marketplace using AppCode authentication.
@@ -139,10 +141,14 @@ def send_sms_via_marketplace(
         template_code: Marketplace template code
         template_param: Template parameters
         sign_name: SMS signature
+        raw_message: Optional raw message text (for APIs that support it)
     
     Returns:
         dict with 'success', 'message', 'response'
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     app_key = settings.ALIBABA_APP_KEY
     app_secret = settings.ALIBABA_APP_SECRET
     app_code = settings.ALIBABA_APP_CODE
@@ -153,39 +159,77 @@ def send_sms_via_marketplace(
     phone = phone_number.lstrip('+')
     sign = sign_name or settings.ALIBABA_SMS_SIGN_NAME or "SoundIt"
     
-    # Build request for API Gateway / Marketplace
-    # The exact endpoint and format depend on the specific marketplace product
-    # This is a common pattern for Alibaba Cloud Marketplace SMS APIs
-    
-    url = "https://sms.market.alicloudapi.com/sendSms"
+    # Use the configured marketplace endpoint (user-provided)
+    url = ALIBABA_MARKETPLACE_ENDPOINT
     
     headers = {
         "Authorization": f"APPCODE {app_code}",
-        "Content-Type": "application/json",
     }
     
-    payload = {
-        "phone": phone,
-        "signName": sign,
-        "templateCode": template_code,
-        "templateParam": template_param,
-    }
-    
-    response = requests.post(url, json=payload, headers=headers, timeout=30)
-    
-    result = response.json()
-    
-    if response.status_code == 200 and result.get("success"):
-        return {
-            "success": True,
-            "message": "SMS sent successfully",
-            "response": result
-        }
-    else:
+    # The kzsms marketplace product uses form-data with specific param names:
+    # mobile, templateId, param
+    # It does NOT support raw message without template.
+    if not template_code:
         return {
             "success": False,
-            "message": result.get("message", "Unknown error"),
-            "response": result
+            "message": "This marketplace SMS product requires a templateId. Raw messages are not supported.",
+            "response": {}
+        }
+    
+    # Build form payload
+    param_str = str(template_param).replace("'", '"') if isinstance(template_param, dict) else str(template_param)
+    
+    payload = {
+        "mobile": phone,
+        "templateId": template_code,
+        "param": param_str,
+    }
+    
+    try:
+        response = requests.post(url, data=payload, headers=headers, timeout=15)
+        
+        resp_text = response.text
+        logger.info(f"Marketplace SMS response: {response.status_code} {resp_text[:500]}")
+        
+        try:
+            result = response.json()
+        except Exception:
+            result = {"raw": resp_text}
+        
+        # Alibaba API Gateway often returns errors in headers with empty body
+        ca_error = response.headers.get("X-Ca-Error-Message", "")
+        ca_code = response.headers.get("X-Ca-Error-Code", "")
+        if ca_error:
+            result["_gateway_error"] = ca_error
+            result["_gateway_code"] = ca_code
+        
+        if response.status_code == 200:
+            if result.get("success") or result.get("code") == 200:
+                return {
+                    "success": True,
+                    "message": "SMS sent successfully",
+                    "response": result
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": result.get("msg") or result.get("message") or ca_error or str(result),
+                    "response": result
+                }
+        else:
+            return {
+                "success": False,
+                "message": ca_error or f"HTTP {response.status_code}: {resp_text[:300]}",
+                "response": result
+            }
+            
+    except Exception as e:
+        error_msg = f"Request error: {type(e).__name__}: {str(e)[:200]}"
+        logger.warning(f"Marketplace SMS request failed: {error_msg}")
+        return {
+            "success": False,
+            "message": error_msg,
+            "response": {}
         }
 
 

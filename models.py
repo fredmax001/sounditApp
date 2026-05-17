@@ -214,6 +214,10 @@ class User(Base):
     preferred_language = Column(String(10), default="en")
     notifications_enabled = Column(Boolean, default=True)
     
+    # Demographics (for analytics)
+    gender = Column(String(20), nullable=True)  # male, female, other, prefer_not_to_say
+    date_of_birth = Column(Date, nullable=True)
+    
     # Foreigner mode
     foreigner_mode = Column(Boolean, default=False)
     
@@ -257,7 +261,104 @@ class PageVisit(Base):
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(500), nullable=True)
     path = Column(String(500), nullable=True)
+    method = Column(String(10), nullable=True)
+    referrer = Column(String(500), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    session_id = Column(String(100), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Geolocation
+    country = Column(String(100), nullable=True, index=True)
+    country_code = Column(String(5), nullable=True)
+    city = Column(String(100), nullable=True, index=True)
+    region = Column(String(100), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    
+    # User demographics (from user profile when logged in)
+    gender = Column(String(20), nullable=True, index=True)
+    age = Column(Integer, nullable=True, index=True)
+    
+    # Device / browser
+    browser = Column(String(50), nullable=True, index=True)
+    browser_version = Column(String(50), nullable=True)
+    os = Column(String(50), nullable=True, index=True)
+    os_version = Column(String(50), nullable=True)
+    device_type = Column(String(20), nullable=True, index=True)  # desktop, mobile, tablet
+    
+    user = relationship("User", backref="page_visits")
+
+
+class AnalyticsEvent(Base):
+    """General event tracking for comprehensive analytics."""
+    __tablename__ = "analytics_events"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String(50), nullable=False, index=True)
+    event_category = Column(String(50), nullable=True, index=True)
+    
+    # User context
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    session_id = Column(String(100), nullable=True, index=True)
+    
+    # Event data (flexible JSON)
+    event_data = Column(JSON, nullable=True)
+    
+    # Page context
+    path = Column(String(500), nullable=True, index=True)
+    referrer = Column(String(500), nullable=True)
+    
+    # Device / geo (denormalized for fast queries)
+    ip_address = Column(String(45), nullable=True)
+    country = Column(String(100), nullable=True, index=True)
+    country_code = Column(String(5), nullable=True)
+    city = Column(String(100), nullable=True, index=True)
+    device_type = Column(String(20), nullable=True, index=True)
+    browser = Column(String(50), nullable=True, index=True)
+    os = Column(String(50), nullable=True, index=True)
+    
+    # Platform domain
+    domain = Column(String(50), nullable=True, index=True)  # sounditent.com or sounditent.cn
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    user = relationship("User", backref="analytics_events")
+
+
+class AnalyticsSession(Base):
+    """Session tracking for engagement and retention analytics."""
+    __tablename__ = "analytics_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(100), nullable=False, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    
+    # Session metrics
+    started_at = Column(DateTime(timezone=True), server_default=func.now())
+    ended_at = Column(DateTime(timezone=True), nullable=True)
+    duration_seconds = Column(Integer, nullable=True)
+    
+    # Engagement
+    page_views = Column(Integer, default=0)
+    events_count = Column(Integer, default=0)
+    
+    # Entry / exit
+    entry_path = Column(String(500), nullable=True)
+    exit_path = Column(String(500), nullable=True)
+    
+    # Device / geo
+    ip_address = Column(String(45), nullable=True)
+    country = Column(String(100), nullable=True, index=True)
+    country_code = Column(String(5), nullable=True)
+    city = Column(String(100), nullable=True, index=True)
+    device_type = Column(String(20), nullable=True, index=True)
+    browser = Column(String(50), nullable=True, index=True)
+    os = Column(String(50), nullable=True, index=True)
+    
+    # Platform
+    domain = Column(String(50), nullable=True, index=True)
+    
+    user = relationship("User", backref="analytics_sessions")
 
 
 class StaffMember(Base):
