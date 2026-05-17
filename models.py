@@ -209,6 +209,9 @@ class User(Base):
     verification_badge_issued_at = Column(DateTime(timezone=True), nullable=True)
     verification_badge_issued_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     
+    # Custom admin role for RBAC (nullable = legacy full admin access)
+    admin_role_id = Column(Integer, ForeignKey("admin_roles.id"), nullable=True, index=True)
+    
     # Preferences
     preferred_city = Column(Enum(City), nullable=True)
     preferred_language = Column(String(10), default="en")
@@ -228,6 +231,7 @@ class User(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Relationships
+    admin_role = relationship("AdminRole", backref="users")
     artist_profile = relationship("ArtistProfile", back_populates="user", uselist=False)
     booking_requests_sent = relationship("BookingRequest", back_populates="requester", foreign_keys="BookingRequest.requester_id")
     business_profile = relationship("BusinessProfile", back_populates="user", uselist=False)
@@ -1068,6 +1072,9 @@ class Event(Base):
     capacity = Column(Integer, nullable=True)
     status = Column(Enum(EventStatus), default=EventStatus.DRAFT, index=True)
     
+    # Display options
+    show_remaining_tickets = Column(Boolean, default=True)
+    
     # Stats
     views_count = Column(Integer, default=0)
     tickets_sold = Column(Integer, default=0)
@@ -1777,6 +1784,19 @@ class CommissionRate(Base):
     
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     updated_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+
+class AdminRole(Base):
+    """Custom admin roles for RBAC"""
+    __tablename__ = "admin_roles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, unique=True)
+    description = Column(String(500), nullable=True)
+    permissions = Column(JSON, nullable=False, default=list)
+    is_system = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 
 class AdminActivityLog(Base):

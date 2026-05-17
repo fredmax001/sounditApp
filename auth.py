@@ -168,6 +168,25 @@ async def require_super_admin(current_user: User = Depends(get_current_user)) ->
     return current_user
 
 
+def require_permission(permission: str):
+    """Factory that returns a dependency checking a specific permission key.
+    Super admins and legacy admins (admin_role_id is None) always pass."""
+    async def checker(current_user: User = Depends(require_admin)) -> User:
+        from models import UserRole
+        if current_user.role == UserRole.SUPER_ADMIN:
+            return current_user
+        if current_user.role == UserRole.ADMIN and current_user.admin_role_id is None:
+            return current_user
+        role = current_user.admin_role
+        if role and permission in role.permissions:
+            return current_user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Permission '{permission}' required",
+        )
+    return checker
+
+
 async def require_organizer(current_user: User = Depends(get_current_user)) -> User:
     from models import UserRole
     # BUSINESS and ORGANIZER roles are unified - both can manage events

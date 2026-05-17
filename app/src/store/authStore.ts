@@ -197,6 +197,7 @@ export interface AuthState {
   isLoading: boolean;
   selectedCity: string | null;
   cities: City[];
+  permissions: string[];
   initialize: () => Promise<void>;
   fetchCities: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<Profile | undefined>;
@@ -218,6 +219,9 @@ export interface AuthState {
   fetchBusinessProfile: () => Promise<void>;
   fetchArtistProfile: () => Promise<void>;
   isAdmin: () => boolean;
+  isSuperAdmin: () => boolean;
+  hasPermission: (permission: string) => boolean;
+  fetchPermissions: () => Promise<void>;
   setProfile: (profile: Profile) => void;
 }
 
@@ -271,6 +275,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       selectedCity: null,
       cities: [],
+      permissions: [],
 
       // Initialize auth state
       initialize: async () => {
@@ -380,6 +385,11 @@ export const useAuthStore = create<AuthState>()(
                 // Set user ID in cart store
                 const { useCartStore } = await import('./cartStore');
                 useCartStore.getState().setUserId(String(backendUser.id));
+
+                // Fetch admin permissions if applicable
+                if (roleType === 'admin' || roleType === 'super_admin') {
+                  await get().fetchPermissions();
+                }
 
                 // Fetch business/artist profiles if applicable
                 if (roleType === 'business') {
@@ -579,6 +589,11 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             selectedCity: backendUser.preferred_city || null,
           });
+
+          // Fetch admin permissions if applicable
+          if (roleType === 'admin' || roleType === 'super_admin') {
+            await get().fetchPermissions();
+          }
 
           // Set user ID in cart store
           const { useCartStore } = await import('./cartStore');
@@ -1272,6 +1287,33 @@ export const useAuthStore = create<AuthState>()(
           profile?.role_type === 'super_admin' ||
           profile?.role === 'admin' ||
           profile?.role === 'super_admin';
+      },
+
+      isSuperAdmin: () => {
+        const { profile } = get();
+        return profile?.role_type === 'super_admin' || profile?.role === 'super_admin';
+      },
+
+      hasPermission: (permission: string) => {
+        const { permissions, profile } = get();
+        if (profile?.role === 'super_admin') return true;
+        return permissions.includes(permission);
+      },
+
+      fetchPermissions: async () => {
+        const { session } = get();
+        if (!session?.access_token) return;
+        try {
+          const res = await fetch(`${API_BASE_URL}/admin/admins/me/permissions`, {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            set({ permissions: data.permissions || [] });
+          }
+        } catch (err) {
+          console.error('Failed to fetch permissions', err);
+        }
       },
 
       // Set profile directly (used for refreshing profile data)

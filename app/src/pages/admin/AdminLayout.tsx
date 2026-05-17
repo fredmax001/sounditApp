@@ -15,53 +15,53 @@ import {
   BarChart3
 } from 'lucide-react';
 
-// Grouped sidebar menu structure
+// Grouped sidebar menu structure — each item has a permission key
 const menuGroups = [
   {
     label: 'Core',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-      { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin', permission: 'dashboard' },
+      { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics', permission: 'analytics_read' },
     ]
   },
   {
     label: 'Platform',
     items: [
-      { id: 'users', label: 'Users', icon: Users, path: '/admin/users' },
-      { id: 'artists', label: 'Artists', icon: Music, path: '/admin/artists' },
-      { id: 'vendors', label: 'Vendors', icon: ShoppingBag, path: '/admin/vendors' },
-      { id: 'businesses', label: 'Businesses', icon: Building2, path: '/admin/businesses' },
-      { id: 'events', label: 'Events', icon: Calendar, path: '/admin/events' },
-      { id: 'bookings', label: 'Bookings', icon: Briefcase, path: '/admin/bookings' },
+      { id: 'users', label: 'Users', icon: Users, path: '/admin/users', permission: 'users_read' },
+      { id: 'artists', label: 'Artists', icon: Music, path: '/admin/artists', permission: 'users_read' },
+      { id: 'vendors', label: 'Vendors', icon: ShoppingBag, path: '/admin/vendors', permission: 'users_read' },
+      { id: 'businesses', label: 'Businesses', icon: Building2, path: '/admin/businesses', permission: 'users_read' },
+      { id: 'events', label: 'Events', icon: Calendar, path: '/admin/events', permission: 'events_read' },
+      { id: 'bookings', label: 'Bookings', icon: Briefcase, path: '/admin/bookings', permission: 'events_read' },
     ]
   },
   {
     label: 'Finance',
     items: [
-      { id: 'financial', label: 'Financial', icon: DollarSign, path: '/admin/financial' },
+      { id: 'financial', label: 'Financial', icon: DollarSign, path: '/admin/financial', permission: 'financials_read' },
       { id: 'subscriptions', label: 'Subscriptions', icon: Layers, path: '/admin/subscriptions', requiresSuperAdmin: true },
-      { id: 'withdrawals', label: 'Withdrawals', icon: CreditCard, path: '/admin/withdrawals' },
+      { id: 'withdrawals', label: 'Withdrawals', icon: CreditCard, path: '/admin/withdrawals', permission: 'financials_read' },
     ]
   },
   {
     label: 'Content',
     items: [
-      { id: 'reports', label: 'Moderation', icon: Flag, path: '/admin/reports' },
-      { id: 'community', label: 'Community', icon: MessageSquare, path: '/admin/community' },
-      { id: 'cms', label: 'CMS', icon: BookOpen, path: '/admin/cms' },
-      { id: 'recaps', label: 'Recaps', icon: Calendar, path: '/admin/recaps' },
-      { id: 'ads', label: 'Ads Manager', icon: Megaphone, path: '/admin/ads' },
+      { id: 'reports', label: 'Moderation', icon: Flag, path: '/admin/reports', permission: 'support_read' },
+      { id: 'community', label: 'Community', icon: MessageSquare, path: '/admin/community', permission: 'support_read' },
+      { id: 'cms', label: 'CMS', icon: BookOpen, path: '/admin/cms', permission: 'content_read' },
+      { id: 'recaps', label: 'Recaps', icon: Calendar, path: '/admin/recaps', permission: 'content_read' },
+      { id: 'ads', label: 'Ads Manager', icon: Megaphone, path: '/admin/ads', permission: 'marketing_read' },
     ]
   },
   {
     label: 'Security',
     items: [
-      { id: 'verification', label: 'Verification', icon: ShieldCheck, path: '/admin/verification-center' },
-      { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
-      { id: 'roles', label: 'Roles', icon: Shield, path: '/admin/roles' },
-      { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
-      { id: 'logs', label: 'Security Logs', icon: Lock, path: '/admin/logs' },
-      { id: 'api', label: 'API & Integrations', icon: Globe, path: '/admin/api' },
+      { id: 'verification', label: 'Verification', icon: ShieldCheck, path: '/admin/verification-center', permission: 'verifications_read' },
+      { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications', permission: 'marketing_read' },
+      { id: 'roles', label: 'Roles', icon: Shield, path: '/admin/roles', permission: 'admins_write' },
+      { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings', permission: 'settings_read' },
+      { id: 'logs', label: 'Security Logs', icon: Lock, path: '/admin/logs', permission: 'settings_read' },
+      { id: 'api', label: 'API & Integrations', icon: Globe, path: '/admin/api', permission: 'settings_read' },
     ]
   }
 ];
@@ -73,7 +73,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, isAdmin, logout, session } = useAuthStore();
+  const { profile, isAdmin, isSuperAdmin, hasPermission, logout, session } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -199,7 +199,11 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 scrollbar-thin">
           {menuGroups
-            .filter(group => group.items.some(item => !item.requiresSuperAdmin || profile?.role_type === 'super_admin' || profile?.role === 'super_admin'))
+            .filter(group => group.items.some(item => {
+              if (item.requiresSuperAdmin) return isSuperAdmin();
+              if (!item.permission) return true;
+              return hasPermission(item.permission);
+            }))
             .map((group) => {
               const isCollapsed = collapsedGroups[group.label];
               const hasActiveItem = group.items.some(item => isActiveRoute(item.path));
@@ -231,7 +235,11 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                         className="overflow-hidden space-y-0.5"
                       >
                         {group.items
-                          .filter(item => !item.requiresSuperAdmin || profile?.role_type === 'super_admin' || profile?.role === 'super_admin')
+                          .filter(item => {
+                            if (item.requiresSuperAdmin) return isSuperAdmin();
+                            if (!item.permission) return true;
+                            return hasPermission(item.permission);
+                          })
                           .map((item) => {
                             const Icon = item.icon;
                             const isActive = isActiveRoute(item.path);

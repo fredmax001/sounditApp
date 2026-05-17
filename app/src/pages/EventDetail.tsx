@@ -374,7 +374,12 @@ export default function EventDetail() {
                   <div>
                     <p className="text-white/50 text-sm">{t('eventDetail.availability')}</p>
                     <p className="text-white font-medium">
-                      {currentEvent.capacity ? `${(currentEvent.capacity - (currentEvent.tickets_sold || 0))} / ${currentEvent.capacity} ${t('eventDetail.ticketsLabel')}` : t('eventDetail.limitedAvailability')}
+                      {currentEvent.show_remaining_tickets === false
+                        ? ((currentEvent.ticket_tiers && currentEvent.ticket_tiers.length > 0
+                            ? currentEvent.ticket_tiers.every(t => t.status === 'sold_out' || (t.quantity_sold || 0) >= (t.quantity || 0))
+                            : false) || (currentEvent.capacity && currentEvent.tickets_sold >= currentEvent.capacity) ? t('eventDetail.soldOut') : t('eventDetail.ticketsAvailable'))
+                        : currentEvent.capacity ? `${(currentEvent.capacity - (currentEvent.tickets_sold || 0))} / ${currentEvent.capacity} ${t('eventDetail.ticketsLabel')}` : t('eventDetail.limitedAvailability')
+                      }
                     </p>
                   </div>
                 </div>
@@ -527,7 +532,12 @@ export default function EventDetail() {
                               </span>
                             </div>
                             <p className="text-white/50 text-xs">
-                              {tier.quantity - (tier.quantity_sold || 0)} {t('eventDetail.ticketsRemaining')}
+                              {(tier.status === 'sold_out' || (tier.quantity_sold || 0) >= (tier.quantity || 0))
+                                ? t('eventDetail.soldOut')
+                                : currentEvent.show_remaining_tickets === false
+                                  ? t('eventDetail.ticketsAvailable')
+                                  : `${(tier.quantity || 0) - (tier.quantity_sold || 0)} ${t('eventDetail.ticketsRemaining')}`
+                              }
                             </p>
                           </button>
                         ))}

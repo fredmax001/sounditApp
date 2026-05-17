@@ -53,7 +53,11 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
   const currency = ticketTier?.currency || 'CNY';
   const capacity = event.capacity || 0;
   const ticketsSold = event.tickets_sold || 0;
-  const isSoldOut = ticketsSold >= capacity && capacity > 0;
+  const allTiersSoldOut = event.ticket_tiers && event.ticket_tiers.length > 0
+    ? event.ticket_tiers.every(t => t.status === 'sold_out' || (t.quantity_sold || 0) >= (t.quantity || 0))
+    : false;
+  const isSoldOut = (ticketsSold >= capacity && capacity > 0) || allTiersSoldOut;
+  const showRemaining = event.show_remaining_tickets !== false;
 
   const eventDate = new Date(event.start_date);
   const dateStr = eventDate.toLocaleDateString('en-US', {
@@ -133,7 +137,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
               <span className="text-[#d3da0c] font-bold text-sm">
                 {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
               </span>
-              {capacity > 0 && (
+              {capacity > 0 && showRemaining && (
                 <span className="text-gray-400 text-[10px]">{capacity - ticketsSold} left</span>
               )}
             </div>
@@ -206,7 +210,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
               <span className="text-gray-600">•</span>
               <span>{event.city}</span>
             </div>
-            {!isCompact && capacity > 0 && (
+            {!isCompact && capacity > 0 && showRemaining && (
               <div className="flex items-center gap-2 text-gray-400 text-sm">
                 <Users className="w-4 h-4 text-[#d3da0c]" />
                 <span>{ticketsSold} / {capacity} {t('eventCard.attending')}</span>

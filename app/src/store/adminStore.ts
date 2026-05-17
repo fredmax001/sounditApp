@@ -55,6 +55,17 @@ export interface AdminUser {
     is_verified: boolean;
 }
 
+export interface AdminRole {
+    id: number;
+    name: string;
+    description?: string;
+    permissions: string[];
+    is_system: boolean;
+    created_at: string;
+    updated_at?: string;
+    user_count: number;
+}
+
 interface AdminState {
     commissionRates: Record<string, number>;
     systemFlags: {
@@ -70,6 +81,7 @@ interface AdminState {
     releasedTotal: number;
     users: AdminUser[];
     frozenUserIds: string[];
+    adminRoles: AdminRole[];
     isLoading: boolean;
     error: string | null;
 
@@ -105,6 +117,13 @@ interface AdminState {
     unfreezeUser: (token: string, id: string) => Promise<void>;
     suspendUser: (token: string, id: string, reason?: string) => Promise<void>;
     activateUser: (token: string, id: string) => Promise<void>;
+
+    // Admin Roles
+    fetchAdminRoles: (token: string) => Promise<void>;
+    createAdminRole: (token: string, data: { name: string; description?: string; permissions: string[] }) => Promise<void>;
+    updateAdminRole: (token: string, id: number, data: { name?: string; description?: string; permissions?: string[] }) => Promise<void>;
+    deleteAdminRole: (token: string, id: number) => Promise<void>;
+    assignAdminRole: (token: string, userId: string, roleId: number | null) => Promise<void>;
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -122,6 +141,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     releasedTotal: 0,
     users: [],
     frozenUserIds: [],
+    adminRoles: [],
     isLoading: false,
     error: null,
 
@@ -506,6 +526,79 @@ export const useAdminStore = create<AdminState>((set, get) => ({
             }));
         } catch (err: unknown) {
             set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    // ============================================
+    // ADMIN ROLES
+    // ============================================
+    fetchAdminRoles: async (token) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get(`${API_URL}/admin/admin-roles`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ adminRoles: response.data || [], isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    createAdminRole: async (token, data) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.post(`${API_URL}/admin/admin-roles`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await get().fetchAdminRoles(token);
+            set({ isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            throw err;
+        }
+    },
+
+    updateAdminRole: async (token, id, data) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.put(`${API_URL}/admin/admin-roles/${id}`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await get().fetchAdminRoles(token);
+            set({ isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            throw err;
+        }
+    },
+
+    deleteAdminRole: async (token, id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.delete(`${API_URL}/admin/admin-roles/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set((state) => ({
+                adminRoles: state.adminRoles.filter(r => r.id !== id),
+                isLoading: false
+            }));
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            throw err;
+        }
+    },
+
+    assignAdminRole: async (token, userId, roleId) => {
+        set({ isLoading: true, error: null });
+        try {
+            // FastAPI with a single Body() param expects the raw value, not an object
+            await axios.post(`${API_URL}/admin/users/${userId}/assign-role`, roleId, {
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+            set({ isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            throw err;
         }
     },
 }));

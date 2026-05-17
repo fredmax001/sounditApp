@@ -1187,6 +1187,8 @@
       "securityVerification": "Security & Verification",
       "requireIdDocument": "Require ID document",
       "requireIdDescription": "Collect full name and document from each attendee for admission control.",
+      "showTicketsRemaining": "显示剩余票数",
+      "showTicketsRemainingDescription": "在活动页面显示剩余票数。",
       "paymentSetup": "Payment Setup",
       "paymentSetupDescription": "Upload your QR codes so attendees can pay you directly.",
       "paymentInstructionsLabel": "Payment Instructions",
@@ -4076,7 +4078,8 @@
     "viewMyTickets": "View My Tickets"
   },
   "eventDetail": {
-    "selectTicketType": "Select Ticket Type",
+    "selectTicketType": "选择票种",
+    "ticketsAvailable": "有票",
     "standardTicket": "标准票",
     "ticket": "票",
     "linkCopied": "Link Copied",

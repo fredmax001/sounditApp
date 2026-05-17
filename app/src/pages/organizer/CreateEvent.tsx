@@ -43,6 +43,7 @@ interface CreateEventFormData {
   eventType: string;
   refundPolicy: string;
   requireId: boolean;
+  showRemainingTickets: boolean;
   ticketPrice: string;
   promoterEnabled: boolean;
   commissionRate: string;
@@ -176,6 +177,7 @@ const CreateEvent = () => {
     eventType: '',
     refundPolicy: 'Non-refundable',
     requireId: false,
+    showRemainingTickets: true,
     ticketPrice: '',
     promoterEnabled: false,
     commissionRate: '10',
@@ -506,6 +508,7 @@ const CreateEvent = () => {
         event_type: formData.eventType || undefined,
         refund_policy: formData.refundPolicy || undefined,
         require_id: formData.requireId,
+        show_remaining_tickets: formData.showRemainingTickets,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         dj_ids: selectedDjs.length > 0 ? selectedDjs : undefined,
@@ -1134,6 +1137,19 @@ const CreateEvent = () => {
                   <p className="text-gray-400 text-xs">{t('organizer.createEvent.requireIdDescription')}</p>
                 </div>
               </label>
+              <label className="flex items-start gap-3 cursor-pointer mt-4">
+                <input
+                  type="checkbox"
+                  name="showRemainingTickets"
+                  checked={formData.showRemainingTickets}
+                  onChange={handleChange}
+                  className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">{t('organizer.createEvent.showTicketsRemaining')}</p>
+                  <p className="text-gray-400 text-xs">{t('organizer.createEvent.showTicketsRemainingDescription')}</p>
+                </div>
+              </label>
             </SectionCard>
 
             {/* Payment Setup - PROMINENT */}
@@ -1426,7 +1442,7 @@ const CreateEvent = () => {
                     setFormData({
                       title: '', titleCN: '', description: '', date: '', time: '', endDate: '', endTime: '',
                       venue: '', address: '', city: '', capacity: '', image: '', tags: [], eventType: '',
-                      refundPolicy: 'Non-refundable', requireId: false, ticketPrice: '',
+                      refundPolicy: 'Non-refundable', requireId: false, showRemainingTickets: true, ticketPrice: '',
                       promoterEnabled: false, commissionRate: '10', discountPercent: '5', maxDiscountAmount: '',
                     });
                     setTicketTiers([{ id: '1', name: 'General Admission', price: '', quantity: '', description: '', saleStartDate: '', saleEndDate: '', maxPerPerson: '10' }]);

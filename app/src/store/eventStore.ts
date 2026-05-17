@@ -75,6 +75,7 @@ export interface Event {
   category?: string;
   tags?: string[];
   ticket_tiers?: TicketTier[];
+  show_remaining_tickets?: boolean;
   wechat_qr_url?: string;
   alipay_qr_url?: string;
   ticket_price?: number;
