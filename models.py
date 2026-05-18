@@ -196,6 +196,7 @@ class User(Base):
     bio = Column(Text, nullable=True)
     instagram = Column(String(255), nullable=True)
     twitter = Column(String(255), nullable=True)
+    tiktok = Column(String(255), nullable=True)
     website = Column(String(255), nullable=True)
     
     # Role & Status

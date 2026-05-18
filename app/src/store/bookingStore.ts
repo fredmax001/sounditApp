@@ -25,15 +25,24 @@ export interface Booking {
     duration_hours?: number;
 }
 
+export interface ArtistAvailability {
+    id: number;
+    artist_id: number;
+    date: string;
+    status: 'available' | 'booked' | 'unavailable';
+    note?: string | null;
+    created_at?: string;
+}
+
 
 
 function getErrorMessage(err: unknown): string {
-  if (typeof err === 'string') return err;
-  if (err && typeof err === 'object') {
-    const e = err as { response?: { data?: { detail?: string } }; message?: string };
-    return e.response?.data?.detail || e.message || 'Unknown error';
-  }
-  return 'Unknown error';
+    if (typeof err === 'string') return err;
+    if (err && typeof err === 'object') {
+        const e = err as { response?: { data?: { detail?: string } }; message?: string };
+        return e.response?.data?.detail || e.message || 'Unknown error';
+    }
+    return 'Unknown error';
 }
 
 
@@ -52,6 +61,7 @@ interface BookingState {
     bookings: Booking[];
     incomingBookings: Booking[];
     myBookings: Booking[];
+    availability: ArtistAvailability[];
     isLoading: boolean;
     error: string | null;
     fetchIncomingBookings: (token: string) => Promise<void>;
@@ -60,12 +70,16 @@ interface BookingState {
     updateBookingStatus: (token: string, id: number, status: BookingStatus, agreedPrice?: number) => Promise<boolean>;
     sendMessage: (token: string, bookingId: number, message: string) => Promise<boolean>;
     fetchMessages: (token: string, bookingId: number) => Promise<unknown[]>;
+    fetchAvailability: (token: string, artistId: number, month: number, year: number) => Promise<void>;
+    setAvailability: (token: string, date: string, status: 'available' | 'booked' | 'unavailable', note?: string) => Promise<boolean>;
+    deleteAvailability: (token: string, availabilityId: number) => Promise<boolean>;
 }
 
 export const useBookingStore = create<BookingState>((set, get) => ({
     bookings: [],
     incomingBookings: [],
     myBookings: [],
+    availability: [],
     isLoading: false,
     error: null,
 
@@ -154,6 +168,48 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         } catch (err: unknown) {
             set({ error: getErrorMessage(err) });
             return [];
+        }
+    },
+
+    fetchAvailability: async (token, artistId, month, year) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get(`${API_URL}/bookings/artists/${artistId}/availability`, {
+                params: { month, year },
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ availability: response.data, isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    setAvailability: async (token, date, status, note) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.post(`${API_URL}/bookings/availability`,
+                { date: `${date}T00:00:00`, status, note: note || null },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            set({ isLoading: false });
+            return true;
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            return false;
+        }
+    },
+
+    deleteAvailability: async (token, availabilityId) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.delete(`${API_URL}/bookings/availability/${availabilityId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ isLoading: false });
+            return true;
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            return false;
         }
     },
 }));
