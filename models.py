@@ -62,9 +62,6 @@ class EventPromoterStatus(str, enum.Enum):
     ACTIVE = "active"
     PAUSED = "paused"
     REMOVED = "removed"
-    APPLE_PAY = "apple_pay"
-    GOOGLE_PAY = "google_pay"
-    QR_TRANSFER = "qr_transfer"
 
 
 class City(str, enum.Enum):

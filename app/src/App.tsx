@@ -99,7 +99,7 @@ const CreateEvent = lazy(() => import('./pages/organizer/CreateEvent'));
 const EditEvent = lazy(() => import('./pages/organizer/EditEvent'));
 const ManageEvents = lazy(() => import('./pages/organizer/ManageEvents'));
 const EventPromoters = lazy(() => import('./pages/organizer/EventPromoters'));
-const Analytics = lazy(() => import('./pages/organizer/Analytics'));
+const Analytics = lazy(() => import('./pages/business/Analytics'));
 const OrganizerRecaps = lazy(() => import('./pages/organizer/Recaps'));
 
 // Admin Pages

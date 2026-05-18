@@ -31,6 +31,7 @@ class RateLimitExceeded(HTTPException):
 class RateLimiter:
     """
     Redis-based rate limiter with sliding window algorithm.
+    Falls back to in-memory storage when Redis is unavailable.
     
     Usage:
         limiter = RateLimiter()
@@ -43,6 +44,9 @@ class RateLimiter:
     def __init__(self, redis_url: Optional[str] = None):
         self.redis_url = redis_url or settings.REDIS_URL
         self.redis_client = None
+        # In-memory fallback: {key: [(timestamp, count), ...]}
+        self._memory_store: Dict[str, list] = {}
+        self._memory_lock = False
         self._connect()
     
     def _connect(self):
@@ -60,6 +64,36 @@ class RateLimiter:
         except Exception as e:
             logger.error(f"Redis connection failed: {e}")
             self.redis_client = None
+    
+    def _memory_clean(self, key: str, cutoff: float):
+        """Remove expired entries from in-memory store."""
+        if key in self._memory_store:
+            self._memory_store[key] = [
+                (ts, cnt) for ts, cnt in self._memory_store[key] if ts > cutoff
+            ]
+    
+    def _memory_is_allowed(self, identifier: str, endpoint: str, limit: str) -> tuple:
+        """In-memory rate limit check (fallback when Redis is down)."""
+        max_requests, window = self._parse_limit(limit)
+        key = self._get_key(identifier, endpoint)
+        now = time.time()
+        cutoff = now - window
+        
+        self._memory_clean(key, cutoff)
+        
+        if key not in self._memory_store:
+            self._memory_store[key] = []
+        
+        current = len(self._memory_store[key])
+        
+        if current >= max_requests:
+            oldest_ts = self._memory_store[key][0][0] if self._memory_store[key] else now
+            reset_time = int(oldest_ts + window - now)
+            return False, 0, max(1, reset_time)
+        
+        self._memory_store[key].append((now, current + 1))
+        remaining = max_requests - current - 1
+        return True, remaining, 0
     
     def _get_key(self, identifier: str, endpoint: str) -> str:
         """Generate Redis key for rate limiting"""
@@ -91,13 +125,13 @@ class RateLimiter:
     def is_allowed(self, identifier: str, endpoint: str, limit: str) -> tuple:
         """
         Check if request is allowed under rate limit.
+        Falls back to in-memory storage if Redis is unavailable.
         
         Returns: (allowed: bool, remaining: int, reset_time: int)
         """
         if not self.redis_client:
-            # Fallback: Allow all if Redis unavailable
-            logger.warning("Redis unavailable, allowing request")
-            return True, 1, 0
+            # Fallback: Use in-memory rate limiting (per-process, but better than nothing)
+            return self._memory_is_allowed(identifier, endpoint, limit)
         
         try:
             max_requests, window = self._parse_limit(limit)
@@ -127,7 +161,8 @@ class RateLimiter:
             
         except Exception as e:
             logger.error(f"Rate limit check failed: {e}")
-            return True, 1, 0  # Allow on error
+            # Fallback to memory on Redis error
+            return self._memory_is_allowed(identifier, endpoint, limit)
     
     def limit(self, limit_string: str, key_func: Optional[Callable] = None):
         """

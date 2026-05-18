@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Copy, Check, Loader2, Share2, Trash2,
-  QrCode, TrendingUp, Eye, DollarSign, X, Download, Calendar, ChevronRight
+  QrCode, TrendingUp, Eye, DollarSign, X, Download, Calendar, ChevronRight,
+  Plus, UserPlus, Megaphone, ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +57,16 @@ export default function BusinessPromoters() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
+  // Create & assign modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  const [newPromoterUserId, setNewPromoterUserId] = useState('');
+  const [newPromoterName, setNewPromoterName] = useState('');
+  const [newCommissionRate, setNewCommissionRate] = useState('');
+  const [newDiscountPercent, setNewDiscountPercent] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [enablingEventId, setEnablingEventId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchEventsWithPromoters();
   }, []);
@@ -67,7 +78,8 @@ export default function BusinessPromoters() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      const myEvents: Event[] = data.events || [];
+      // FIX: /events/me returns an array directly, not { events: [...] }
+      const myEvents: Event[] = Array.isArray(data) ? data : (data.events || []);
 
       const eventsWithPromoters: EventWithPromoters[] = await Promise.all(
         myEvents.map(async (event) => {
@@ -79,18 +91,111 @@ export default function BusinessPromoters() {
               headers: { Authorization: `Bearer ${token}` },
             });
             const pdata = await pres.json();
-            return { event, promoters: pdata || [], loading: false };
+            return { event, promoters: pres.ok ? (pdata || []) : [], loading: false };
           } catch {
             return { event, promoters: [], loading: false };
           }
         })
       );
 
-      setEvents(eventsWithPromoters.filter(ep => ep.event.promoter_enabled));
+      setEvents(eventsWithPromoters);
     } catch {
-      toast.error('Failed to load events');
+      toast.error(t('business.promoters.loadError') || 'Failed to load events');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const enablePromotersForEvent = async (eventId: string) => {
+    setEnablingEventId(eventId);
+    try {
+      const res = await fetch(`${API_BASE_URL}/promoters/events/${eventId}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          promoter_enabled: true,
+          default_commission_rate: 10,
+          default_discount_percent: 5,
+          max_discount_amount: null,
+        }),
+      });
+      if (res.ok) {
+        toast.success(t('business.promoters.enabled') || 'Promoter program enabled');
+        // Refresh to pick up the change
+        fetchEventsWithPromoters();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || t('business.promoters.enableError') || 'Failed to enable promoters');
+      }
+    } catch {
+      toast.error(t('business.promoters.enableError') || 'Failed to enable promoters');
+    } finally {
+      setEnablingEventId(null);
+    }
+  };
+
+  const createAndAssignPromoter = async () => {
+    if (!selectedEventId) {
+      toast.error(t('organizer.eventPromoters.selectEvent') || 'Please select an event');
+      return;
+    }
+    if (!newPromoterUserId.trim()) {
+      toast.error(t('organizer.eventPromoters.userIdRequired') || 'Please enter a user ID');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/promoters/events/${selectedEventId}/promoters`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          promoter_user_id: parseInt(newPromoterUserId),
+          promoter_name: newPromoterName.trim() || null,
+          commission_rate: newCommissionRate ? parseFloat(newCommissionRate) : null,
+          discount_percent: newDiscountPercent ? parseFloat(newDiscountPercent) : null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(t('organizer.eventPromoters.promoterAdded') || 'Promoter added');
+        setShowCreateModal(false);
+        setSelectedEventId('');
+        setNewPromoterUserId('');
+        setNewPromoterName('');
+        setNewCommissionRate('');
+        setNewDiscountPercent('');
+        fetchEventsWithPromoters();
+      } else {
+        toast.error(data.detail || t('organizer.eventPromoters.promoterAddError') || 'Failed to add promoter');
+      }
+    } catch {
+      toast.error(t('organizer.eventPromoters.promoterAddError') || 'Failed to add promoter');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const removePromoter = async (eventId: string, assignmentId: number) => {
+    if (!confirm(t('organizer.eventPromoters.removeConfirm') || 'Remove this promoter from the event?')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/promoters/events/${eventId}/promoters/${assignmentId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        toast.success(t('organizer.eventPromoters.promoterRemoved') || 'Promoter removed');
+        fetchEventsWithPromoters();
+      } else {
+        toast.error(t('organizer.eventPromoters.promoterRemoveError') || 'Failed to remove promoter');
+      }
+    } catch {
+      toast.error(t('organizer.eventPromoters.promoterRemoveError') || 'Failed to remove promoter');
     }
   };
 
@@ -123,25 +228,37 @@ export default function BusinessPromoters() {
     URL.revokeObjectURL(url);
   };
 
-  const totalPromoters = events.reduce((sum, ep) => sum + ep.promoters.length, 0);
-  const totalClicks = events.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.clicks || 0), 0), 0);
-  const totalSales = events.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.tickets_sold || 0), 0), 0);
-  const totalRevenue = events.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.revenue_generated || 0), 0), 0);
+  const enabledEvents = events.filter(ep => ep.event.promoter_enabled);
+  const disabledEvents = events.filter(ep => !ep.event.promoter_enabled);
+  const totalPromoters = enabledEvents.reduce((sum, ep) => sum + ep.promoters.length, 0);
+  const totalClicks = enabledEvents.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.clicks || 0), 0), 0);
+  const totalSales = enabledEvents.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.tickets_sold || 0), 0), 0);
+  const totalRevenue = enabledEvents.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.revenue_generated || 0), 0), 0);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate('/dashboard/business')}
-          className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-all"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-400 rotate-180" />
-        </button>
-        <div>
-          <h1 className="text-base lg:text-2xl font-display text-white">{t('business.promoters.title') || 'Promoters & Influencers'}</h1>
-          <p className="text-gray-400 text-xs lg:text-sm">{t('business.promoters.subtitle') || 'Manage referral codes and track sales'}</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/dashboard/business')}
+            className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-all"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-400 rotate-180" />
+          </button>
+          <div>
+            <h1 className="text-base lg:text-2xl font-display text-white">{t('business.promoters.title') || 'Promoters & Influencers'}</h1>
+            <p className="text-gray-400 text-xs lg:text-sm">{t('business.promoters.subtitle') || 'Create promoters and assign them to your events'}</p>
+          </div>
         </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-3 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] flex items-center gap-2 text-sm"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('business.promoters.createPromoter') || 'Create Promoter'}</span>
+          <span className="sm:hidden">{t('business.promoters.create') || 'Create'}</span>
+        </button>
       </div>
 
       {/* Stats */}
@@ -170,24 +287,23 @@ export default function BusinessPromoters() {
         ))}
       </div>
 
-      {/* Events with promoters */}
+      {/* Events with promoters enabled */}
+      <h2 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+        <Megaphone className="w-4 h-4 text-[#d3da0c]" />
+        {t('business.promoters.activePrograms') || 'Active Promoter Programs'}
+      </h2>
+
       {loading ? (
         <div className="text-center py-12"><Loader2 className="w-8 h-8 animate-spin text-[#d3da0c] mx-auto" /></div>
-      ) : events.length === 0 ? (
-        <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center">
+      ) : enabledEvents.length === 0 ? (
+        <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center mb-8">
           <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <h3 className="text-white font-bold mb-2">{t('business.promoters.noPrograms') || 'No promoter programs enabled'}</h3>
           <p className="text-gray-400 text-sm mb-4">{t('business.promoters.noProgramsDesc') || 'Enable promoters on your events to start tracking referral sales.'}</p>
-          <button
-            onClick={() => navigate('/dashboard/business/events')}
-            className="px-6 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b]"
-          >
-            {t('business.promoters.goToEvents') || 'Go to Events'}
-          </button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {events.map(({ event, promoters: eventPromoters }) => (
+        <div className="space-y-6 mb-8">
+          {enabledEvents.map(({ event, promoters: eventPromoters }) => (
             <div key={event.id} className="bg-[#111111] border border-white/5 rounded-xl p-3 lg:p-5">
               {/* Event header */}
               <div className="flex items-center gap-3 mb-4">
@@ -214,7 +330,18 @@ export default function BusinessPromoters() {
 
               {/* Promoters table */}
               {eventPromoters.length === 0 ? (
-                <p className="text-gray-500 text-xs text-center py-4">{t('business.promoters.noPromotersAssigned') || 'No promoters assigned yet'}</p>
+                <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                  <p className="text-gray-500 text-xs">{t('business.promoters.noPromotersAssigned') || 'No promoters assigned yet'}</p>
+                  <button
+                    onClick={() => {
+                      setSelectedEventId(event.id);
+                      setShowCreateModal(true);
+                    }}
+                    className="text-xs text-[#d3da0c] font-bold hover:underline flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> {t('business.promoters.add') || 'Add'}
+                  </button>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -268,6 +395,13 @@ export default function BusinessPromoters() {
                               >
                                 <QrCode className="w-3 h-3 text-gray-400" />
                               </button>
+                              <button
+                                onClick={() => removePromoter(String(event.id), promoter.id)}
+                                className="p-1 bg-white/5 rounded hover:bg-red-500/20"
+                                title={t('business.promoters.remove') || 'Remove'}
+                              >
+                                <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-400" />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -279,6 +413,47 @@ export default function BusinessPromoters() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Events without promoters enabled */}
+      {disabledEvents.length > 0 && (
+        <>
+          <h2 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            {t('business.promoters.otherEvents') || 'Other Events'}
+          </h2>
+          <div className="space-y-3">
+            {disabledEvents.map(({ event }) => (
+              <div key={event.id} className="bg-[#111111] border border-white/5 rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center shrink-0">
+                  {event.flyer_image ? (
+                    <img src={event.flyer_image} alt={event.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-white font-semibold text-sm truncate">{event.title}</h3>
+                  <p className="text-gray-400 text-[10px] truncate">
+                    {event.start_date ? new Date(event.start_date).toLocaleDateString() : 'No date'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => enablePromotersForEvent(event.id)}
+                  disabled={enablingEventId === event.id}
+                  className="px-3 py-1.5 bg-white/5 text-white text-xs font-bold rounded-lg hover:bg-[#d3da0c] hover:text-black transition-all disabled:opacity-50 flex items-center gap-1 shrink-0"
+                >
+                  {enablingEventId === event.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Megaphone className="w-3 h-3" />
+                  )}
+                  {t('business.promoters.enable') || 'Enable'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* QR Modal */}
@@ -302,6 +477,125 @@ export default function BusinessPromoters() {
           </div>
         </div>
       )}
+
+      {/* Create & Assign Promoter Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowCreateModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-[#d3da0c]" />
+                  {t('business.promoters.createPromoter') || 'Create & Assign Promoter'}
+                </h3>
+                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Event selector */}
+                <div>
+                  <label className="text-gray-400 text-xs block mb-1.5">{t('business.promoters.selectEvent') || 'Select Event'}</label>
+                  <select
+                    value={selectedEventId}
+                    onChange={(e) => setSelectedEventId(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  >
+                    <option value="" className="bg-[#111111]">— {t('business.promoters.chooseEvent') || 'Choose an event'} —</option>
+                    {events.map(({ event }) => (
+                      <option key={event.id} value={event.id} className="bg-[#111111]">
+                        {event.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* User ID */}
+                <div>
+                  <label className="text-gray-400 text-xs block mb-1.5">{t('organizer.eventPromoters.userId') || 'User ID'}</label>
+                  <input
+                    type="number"
+                    value={newPromoterUserId}
+                    onChange={(e) => setNewPromoterUserId(e.target.value)}
+                    placeholder={t('organizer.eventPromoters.userIdPlaceholder') || 'Enter user ID number'}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  />
+                  <p className="text-gray-500 text-[10px] mt-1">{t('business.promoters.userIdHelp') || 'The user must already have an account on the platform.'}</p>
+                </div>
+
+                {/* Promoter name */}
+                <div>
+                  <label className="text-gray-400 text-xs block mb-1.5">
+                    {t('business.promoters.promoterName') || 'Promoter Name'}
+                    <span className="text-gray-600 ml-1">({t('organizer.eventPromoters.optional') || 'Optional'})</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newPromoterName}
+                    onChange={(e) => setNewPromoterName(e.target.value)}
+                    placeholder={t('business.promoters.promoterNamePlaceholder') || 'e.g. DJ Fred Max'}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  />
+                </div>
+
+                {/* Commission & Discount */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-gray-400 text-xs block mb-1.5">{t('organizer.eventPromoters.customCommission') || 'Commission (%)'}</label>
+                    <input
+                      type="number"
+                      value={newCommissionRate}
+                      onChange={(e) => setNewCommissionRate(e.target.value)}
+                      placeholder={t('organizer.eventPromoters.customCommissionPlaceholder') || 'Default'}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-xs block mb-1.5">{t('organizer.eventPromoters.customDiscount') || 'Discount (%)'}</label>
+                    <input
+                      type="number"
+                      value={newDiscountPercent}
+                      onChange={(e) => setNewDiscountPercent(e.target.value)}
+                      placeholder={t('organizer.eventPromoters.customDiscountPlaceholder') || 'Default'}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 py-2.5 bg-white/5 text-white rounded-lg text-sm font-bold hover:bg-white/10"
+                >
+                  {t('organizer.eventPromoters.cancel') || 'Cancel'}
+                </button>
+                <button
+                  onClick={createAndAssignPromoter}
+                  disabled={creating || !selectedEventId || !newPromoterUserId}
+                  className="flex-1 py-2.5 bg-[#d3da0c] text-black rounded-lg text-sm font-bold hover:bg-[#bbc10b] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {creating && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {t('business.promoters.assign') || 'Assign Promoter'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
