@@ -7,7 +7,8 @@ import {
   Music, Calendar, Users, Star, TrendingUp, Edit, Camera, Check,
   X as CloseIcon, Clock, Loader2, Instagram, Twitter,
   DollarSign, Headphones,
-  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode, Shield
+  Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode, Shield,
+  CalendarDays
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +19,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/
 const ArtistDashboard = () => {
   const { t } = useTranslation();
   const { profile, artistProfile, session, updateProfile } = useAuthStore();
-  const { incomingBookings, fetchIncomingBookings, updateBookingStatus, isLoading: isBookingsLoading } = useBookingStore();
+  const { incomingBookings, fetchIncomingBookings, updateBookingStatus, isLoading: isBookingsLoading, availability, fetchAvailability, setAvailability, deleteAvailability } = useBookingStore();
   const { stats: dashboardStats, fetchStats } = useDashboardStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaving, setIsSaving] = useState(false);
@@ -46,6 +47,12 @@ const ArtistDashboard = () => {
 
   // Booking filter state
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected' | 'completed'>('all');
+
+  // Availability calendar state
+  const [availMonth, setAvailMonth] = useState(new Date());
+  const [selectedAvailDate, setSelectedAvailDate] = useState<string | null>(null);
+  const [selectedAvailStatus, setSelectedAvailStatus] = useState<'available' | 'booked' | 'unavailable'>('available');
+  const [isSavingAvail, setIsSavingAvail] = useState(false);
 
 
   // Fetch fresh profile data on mount - syncs with backend
@@ -89,12 +96,72 @@ const ArtistDashboard = () => {
     }
   }, [session, fetchStats, fetchIncomingBookings, artistProfile]);
 
+  // Fetch availability calendar data
+  useEffect(() => {
+    if (session?.access_token && artistProfile?.id && activeTab === 'availability') {
+      fetchAvailability(session.access_token, Number(artistProfile.id), availMonth.getMonth() + 1, availMonth.getFullYear());
+    }
+  }, [session, artistProfile, activeTab, availMonth, fetchAvailability]);
+
   const handleStatusUpdate = async (id: number, status: BookingStatus) => {
     if (session?.access_token) {
       const success = await updateBookingStatus(session.access_token, id, status);
       if (success) {
         toast.success(t('artist.dashboard.bookingUpdated', { status }));
       }
+    }
+  };
+
+  // Availability calendar helpers
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+  const formatDateStr = (year: number, month: number, day: number) =>
+    `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+  const getAvailabilityForDate = (dateStr: string) =>
+    availability.find(a => a.date === dateStr);
+
+  const handleDateClick = (day: number) => {
+    const dateStr = formatDateStr(availMonth.getFullYear(), availMonth.getMonth(), day);
+    const existing = getAvailabilityForDate(dateStr);
+    setSelectedAvailDate(dateStr);
+    setSelectedAvailStatus(existing?.status || 'available');
+  };
+
+  const handleSaveAvailability = async () => {
+    if (!session?.access_token || !selectedAvailDate) return;
+    setIsSavingAvail(true);
+    const success = await setAvailability(session.access_token, selectedAvailDate, selectedAvailStatus);
+    if (success) {
+      toast.success(t('artist.dashboard.availabilitySaved') || 'Availability updated');
+      if (artistProfile?.id) {
+        await fetchAvailability(session.access_token, Number(artistProfile.id), availMonth.getMonth() + 1, availMonth.getFullYear());
+      }
+      setSelectedAvailDate(null);
+    } else {
+      toast.error(t('artist.dashboard.availabilitySaveFailed') || 'Failed to update availability');
+    }
+    setIsSavingAvail(false);
+  };
+
+  const handleClearAvailability = async () => {
+    if (!session?.access_token || !selectedAvailDate) return;
+    const existing = getAvailabilityForDate(selectedAvailDate);
+    if (existing?.id) {
+      setIsSavingAvail(true);
+      const success = await deleteAvailability(session.access_token, existing.id);
+      if (success) {
+        toast.success(t('artist.dashboard.availabilityCleared') || 'Availability cleared');
+        if (artistProfile?.id) {
+          await fetchAvailability(session.access_token, Number(artistProfile.id), availMonth.getMonth() + 1, availMonth.getFullYear());
+        }
+        setSelectedAvailDate(null);
+      } else {
+        toast.error(t('artist.dashboard.availabilityClearFailed') || 'Failed to clear availability');
+      }
+      setIsSavingAvail(false);
+    } else {
+      setSelectedAvailDate(null);
     }
   };
 
@@ -447,6 +514,7 @@ const ArtistDashboard = () => {
     { id: 'overview', label: t('artist.dashboard.tab.overview'), icon: TrendingUp },
     { id: 'profile', label: t('artist.dashboard.tab.profile'), icon: Edit },
     { id: 'bookings', label: t('artist.dashboard.tab.bookings'), icon: Calendar },
+    { id: 'availability', label: t('artist.dashboard.tab.availability') || 'Availability', icon: CalendarDays },
     { id: 'music', label: t('artist.dashboard.tab.music'), icon: Headphones },
   ];
 
@@ -1124,6 +1192,153 @@ const ArtistDashboard = () => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'availability' && (
+            <div className="space-y-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-3 lg:text-2xl">{t('artist.dashboard.availabilityTitle') || 'My Availability'}</h2>
+                  <p className="text-gray-500 font-medium">{t('artist.dashboard.availabilitySubtitle') || 'Click a date to set your availability status.'}</p>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                    <span className="text-gray-400">{t('artistDetail.available') || 'Available'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <span className="text-gray-400">{t('artistDetail.booked') || 'Booked'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-gray-500" />
+                    <span className="text-gray-400">{t('artist.dashboard.unavailable') || 'Unavailable'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#111111] rounded-2xl p-6 border border-white/5">
+                {/* Month Navigation */}
+                <div className="flex items-center justify-between mb-6">
+                  <button
+                    onClick={() => setAvailMonth(new Date(availMonth.getFullYear(), availMonth.getMonth() - 1))}
+                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors"
+                  >
+                    ←
+                  </button>
+                  <span className="text-white font-medium text-lg">
+                    {availMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button
+                    onClick={() => setAvailMonth(new Date(availMonth.getFullYear(), availMonth.getMonth() + 1))}
+                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors"
+                  >
+                    →
+                  </button>
+                </div>
+
+                {/* Day Headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="text-center text-gray-500 text-xs py-2 font-medium">{day}</div>
+                  ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: getFirstDayOfMonth(availMonth.getFullYear(), availMonth.getMonth()) }).map((_, i) => (
+                    <div key={`empty-${i}`} />
+                  ))}
+                  {Array.from({ length: getDaysInMonth(availMonth.getFullYear(), availMonth.getMonth()) }).map((_, i) => {
+                    const day = i + 1;
+                    const dateStr = formatDateStr(availMonth.getFullYear(), availMonth.getMonth(), day);
+                    const avail = getAvailabilityForDate(dateStr);
+                    const status = avail?.status;
+                    const isSelected = selectedAvailDate === dateStr;
+
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => handleDateClick(day)}
+                        className={`aspect-square flex items-center justify-center rounded-lg text-sm relative transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-[#d3da0c] bg-white/10'
+                            : status === 'available'
+                            ? 'bg-green-500/20 hover:bg-green-500/30'
+                            : status === 'booked'
+                            ? 'bg-red-500/20 hover:bg-red-500/30'
+                            : status === 'unavailable'
+                            ? 'bg-gray-500/20 hover:bg-gray-500/30'
+                            : 'bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        <span className={`${isSelected ? 'text-[#d3da0c] font-bold' : 'text-white'}`}>{day}</span>
+                        {status && (
+                          <div className={`absolute bottom-1.5 w-1.5 h-1.5 rounded-full ${
+                            status === 'available' ? 'bg-green-500' : status === 'booked' ? 'bg-red-500' : 'bg-gray-500'
+                          }`} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Selected Date Editor */}
+                {selectedAvailDate && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10"
+                  >
+                    <p className="text-white font-medium mb-4">
+                      {t('artist.dashboard.selectedDate') || 'Selected Date'}: <span className="text-[#d3da0c]">{selectedAvailDate}</span>
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(['available', 'booked', 'unavailable'] as const).map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setSelectedAvailStatus(status)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                            selectedAvailStatus === status
+                              ? status === 'available'
+                                ? 'bg-green-500 text-white'
+                                : status === 'booked'
+                                ? 'bg-red-500 text-white'
+                                : 'bg-gray-500 text-white'
+                              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                          }`}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleSaveAvailability}
+                        disabled={isSavingAvail}
+                        className="px-6 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {isSavingAvail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                        {t('common.save') || 'Save'}
+                      </button>
+                      <button
+                        onClick={handleClearAvailability}
+                        disabled={isSavingAvail}
+                        className="px-6 py-2.5 bg-white/5 text-white text-sm font-bold rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                      >
+                        {t('common.clear') || 'Clear'}
+                      </button>
+                      <button
+                        onClick={() => setSelectedAvailDate(null)}
+                        className="px-6 py-2.5 bg-white/5 text-gray-400 text-sm font-bold rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        {t('common.cancel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
           )}
         </motion.div>
