@@ -517,8 +517,9 @@
       "ticketTier": "门票类型",
       "default": "默认",
       "create": "创建",
+      "pay": "支付",
       "fillRequired": "请填写所有必填项",
-      "guestOrderCreated": "客人门票创建成功",
+      "guestOrderCreated": "客人门票已创建，请完成支付以确认。",
       "guestOrderFailed": "创建客人门票失败",
       "checkedIn": "Checked in",
       "notCheckedIn": "Not checked in",
@@ -575,8 +576,9 @@
       "ticketTier": "门票类型",
       "default": "默认",
       "create": "创建",
+      "pay": "支付",
       "fillRequired": "请填写所有必填项",
-      "guestOrderCreated": "客人门票创建成功",
+      "guestOrderCreated": "客人门票已创建，请完成支付以确认。",
       "guestOrderFailed": "创建客人门票失败"
     },
     "profile": {

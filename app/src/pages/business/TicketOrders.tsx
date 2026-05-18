@@ -135,7 +135,11 @@ const TicketOrdersPage = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success(data.message || t('business.ticketOrders.guestOrderCreated') || 'Guest ticket created');
+        toast.success(data.message || t('business.ticketOrders.guestOrderCreated') || 'Guest ticket created. Pending payment.');
+        // Open YooPay payment link in new tab
+        if (data.payment_url) {
+          window.open(data.payment_url, '_blank', 'noopener,noreferrer');
+        }
         setShowGuestModal(false);
         setGuestForm({ event_id: '', guest_name: '', guest_email: '', guest_phone: '', quantity: '1', ticket_tier_id: '' });
         fetchOrders();
@@ -402,7 +406,7 @@ const TicketOrdersPage = () => {
                 className="flex-1 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmittingGuest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                {t('business.ticketOrders.create') || 'Create'}
+                {t('business.ticketOrders.pay') || 'Pay'}
               </button>
             </div>
           </div>
