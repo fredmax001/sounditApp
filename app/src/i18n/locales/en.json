@@ -517,8 +517,9 @@
       "ticketTier": "Ticket Tier",
       "default": "Default",
       "create": "Create",
+      "pay": "Pay",
       "fillRequired": "Please fill in all required fields",
-      "guestOrderCreated": "Guest ticket created successfully",
+      "guestOrderCreated": "Guest ticket created. Complete payment to confirm.",
       "guestOrderFailed": "Failed to create guest ticket",
       "checkedIn": "Checked in",
       "notCheckedIn": "Not checked in",
@@ -575,8 +576,9 @@
       "ticketTier": "Ticket Tier",
       "default": "Default",
       "create": "Create",
+      "pay": "Pay",
       "fillRequired": "Please fill in all required fields",
-      "guestOrderCreated": "Guest ticket created successfully",
+      "guestOrderCreated": "Guest ticket created. Complete payment to confirm.",
       "guestOrderFailed": "Failed to create guest ticket"
     },
     "profile": {

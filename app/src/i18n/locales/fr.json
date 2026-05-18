@@ -518,8 +518,9 @@
       "ticketTier": "Type de billet",
       "default": "Défaut",
       "create": "Créer",
+      "pay": "Payer",
       "fillRequired": "Veuillez remplir tous les champs obligatoires",
-      "guestOrderCreated": "Billet invité créé avec succès",
+      "guestOrderCreated": "Billet invité créé. Veuillez effectuer le paiement pour confirmer.",
       "guestOrderFailed": "Échec de la création du billet invité",
       "checkedIn": "Checked in",
       "notCheckedIn": "Not checked in",
@@ -576,8 +577,9 @@
       "ticketTier": "Type de billet",
       "default": "Défaut",
       "create": "Créer",
+      "pay": "Payer",
       "fillRequired": "Veuillez remplir tous les champs obligatoires",
-      "guestOrderCreated": "Billet invité créé avec succès",
+      "guestOrderCreated": "Billet invité créé. Veuillez effectuer le paiement pour confirmer.",
       "guestOrderFailed": "Échec de la création du billet invité"
     },
     "profile": {
