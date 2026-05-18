@@ -19,6 +19,34 @@ import api.sms_test as sms_test
 
 settings = get_settings()
 
+# ─── Security: Strong Secret Validation ─────────────────────────────────────
+_WEAK_SECRETS = {
+    "", "dev-secret-key-change-in-production", "dev-jwt-secret-change-in-production",
+    "secret", "password", "123456", "changeme", "admin", "default"
+}
+
+def _validate_secrets():
+    """Fail fast if weak secrets are detected in production."""
+    if settings.DEBUG:
+        return
+    
+    warnings = []
+    if settings.SECRET_KEY in _WEAK_SECRETS or len(settings.SECRET_KEY) < 32:
+        warnings.append("SECRET_KEY is weak or using default value. Set a strong random secret.")
+    if settings.JWT_SECRET in _WEAK_SECRETS or len(settings.JWT_SECRET) < 32:
+        warnings.append("JWT_SECRET is weak or using default value. Set a strong random secret.")
+    
+    if warnings:
+        print("\n" + "=" * 60)
+        print("SECURITY WARNING — Production secrets are weak!")
+        print("=" * 60)
+        for w in warnings:
+            print(f"  • {w}")
+        print("=" * 60 + "\n")
+        # Don't crash, but warn loudly. In a future version, raise RuntimeError.
+
+_validate_secrets()
+
 def _is_maintenance_mode() -> bool:
     db = SessionLocal()
     try:
@@ -80,6 +108,14 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# ─── Security Headers (OWASP) ───────────────────────────────────────────────
+from security.security_headers import setup_security_headers
+setup_security_headers(app, debug=settings.DEBUG)
+
+# ─── Rate Limiting Middleware ───────────────────────────────────────────────
+from security.rate_limiter import setup_rate_limiting
+setup_rate_limiting(app)
 
 # CORS - Environment-specific configuration
 # Security: Development origins only allowed in DEBUG mode

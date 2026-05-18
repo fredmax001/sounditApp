@@ -93,6 +93,7 @@ def migrate():
                     status VARCHAR(20) DEFAULT 'pending',
                     assigned_by INTEGER REFERENCES users(id),
                     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    promoter_name VARCHAR(100),
                     clicks INTEGER DEFAULT 0,
                     conversions INTEGER DEFAULT 0,
                     tickets_sold INTEGER DEFAULT 0,

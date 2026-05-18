@@ -27,6 +27,64 @@
 
 ## Completed Audits & Fixes
 
+### 41. Advanced Business / Organizer Analytics Dashboard (2026-05-18)
+- **Objective**: Transform the basic organizer analytics into a rich, admin-level analytics dashboard scoped to the organizer's own events.
+- **Problem**: The business analytics route (`/dashboard/business/analytics`) reused the Organizer Analytics component, which only showed 4 stat cards and a simple monthly revenue bar chart. The `/organizer/stats` endpoint didn't exist, so everything was computed client-side from the event store. There was no per-event performance data, no sales trends, no audience demographics, and no promoter analytics.
+- **Backend changes** (`api/dashboard_stats.py`):
+  - Added `_get_organizer_id()` helper to resolve organizer profile for both business and organizer roles.
+  - `GET /dashboard/organizer/analytics/overview` — total events (upcoming/past), revenue (period + all-time), tickets, views, followers, conversion rate, avg order value, revenue/ticket growth vs previous period.
+  - `GET /dashboard/organizer/analytics/sales` — daily sales trend (revenue + tickets), revenue by ticket tier (pie chart), orders by status (pie chart).
+  - `GET /dashboard/organizer/analytics/events` — per-event performance table with views, tickets sold, capacity, fill rate %, revenue, check-ins, status.
+  - `GET /dashboard/organizer/analytics/audience` — unique attendees, new vs returning, attendees by city, gender distribution, age groups.
+  - `GET /dashboard/organizer/analytics/promoters` — total promoters, clicks, sales, revenue, top 10 promoters with commission.
+  - `GET /dashboard/organizer/analytics/realtime` — today's revenue, tickets, check-ins, pending orders, live events.
+- **Frontend changes**:
+  - `app/src/pages/business/Analytics.tsx` (new, 600+ lines) — complete replacement:
+    - 5 tabs: Overview, Sales, Events, Audience, Promoters
+    - Recharts visualizations: AreaChart (daily revenue), BarChart (sales, event views), PieChart (tier revenue, status breakdown, gender, age groups), horizontal BarChart (cities)
+    - Period selector: 7/30/90/365 days
+    - Realtime stat cards at the top of Overview
+    - Event performance table with fill-rate progress bars
+    - Top promoters table with revenue and commission
+    - Export to CSV button
+    - Responsive design with AnimatePresence tab transitions
+  - `app/src/App.tsx`: Updated business analytics route to import from `pages/business/Analytics` instead of `pages/organizer/Analytics`.
+- **Deploy**:
+  - Backend deployed to main server (`72.62.254.251`) and service restarted
+  - Frontend deployed to both main server (`sounditent.com`) and China server (`sounditent.cn`)
+- **Bug fixes post-deploy**:
+  1. `EventStatus` not imported in `api/dashboard_stats.py` — caused `NameError` on overview, sales, and promoters endpoints (500 errors). Fixed by adding `EventStatus`, `EventPromoter`, `PromoterProfile` to imports.
+  2. `func.date()` not supported on PostgreSQL — used `cast(column, Date)` instead for daily sales grouping.
+  3. Ticket tier revenue query had incorrect joins — rewrote to use `TicketOrder.ticket_tier_id == TicketTier.id` with proper `select_from()`.
+  4. Frontend Sales/Promoters tabs showed completely blank when API failed — added explicit empty states ("No sales data available", "No promoter data available", "No promoters assigned yet").
+- **Verification**:
+  - Backend imports cleanly
+  - Frontend compiles successfully
+  - All 6 organizer analytics endpoints return 401 (auth required) — no more 500 errors
+  - Deployed to both main server and China server
+
+### 40. Promoter System Fix — Missing DB Column, Approval Inheritance & Frontend Bug (2026-05-18)
+- **Problem**: Event promoters assigned to live events showed "failed to load promoter". User also wanted a centralized promoter creation page instead of using the event share flow.
+- **Root cause 1 (Critical — Backend)**: The production `event_promoters` table was missing the `promoter_name` column. This column was added to the `EventPromoter` model but never included in migration scripts. Any query on `EventPromoter` failed with `OperationalError: no such column`, causing API 500 errors.
+- **Root cause 2 (Frontend)**: `BusinessPromoters.tsx` parsed `/events/me` response as `data.events` but the endpoint returns an array directly. This caused `myEvents` to always be `[]`, so the promoter page always showed "No promoter programs enabled" even when the user had events.
+- **Root cause 3**: `get_organizer_profile_id()` in `api/events.py` and `_get_user_organizer_id()` in `api/ticketing_organizer.py` auto-created `OrganizerProfile` with `is_approved=False`, even when the user's `BusinessProfile` was already approved.
+- **Root cause 4**: `EventPromoterStatus` enum had incorrect copy-paste values (`APPLE_PAY`, `GOOGLE_PAY`, `QR_TRANSFER`).
+- **Fixes applied**:
+  - **Backend**: `scripts/migrate_event_promoters_promoter_name.py` (new) adds `promoter_name VARCHAR(100)`. `api/events.py` and `api/ticketing_organizer.py` now mirror `is_approved`/`is_verified` from business profile. `models.py` cleaned up `EventPromoterStatus` enum.
+  - **Frontend — BusinessPromoters.tsx**: Fixed `data.events` → `data` (array response). Rewrote page into a proper promoter management hub:
+    - Shows ALL events, grouped into "Active Promoter Programs" and "Other Events"
+    - One-click "Enable" button to turn on promoter program for events without it
+    - "Create Promoter" modal to create & assign a promoter to any event in one flow
+    - Inline promoter management (copy code, copy link, QR, remove) per event
+  - **Frontend — EventPromoters.tsx**: Fixed error toast to show `loadError` instead of `promoterAddError` on fetch failures.
+  - **Translations**: Added new `business.promoters.*` and `organizer.eventPromoters.loadError`/`selectEvent` keys to `en.json`, `zh.json`, `fr.json`.
+- **Verification**:
+  - Backend imports cleanly
+  - Frontend compiles successfully
+  - Production DB migration ran: `promoter_name` column added to `event_promoters`
+  - Production backend restarted and serving requests (200 on `/api/v1/events`, 401 on `/api/v1/promoters/events/1/promoters` — no more 500)
+  - Frontend deployed to `sounditent.com`
+
 ### 39. Admin Role-Based Access Control (RBAC) (2026-05-18)
 - **Objective**: Enable Super Admin to create custom admin roles (Finance, Marketing, Support, Content Moderator, Community Manager) with granular permissions. Each role sees only the sidebar nav items they are authorized for.
 - **Backend changes**:

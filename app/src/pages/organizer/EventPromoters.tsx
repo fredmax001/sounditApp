@@ -89,9 +89,13 @@ export default function EventPromoters() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setPromoters(data || []);
+      if (res.ok) {
+        setPromoters(data || []);
+      } else {
+        toast.error(data.detail || t('organizer.eventPromoters.loadError') || 'Failed to load promoters');
+      }
     } catch {
-      toast.error(t('organizer.eventPromoters.promoterAddError'));
+      toast.error(t('organizer.eventPromoters.loadError') || 'Failed to load promoters');
     } finally {
       setLoading(false);
     }

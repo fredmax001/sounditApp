@@ -26,11 +26,17 @@ with engine.connect() as conn:
 
     # 2) business_profiles
     bp_cols = [c['name'] for c in insp.get_columns('business_profiles')]
-    if 'gallery_images' not in bp_cols:
-        conn.execute(text("ALTER TABLE business_profiles ADD COLUMN gallery_images JSON"))
-        print("Added business_profiles.gallery_images")
-    else:
-        print("Skipped business_profiles.gallery_images")
+    for col, col_type in [
+        ('gallery_images', 'JSON'),
+        ('is_approved', 'BOOLEAN DEFAULT 0'),
+        ('rating', 'FLOAT DEFAULT 0.0'),
+        ('reviews_count', 'INTEGER DEFAULT 0'),
+    ]:
+        if col not in bp_cols:
+            conn.execute(text(f"ALTER TABLE business_profiles ADD COLUMN {col} {col_type}"))
+            print(f"Added business_profiles.{col}")
+        else:
+            print(f"Skipped business_profiles.{col}")
 
     # 3) products
     prod_cols = [c['name'] for c in insp.get_columns('products')]
@@ -101,6 +107,11 @@ with engine.connect() as conn:
         ('event_type', 'VARCHAR(100)'),
         ('refund_policy', 'VARCHAR(50)'),
         ('require_id', 'BOOLEAN DEFAULT 0'),
+        ('show_remaining_tickets', 'BOOLEAN DEFAULT 1'),
+        ('promoter_enabled', 'BOOLEAN DEFAULT 0'),
+        ('default_commission_rate', 'FLOAT DEFAULT 10.0'),
+        ('default_discount_percent', 'FLOAT DEFAULT 5.0'),
+        ('max_discount_amount', 'FLOAT'),
     ]:
         if col not in event_cols:
             conn.execute(text(f"ALTER TABLE events ADD COLUMN {col} {col_type}"))
@@ -391,6 +402,20 @@ with engine.connect() as conn:
         print("Created table_orders table")
     else:
         print("Skipped table_orders table")
+
+    # 17) event_promoters missing columns
+    if 'event_promoters' in insp.get_table_names():
+        ep_cols = [c['name'] for c in insp.get_columns('event_promoters')]
+        for col, col_type in [
+            ('promoter_name', 'VARCHAR(100)'),
+        ]:
+            if col not in ep_cols:
+                conn.execute(text(f"ALTER TABLE event_promoters ADD COLUMN {col} {col_type}"))
+                print(f"Added event_promoters.{col}")
+            else:
+                print(f"Skipped event_promoters.{col}")
+    else:
+        print("Skipped event_promoters (table does not exist)")
 
     conn.commit()
 
