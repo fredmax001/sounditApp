@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-18
+2026-05-19
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-17
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-19
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,23 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 42. Organizer Ticket Orders — Missing Buyer Info & Payment Screenshot (2026-05-19)
+- **Problem**: Organizer received payment for a ticket but could not see the buyer's name or payment screenshot on the organizer dashboard. Buyer appeared as "-" or "Unknown".
+- **Root cause 1 (Critical — Backend)**: The `/tickets/business/tickets` endpoint in `api/tickets.py` did NOT include `payment_screenshot` in the JSON response. The frontend conditionally rendered the "View Screenshot" button based on this field, so it was completely hidden. Organizers could not verify payment proof.
+- **Root cause 2 (Backend)**: The `display_name` logic fell back to empty string when `user.first_name` and `user.last_name` were both NULL. In JavaScript, empty string is falsy, so `order.user?.name || '-'` displayed '-' instead of any useful identifier.
+- **Root cause 3 (Frontend)**: `BusinessDashboard.tsx` unconditionally rendered a "Screenshot" button even when `payment_screenshot` was undefined, opening a broken modal.
+- **Fixes applied**:
+  - **Backend — `api/tickets.py`**: Added `payment_screenshot` to the `/tickets/business/tickets` response. Improved `display_name` fallback chain: `first+last name → email → phone → username → "User #{id}"`. Added `username` to the user object.
+  - **Backend — `api/ticketing_organizer.py`**: Same improvements to the `/ticketing/organizer/orders` endpoint.
+  - **Frontend — `app/src/pages/business/Dashboard.tsx`**: Wrapped the Screenshot button in `{order.payment_screenshot && (...)}` so it only appears when proof exists.
+- **Deploy**:
+  - Backend synced to main server (`72.62.254.251`) and `soundit` service restarted
+  - Frontend synced to both main server (`sounditent.com`) and China server (`sounditent.cn`)
+- **Verification**:
+  - `GET /health` → `{"status":"healthy"}`
+  - Frontend compiles successfully
+  - Backend imports cleanly
 
 ### 41. Advanced Business / Organizer Analytics Dashboard (2026-05-18)
 - **Objective**: Transform the basic organizer analytics into a rich, admin-level analytics dashboard scoped to the organizer's own events.
