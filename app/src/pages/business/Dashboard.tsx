@@ -430,10 +430,12 @@ const BusinessDashboard = () => {
                     </div>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <button onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                      className="flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded-lg text-[10px] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all">
-                      <Image className="w-3 h-3" /> Screenshot
-                    </button>
+                    {order.payment_screenshot && (
+                      <button onClick={() => setSelectedScreenshot(order.payment_screenshot)}
+                        className="flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded-lg text-[10px] text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all">
+                        <Image className="w-3 h-3" /> Screenshot
+                      </button>
+                    )}
                     {order.ticket_code && (
                       <span className="px-2 py-1 bg-[#d3da0c]/10 text-[#d3da0c] rounded-lg text-[10px] font-mono">{order.ticket_code}</span>
                     )}
