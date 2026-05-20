@@ -2150,6 +2150,8 @@
       "usersWillAppearHere": "用户注册后将显示在这里",
       "identityHeader": "身份",
       "accessLevelHeader": "角色",
+      "cityHeader": "城市",
+      "allCities": "全部城市",
       "joinDateHeader": "加入时间",
       "securityStateHeader": "状态",
       "overridesHeader": "操作",

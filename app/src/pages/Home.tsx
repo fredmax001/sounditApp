@@ -78,7 +78,7 @@ const Home = () => {
 
   const [cityGuideCounts, setCityGuideCounts] = useState({
     venues: 0,
-    organizers: 0,
+    businesses: 0,
     vendors: 0,
     events: 0,
     artists: 0,
@@ -117,7 +117,7 @@ const Home = () => {
       if (data) {
         setCityGuideCounts({
           venues: (data.venues || []).length,
-          organizers: (data.organizers || []).length,
+          businesses: (data.businesses || []).length,
           vendors: (data.vendors || []).length,
           events: (data.events || []).length,
           artists: (data.artists || []).length,
@@ -536,7 +536,7 @@ const Home = () => {
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { title: 'Venues/Organizers', image: '/party_crowd_bg.jpg', count: `${(cityGuideCounts.venues || 0) + (cityGuideCounts.organizers || 0)} venues`, color: '#d3da0c' },
+              { title: 'Business', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.businesses || 0} businesses`, color: '#d3da0c' },
               { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0} vendors`, color: '#FF2D8F' },
               { title: 'Events', image: '/hero-bg.jpg', count: `${cityGuideCounts.events || 0} upcoming`, color: '#00E5FF' },
               { title: 'Artists', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.artists || 0} DJs`, color: '#C8A000' },

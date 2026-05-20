@@ -2151,6 +2151,8 @@
       "usersWillAppearHere": "Les utilisateurs apparaîtront ici une fois inscrits",
       "identityHeader": "Identité",
       "accessLevelHeader": "Rôle",
+      "cityHeader": "Ville",
+      "allCities": "Toutes les villes",
       "joinDateHeader": "Inscrit",
       "securityStateHeader": "Statut",
       "overridesHeader": "Actions",
