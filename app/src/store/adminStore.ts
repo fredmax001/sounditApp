@@ -53,6 +53,7 @@ export interface AdminUser {
     created_at: string;
     last_login?: string;
     is_verified: boolean;
+    preferred_city?: string;
 }
 
 export interface AdminRole {

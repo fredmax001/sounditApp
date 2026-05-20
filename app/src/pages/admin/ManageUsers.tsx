@@ -11,7 +11,8 @@ import {
     Loader2,
     X,
     Trash2,
-    Award
+    Award,
+    MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminStore } from '@/store/adminStore';
@@ -22,7 +23,7 @@ import type { AdminUser } from '@/store/adminStore';
 const ManageUsers = () => {
     const { t } = useTranslation();
     const { users, fetchUsers, frozenUserIds, freezeUser, unfreezeUser } = useAdminStore();
-    const { session, profile } = useAuthStore();
+    const { session, profile, cities } = useAuthStore();
     const isSuperAdmin = profile?.role === 'super_admin' || profile?.role_type === 'super_admin';
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +31,7 @@ const ManageUsers = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
     const [roleFilter, setRoleFilter] = useState('');
+    const [cityFilter, setCityFilter] = useState('');
 
     // Invite form state
     const [inviteForm, setInviteForm] = useState({
@@ -82,10 +84,12 @@ const ManageUsers = () => {
             user.role?.toLowerCase().includes(q) ||
             user.first_name?.toLowerCase().includes(q) ||
             user.last_name?.toLowerCase().includes(q) ||
-            `${user.first_name || ''} ${user.last_name || ''}`.trim().toLowerCase().includes(q)
+            `${user.first_name || ''} ${user.last_name || ''}`.trim().toLowerCase().includes(q) ||
+            user.preferred_city?.toLowerCase().includes(q)
         );
         const matchesRole = !roleFilter || user.role === roleFilter;
-        return matchesSearch && matchesRole;
+        const matchesCity = !cityFilter || user.preferred_city === cityFilter;
+        return matchesSearch && matchesRole && matchesCity;
     });
 
     const getRoleColor = (role: string) => {
@@ -290,6 +294,16 @@ const ManageUsers = () => {
                     <option value="admin">Admin</option>
                     {isSuperAdmin && <option value="super_admin">Super Admin</option>}
                 </select>
+                <select
+                    value={cityFilter}
+                    onChange={(e) => setCityFilter(e.target.value)}
+                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                >
+                    <option value="">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
+                    {cities.map((city) => (
+                        <option key={city.id} value={city.id} className="bg-[#111111]">{city.name}</option>
+                    ))}
+                </select>
                 <button
                     onClick={loadUsers}
                     disabled={isLoading}
@@ -321,6 +335,7 @@ const ManageUsers = () => {
                             <tr className="border-b border-white/10 bg-white/5">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.identityHeader')}</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.accessLevelHeader')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.cityHeader') || 'City'}</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.joinDateHeader')}</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.securityStateHeader')}</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">{t('admin.manageUsers.overridesHeader')}</th>
@@ -364,6 +379,16 @@ const ManageUsers = () => {
                                             <option value="admin" className="bg-[#111111]">Admin</option>
                                             {isSuperAdmin && <option value="super_admin" className="bg-[#111111]">Super Admin</option>}
                                         </select>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {user.preferred_city ? (
+                                            <span className="inline-flex items-center gap-1.5 text-gray-300 text-xs">
+                                                <MapPin className="w-3 h-3 text-[#d3da0c]" />
+                                                {cities.find(c => c.id === user.preferred_city)?.name || user.preferred_city.charAt(0).toUpperCase() + user.preferred_city.slice(1)}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-600 text-xs">—</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-400">
                                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : t('admin.manageUsers.notApplicable')}

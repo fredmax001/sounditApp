@@ -2,9 +2,14 @@
 Email service module using SMTP SSL for transactional emails.
 If SMTP is not configured, emails are logged to console (dev mode).
 """
+import base64
+import io
 import logging
 import smtplib
 import ssl
+import zipfile
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, List
@@ -20,32 +25,47 @@ def _smtp_send(
     subject: str,
     body: str,
     html_body: Optional[str] = None,
-    from_email: Optional[str] = None
+    from_email: Optional[str] = None,
+    attachments: Optional[List[tuple]] = None
 ) -> bool:
-    """Send email via SMTP SSL (Hostinger/any provider)."""
+    """Send email via SMTP SSL (Hostinger/any provider).
+    attachments: list of (filename, bytes, mimetype) tuples
+    """
     settings = get_settings()
     if not settings.SMTP_USER or not settings.SMTP_PASS:
         return False
 
     sender = from_email or settings.SMTP_FROM or settings.SMTP_USER
     try:
-        msg = MIMEMultipart("alternative")
+        msg = MIMEMultipart("mixed")
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = to_email
 
-        msg.attach(MIMEText(body, "plain"))
+        # Body part
+        body_part = MIMEMultipart("alternative")
+        body_part.attach(MIMEText(body, "plain"))
         if html_body:
-            msg.attach(MIMEText(html_body, "html"))
+            body_part.attach(MIMEText(html_body, "html"))
+        msg.attach(body_part)
+
+        # Attachments
+        if attachments:
+            for filename, file_bytes, mimetype in attachments:
+                maintype, subtype = mimetype.split("/", 1) if "/" in mimetype else ("application", "octet-stream")
+                part = MIMEBase(maintype, subtype)
+                part.set_payload(file_bytes)
+                encoders.encode_base64(part)
+                part.add_header("Content-Disposition", f"attachment; filename=\"{filename}\"")
+                msg.attach(part)
 
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, context=context, timeout=30) as server:
             server.login(settings.SMTP_USER, settings.SMTP_PASS)
-            # Use SMTP_USER as envelope-from to satisfy strict SMTP servers
             envelope_from = settings.SMTP_USER
             server.sendmail(envelope_from, [to_email], msg.as_string())
 
-        logger.info(f"[SMTP EMAIL SENT] To: {to_email}, Subject: {subject}")
+        logger.info(f"[SMTP EMAIL SENT] To: {to_email}, Subject: {subject}, Attachments: {len(attachments or [])}")
         return True
     except Exception as e:
         logger.error(f"SMTP send failed: {e}")
@@ -65,17 +85,19 @@ def send_email(
     subject: str,
     body: str = "",
     html_body: Optional[str] = None,
-    from_email: Optional[str] = None
+    from_email: Optional[str] = None,
+    attachments: Optional[List[tuple]] = None
 ) -> bool:
     """
     Send an email via SMTP SSL → console log fallback.
     At least one of body or html_body must be provided.
+    attachments: list of (filename, bytes, mimetype) tuples
     """
     settings = get_settings()
     sender = from_email or settings.SMTP_FROM or settings.SMTP_USER or "support@sounditent.com"
 
     # Send via SMTP SSL
-    if _smtp_send(to_email, subject, body, html_body, from_email):
+    if _smtp_send(to_email, subject, body, html_body, from_email, attachments):
         return True
 
     # Dev fallback
@@ -426,6 +448,17 @@ If you didn't request this code, you can safely ignore this email.
 
 # ─── Ticket Approved Email ───
 
+def _decode_qr_bytes(qr_data: str) -> bytes:
+    """Decode a base64 data URI into raw PNG bytes."""
+    try:
+        if qr_data.startswith("data:image"):
+            # Strip the data URI prefix
+            qr_data = qr_data.split(",", 1)[-1]
+        return base64.b64decode(qr_data)
+    except Exception:
+        return b""
+
+
 def send_ticket_approved_email(
     to_email: str,
     first_name: str,
@@ -435,9 +468,10 @@ def send_ticket_approved_email(
     tickets: List[dict],  # Each dict: {ticket_number, qr_code}
     quantity: int = 1
 ) -> bool:
-    """Send ticket approval email with ALL individual ticket QR codes."""
+    """Send ticket approval email with QR codes bundled in a ZIP attachment."""
     subject = f"Your tickets for {event_title} are confirmed!"
     name = first_name or "there"
+    safe_title = "".join(c if c.isalnum() else "_" for c in event_title)[:30]
 
     # Build plain text body
     ticket_list_text = "\n".join(
@@ -456,32 +490,19 @@ Event Details:
 Your Tickets:
 {ticket_list_text}
 
-Please show each QR code at the entrance (one per person).
-View your tickets: https://sounditent.com/tickets
+Please download the attached ZIP file and show each QR code at the entrance (one per person).
+You can also view your tickets online: https://sounditent.com/tickets
 
 — Sound It Team"""
 
-    # Build HTML with all QR codes in a grid
-    if len(tickets) == 1:
-        # Single ticket - large display
-        t = tickets[0]
-        qr_html = f"""<div class="qr-box">
-            <p style="color:#000; margin:0 0 12px; font-weight:600;">Show this QR at the entrance</p>
-            <img src="{t['qr_code']}" alt="Ticket QR Code" style="max-width:240px;" />
-            <p style="color:#000; margin:12px 0 0; font-family:monospace; font-size:14px;">{t['ticket_number']}</p>
-        </div>"""
-    else:
-        # Multiple tickets - grid display
-        qr_items = []
-        for i, t in enumerate(tickets):
-            qr_items.append(f"""<div style="background:#fff; padding:16px; border-radius:12px; text-align:center;">
-                <p style="color:#000; margin:0 0 8px; font-weight:700; font-size:16px;">Ticket #{i+1}</p>
-                <img src="{t['qr_code']}" alt="Ticket QR #{i+1}" style="max-width:180px; width:100%; height:auto;" />
-                <p style="color:#000; margin:8px 0 0; font-family:monospace; font-size:11px; word-break:break-all;">{t['ticket_number']}</p>
-            </div>""")
-        qr_html = f"""<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; margin:20px 0;">
-            {''.join(qr_items)}
-        </div>"""
+    # Build clean HTML (no embedded base64 images — they break in many email clients)
+    ticket_rows = "\n".join(
+        f"""<tr>
+            <td style="padding:10px 16px; border-bottom:1px solid #222; color:#d3da0c; font-weight:700;">Ticket #{i+1}</td>
+            <td style="padding:10px 16px; border-bottom:1px solid #222; color:#e5e5e5; font-family:monospace;">{t['ticket_number']}</td>
+        </tr>"""
+        for i, t in enumerate(tickets)
+    )
 
     html = _email_wrapper(
         subject,
@@ -493,12 +514,32 @@ View your tickets: https://sounditent.com/tickets
             <p style="margin:4px 0;"><strong>Venue:</strong> {event_venue}</p>
             <p style="margin:4px 0;"><strong>Quantity:</strong> {quantity} ticket(s)</p>
         </div>
-        <p style="margin:0 0 12px; font-weight:600;">Show each QR code at the entrance (one per person):</p>
-        {qr_html}
+        <p style="margin:0 0 12px; font-weight:600;">Your tickets:</p>
+        <table style="width:100%; border-collapse:collapse; margin:0 0 20px;">
+            {ticket_rows}
+        </table>
+        <p style="margin:0 0 16px;">📎 <strong>Download the attached ZIP file</strong> for your QR codes. Show each QR at the entrance (one per person).</p>
         <a href="https://sounditent.com/tickets" class="cta">View My Tickets</a>
         <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
     )
-    return send_email(to_email, subject, body, html)
+
+    # Build ZIP attachment with all QR codes
+    attachments = []
+    try:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for i, t in enumerate(tickets):
+                qr_bytes = _decode_qr_bytes(t.get("qr_code", ""))
+                if qr_bytes:
+                    filename = f"ticket_{i+1}_{t['ticket_number']}.png"
+                    zf.writestr(filename, qr_bytes)
+        zip_buffer.seek(0)
+        zip_filename = f"soundit_tickets_{safe_title}.zip"
+        attachments.append((zip_filename, zip_buffer.getvalue(), "application/zip"))
+    except Exception as e:
+        logger.warning(f"Failed to create ticket ZIP: {e}")
+
+    return send_email(to_email, subject, body, html, attachments=attachments)
 
 
 # ─── Account Approved Email ───

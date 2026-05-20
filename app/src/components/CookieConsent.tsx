@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cookie, X, Shield, Settings } from "lucide-react";
+import { Cookie, X, Shield, Settings, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ConsentPreferences {
   necessary: boolean;
@@ -47,6 +48,7 @@ export default function CookieConsent() {
   const [showSettings, setShowSettings] = useState(false);
   const [analytics, setAnalytics] = useState(true);
   const [marketing, setMarketing] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const consent = getConsent();
@@ -118,11 +120,24 @@ export default function CookieConsent() {
                 {!showSettings ? (
                   <>
                     <p className="text-sm text-gray-400 leading-relaxed mb-4">
-                      We use cookies and similar technologies to enhance your experience, analyze site traffic,
-                      and serve personalized content. By clicking &quot;Accept All&quot;, you consent to our use of cookies.
-                      You can manage your preferences or reject non-essential cookies.
+                      We process your personal information to measure and improve our sites and service,
+                      to assist our marketing campaigns and to provide personalised content and advertising.
+                      By clicking the button on the right, you can exercise your privacy rights.
                       <span className="block mt-1 text-xs text-gray-500">
-                        Compliant with GDPR (EU) and PIPL (China).
+                        For more information see our{" "}
+                        <button
+                          onClick={() => { setVisible(false); navigate("/privacy"); }}
+                          className="underline hover:text-[#d3da0c] transition-colors"
+                        >
+                          privacy notice
+                        </button>{" "}
+                        and{" "}
+                        <button
+                          onClick={() => { setVisible(false); navigate("/privacy"); }}
+                          className="underline hover:text-[#d3da0c] transition-colors"
+                        >
+                          Cookies Policy
+                        </button>.
                       </span>
                     </p>
                     <div className="flex flex-wrap items-center gap-3">
@@ -144,6 +159,13 @@ export default function CookieConsent() {
                       >
                         <Settings className="w-4 h-4" />
                         Preferences
+                      </button>
+                      <button
+                        onClick={() => { setVisible(false); navigate("/privacy"); }}
+                        className="px-5 py-2.5 flex items-center gap-2 bg-white/5 border border-white/10 text-white font-medium rounded-lg hover:bg-white/10 transition-colors text-sm"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Exercise Privacy Rights
                       </button>
                     </div>
                   </>
