@@ -173,7 +173,7 @@ const Contact = () => {
                   <p className="text-gray-400 text-sm mb-4">{t('contact.followUs')}</p>
                   <div className="flex gap-3">
                     <a
-                      href="https://instagram.com/soundit_events"
+                      href="https://instagram.com/soundit_ent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#d3da0c] hover:text-black transition-colors"
@@ -182,7 +182,7 @@ const Contact = () => {
                       <Instagram className="w-5 h-5" />
                     </a>
                     <a
-                      href="https://x.com/soundit_events"
+                      href="https://x.com/soundit_ent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#d3da0c] hover:text-black transition-colors"
@@ -193,7 +193,7 @@ const Contact = () => {
                       </svg>
                     </a>
                     <a
-                      href="https://tiktok.com/@soundit_events"
+                      href="https://tiktok.com/@soundit_ent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#d3da0c] hover:text-black transition-colors"
@@ -204,7 +204,7 @@ const Contact = () => {
                       </svg>
                     </a>
                     <a
-                      href="https://facebook.com/soundit_events"
+                      href="https://facebook.com/soundit_ent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#d3da0c] hover:text-black transition-colors"

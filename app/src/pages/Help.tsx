@@ -458,7 +458,7 @@ const Help = () => {
                       <MessageCircle className="w-6 h-6 text-[#d3da0c]" />
                     </div>
                     <h3 className="text-white font-semibold mb-2">{t('help.weChatSupport')}</h3>
-                    <p className="text-[#d3da0c]">@soundit_events</p>
+                    <p className="text-[#d3da0c]">@soundit_ent</p>
                     <p className="text-gray-500 text-sm mt-2">{t('help.addOnWeChat')}</p>
                   </div>
 
