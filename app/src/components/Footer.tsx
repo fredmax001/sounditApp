@@ -13,10 +13,10 @@ const Footer = () => {
   );
 
   const socialLinks = [
-    { icon: Instagram, href: 'https://instagram.com/soundit_events', label: 'Instagram' },
-    { icon: Twitter, href: 'https://twitter.com/soundit_events', label: 'Twitter' },
-    { icon: TikTokIcon, href: 'https://www.tiktok.com/@soundit_events', label: 'TikTok' },
-    { icon: Youtube, href: 'https://www.youtube.com/@soundit_events', label: 'YouTube' },
+    { icon: Instagram, href: 'https://instagram.com/soundit_ent', label: 'Instagram' },
+    { icon: Twitter, href: 'https://twitter.com/soundit_ent', label: 'Twitter' },
+    { icon: TikTokIcon, href: 'https://www.tiktok.com/@soundit_ent', label: 'TikTok' },
+    { icon: Youtube, href: 'https://www.youtube.com/@soundit_ent', label: 'YouTube' },
   ];
 
   const linkGroups = [
