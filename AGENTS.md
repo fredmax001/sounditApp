@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-30
+2026-06-02
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-30
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-02
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,48 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 45. Past Events Archive + Auto-Hide from Main Events Page (2026-06-02)
+- **Problem**: User mistakenly rejected 2 past events as admin to remove them from the main events page. Past events were mixed with upcoming events on the public Events page, forcing admins to manually reject them.
+- **Root cause**: `GET /events`, `GET /events/featured`, and `GET /events/search` returned **all** approved events with no date filtering. Past events stayed visible forever unless manually rejected.
+- **Fixes applied**:
+  - **Backend — `api/events.py`**:
+    - `GET /events` now filters out past events by default (`end_date >= now` or `start_date >= now` if no end date). Added `include_past` query param for override.
+    - `GET /events/featured` now only returns upcoming featured events.
+    - `GET /events/search` now only searches upcoming events by default. Added `include_past` query param.
+    - Added new `GET /events/past` endpoint — returns approved past events ordered by most recent first (archive).
+  - **Frontend — `app/src/pages/Events.tsx`**: Removed Past Events tab — public events page now shows **only upcoming/active events**.
+  - **Frontend — `app/src/pages/PublicProfile.tsx`**: Added **Current / Upcoming / Past** tabs on organizer/business profile pages. Past events are visible only when viewing a specific organizer's profile.
+  - **Script — `scripts/fix_rejected_past_events.py`**: One-time script to find rejected past events and re-approve them. Ran on production and re-approved 2 events:
+    - ID 5: RNB & SLOW SESSIONS 2nd Ann (2026-05-30)
+    - ID 6: Balcony Mix (2026-05-23)
+- **Deploy**:
+  - Backend synced to production server (`72.62.254.251`) and `soundit` service restarted
+  - Frontend `dist/` synced to production server
+  - `GET /health` → `{"status":"healthy"}`
+  - `GET /events/past` → returns 2 re-approved past events ✅
+  - `GET /events` → returns 0 upcoming events (correct — all approved events are in the past) ✅
+- **Verification**:
+  - Backend imports cleanly
+  - Frontend compiles successfully
+
+### 44. Ticket Orders — Partial Check-In Display Fix (2026-06-02)
+- **Problem**: Business portal Ticket Orders page showed **Out** for orders where some (but not all) tickets had been scanned at the door. Organizers couldn't see partial check-ins.
+- **Root cause**: `TicketOrders.tsx` checked `order.status === 'used' || !!order.used_at` to determine check-in status. The backend only updates `TicketOrder.status` to `USED` when **ALL** individual `Ticket` records in the order are scanned. So multi-ticket orders with partial scans stayed `approved` with no `used_at` — and the frontend showed **Out**.
+- **Fixes applied**:
+  - `app/src/pages/business/TicketOrders.tsx`: Replaced simple `isCheckIn` logic with per-ticket scanning:
+    - `usedCount = order.tickets?.filter(t => t.is_used).length`
+    - `totalCount = order.tickets?.length || order.quantity || 1`
+    - **Fully used** → green **In** badge
+    - **Partially used** → amber badge showing **`2/8`** (or actual count)
+    - **None used** → gray **Out** badge
+    - Status column also shows **`2/8 Used`** in purple for partial check-ins
+  - Mobile card view updated with same logic (`isFullyUsed`, `isPartiallyUsed`, `usedCount/totalCount`)
+- **Deploy**:
+  - Frontend built and synced to main production server (`72.62.254.251`) at `/var/www/soundit/app/dist/`
+  - `GET /health` → `{"status":"healthy"}`
+- **Verification**:
+  - Frontend compiles successfully
 
 ### 43. Staff Management Fixes + Existing User Selection + Translation Fixes (2026-05-30)
 - **Translation fixes**:

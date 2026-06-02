@@ -29,6 +29,16 @@ interface Event {
   status?: string;
 }
 
+interface Ticket {
+  id: number;
+  ticket_number: string;
+  qr_code?: string;
+  qr_token?: string;
+  is_used: boolean;
+  used_at?: string | null;
+  status?: string;
+}
+
 interface TicketOrder {
   id: number;
   event: { id: number; title: string };
@@ -42,6 +52,8 @@ interface TicketOrder {
   ticket_qr?: string;
   auto_approved?: boolean;
   tickets_generated?: number;
+  tickets?: Ticket[];
+  used_at?: string | null;
   created_at: string;
 }
 
@@ -68,7 +80,7 @@ const BusinessDashboard = () => {
   // Ticket orders
   const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
   const [ticketOrdersLoading, setTicketOrdersLoading] = useState(false);
-  const [ticketFilter, setTicketFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [ticketFilter, setTicketFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'used'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
@@ -261,6 +273,13 @@ const BusinessDashboard = () => {
 
   const bizStats = dashboardStats?.business_stats;
 
+  // Filter upcoming events for dashboard display
+  const now = new Date();
+  const upcomingEvents = events.filter((e) => {
+    if (e.end_date) return new Date(e.end_date) >= now;
+    return new Date(e.start_date) >= now;
+  });
+
   const stats = [
     { label: t('business.dashboard.totalEvents'), value: bizStats?.total_events || 0, icon: Calendar, color: 'text-blue-400' },
     { label: t('business.dashboard.ticketsSold'), value: bizStats?.tickets_sold || 0, icon: Ticket, color: 'text-green-400' },
@@ -359,6 +378,7 @@ const BusinessDashboard = () => {
                 <option value="pending">{t('business.dashboard.pending')}</option>
                 <option value="approved">{t('business.dashboard.approved')}</option>
                 <option value="rejected">{t('business.dashboard.rejected')}</option>
+                <option value="used">{t('business.dashboard.used') || 'Used'}</option>
               </select>
               <select
                 value={eventFilter}
@@ -378,7 +398,7 @@ const BusinessDashboard = () => {
               {[
                 { label: 'Orders', value: ticketOrders.length },
                 { label: 'Revenue', value: `¥${ticketOrders.reduce((s, o) => s + (o.payment_amount || 0), 0).toLocaleString()}` },
-                { label: 'Checked In', value: ticketOrders.filter(o => o.status === 'used').length },
+                { label: 'Checked In', value: ticketOrders.reduce((sum, o) => sum + (o.tickets?.filter(t => t.is_used).length || 0), 0) },
               ].map((s, i) => (
                 <div key={i} className="bg-[#111111] border border-white/[0.06] rounded-xl p-3 text-center">
                   <p className="text-gray-600 text-[9px] uppercase font-bold mb-0.5">{s.label}</p>
@@ -408,12 +428,26 @@ const BusinessDashboard = () => {
                       <p className="text-gray-500 text-xs truncate">{order.event?.title} · Qty {order.quantity || 1} · {new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        order.status === 'approved' ? 'bg-green-500/10 text-green-400' :
-                        order.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
-                        order.status === 'cancelled' ? 'bg-gray-500/10 text-gray-400' :
-                        'bg-yellow-500/10 text-yellow-400'
-                      }`}>{order.status}</span>
+                      {(() => {
+                        const usedCount = order.tickets?.filter(t => t.is_used).length || 0;
+                        const totalCount = order.tickets?.length || order.quantity || 1;
+                        const isFullyUsed = order.status === 'used' || (usedCount > 0 && usedCount === totalCount);
+                        const isPartiallyUsed = usedCount > 0 && usedCount < totalCount;
+                        if (isFullyUsed) {
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400">Used</span>;
+                        }
+                        if (isPartiallyUsed) {
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400">{usedCount}/{totalCount} Used</span>;
+                        }
+                        return (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            order.status === 'approved' ? 'bg-green-500/10 text-green-400' :
+                            order.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                            order.status === 'cancelled' ? 'bg-gray-500/10 text-gray-400' :
+                            'bg-yellow-500/10 text-yellow-400'
+                          }`}>{order.status}</span>
+                        );
+                      })()}
                       <p className="text-white font-semibold text-xs">¥{order.payment_amount}</p>
                       {order.status === 'pending' && !order.auto_approved && (
                         <div className="flex gap-1">
@@ -450,12 +484,17 @@ const BusinessDashboard = () => {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-white">{t('business.dashboard.liveEvents')}</h2>
-            <Link to="/dashboard/business/events" className="text-[#d3da0c] text-xs font-semibold hover:underline">
-              {t('business.dashboard.manageAll')} →
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/dashboard/business/events?tab=past" className="text-gray-400 text-xs font-medium hover:text-white transition-colors">
+                Past Events
+              </Link>
+              <Link to="/dashboard/business/events" className="text-[#d3da0c] text-xs font-semibold hover:underline">
+                {t('business.dashboard.manageAll')} →
+              </Link>
+            </div>
           </div>
 
-          {events.length === 0 ? (
+          {upcomingEvents.length === 0 ? (
             <div className="bg-[#111111] border border-dashed border-white/[0.08] rounded-2xl p-10 text-center">
               <Calendar className="w-10 h-10 text-gray-600 mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-1">{t('business.dashboard.noEventsYet')}</h3>
@@ -467,7 +506,7 @@ const BusinessDashboard = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {events.slice(0, 5).map((event) => (
+              {upcomingEvents.slice(0, 5).map((event) => (
                 <div key={event.id} className="bg-[#111111] border border-white/[0.06] rounded-xl p-3 lg:p-4 flex items-center gap-3 hover:border-[#d3da0c]/20 transition-all group">
                   <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/[0.05] flex items-center justify-center shrink-0">
                     {event.flyer_image

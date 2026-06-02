@@ -78,6 +78,7 @@ export default function PublicProfile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [events, setEvents] = useState<PublicEvent[]>([]);
+  const [eventTab, setEventTab] = useState<'current' | 'upcoming' | 'past'>('current');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -158,6 +159,26 @@ export default function PublicProfile() {
       setFollowLoading(false);
     }
   };
+
+  // Split organizer events into Current / Upcoming / Past
+  const now = new Date();
+  const upcomingEvents = events.filter((e) => new Date(e.start_date) > now);
+  const pastEvents = events.filter((e) => {
+    const start = new Date(e.start_date);
+    // Events that started more than 6 hours ago are considered past
+    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+    return start < sixHoursAgo;
+  });
+  const currentEvents = events.filter((e) => {
+    const start = new Date(e.start_date);
+    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+    return start <= now && start >= sixHoursAgo;
+  });
+
+  const displayedEvents =
+    eventTab === 'current' ? currentEvents :
+    eventTab === 'upcoming' ? upcomingEvents :
+    pastEvents;
 
   if (loading) {
     return (
@@ -332,40 +353,66 @@ export default function PublicProfile() {
               <Calendar className="w-4 h-4 text-[#d3da0c]" />
               Events
             </h2>
-            <div className="space-y-3">
-              {events.map((evt) => (
-                <motion.div
-                  key={evt.id}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate(`/events/${evt.id}`)}
-                  className="flex gap-3 p-3 bg-[#111111] border border-white/5 rounded-xl cursor-pointer hover:border-white/10 transition-colors"
+            {/* Event tabs */}
+            <div className="flex gap-2 mb-3">
+              {[
+                { key: 'current' as const, label: 'Current' },
+                { key: 'upcoming' as const, label: 'Upcoming' },
+                { key: 'past' as const, label: 'Past' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setEventTab(tab.key)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    eventTab === tab.key
+                      ? 'bg-[#d3da0c] text-black'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}
                 >
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#1a1a1a] flex-shrink-0">
-                    <img
-                      src={evt.flyer_image || '/placeholder-club.jpg'}
-                      alt={evt.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-white truncate">{evt.title}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(evt.start_date).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                    {evt.address && (
-                      <p className="text-xs text-gray-500 truncate mt-0.5 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {evt.address}
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
+                  {tab.label}
+                </button>
               ))}
+            </div>
+            <div className="space-y-3">
+              {displayedEvents.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-4">
+                  No {eventTab} events
+                </p>
+              ) : (
+                displayedEvents.map((evt) => (
+                  <motion.div
+                    key={evt.id}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate(`/events/${evt.id}`)}
+                    className="flex gap-3 p-3 bg-[#111111] border border-white/5 rounded-xl cursor-pointer hover:border-white/10 transition-colors"
+                  >
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#1a1a1a] flex-shrink-0">
+                      <img
+                        src={evt.flyer_image || '/placeholder-club.jpg'}
+                        alt={evt.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-white truncate">{evt.title}</h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(evt.start_date).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                      {evt.address && (
+                        <p className="text-xs text-gray-500 truncate mt-0.5 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {evt.address}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         )}
