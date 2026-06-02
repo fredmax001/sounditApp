@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X, Share2 } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X, Share2, Clock, History } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import type { Event } from '@/store/eventStore';
 import { toast } from 'sonner';
@@ -28,10 +28,24 @@ const getStatusBadgeClass = (status: string) => {
 const ManageEvents = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { events, fetchMyEvents, deleteEvent, updateEvent, isLoading, error } = useEventStore();
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>(
+    searchParams.get('tab') === 'past' ? 'past' : 'upcoming'
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [qrModalEvent, setQrModalEvent] = useState<Event | null>(null);
+
+  const handleTabChange = (tab: 'upcoming' | 'past') => {
+    setActiveTab(tab);
+    if (tab === 'upcoming') {
+      searchParams.delete('tab');
+    } else {
+      searchParams.set('tab', tab);
+    }
+    setSearchParams(searchParams);
+  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -53,14 +67,14 @@ const ManageEvents = () => {
 
   const loadEvents = useCallback(async () => {
     try {
-      await fetchMyEvents();
+      await fetchMyEvents(activeTab);
     } catch {
       console.error('Failed to load events');
       toast.error(t('organizer.manageEvents.loadErrorToast'));
     }
-  }, [fetchMyEvents, t]);
+  }, [fetchMyEvents, activeTab, t]);
 
-  // Fetch events on mount
+  // Fetch events when tab changes
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
@@ -199,6 +213,32 @@ const ManageEvents = () => {
         </div>
       </motion.div>
 
+      {/* Tabs */}
+      <div className="flex items-center gap-1 mb-6 bg-white/5 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => handleTabChange('upcoming')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'upcoming'
+              ? 'bg-[#d3da0c] text-black'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Upcoming
+        </button>
+        <button
+          onClick={() => handleTabChange('past')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'past'
+              ? 'bg-[#d3da0c] text-black'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          Past Events
+        </button>
+      </div>
+
       {/* Events Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -218,7 +258,8 @@ const ManageEvents = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {events.map((event) => (
+              <AnimatePresence mode="wait">
+                {events.map((event) => (
                 <tr key={event.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -321,22 +362,31 @@ const ManageEvents = () => {
                   </td>
                 </tr>
               ))}
+              </AnimatePresence>
             </tbody>
           </table>
 
           {/* Empty State */}
-          {events.length === 0 && (
+          {events.length === 0 && !isLoading && (
             <div className="text-center py-16">
               <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg mb-2">{t('organizer.manageEvents.noEvents')}</p>
-              <p className="text-gray-500 text-sm mb-6">{t('organizer.manageEvents.noEventsDesc')}</p>
-              <Link
-                to="/organizer/create-event"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                {t('organizer.manageEvents.createEvent')}
-              </Link>
+              <p className="text-gray-400 text-lg mb-2">
+                {activeTab === 'past' ? 'No past events' : t('organizer.manageEvents.noEvents')}
+              </p>
+              <p className="text-gray-500 text-sm mb-6">
+                {activeTab === 'past'
+                  ? 'Events that have ended will appear here.'
+                  : t('organizer.manageEvents.noEventsDesc')}
+              </p>
+              {activeTab === 'upcoming' && (
+                <Link
+                  to="/dashboard/business/create-event"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  {t('organizer.manageEvents.createEvent')}
+                </Link>
+              )}
             </div>
           )}
         </div>

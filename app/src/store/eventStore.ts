@@ -147,13 +147,14 @@ export interface EventState {
   fetchEventById: (id: string) => Promise<void>;
   fetchEventsByCity: (city: string) => Promise<void>;
   fetchFeaturedEvents: (city?: string) => Promise<void>;
+  fetchPastEvents: (city?: string) => Promise<void>;
   createEvent: (data: CreateEventData) => Promise<Event>;
   updateEvent: (id: string, data: Partial<Event>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
   incrementViews: (id: string) => Promise<void>;
   saveEvent: (eventId: string) => Promise<void>;
   unsaveEvent: (eventId: string) => Promise<void>;
-  fetchMyEvents: () => Promise<void>;
+  fetchMyEvents: (scope?: 'upcoming' | 'past') => Promise<void>;
   fetchSavedEvents: () => Promise<void>;
   addTicketTier: (eventId: string, tierData: Omit<TicketTier, 'id' | 'quantity_sold'>) => Promise<void>;
   updateTicketTier: (tierId: string, tierData: Partial<TicketTier>) => Promise<void>;
@@ -251,6 +252,21 @@ export const useEventStore = create<EventState>((set, get) => ({
 
       const response = await axios.get(`${API_URL}/events/featured`, { params });
       set({ featuredEvents: response.data || [], isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
+    }
+  },
+
+  // Fetch past events (archive)
+  fetchPastEvents: async (city?: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const params: Record<string, unknown> = {};
+      if (city) params.city = city;
+
+      const response = await axios.get(`${API_URL}/events/past`, { params });
+      set({ events: response.data || [], isLoading: false });
     } catch (error: unknown) {
       set({ error: getErrorMessage(error), isLoading: false });
     }
@@ -377,14 +393,18 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   // Fetch organizer's own events
-  fetchMyEvents: async () => {
+  fetchMyEvents: async (scope?: 'upcoming' | 'past') => {
     set({ isLoading: true, error: null });
 
     try {
       const token = getAuthToken();
       if (!token) throw new Error('Not authenticated');
 
-      const response = await axios.get(`${API_URL}/events/me`, {
+      const url = scope
+        ? `${API_URL}/events/me?scope=${scope}`
+        : `${API_URL}/events/me`;
+
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

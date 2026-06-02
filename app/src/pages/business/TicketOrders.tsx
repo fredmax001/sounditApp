@@ -442,7 +442,11 @@ const TicketOrdersPage = () => {
             {filteredOrders.map((order, idx) => {
               const status = statusConfig[order.status] || statusConfig.pending;
               const StatusIcon = status.icon;
-              const isCheckIn = order.status === 'used' || !!order.used_at;
+              const usedCount = order.tickets?.filter((t) => t.is_used).length || 0;
+              const totalCount = order.tickets?.length || order.quantity || 1;
+              const isCheckIn = usedCount > 0;
+              const isFullyUsed = order.status === 'used' || (usedCount > 0 && usedCount === totalCount);
+              const isPartiallyUsed = usedCount > 0 && usedCount < totalCount;
 
               return (
                 <motion.div
@@ -475,10 +479,15 @@ const TicketOrdersPage = () => {
                       <p className="text-gray-300 text-xs truncate">{order.ticket_tier?.name || '-'}</p>
                     </div>
                     <div className="col-span-1 flex justify-center">
-                      {isCheckIn ? (
+                      {isFullyUsed ? (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
                           <CheckCircle2 className="w-3 h-3" />
                           {t('business.dashboard.in') || 'In'}
+                        </span>
+                      ) : isPartiallyUsed ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {usedCount}/{totalCount}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gray-500/10 text-gray-400 text-xs font-medium">
@@ -529,9 +538,9 @@ const TicketOrdersPage = () => {
                         </>
                       )}
                       {order.status !== 'pending' && (
-                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
+                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${isPartiallyUsed ? 'bg-purple-500/10 text-purple-400' : status.color}`}>
                           <StatusIcon className="w-3 h-3" />
-                          {status.label}
+                          {isPartiallyUsed ? `${usedCount}/${totalCount} Used` : status.label}
                         </span>
                       )}
                     </div>
@@ -570,8 +579,12 @@ const TicketOrdersPage = () => {
                       </div>
                       <div className="bg-white/5 rounded-lg p-2">
                         <p className="text-gray-500 text-xs mb-0.5">{t('business.dashboard.checkIn') || 'Check In'}</p>
-                        <p className={`text-xs font-medium ${isCheckIn ? 'text-green-400' : 'text-gray-400'}`}>
-                          {isCheckIn ? (t('business.dashboard.checkedIn') || 'Checked In') : (t('business.dashboard.notCheckedIn') || 'Not Checked In')}
+                        <p className={`text-xs font-medium ${isFullyUsed ? 'text-green-400' : isPartiallyUsed ? 'text-amber-400' : 'text-gray-400'}`}>
+                          {isFullyUsed
+                            ? (t('business.dashboard.checkedIn') || 'Checked In')
+                            : isPartiallyUsed
+                            ? `${usedCount}/${totalCount} Checked In`
+                            : (t('business.dashboard.notCheckedIn') || 'Not Checked In')}
                           {order.used_at && (
                             <span className="block text-gray-500 font-normal">
                               {new Date(order.used_at).toLocaleString()}
