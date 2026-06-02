@@ -20,9 +20,11 @@ import {
   Loader2,
   Camera,
   RefreshCcw,
+  ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { useStaffStore } from '@/store/staffStore';
 import { API_BASE_URL } from '@/config/api';
 import { Html5Qrcode } from 'html5-qrcode';
 
@@ -36,6 +38,7 @@ interface ScanResult {
     user_name: string;
     status: string;
     tier_name?: string;
+    event_id?: number;
   };
   message: string;
 }
@@ -53,9 +56,24 @@ const ScanPage = () => {
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+
+  const { memberships, events: staffEvents, fetchMemberships, fetchEvents, isStaff } = useStaffStore();
+  const isStaffUser = isStaff();
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch staff info on mount
+  useEffect(() => {
+    if (session?.access_token) {
+      fetchMemberships().then(() => {
+        if (isStaff()) {
+          fetchEvents();
+        }
+      });
+    }
+  }, [session, fetchMemberships, fetchEvents, isStaff]);
 
   // Start camera scanner
   const startScanner = useCallback(async () => {
@@ -167,6 +185,7 @@ const ScanPage = () => {
             user_name: data.user || t('scan.unknownUser'),
             status: data.status || 'validated',
             tier_name: data.tier_name,
+            event_id: data.event_id,
           },
           message: data.message || t('scan.ticketValidatedSuccess'),
         });
@@ -262,6 +281,14 @@ const ScanPage = () => {
                     {t('scan.validTicket') || 'Valid Ticket'}
                   </h2>
 
+                  {selectedEventId && scanResult.ticket?.event_id && scanResult.ticket.event_id !== selectedEventId && (
+                    <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                      <p className="text-yellow-400 text-sm text-center font-medium">
+                        {t('scan.wrongEventWarning') || 'This ticket is for a different event'}
+                      </p>
+                    </div>
+                  )}
+
                   {scanResult.ticket && (
                     <div className="space-y-3 mb-6">
                       <div className="bg-white/5 rounded-xl p-4 space-y-3">
@@ -349,6 +376,28 @@ const ScanPage = () => {
         <div className="flex-1 relative flex flex-col">
           {hasCamera !== false ? (
             <>
+              {/* Event Selector for Staff */}
+              {isStaffUser && staffEvents.length > 0 && (
+                <div className="bg-[#111111] border-b border-white/10 px-4 py-3">
+                  <label className="block text-gray-500 text-xs mb-1.5">{t('scan.selectEvent') || 'Select Event'}</label>
+                  <div className="relative">
+                    <select
+                      value={selectedEventId || ''}
+                      onChange={(e) => setSelectedEventId(e.target.value ? Number(e.target.value) : null)}
+                      className="w-full pl-3 pr-10 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm appearance-none focus:border-[#d3da0c] focus:outline-none"
+                    >
+                      <option value="" className="bg-[#111111]">{t('scan.allEvents') || 'All Events'}</option>
+                      {staffEvents.map(event => (
+                        <option key={event.id} value={event.id} className="bg-[#111111]">
+                          {event.title} — {event.city || ''}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
               {/* Scanner Viewport */}
               <div className="flex-1 relative bg-black">
                 <div
