@@ -24,7 +24,10 @@ import {
   LayoutDashboard,
   Globe,
   MessageCircle,
+  ScanLine,
 } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
+import { useStaffStore } from '@/store/staffStore';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
@@ -38,6 +41,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, isAuthenticated, logout, selectedCity, setSelectedCity } = useAuthStore();
   const { getTotalItems } = useCartStore();
+  const { canScan, fetchMemberships } = useStaffStore();
+  const isStaffScanner = canScan();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchMemberships();
+    }
+  }, [isAuthenticated, fetchMemberships]);
 
   const cartItemsCount = getTotalItems();
 
@@ -176,6 +187,9 @@ const Navbar = () => {
                 </Link>
               )}
 
+              {/* Notifications */}
+              {isAuthenticated && <NotificationBell />}
+
               {/* Language Selector */}
               <div className="hidden md:block relative group">
                 <button className="flex items-center gap-1 p-2 text-gray-300 hover:text-[#d3da0c] transition-colors">
@@ -301,6 +315,16 @@ const Navbar = () => {
                             >
                               <User className="w-4 h-4" />
                               <span className="text-sm">{t('nav.businessDashboard') || 'Business Dashboard'}</span>
+                            </Link>
+                          )}
+
+                          {isStaffScanner && (
+                            <Link
+                              to="/scan"
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#d3da0c] hover:bg-[#d3da0c]/10 transition-colors"
+                            >
+                              <ScanLine className="w-4 h-4" />
+                              <span className="text-sm">{t('nav.scan') || 'Scan Tickets'}</span>
                             </Link>
                           )}
 

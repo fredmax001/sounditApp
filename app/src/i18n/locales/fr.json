@@ -690,7 +690,40 @@
       "roleViewerDesc": "Can only view events and analytics",
       "cancel": "Cancel",
       "sending": "Sending...",
-      "sendInvite": "Send Invite"
+      "sendInvite": "Envoyer l'invitation",
+      "pleaseEnterFullName": "Veuillez entrer le nom complet",
+      "pleaseEnterLogin": "Veuillez entrer le login",
+      "pleaseEnterPassword": "Veuillez entrer le mot de passe",
+      "systemRoleLabel": "Rôle Système",
+      "fullNameLabel": "Nom Complet",
+      "fullNamePlaceholder": "Entrez le nom complet",
+      "loginLabel": "Login",
+      "loginPlaceholder": "Entrez le login",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "Entrez le mot de passe",
+      "phoneLabel": "Numéro de téléphone",
+      "phonePlaceholder": "Entrez le numéro de téléphone",
+      "permissions": "Permissions",
+      "qrScannerDesc": "Permettre au personnel de scanner les billets et les check-ins",
+      "checkedInInfoDesc": "Permettre au personnel de voir les détails des invités enregistrés",
+      "sendDataToEmail": "Je veux envoyer les données à l'email de l'utilisateur",
+      "qrScanner": "Scanner QR",
+      "checkedInInfo": "Infos Check-in",
+      "addFromPlatform": "Ajouter depuis la Plateforme",
+      "searchUsersPlaceholder": "Rechercher des utilisateurs par nom ou email...",
+      "noUsersFound": "Aucun utilisateur trouvé",
+      "selectUser": "Sélectionner un Utilisateur",
+      "existingUserSelected": "Utilisateur existant sélectionné",
+      "createNewStaff": "Créer un Nouveau Membre",
+      "failedToLoadStaff": "Échec du chargement du personnel",
+      "failedToAddStaff": "Échec de l'ajout du membre",
+      "failedToRemoveStaff": "Échec de la suppression du membre",
+      "staffAdded": "Membre du personnel ajouté avec succès",
+      "statusUpdated": "Statut mis à jour",
+      "invitationAccepted": "Invitation acceptée",
+      "invitationRejected": "Invitation refusée",
+      "failedToAccept": "Échec de l'acceptation",
+      "failedToReject": "Échec du refus"
     },
     "tableReservations": {
       "failedToLoadData": "Failed to load data",
@@ -3863,7 +3896,10 @@
     "positionQR": "Position Q R",
     "ticketValidated": "Ticket Validated",
     "ticketAlreadyUsed": "Ticket Already Used",
-    "scanAnother": "Scan Another"
+    "scanAnother": "Scanner un autre",
+    "selectEvent": "Sélectionner un Événement",
+    "allEvents": "Tous les Événements",
+    "wrongEventWarning": "Ce billet est pour un autre événement"
   },
   "subscriptions": {
     "title": "Subscriptions",
@@ -4560,5 +4596,11 @@
     "dataContent": "<p>Toutes les données de vérification seront traitées conformément à notre politique de confidentialité et aux lois applicables.</p>",
     "questionsTitle": "Des questions ?",
     "questionsSubtitle": "Contactez notre équipe de support pour obtenir de l'aide concernant la vérification."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unread": "non lues",
+    "empty": "Pas de nouvelles notifications",
+    "staffInviteTitle": "Invitation Personnel"
   }
 }

@@ -1,8 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, UserPlus, Mail, Shield, X, Loader2, Phone, Lock, User, Eye, EyeOff, QrCode, ClipboardList, Check } from 'lucide-react';
-import { useState } from 'react';
+import { Users, UserPlus, Mail, Shield, X, Loader2, Phone, Lock, User, Eye, EyeOff, QrCode, ClipboardList, Check, Search, UserCheck } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/store/authStore';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 type StaffRole = 'Manager' | 'Cashier' | 'Guest Check-In' | 'Scanner';
 
@@ -20,6 +23,14 @@ interface StaffMember {
   };
 }
 
+interface ExistingUser {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+}
+
 const STAFF_ROLES: StaffRole[] = ['Manager', 'Cashier', 'Guest Check-In', 'Scanner'];
 
 const getRoleBadgeClass = (role: StaffRole) => {
@@ -30,7 +41,6 @@ const getRoleBadgeClass = (role: StaffRole) => {
       return 'bg-green-500/20 text-green-400';
     case 'Guest Check-In':
       return 'bg-blue-500/20 text-blue-400';
-
     case 'Scanner':
       return 'bg-orange-500/20 text-orange-400';
     default:
@@ -40,11 +50,18 @@ const getRoleBadgeClass = (role: StaffRole) => {
 
 const Staff = () => {
   const { t } = useTranslation();
+  const { session } = useAuthStore();
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
+  const [addMode, setAddMode] = useState<'new' | 'existing'>('new');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<ExistingUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ExistingUser | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -60,6 +77,73 @@ const Staff = () => {
     checkedInInfo: false,
   });
 
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${session?.access_token || ''}`,
+  });
+
+  const fetchStaff = useCallback(async () => {
+    if (!session?.access_token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/business/staff`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error('Failed to load staff');
+      const data = await res.json();
+      const mapped: StaffMember[] = data.map((s: any) => ({
+        id: String(s.id),
+        fullName: s.full_name,
+        login: s.login,
+        email: s.email,
+        phone: s.phone || '',
+        role: s.role,
+        status: s.status,
+        permissions: {
+          qrScanner: s.permissions?.qrScanner || false,
+          checkedInInfo: s.permissions?.checkedInInfo || false,
+        },
+      }));
+      setStaff(mapped);
+    } catch {
+      toast.error(t('business.staff.failedToLoadStaff') || 'Failed to load staff members');
+    } finally {
+      setLoading(false);
+    }
+  }, [session, t]);
+
+  useEffect(() => {
+    fetchStaff();
+  }, [fetchStaff]);
+
+  const searchUsers = useCallback(async () => {
+    if (!session?.access_token || !searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/business/staff/search-users?q=${encodeURIComponent(searchQuery.trim())}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error('Search failed');
+      const data = await res.json();
+      setSearchResults(data);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, [searchQuery, session]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        searchUsers();
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchQuery, searchUsers]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -67,6 +151,32 @@ const Staff = () => {
 
   const togglePermission = (key: keyof typeof permissions) => {
     setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectExistingUser = (user: ExistingUser) => {
+    setSelectedUser(user);
+    setFormData(prev => ({
+      ...prev,
+      fullName: user.name,
+      email: user.email || prev.email,
+      phone: user.phone || prev.phone,
+      login: user.email ? user.email.split('@')[0] : `user${user.id}`,
+      password: '',
+    }));
+    setSearchResults([]);
+    setSearchQuery('');
+  };
+
+  const clearSelectedUser = () => {
+    setSelectedUser(null);
+    setFormData({
+      fullName: '',
+      login: '',
+      password: '',
+      email: '',
+      phone: '',
+      role: 'Manager',
+    });
   };
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -80,7 +190,7 @@ const Staff = () => {
       toast.error(t('business.staff.pleaseEnterLogin') || 'Please enter login');
       return;
     }
-    if (!formData.password.trim()) {
+    if (!selectedUser && !formData.password.trim()) {
       toast.error(t('business.staff.pleaseEnterPassword') || 'Please enter password');
       return;
     }
@@ -92,22 +202,30 @@ const Staff = () => {
     setIsInviting(true);
 
     try {
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const res = await fetch(`${API_BASE_URL}/business/staff`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          full_name: formData.fullName.trim(),
+          login: formData.login.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || null,
+          role: formData.role,
+          user_id: selectedUser?.id || null,
+          permissions: {
+            qrScanner: permissions.qrScanner,
+            checkedInInfo: permissions.checkedInInfo,
+          },
+        }),
+      });
 
-      const newMember: StaffMember = {
-        id: Date.now().toString(),
-        fullName: formData.fullName.trim(),
-        login: formData.login.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        role: formData.role,
-        status: 'Pending',
-        permissions: { ...permissions }
-      };
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Failed to add staff' }));
+        throw new Error(err.detail || 'Failed to add staff');
+      }
 
-      setStaff([...staff, newMember]);
-      toast.success(t('business.staff.invitationSent', { email: formData.email }));
+      await fetchStaff();
+      toast.success(t('business.staff.staffAdded') || 'Staff member added successfully');
       setShowInviteModal(false);
       setFormData({
         fullName: '',
@@ -119,16 +237,42 @@ const Staff = () => {
       });
       setPermissions({ qrScanner: false, checkedInInfo: false });
       setSendEmail(false);
-    } catch {
-      toast.error(t('business.staff.failedToSendInvitation'));
+      setSelectedUser(null);
+      setAddMode('new');
+    } catch (err: any) {
+      toast.error(t('business.staff.failedToAddStaff') || err.message || 'Failed to add staff member');
     } finally {
       setIsInviting(false);
     }
   };
 
-  const handleRemoveMember = (id: string) => {
-    setStaff(staff.filter(s => s.id !== id));
-    toast.success(t('business.staff.staffMemberRemoved'));
+  const handleRemoveMember = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/business/staff/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+      });
+      if (!res.ok) throw new Error('Failed to remove');
+      setStaff(prev => prev.filter(s => s.id !== id));
+      toast.success(t('business.staff.staffMemberRemoved'));
+    } catch {
+      toast.error(t('business.staff.failedToRemoveStaff') || 'Failed to remove staff member');
+    }
+  };
+
+  const toggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'Active' ? 'Pending' : 'Active';
+    try {
+      const res = await fetch(`${API_BASE_URL}/business/staff/${id}/status?status=${newStatus}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+      });
+      if (!res.ok) throw new Error('Failed to update status');
+      setStaff(prev => prev.map(s => s.id === id ? { ...s, status: newStatus as 'Active' | 'Pending' } : s));
+      toast.success(t('business.staff.statusUpdated') || 'Status updated');
+    } catch {
+      toast.error(t('business.staff.failedToAddStaff') || 'Failed to update status');
+    }
   };
 
   return (
@@ -182,7 +326,12 @@ const Staff = () => {
         <div className="p-6 border-b border-white/5">
           <h3 className="text-lg font-semibold text-white">{t('business.staff.teamMembers')}</h3>
         </div>
-        {staff.length > 0 ? (
+        {loading ? (
+          <div className="p-12 text-center">
+            <Loader2 className="w-10 h-10 text-[#d3da0c] mx-auto mb-4 animate-spin" />
+            <p className="text-gray-400">{t('common.loading') || 'Loading...'}</p>
+          </div>
+        ) : staff.length > 0 ? (
           <div className="divide-y divide-white/5">
             {staff.map((member) => (
               <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-white/5 transition-colors gap-4">
@@ -213,12 +362,16 @@ const Staff = () => {
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(member.role)}`}>
                     {member.role}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    member.status === 'Active' ? 'bg-green-500/20 text-green-400' :
-                    'bg-yellow-500/20 text-yellow-400'
-                  }`}>
+                  <button
+                    onClick={() => toggleStatus(member.id, member.status)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                      member.status === 'Active' ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' :
+                      'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                    }`}
+                    title={t('business.staff.statusUpdated') || 'Click to toggle status'}
+                  >
                     {member.status}
-                  </span>
+                  </button>
                   <button
                     onClick={() => handleRemoveMember(member.id)}
                     className="p-2 text-gray-500 hover:text-red-400 transition-colors"
@@ -265,6 +418,102 @@ const Staff = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Mode Toggle */}
+              <div className="flex bg-white/5 rounded-lg p-1 mb-6">
+                <button
+                  type="button"
+                  onClick={() => { setAddMode('new'); clearSelectedUser(); }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    addMode === 'new' ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {t('business.staff.createNewStaff') || 'Create New'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAddMode('existing'); clearSelectedUser(); }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    addMode === 'existing' ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {t('business.staff.addFromPlatform') || 'From Platform'}
+                </button>
+              </div>
+
+              {/* Existing User Search */}
+              <AnimatePresence>
+                {addMode === 'existing' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-4"
+                  >
+                    {!selectedUser ? (
+                      <div className="space-y-2">
+                        <label className="block text-gray-400 text-sm">{t('business.staff.selectUser') || 'Select User'}</label>
+                        <div className="relative">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t('business.staff.searchUsersPlaceholder') || 'Search users by name or email...'}
+                            className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                          />
+                          {searching && (
+                            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 animate-spin" />
+                          )}
+                        </div>
+                        {searchResults.length > 0 && (
+                          <div className="bg-white/5 rounded-lg border border-white/10 max-h-48 overflow-y-auto">
+                            {searchResults.map((user) => (
+                              <button
+                                key={user.id}
+                                type="button"
+                                onClick={() => selectExistingUser(user)}
+                                className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors text-left border-b border-white/5 last:border-0"
+                              >
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black text-xs font-bold shrink-0">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-white text-sm truncate">{user.name}</p>
+                                  <p className="text-gray-500 text-xs truncate">{user.email}{user.phone ? ` • ${user.phone}` : ''}</p>
+                                </div>
+                                <UserCheck className="w-4 h-4 text-gray-500 ml-auto shrink-0" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {searchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && (
+                          <p className="text-gray-500 text-sm">{t('business.staff.noUsersFound') || 'No users found'}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-[#d3da0c]/10 border border-[#d3da0c]/30 rounded-lg p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold shrink-0">
+                            {selectedUser.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">{selectedUser.name}</p>
+                            <p className="text-gray-400 text-sm">{selectedUser.email}{selectedUser.phone ? ` • ${selectedUser.phone}` : ''}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={clearSelectedUser}
+                          className="p-2 text-gray-400 hover:text-white transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <form onSubmit={handleInvite} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -329,17 +578,22 @@ const Staff = () => {
                         value={formData.password}
                         onChange={handleChange}
                         placeholder={t('business.staff.passwordPlaceholder') || 'Enter password'}
-                        className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
-                        required
+                        className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
+                        required={!selectedUser}
+                        disabled={!!selectedUser}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                        disabled={!!selectedUser}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
+                    {selectedUser && (
+                      <p className="text-xs text-gray-500 mt-1">{t('business.staff.existingUserSelected') || 'Existing user — password not required'}</p>
+                    )}
                   </div>
                 </div>
 
@@ -439,7 +693,7 @@ const Staff = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={isInviting || !formData.fullName.trim() || !formData.login.trim() || !formData.password.trim() || !formData.email.trim()}
+                    disabled={isInviting || !formData.fullName.trim() || !formData.login.trim() || (!selectedUser && !formData.password.trim()) || !formData.email.trim()}
                     className="flex-1 py-3 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isInviting ? (

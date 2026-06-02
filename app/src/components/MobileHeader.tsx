@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import {
-  Bell,
   ShoppingCart,
   MapPin,
   User,
@@ -21,6 +20,8 @@ import {
   ScanLine,
   Crown,
 } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
+import { useStaffStore } from '@/store/staffStore';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import { useState, useRef, useEffect } from 'react';
@@ -74,14 +75,23 @@ const MobileHeader = () => {
     toast.success(`${chinaCities.find((c) => c.id === cityId)?.name}`);
   };
 
+  const { canScan, fetchMemberships } = useStaffStore();
+  const isStaffScanner = canScan();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchMemberships();
+    }
+  }, [isAuthenticated, fetchMemberships]);
+
   const menuItems = isAuthenticated
     ? [
         { icon: User, label: t('nav.profile') || 'Profile', onClick: () => navigate('/profile') },
         { icon: Ticket, label: t('nav.myTickets') || 'My Tickets', onClick: () => navigate('/tickets') },
         { icon: Heart, label: t('nav.favorites') || 'Favorites', onClick: () => navigate('/favorites') },
+        ...(isStaffScanner ? [{ icon: ScanLine, label: t('nav.scan') || 'Scan Tickets', onClick: () => navigate('/scan') }] : []),
         { icon: LayoutDashboard, label: t('nav.dashboard') || 'Dashboard', onClick: () => navigate('/dashboard') },
         { icon: Crown, label: t('nav.subscriptions') || 'Subscriptions', onClick: () => navigate('/subscriptions') },
-
         { icon: Settings, label: t('nav.settings') || 'Settings', onClick: () => navigate('/settings') },
       ]
     : [
@@ -156,13 +166,7 @@ const MobileHeader = () => {
                 </Link>
 
                 {/* Notifications */}
-                <button
-                  onClick={() => toast.info('No new notifications')}
-                  className="relative w-9 h-9 rounded-full glass-pill-premium flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#FF2D8F] rounded-full animate-badge-bounce" />
-                </button>
+                <NotificationBell mobile />
               </>
             )}
 

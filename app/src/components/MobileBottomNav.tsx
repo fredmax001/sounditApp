@@ -6,6 +6,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useStaffStore } from '@/store/staffStore';
 import { useTranslation } from 'react-i18next';
 import { useHaptic } from '@/hooks/useHaptic';
 import type { LucideIcon } from 'lucide-react';
@@ -35,6 +36,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile } = useAuthStore();
+  const { memberships, canScan, fetchMemberships } = useStaffStore();
   const { t } = useTranslation();
   const { trigger } = useHaptic();
 
@@ -43,6 +45,13 @@ const MobileBottomNav = () => {
   const isArtist = role === 'artist' || role === 'dj';
   const isVendor = role === 'vendor';
   const isAdmin = role === 'admin' || role === 'super_admin';
+  const isStaffScanner = canScan();
+
+  React.useEffect(() => {
+    if (profile) {
+      fetchMemberships();
+    }
+  }, [profile, fetchMemberships]);
 
   const navItems = React.useMemo<NavItem[]>(() => {
     if (isBusiness) {
@@ -86,6 +95,16 @@ const MobileBottomNav = () => {
     }
 
     // Regular users — floating glass dock layout
+    if (isStaffScanner) {
+      return [
+        { path: '/', label: t('nav.home') || 'Home', icon: Home },
+        { path: '/events', label: t('nav.events') || 'Events', icon: Calendar },
+        { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine, isCenter: true },
+        { path: '/community', label: t('nav.community') || 'Community', icon: MessageCircle },
+        { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
+      ];
+    }
+
     return [
       { path: '/', label: t('nav.home') || 'Home', icon: Home },
       { path: '/events', label: t('nav.events') || 'Events', icon: Calendar },
@@ -93,7 +112,7 @@ const MobileBottomNav = () => {
       { path: '/discovery', label: t('nav.discovery') || 'Discovery', icon: MapPin },
       { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
     ];
-  }, [isBusiness, isArtist, isVendor, isAdmin, t]);
+  }, [isBusiness, isArtist, isVendor, isAdmin, isStaffScanner, t]);
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';

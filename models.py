@@ -369,6 +369,7 @@ class StaffMember(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     business_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     
     full_name = Column(String(200), nullable=False)
     login = Column(String(100), nullable=False, unique=True)
@@ -381,9 +382,11 @@ class StaffMember(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     
+    # Relationships
+    business = relationship("User", foreign_keys=[business_id], backref="staff_members")
+    user = relationship("User", foreign_keys=[user_id], backref="staff_invitations")
 
 
 class ArtistProfile(Base):

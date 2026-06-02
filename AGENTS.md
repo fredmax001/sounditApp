@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-05-19
+2026-05-30
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-19
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-05-30
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,35 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 43. Staff Management Fixes + Existing User Selection + Translation Fixes (2026-05-30)
+- **Translation fixes**:
+  - Fixed 20 lowercase admin page titles in `en.json` (e.g., `review Events` → `Review Events`, `cms Content` → `CMS Content`, etc.)
+  - Added 24+ missing staff translation keys to `en.json`, `zh.json`, `fr.json`
+  - Added notification translation keys (`notifications.title`, `notifications.unread`, etc.)
+- **Backend fixes**:
+  - `models.py`: Removed duplicate `updated_at` column in `StaffMember` model; added `user_id` nullable FK to link staff to existing platform users
+  - `api/business.py`: Added `GET /business/staff/search-users` endpoint; `POST /business/staff` now accepts `user_id` and sends an in-app notification to the invited user
+  - Added `GET /business/staff/invitations` — users see their pending staff invites
+  - Added `POST /business/staff/invitations/{id}/accept` and `/reject` — users can accept or decline invites; business owner gets notified
+- **Frontend**:
+  - `Staff.tsx`: Connected to real backend API (fetch, create, delete, toggle status); passes `user_id` when adding from platform
+  - `NotificationBell.tsx` (new): Reusable notification dropdown for desktop Navbar and mobile header; shows unread notifications + pending staff invitations with Accept/Reject buttons
+  - `MobileHeader.tsx` & `Navbar.tsx`: Replaced placeholder bell with real `NotificationBell`
+- **Database migration**:
+  - `scripts/migrate_staff_members.py` (new): Adds `last_login` and `user_id` columns to `staff_members` table on PostgreSQL
+  - Ran on production — `last_login` ✅ and `user_id` ✅ added
+- **Staff Scanner Access**:
+  - `api/ticketing_organizer.py`: Updated `_get_user_organizer_ids()` to include organizer profiles of businesses where the user is an active staff member. This allows staff to validate tickets for their employer's events.
+  - `api/business.py`: Added `GET /business/staff/my-memberships` and `GET /business/staff/my-events` endpoints.
+  - `app/src/store/staffStore.ts` (new): Zustand store for staff memberships and events with `isStaff()` and `canScan()` helpers.
+  - `app/src/pages/Scan.tsx`: Added event selector dropdown for staff members; shows warning if scanned ticket belongs to a different event.
+  - `app/src/components/NotificationBell.tsx` (new): Real notification dropdown with Accept/Reject for staff invitations.
+  - `MobileBottomNav.tsx` & `MobileHeader.tsx` & `Navbar.tsx`: Show Scan button/link for staff members with `qrScanner` permission.
+- **Deploy**:
+  - Backend synced to production server (`72.62.254.251`) and `soundit` service restarted
+  - Frontend `dist/` synced to production server
+  - `GET /health` → `{"status":"healthy"}`
 
 ### 42. Organizer Ticket Orders — Missing Buyer Info & Payment Screenshot (2026-05-19)
 - **Problem**: Organizer received payment for a ticket but could not see the buyer's name or payment screenshot on the organizer dashboard. Buyer appeared as "-" or "Unknown".

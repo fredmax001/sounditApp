@@ -689,7 +689,40 @@
       "roleViewerDesc": "Can only view events and analytics",
       "cancel": "Cancel",
       "sending": "Sending...",
-      "sendInvite": "Send Invite"
+      "sendInvite": "发送邀请",
+      "pleaseEnterFullName": "请输入全名",
+      "pleaseEnterLogin": "请输入登录名",
+      "pleaseEnterPassword": "请输入密码",
+      "systemRoleLabel": "系统角色",
+      "fullNameLabel": "全名",
+      "fullNamePlaceholder": "输入全名",
+      "loginLabel": "登录名",
+      "loginPlaceholder": "输入登录名",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "输入密码",
+      "phoneLabel": "电话号码",
+      "phonePlaceholder": "输入电话号码",
+      "permissions": "权限",
+      "qrScannerDesc": "允许员工扫描门票和签到",
+      "checkedInInfoDesc": "允许员工查看已签到客人详情",
+      "sendDataToEmail": "我想将数据发送到用户邮箱",
+      "qrScanner": "二维码扫描",
+      "checkedInInfo": "签到信息",
+      "addFromPlatform": "从平台添加",
+      "searchUsersPlaceholder": "按姓名或邮箱搜索用户...",
+      "noUsersFound": "未找到用户",
+      "selectUser": "选择用户",
+      "existingUserSelected": "已选择现有用户",
+      "createNewStaff": "创建新员工",
+      "failedToLoadStaff": "加载员工失败",
+      "failedToAddStaff": "添加员工失败",
+      "failedToRemoveStaff": "移除员工失败",
+      "staffAdded": "员工添加成功",
+      "statusUpdated": "状态已更新",
+      "invitationAccepted": "邀请已接受",
+      "invitationRejected": "邀请已拒绝",
+      "failedToAccept": "接受邀请失败",
+      "failedToReject": "拒绝邀请失败"
     },
     "tableReservations": {
       "failedToLoadData": "Failed to load data",
@@ -3858,7 +3891,10 @@
     "positionQR": "Position Q R",
     "ticketValidated": "Ticket Validated",
     "ticketAlreadyUsed": "Ticket Already Used",
-    "scanAnother": "Scan Another"
+    "scanAnother": "扫描下一个",
+    "selectEvent": "选择活动",
+    "allEvents": "全部活动",
+    "wrongEventWarning": "此门票属于其他活动"
   },
   "subscriptions": {
     "title": "Subscriptions",
@@ -4555,5 +4591,11 @@
     "dataContent": "<p>所有验证数据将按照我们的隐私政策和适用法律法规进行处理。</p>",
     "questionsTitle": "有疑问？",
     "questionsSubtitle": "联系我们的客服团队获取验证协助。"
+  },
+  "notifications": {
+    "title": "通知",
+    "unread": "未读",
+    "empty": "暂无新通知",
+    "staffInviteTitle": "员工邀请"
   }
 }
