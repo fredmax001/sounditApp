@@ -1130,7 +1130,8 @@ export const useAuthStore = create<AuthState>()(
           if (response.ok) {
             const data = await response.json();
             // Backend returns nested { user, artist_profile }; extract artist_profile
-            const artistProfile = data.artist_profile || data;
+            // Use explicit undefined check so null (no profile) is preserved instead of falling back to the full response
+            const artistProfile = data.artist_profile !== undefined ? data.artist_profile : data;
             set({ artistProfile });
           }
         } catch (error) {
@@ -1232,7 +1233,9 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(errorData.detail || 'Failed to create artist profile');
           }
 
-          const artistProfile = await response.json();
+          const responseData = await response.json();
+          // Backend returns { message, profile: { id, stage_name, artist_type } }
+          const artistProfile = responseData.profile || responseData.artist_profile || responseData;
 
           const updatedProfile: Profile = {
             ...profile,
@@ -1272,8 +1275,10 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(errorData.detail || 'Failed to update artist profile');
           }
 
-          const updated = await response.json();
-          set({ artistProfile: updated });
+          const responseData = await response.json();
+          // Backend returns { message, profile: { id, stage_name, ... } }
+          const artistProfile = responseData.profile || responseData.artist_profile || responseData;
+          set({ artistProfile });
         } catch (error: unknown) {
           console.error('Artist profile update error:', error);
           throw error;

@@ -931,7 +931,9 @@
         "appleMusic": "https://music.apple.com/artist/...",
         "soundcloud": "https://soundcloud.com/yourname",
         "hearthis": "https://hearthis.at/yourname",
-        "paymentInstructions": "e.g. Please include your name in the transfer note"
+        "paymentInstructions": "e.g. Please include your name in the transfer note",
+        "youtube": "https://youtube.com/channel/...",
+        "audiomack": "https://audiomack.com/artist/..."
       },
       "artistType": {
         "artist": "艺人",
@@ -939,10 +941,6 @@
         "mc": "MC",
         "dancer": "舞者",
         "photographer": "摄影师"
-      },
-      "placeholder": {
-        "youtube": "https://youtube.com/channel/...",
-        "audiomack": "https://audiomack.com/artist/..."
       },
       "djMixTitle": "DJ混音",
       "djMixSubtitle": "上传你的最佳混音（最长10分钟，10MB）",

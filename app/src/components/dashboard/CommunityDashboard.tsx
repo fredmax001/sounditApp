@@ -204,19 +204,19 @@ export default function CommunityDashboard({
       className="space-y-8"
     >
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
-          <p className="text-gray-400">{subtitle}</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">{title}</h2>
+          <p className="text-gray-400 text-sm sm:text-base">{subtitle}</p>
         </div>
-        <Button onClick={handleOpenCreate} className="gap-2">
+        <Button onClick={handleOpenCreate} className="gap-2 w-fit">
           <Plus className="w-4 h-4" />
           {t('dashboard.community.createPost')}
         </Button>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard
           icon={MessageSquare}
           label={t('dashboard.community.totalPosts')}
@@ -239,10 +239,10 @@ export default function CommunityDashboard({
         />
       </div>
 
-      {/* Posts Table */}
+      {/* Posts */}
       <div className="bg-[#111111] rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-4 border-b border-white/5">
-          <h3 className="text-lg font-semibold text-white">
+        <div className="p-3 sm:p-4 border-b border-white/5">
+          <h3 className="text-base sm:text-lg font-semibold text-white">
             {t('dashboard.community.posts')}
           </h3>
         </div>
@@ -252,84 +252,137 @@ export default function CommunityDashboard({
             <p className="text-gray-400">{t('common.loading')}</p>
           </div>
         ) : posts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/5 hover:bg-transparent">
-                  <TableHead className="text-gray-400">
-                    {t('dashboard.community.postTitle')}
-                  </TableHead>
-                  <TableHead className="text-gray-400">
-                    {t('dashboard.community.section')}
-                  </TableHead>
-                  <TableHead className="text-gray-400">
-                    {t('community.likes')}
-                  </TableHead>
-                  <TableHead className="text-gray-400">
-                    {t('community.comments')}
-                  </TableHead>
-                  <TableHead className="text-gray-400">
-                    {t('community.views')}
-                  </TableHead>
-                  <TableHead className="text-gray-400">
-                    {t('dashboard.community.created')}
-                  </TableHead>
-                  <TableHead className="text-gray-400 text-right">
-                    {t('dashboard.community.actions')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {posts.map((post) => (
-                  <TableRow key={post.id} className="border-white/5 hover:bg-white/[0.02]">
-                    <TableCell className="text-white font-medium max-w-xs truncate">
-                      {post.title || t('dashboard.community.untitled')}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {post.section?.name || '-'}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {post.likes_count || 0}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {post.comments_count || 0}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {post.view_count || 0}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleOpenEdit(post)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                          <span className="sr-only">{t('common.edit')}</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          onClick={() => handleDelete(post)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="sr-only">{t('common.delete')}</span>
-                        </Button>
-                      </div>
-                    </TableCell>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead className="text-gray-400">
+                      {t('dashboard.community.postTitle')}
+                    </TableHead>
+                    <TableHead className="text-gray-400">
+                      {t('dashboard.community.section')}
+                    </TableHead>
+                    <TableHead className="text-gray-400">
+                      {t('community.likes')}
+                    </TableHead>
+                    <TableHead className="text-gray-400">
+                      {t('community.comments')}
+                    </TableHead>
+                    <TableHead className="text-gray-400">
+                      {t('community.views')}
+                    </TableHead>
+                    <TableHead className="text-gray-400">
+                      {t('dashboard.community.created')}
+                    </TableHead>
+                    <TableHead className="text-gray-400 text-right">
+                      {t('dashboard.community.actions')}
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {posts.map((post) => (
+                    <TableRow key={post.id} className="border-white/5 hover:bg-white/[0.02]">
+                      <TableCell className="text-white font-medium max-w-xs truncate">
+                        {post.title || t('dashboard.community.untitled')}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {post.section?.name || '-'}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {post.likes_count || 0}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {post.comments_count || 0}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {post.view_count || 0}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleOpenEdit(post)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                            <span className="sr-only">{t('common.edit')}</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={() => handleDelete(post)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="sr-only">{t('common.delete')}</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-white/5">
+              {posts.map((post) => (
+                <div key={post.id} className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white font-medium text-sm truncate">
+                        {post.title || t('dashboard.community.untitled')}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-0.5">
+                        {post.section?.name || '-'} · {new Date(post.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleOpenEdit(post)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        onClick={() => handleDelete(post)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-3 h-3" />
+                      {post.likes_count || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle className="w-3 h-3" />
+                      {post.comments_count || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      {post.view_count || 0}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="p-12 text-center">
-            <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg mb-2">
+          <div className="p-8 sm:p-12 text-center">
+            <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 text-base sm:text-lg mb-2">
               {t('community.noPostsYet')}
             </p>
             <p className="text-gray-500 text-sm">
@@ -525,12 +578,12 @@ function MetricCard({
   value: number;
 }) {
   return (
-    <div className="bg-[#111111] rounded-xl p-5 border border-white/5">
-      <div className="flex items-center gap-3 mb-2">
-        <Icon className="w-5 h-5 text-[#d3da0c]" />
-        <span className="text-gray-400 text-sm">{label}</span>
+    <div className="bg-[#111111] rounded-xl p-3 sm:p-5 border border-white/5">
+      <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#d3da0c]" />
+        <span className="text-gray-400 text-xs sm:text-sm">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-white">{value.toLocaleString()}</p>
+      <p className="text-xl sm:text-2xl font-bold text-white">{value.toLocaleString()}</p>
     </div>
   );
 }

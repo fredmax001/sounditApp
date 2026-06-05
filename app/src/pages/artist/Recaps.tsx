@@ -119,17 +119,17 @@ export default function ArtistRecaps() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('artist.recaps.title')}</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">{t('artist.recaps.title')}</h1>
+          <p className="text-gray-400 mt-1 text-sm sm:text-base">
             {t('artist.recaps.subtitle')}
           </p>
         </div>
         
         <button
           onClick={() => setShowUploadModal(true)}
-          className="bg-[#d3da0c] hover:bg-[#d3da0c]/90 text-black px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          className="bg-[#d3da0c] hover:bg-[#d3da0c]/90 text-black px-3 py-2 sm:px-4 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm sm:text-base w-fit"
         >
           <Plus className="w-4 h-4" />
           {t('artist.recaps.uploadRecap')}
@@ -137,7 +137,7 @@ export default function ArtistRecaps() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {[
           { label: t('artist.recaps.totalRecaps'), value: recaps.length, icon: Video },
           { label: t('artist.recaps.videos'), value: recaps.filter(r => r.type === 'video').length, icon: FileVideo },
@@ -149,11 +149,11 @@ export default function ArtistRecaps() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-[#111111] rounded-xl p-4 border border-white/5"
+            className="bg-[#111111] rounded-xl p-3 sm:p-4 border border-white/5"
           >
-            <stat.icon className="w-5 h-5 text-[#d3da0c] mb-2" />
-            <p className="text-gray-400 text-sm">{stat.label}</p>
-            <p className="text-2xl font-bold text-white">{stat.value}</p>
+            <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#d3da0c] mb-2" />
+            <p className="text-gray-400 text-xs sm:text-sm">{stat.label}</p>
+            <p className="text-xl sm:text-2xl font-bold text-white">{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -241,10 +241,10 @@ export default function ArtistRecaps() {
               </div>
 
               {/* Info */}
-              <div className="p-4">
-                <h3 className="font-medium text-white truncate">{recap.title}</h3>
-                <p className="text-sm text-gray-400 mt-1">{recap.event_name}</p>
-                <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+              <div className="p-3 sm:p-4">
+                <h3 className="font-medium text-white truncate text-sm sm:text-base">{recap.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">{recap.event_name}</p>
+                <div className="flex items-center justify-between mt-2 sm:mt-3 text-[10px] sm:text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {formatDate(recap.created_at)}
