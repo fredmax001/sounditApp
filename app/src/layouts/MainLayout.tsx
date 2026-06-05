@@ -36,7 +36,7 @@ const MainLayout = () => {
       {isMobile && <MobileHeader />}
 
       {/* Main Content */}
-      <main className={`relative z-10 ${isMobile ? 'pt-14 pb-app-nav' : 'pt-20'}`}>
+      <main className={`relative z-10 ${isMobile ? 'pt-16 safe-area-pt pb-app-nav' : 'pt-20'}`}>
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobilePageTransition key="mobile-outlet">

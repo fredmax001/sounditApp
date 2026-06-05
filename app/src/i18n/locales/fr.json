@@ -932,7 +932,9 @@
         "appleMusic": "https://music.apple.com/artist/...",
         "soundcloud": "https://soundcloud.com/yourname",
         "hearthis": "https://hearthis.at/yourname",
-        "paymentInstructions": "e.g. Please include your name in the transfer note"
+        "paymentInstructions": "e.g. Please include your name in the transfer note",
+        "youtube": "https://youtube.com/channel/...",
+        "audiomack": "https://audiomack.com/artist/..."
       },
       "artistType": {
         "artist": "Artiste",
@@ -940,10 +942,6 @@
         "mc": "MC",
         "dancer": "Danseur",
         "photographer": "Photographe"
-      },
-      "placeholder": {
-        "youtube": "https://youtube.com/channel/...",
-        "audiomack": "https://audiomack.com/artist/..."
       },
       "djMixTitle": "Mix DJ",
       "djMixSubtitle": "Télécharge ton meilleur mix (max 10 min, 10 Mo)",

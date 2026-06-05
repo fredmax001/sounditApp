@@ -348,10 +348,8 @@ const Profile = () => {
               <div className="min-w-0">
                 <p className="text-xs text-gray-500">{t('user.profile.email')}</p>
                 <p className="text-white text-sm truncate">{profile?.email}</p>
-                {profile?.is_email_verified ? (
+                {profile?.is_verified && (
                   <span className="text-[10px] text-green-400">{t('user.profile.verified')}</span>
-                ) : (
-                  <span className="text-[10px] text-yellow-400">{t('user.profile.pendingVerification')}</span>
                 )}
               </div>
             </div>

@@ -295,7 +295,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       </motion.header>
 
       {/* Main Content */}
-      <main ref={mainRef} className="flex-1 pt-14 pb-app-nav overflow-y-auto app-page">
+      <main ref={mainRef} className="flex-1 pt-16 safe-area-pt pb-app-nav overflow-y-auto app-page">
         <AnimatePresence mode="wait">
           <MobilePageTransition key={location.pathname}>
             {children}
