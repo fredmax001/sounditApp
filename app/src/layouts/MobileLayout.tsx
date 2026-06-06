@@ -106,6 +106,9 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Pages that have their own full header — hide the MobileLayout nav bar
+  const hideHeader = location.pathname === '/dashboard/artist';
+
   const role = (profile?.role_type || profile?.role || '').toLowerCase();
   const isBusiness = role === 'business' || role === 'organizer';
   const isArtist = role === 'artist' || role === 'dj';
@@ -252,50 +255,52 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
-      {/* App Header */}
-      <motion.header
-        initial={{ y: 0 }}
-        animate={{ y: isHeaderHidden ? '-100%' : 0 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 safe-area-pt"
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 -ml-2 text-gray-300 hover:text-white touch-feedback"
-            aria-label="Go back"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+      {/* App Header — hidden on pages with their own header (e.g. Artist Dashboard) */}
+      {!hideHeader && (
+        <motion.header
+          initial={{ y: 0 }}
+          animate={{ y: isHeaderHidden ? '-100%' : 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 safe-area-pt"
+        >
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 -ml-2 text-gray-300 hover:text-white touch-feedback"
+              aria-label="Go back"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-          <span className="text-white font-semibold text-sm truncate max-w-[50vw] capitalize">
-            {getPageTitle}
-          </span>
+            <span className="text-white font-semibold text-sm truncate max-w-[50vw] capitalize">
+              {getPageTitle}
+            </span>
 
-          <button
-            onClick={() => setShowDrawer(true)}
-            className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden touch-feedback"
-          >
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default-avatar.png';
-                }}
-              />
-            ) : (
-              <User className="w-4 h-4 text-black" />
-            )}
-          </button>
-        </div>
-      </motion.header>
+            <button
+              onClick={() => setShowDrawer(true)}
+              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden touch-feedback"
+            >
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default-avatar.png';
+                  }}
+                />
+              ) : (
+                <User className="w-4 h-4 text-black" />
+              )}
+            </button>
+          </div>
+        </motion.header>
+      )}
 
       {/* Main Content */}
-      <main ref={mainRef} className="flex-1 pt-16 safe-area-pt pb-app-nav overflow-y-auto app-page">
+      <main ref={mainRef} className={`flex-1 ${hideHeader ? 'pt-0' : 'pt-16'} safe-area-pt pb-app-nav overflow-y-auto app-page`}>
         <AnimatePresence mode="wait">
           <MobilePageTransition key={location.pathname}>
             {children}

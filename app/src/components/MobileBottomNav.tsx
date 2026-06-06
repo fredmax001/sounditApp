@@ -68,7 +68,7 @@ const MobileBottomNav = () => {
       return [
         { path: '/dashboard/artist', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
         { path: '/dashboard/artist/bookings', label: t('artist.bookings.title') || 'Bookings', icon: Calendar },
-        { path: '/dashboard/artist', label: t('nav.myGigs') || 'My Gigs', icon: Ticket },
+        { path: '/dashboard/artist/messages', label: t('nav.messages') || 'Messages', icon: MessageCircle },
         { path: '/dashboard/artist/performances', label: t('artist.performances.title') || 'Gigs', icon: BarChart3 },
         { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
       ];

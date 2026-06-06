@@ -179,6 +179,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const artistNavItems: NavItem[] = [
     { path: '/dashboard/artist', label: t('nav.artistHome') || 'Artist Home', icon: LayoutDashboard, locked: false },
     { path: '/dashboard/artist/bookings', label: t('artist.bookings.title') || 'Bookings', icon: CalendarPlus, locked: false },
+    { path: '/dashboard/artist/messages', label: t('nav.messages') || 'Messages', icon: MessageSquare, locked: false },
     { path: '/dashboard/artist/performances', label: t('artist.performances.title') || 'Performances', icon: CalendarDays, locked: false },
     { path: '/dashboard/artist/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
     { path: '/dashboard/artist/community', label: t('upgrade.fanFeed') || 'Fan Feed', icon: MessageSquare, locked: true, feature: 'fan_feed' },
