@@ -93,6 +93,7 @@ const ArtistPerformances = lazy(() => import('./pages/artist/Performances'));
 const ArtistAnalytics = lazy(() => import('./pages/artist/Analytics'));
 const ArtistRecaps = lazy(() => import('./pages/artist/Recaps'));
 const ArtistCommunity = lazy(() => import('./pages/artist/Community'));
+const ArtistMessages = lazy(() => import('./pages/artist/Messages'));
 
 // Organizer Pages
 const CreateEvent = lazy(() => import('./pages/organizer/CreateEvent'));
@@ -426,6 +427,11 @@ function App() {
             <Route path="/dashboard/artist/bookings" element={
               <ResponsiveLayout>
                 <Suspense fallback={<PageLoader />}><ArtistBookings /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/artist/messages" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><ArtistMessages /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/artist/performances" element={
