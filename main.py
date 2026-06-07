@@ -133,13 +133,16 @@ if _settings.DEBUG:
         "http://localhost:5173",
     ]
 else:
-    # Production: Allow both global and China domains
+    # Production: Allow both global and China domains + Capacitor mobile apps
     ALLOWED_ORIGINS = [
         "https://sounditent.com",
         "https://www.sounditent.com",
         "https://app.sounditent.com",
         "https://sounditent.cn",
         "https://www.sounditent.cn",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost",
     ]
 
 app.add_middleware(
