@@ -1,0 +1,119 @@
+{
+  "name": "sound-it",
+  "productName": "Sound It",
+  "version": "1.0.0",
+  "description": "Sound It — Excellence in Entertainment",
+  "main": "main.js",
+  "author": {
+    "name": "Sound It Entertainment",
+    "email": "info@sounditent.com"
+  },
+  "homepage": "https://sounditent.com",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder --mac --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:all": "electron-builder -mw",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps",
+    "build:icons": "bash scripts/generate-icons.sh"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.sounditent.app",
+    "productName": "Sound It",
+    "copyright": "Copyright © 2024 Sound It Entertainment",
+    "icon": "build/icon",
+    "asar": true,
+    "asarUnpack": [
+      "build/**"
+    ],
+    "files": [
+      "main.js",
+      "preload.js",
+      "build/**",
+      "node_modules/**",
+      "!node_modules/.cache",
+      "!**/.DS_Store"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.entertainment",
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "entitlements": null,
+      "entitlementsInherit": null,
+      "icon": "build/icon.icns"
+    },
+    "dmg": {
+      "title": "Sound It",
+      "background": "build/background.png",
+      "icon": "build/icon.icns",
+      "iconSize": 80,
+      "window": {
+        "width": 600,
+        "height": 400
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 185,
+          "type": "file"
+        },
+        {
+          "x": 450,
+          "y": 185,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sound It"
+    },
+    "publish": null
+  }
+}
