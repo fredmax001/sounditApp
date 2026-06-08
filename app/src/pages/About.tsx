@@ -1,32 +1,37 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Users, Globe, Award, Zap, Music, Ticket, BarChart3, Headphones, PartyPopper } from 'lucide-react';
+import { Sparkles, Users, Globe, Award, Zap, Music, Ticket, BarChart3, Headphones, PartyPopper, Heart } from 'lucide-react';
 
 const About = () => {
   const values = [
     {
       icon: Sparkles,
       title: 'Creativity & Innovation',
-      description: 'We constantly explore new ways to entertain and engage audiences.',
+      description: 'We constantly explore new ways to entertain, connect, and empower communities.',
     },
     {
       icon: Award,
       title: 'Authenticity',
-      description: 'Every event and production reflects real music culture.',
+      description: 'Everything we create is rooted in real culture, real experiences, and genuine connections.',
     },
     {
       icon: Users,
       title: 'Community & Collaboration',
-      description: 'We build bridges between artists, brands, and audiences.',
+      description: 'We bring together artists, businesses, organizers, and audiences to grow stronger together.',
     },
     {
       icon: Zap,
       title: 'Excellence',
-      description: 'Quality and attention to detail are at the heart of every project.',
+      description: 'Quality, professionalism, and attention to detail are at the heart of everything we do.',
     },
     {
       icon: Globe,
       title: 'Global Perspective',
-      description: 'We merge local culture with international reach.',
+      description: 'We celebrate local culture while building connections across the world.',
+    },
+    {
+      icon: Heart,
+      title: 'Empowerment',
+      description: 'We create opportunities for creators, entrepreneurs, and communities to thrive.',
     },
   ];
 
@@ -34,38 +39,43 @@ const About = () => {
     {
       icon: PartyPopper,
       name: 'Sound It Events',
-      description: 'Curated parties, showcases, and cultural gatherings blending African and global music with modern nightlife culture.',
+      description: 'Sound It Events is the live experiences division of the Sound It ecosystem, producing curated parties, showcases, networking events, and cultural gatherings that celebrate African and global music. Through unique concepts, quality entertainment, and community engagement, Sound It Events connects artists, audiences, brands, and event professionals across multiple markets.',
       status: 'Active',
     },
     {
       icon: Music,
       name: 'RNB & Slow Sessions',
-      description: 'A signature event series dedicated to soulful music, R&B, slow jams, and timeless classics. 10+ editions hosted.',
+      description: "RNB & Slow Sessions is Sound It's signature event series dedicated to soulful music, R&B, slow jams, Afro-R&B, and timeless classics. Since its launch, the series has successfully hosted multiple editions, creating intimate experiences for music lovers while building a loyal and growing community around quality music and nightlife culture.",
       status: 'Active',
     },
     {
       icon: Globe,
       name: 'Sound It Festival',
-      description: 'A premium indoor music and culture experience launching in 2026. Single-stage, industrial-style festival in Shanghai.',
-      status: 'Launching 2026',
+      description: 'Sound It Festival is a premium music, arts, and culture experience designed to bring together exceptional talent, immersive production, and diverse audiences. Launching in 2026, the festival aims to become a flagship annual event that showcases African and international creativity through music, fashion, art, food, and cultural exchange.',
+      status: 'Launching Soon',
     },
     {
-      icon: Ticket,
-      name: 'Sound It Ticketing',
-      description: 'A digital ticketing platform for seamless ticket sales, audience data insights, and brand integration.',
-      status: 'In Development',
+      icon: Zap,
+      name: 'Sound It Platform',
+      description: 'Sound It Platform is the flagship digital ecosystem connecting the entertainment industry in one place. The platform enables event organizers, artists, DJs, photographers, dancers, vendors, venues, businesses, and fans to discover opportunities, promote services, sell tickets, manage bookings, and grow their presence through powerful networking and business tools.',
+      status: 'Active',
     },
     {
       icon: Headphones,
       name: 'Sound It Muzik',
-      description: 'A music streaming and distribution platform focused on supporting African artists, starting with Sierra Leone.',
+      description: 'Sound It Muzik is a music streaming, discovery, and distribution platform focused on empowering independent artists, beginning with Sierra Leone and expanding across Africa. The platform aims to provide artists with greater visibility, direct fan engagement, distribution opportunities, performance analytics, and monetization tools while promoting African music globally.',
       status: 'In Development',
     },
-
     {
       icon: BarChart3,
-      name: 'DRICKS DJ Ecosystem',
-      description: 'A DJ-focused digital ecosystem for performance analysis, playlist management, and data-driven insights.',
+      name: 'Sound It DJ',
+      description: 'Sound It DJ is a specialized ecosystem built for DJs and music curators. The platform will offer profile management, booking opportunities, performance tracking, playlist management, audience analytics, and career development tools, enabling DJs to make data-driven decisions and grow their professional presence within the entertainment industry.',
+      status: 'In Development',
+    },
+    {
+      icon: Users,
+      name: 'Sound It Salone',
+      description: 'Sound It Salone is a dedicated entertainment and cultural hub focused on Sierra Leone. The initiative aims to support local artists, events, venues, businesses, and creatives by providing digital tools, promotion opportunities, industry connections, and access to a broader global audience while celebrating Sierra Leonean talent and culture.',
       status: 'In Development',
     },
   ];
@@ -147,8 +157,9 @@ const About = () => {
                 OUR <span className="text-[#d3da0c]">VISION</span>
               </h2>
               <p className="text-gray-400 text-lg leading-relaxed">
-                To be the leading entertainment company that shapes global music culture
-                while empowering talent and creating unforgettable experiences.
+                To build Africa's leading entertainment ecosystem by connecting people,
+                opportunities, events, music, culture, and technology on one unified platform
+                that empowers creators, businesses, organizers, and communities worldwide.
               </p>
             </motion.div>
           </div>
@@ -196,7 +207,7 @@ const About = () => {
                     </div>
                     <span className={`text-xs px-3 py-1 rounded-full font-medium ${entity.status === 'Active'
                       ? 'bg-[#d3da0c]/10 text-[#d3da0c]'
-                      : entity.status === 'Launching 2026'
+                      : entity.status === 'Launching 2026' || entity.status === 'Launching Soon'
                         ? 'bg-purple-500/10 text-purple-400'
                         : entity.status === 'Partner Project'
                           ? 'bg-blue-500/10 text-blue-400'
@@ -211,6 +222,100 @@ const About = () => {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Logo Story */}
+      <section className="py-24 bg-[#111111]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4"
+            >
+              Our Identity
+            </motion.span>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              viewport={{ once: true }}
+              className="text-4xl font-display text-white"
+            >
+              OUR <span className="text-[#d3da0c]">LOGO STORY</span>
+            </motion.h2>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center justify-center"
+            >
+              <img
+                src="/logo.png"
+                alt="Sound It Logo"
+                className="w-full max-w-md object-contain"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <p className="text-gray-400 text-lg leading-relaxed">
+                Every element of the Sound It logo was intentionally designed to reflect our identity, culture, and mission.
+              </p>
+              <p className="text-gray-400 text-lg leading-relaxed">
+                At the heart of the logo is the iconic <span className="text-white font-semibold">“O”</span>, inspired by the African Talking Drum. For generations, the Talking Drum has been used across Africa as a symbol of communication, storytelling, celebration, and community. It represents the voice of the people and the heartbeat of culture.
+              </p>
+              <p className="text-gray-400 text-lg leading-relaxed">
+                The sound waves surrounding the drum symbolize the power of music to connect people across borders, languages, and backgrounds. They represent energy, movement, and the universal language that unites communities around the world.
+              </p>
+              <p className="text-gray-400 text-lg leading-relaxed">
+                The handwritten <span className="text-white font-semibold">“it”</span> represents creativity, individuality, and self-expression. It reflects the artists, creators, entrepreneurs, and dreamers who bring culture to life through their unique talents and stories.
+              </p>
+              <p className="text-gray-400 text-lg leading-relaxed">
+                Together, these elements embody our purpose:
+              </p>
+              <p className="text-[#d3da0c] text-xl font-display font-semibold">
+                Connecting Cultures Through Sound.
+              </p>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass rounded-2xl p-8 border border-[#d3da0c]/10 max-w-3xl mx-auto"
+          >
+            <h3 className="text-xl font-display text-white mb-6 text-center">
+              WHAT THE <span className="text-[#d3da0c]">“O”</span> REPRESENTS
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                'African Heritage',
+                'Communication & Storytelling',
+                'Music & Rhythm',
+                'Community & Connection',
+                'Cultural Identity',
+                'Global Reach Through Sound',
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[#d3da0c] shrink-0" />
+                  <span className="text-gray-300 text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-500 text-sm text-center mt-6 italic">
+              More than a logo, Sound It is a symbol of culture, creativity, opportunity, and connection—rooted in Africa and built for the world.
+            </p>
+          </motion.div>
         </div>
       </section>
 
