@@ -1073,11 +1073,65 @@ class NotificationResponse(BaseModel):
     title: str
     message: str
     type: Optional[str] = None
+    data: Optional[dict] = None
+    entity_type: Optional[str] = None
+    entity_id: Optional[int] = None
     is_read: bool
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+
+class NotificationListResponse(BaseModel):
+    notifications: List[NotificationResponse]
+    total: int
+    unread_count: int
+    has_more: bool
+
+
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str
+    keys: dict
+    device_type: Optional[str] = "unknown"
+    browser: Optional[str] = "unknown"
+
+
+class NotificationPreferenceResponse(BaseModel):
+    signup_alerts: bool = True
+    messages: bool = True
+    bookings: bool = True
+    booking_updates: bool = True
+    payments: bool = True
+    verifications: bool = True
+    subscriptions: bool = True
+    events: bool = True
+    marketing: bool = False
+    push_enabled: bool = True
+    email_enabled: bool = True
+    sms_enabled: bool = False
+    quiet_hours_start: Optional[str] = None
+    quiet_hours_end: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class NotificationPreferenceUpdate(BaseModel):
+    signup_alerts: Optional[bool] = None
+    messages: Optional[bool] = None
+    bookings: Optional[bool] = None
+    booking_updates: Optional[bool] = None
+    payments: Optional[bool] = None
+    verifications: Optional[bool] = None
+    subscriptions: Optional[bool] = None
+    events: Optional[bool] = None
+    marketing: Optional[bool] = None
+    push_enabled: Optional[bool] = None
+    email_enabled: Optional[bool] = None
+    sms_enabled: Optional[bool] = None
+    quiet_hours_start: Optional[str] = None
+    quiet_hours_end: Optional[str] = None
 
 
 # ==================== SOCIAL FEED SCHEMAS ====================

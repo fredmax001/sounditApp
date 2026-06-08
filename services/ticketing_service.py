@@ -19,26 +19,7 @@ from services.sms_notifications import (
     notify_user_ticket_rejected,
     notify_user_order_cancelled,
 )
-
-
-def _create_notification(db: Session, user_id: int, title: str, message: str,
-                         notification_type: str, data: dict = None):
-    try:
-        notification = Notification(
-            user_id=user_id,
-            title=title,
-            message=message,
-            type=notification_type,
-            data=data or {},
-            is_read=False,
-            created_at=datetime.now(timezone.utc)
-        )
-        db.add(notification)
-        db.commit()
-    except Exception:
-        db.rollback()
-        # Notifications are non-critical; don't crash ticket flow
-        pass
+from api.notifications import create_notification as _create_notification
 
 
 def get_event_organizer_plan(db: Session, event_id: int) -> str:

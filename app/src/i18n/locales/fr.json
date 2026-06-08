@@ -170,6 +170,9 @@
     "copy": "Copier",
     "copied": "Copié",
     "showMore": "Voir plus",
+    "accept": "Accepter",
+    "reject": "Rejeter",
+    "enable": "Activer",
     "showLess": "Voir moins",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
@@ -4599,6 +4602,11 @@
     "title": "Notifications",
     "unread": "non lues",
     "empty": "Pas de nouvelles notifications",
-    "staffInviteTitle": "Invitation Personnel"
+    "staffInviteTitle": "Invitation Personnel",
+    "enablePush": "Activer les notifications push pour les alertes en temps réel",
+    "pushEnabled": "Notifications push activées !",
+    "pushDenied": "Veuillez activer les notifications dans les paramètres du navigateur.",
+    "markAllRead": "Tout marquer comme lu",
+    "settings": "Paramètres de notification"
   }
 }

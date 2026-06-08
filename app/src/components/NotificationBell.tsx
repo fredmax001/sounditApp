@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, X, Loader2, UserCheck, UserX } from 'lucide-react';
+import { Bell, Check, X, Loader2, UserCheck, UserX, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { pushManager } from '@/lib/pushNotifications';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -16,6 +17,7 @@ interface NotificationItem {
   created_at: string;
   entity_type?: string;
   entity_id?: number;
+  data?: Record<string, any>;
 }
 
 interface StaffInvitation {
@@ -35,6 +37,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
   const [invitations, setInvitations] = useState<StaffInvitation[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState<number | null>(null);
+  const [pushState, setPushState] = useState<'unknown' | 'subscribed' | 'unsubscribed' | 'denied' | 'unsupported'>('unknown');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter(n => !n.is_read).length + invitations.filter(i => i.status === 'Pending').length;
@@ -54,7 +57,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
 
       if (notifRes.ok) {
         const data = await notifRes.json();
-        setNotifications(data || []);
+        setNotifications(data.notifications || []);
       }
       if (inviteRes.ok) {
         const data = await inviteRes.json();
@@ -67,13 +70,49 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
     }
   }, [session]);
 
+  // Initialize push manager and polling
   useEffect(() => {
     if (isAuthenticated) {
+      // Init push
+      pushManager.init().then(() => {
+        const perm = pushManager.getPermissionState();
+        if (perm === 'granted' && pushManager.isSubscribed()) {
+          setPushState('subscribed');
+        } else if (perm === 'denied') {
+          setPushState('denied');
+        } else {
+          setPushState('unsubscribed');
+        }
+      });
+
+      // Polling for in-app notifications
       fetchData();
-      const interval = setInterval(fetchData, 30000);
+      const interval = setInterval(() => {
+        fetchData();
+      }, 30000);
+
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, fetchData]);
+
+  // Update badge when unread count changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      pushManager.setBadge(unreadCount);
+    }
+  }, [unreadCount, isAuthenticated]);
+
+  // Listen for push state changes
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const state = (e as CustomEvent).detail;
+      if (state === 'subscribed') setPushState('subscribed');
+      if (state === 'unsubscribed') setPushState('unsubscribed');
+      if (state === 'failed') setPushState('denied');
+    };
+    window.addEventListener('push-state-change', handler);
+    return () => window.removeEventListener('push-state-change', handler);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -134,6 +173,40 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
     }
   };
 
+  const requestPushPermission = async () => {
+    const result = await pushManager.requestPermission();
+    if (result === 'granted') {
+      setPushState('subscribed');
+      toast.success(t('notifications.pushEnabled') || 'Push notifications enabled!');
+    } else if (result === 'denied') {
+      setPushState('denied');
+      toast.error(t('notifications.pushDenied') || 'Please enable notifications in browser settings.');
+    }
+  };
+
+  const getCategoryIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      signup: '🎉',
+      message: '💬',
+      booking: '📅',
+      booking_accepted: '✅',
+      booking_declined: '❌',
+      payment: '💰',
+      verification: '✓',
+      subscription: '🔄',
+      event: '🎵',
+      system: '⚙️',
+      marketing: '📢',
+      staff_invite: '👥',
+      ticket_order: '🎫',
+      follower: '⭐',
+      artist_update: '🎤',
+      organizer_update: '🏢',
+      vendor_update: '🛍️',
+    };
+    return icons[type] || '🔔';
+  };
+
   if (!isAuthenticated) return null;
 
   return (
@@ -165,6 +238,23 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                 <span className="text-xs text-[#d3da0c] font-medium">{unreadCount} {t('notifications.unread') || 'unread'}</span>
               )}
             </div>
+
+            {/* Push Enable Banner */}
+            {pushState === 'unsubscribed' && (
+              <div className="px-4 py-2.5 bg-[#d3da0c]/10 border-b border-[#d3da0c]/20">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-[#d3da0c] flex-1">
+                    {t('notifications.enablePush') || 'Enable push notifications for real-time alerts'}
+                  </p>
+                  <button
+                    onClick={requestPushPermission}
+                    className="px-3 py-1 bg-[#d3da0c] text-black text-xs font-medium rounded-lg hover:bg-[#d3da0c]/90 transition-colors shrink-0"
+                  >
+                    {t('common.enable') || 'Enable'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="max-h-80 overflow-y-auto">
               {loading && (
@@ -223,15 +313,50 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                   className={`w-full text-left p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${!notif.is_read ? 'bg-white/[0.02]' : ''}`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notif.is_read ? 'bg-[#d3da0c]' : 'bg-gray-700'}`} />
-                    <div className="min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-sm">
+                      {getCategoryIcon(notif.type)}
+                    </div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-white text-sm font-medium">{notif.title}</p>
                       <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{notif.message}</p>
+                      <p className="text-gray-600 text-[10px] mt-1">
+                        {new Date(notif.created_at).toLocaleDateString()}
+                      </p>
                     </div>
+                    {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[#d3da0c] mt-1.5 shrink-0" />}
                   </div>
                 </button>
               ))}
             </div>
+
+            {/* Footer */}
+            {notifications.length > 0 && (
+              <div className="p-2 border-t border-white/5 flex items-center justify-between">
+                <button
+                  onClick={async () => {
+                    if (!session?.access_token) return;
+                    await fetch(`${API_BASE_URL}/notifications/read-all`, {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    });
+                    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+                  }}
+                  className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                  {t('notifications.markAllRead') || 'Mark all as read'}
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    window.location.href = '/settings/notifications';
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-white transition-colors"
+                  title={t('notifications.settings') || 'Notification settings'}
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

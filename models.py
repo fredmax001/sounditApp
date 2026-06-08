@@ -215,6 +215,11 @@ class User(Base):
     preferred_language = Column(String(10), default="en")
     notifications_enabled = Column(Boolean, default=True)
     
+    # Push notification relationships
+    push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan", order_by="Notification.created_at.desc()")
+    notification_preferences = relationship("NotificationPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    
     # Demographics (for analytics)
     gender = Column(String(20), nullable=True)  # male, female, other, prefer_not_to_say
     date_of_birth = Column(Date, nullable=True)
@@ -1560,10 +1565,66 @@ class Notification(Base):
     entity_type = Column(String(50), nullable=True)
     entity_id = Column(Integer, nullable=True)
     
+    # Extra payload data (JSON)
+    data = Column(JSON, nullable=True)
+    
     # Status
     is_read = Column(Boolean, default=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    endpoint = Column(Text, nullable=False, unique=True)
+    p256dh = Column(Text, nullable=False)
+    auth = Column(Text, nullable=False)
+    device_type = Column(String(20), default="unknown")
+    browser = Column(String(20), default="unknown")
+    is_active = Column(Boolean, default=True)
+    failure_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_used = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    user = relationship("User", back_populates="push_subscriptions")
+
+
+class NotificationPreference(Base):
+    __tablename__ = "notification_preferences"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    
+    # Per-category toggles
+    signup_alerts = Column(Boolean, default=True)
+    messages = Column(Boolean, default=True)
+    bookings = Column(Boolean, default=True)
+    booking_updates = Column(Boolean, default=True)
+    payments = Column(Boolean, default=True)
+    verifications = Column(Boolean, default=True)
+    subscriptions = Column(Boolean, default=True)
+    events = Column(Boolean, default=True)
+    marketing = Column(Boolean, default=False)
+    
+    # Global toggles
+    push_enabled = Column(Boolean, default=True)
+    email_enabled = Column(Boolean, default=True)
+    sms_enabled = Column(Boolean, default=False)
+    
+    # Quiet hours (stored as "HH:MM" strings)
+    quiet_hours_start = Column(String(5), nullable=True)
+    quiet_hours_end = Column(String(5), nullable=True)
+    
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    user = relationship("User", back_populates="notification_preferences")
 
 
 # ===========================================================================
