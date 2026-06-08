@@ -7,6 +7,7 @@ import { SplashScreen } from '@capacitor/splash-screen'
 import './index.css'
 import './i18n'
 import App from './App.tsx'
+import { pushManager } from './lib/pushNotifications'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ""
 
@@ -23,11 +24,22 @@ function CapacitorInit() {
   return null
 }
 
+function ServiceWorkerInit() {
+  useEffect(() => {
+    // Register service worker for push notifications (web only)
+    if ('serviceWorker' in navigator && !(window as any).__capacitor?.isNativePlatform?.()) {
+      pushManager.init().catch(() => {});
+    }
+  }, [])
+  return null
+}
+
 function Root() {
   return (
     <StrictMode>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <CapacitorInit />
+        <ServiceWorkerInit />
         <App />
       </GoogleOAuthProvider>
     </StrictMode>

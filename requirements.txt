@@ -33,3 +33,6 @@ aiohttp==3.9.1
 
 # OCR for manual payments
 pytesseract==0.3.10
+
+# Web Push Notifications
+pywebpush==2.0.0

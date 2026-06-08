@@ -80,6 +80,11 @@ class Settings(BaseSettings):
     ALIBABA_SMS_TEMPLATE_CODE_WELCOME: str = ""           # e.g. SMS_12345680
     ALIBABA_SMS_TEMPLATE_CODE_EVENT_REMINDER: str = ""    # e.g. SMS_12345681
     
+    # VAPID Keys for Web Push Notifications
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_CLAIM_EMAIL: str = "admin@sounditent.com"
+    
 
     class Config:
         env_file = ".env"

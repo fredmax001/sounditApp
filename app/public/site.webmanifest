@@ -4,6 +4,11 @@
   "id": "/",
   "start_url": "/",
   "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#d3da0c",
+  "background_color": "#0A0A0A",
+  "description": "Discover curated events, artists, and nightlife experiences with Sound It.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -17,9 +22,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#d3da0c",
-  "background_color": "#0A0A0A",
-  "display": "standalone",
-  "orientation": "portrait-primary"
+  ]
 }

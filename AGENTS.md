@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-06-02
+2026-06-08
 
 ---
 
@@ -26,6 +26,51 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 46. Push Notification System — Web Push + Service Worker (2026-06-08)
+- **Problem**: PWA installed on phones did not deliver real-time push notifications, badge counts, or background alerts. Users only saw activity when manually opening the app. The in-app notification bell worked but there was no actual browser push delivery.
+- **Root cause**: Missing entire Web Push infrastructure — no VAPID keys, no service worker, no push subscription storage, no `pywebpush`, no badge API integration.
+- **Fixes applied**:
+  - **Backend — `models.py`**:
+    - Added `PushSubscription` model (table `push_subscriptions`) — stores `endpoint`, `p256dh`, `auth`, device info per user
+    - Added `NotificationPreference` model (table `notification_preferences`) — per-category toggles, quiet hours, global push/email/sms switches
+    - Added `data` JSON column to existing `Notification` model (fixes bug where `api/notifications.py` referenced `n.data` but column didn't exist)
+    - Added relationships to `User` model
+  - **Backend — `config.py`**: Added `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CLAIM_EMAIL` settings
+  - **Backend — `services/push_service.py`** (new): `PushService` class using `pywebpush` — sends Web Push to all active devices, handles failures (deactivates after 3 failures), builds action URLs per notification type
+  - **Backend — `api/notifications.py`**: Major rewrite:
+    - Added `GET /notifications/unread-count` endpoint
+    - Added `POST /notifications/push-subscribe` and `POST /notifications/push-unsubscribe`
+    - Added `GET /notifications/vapid-public-key`
+    - Added `GET /notifications/preferences` and `PUT /notifications/preferences` (real DB-backed, was hardcoded before)
+    - Updated `create_notification()` to auto-trigger push delivery after saving to DB
+    - Fixed `data` reference bug in GET endpoint
+  - **Backend — Trigger integrations**:
+    - `api/auth.py`: Admins get push notification on every new user signup
+    - `api/bookings.py`: Already used `create_notification()` — now gets push automatically
+    - `api/messaging.py`: Recipient gets push notification on new message
+    - `services/ticketing_service.py`: Replaced internal `_create_notification` with shared helper — ticket approve/reject/cancel now push
+  - **Frontend — `app/public/service-worker.js`** (new): Handles `push` events (shows notification popup with actions), `notificationclick` (opens app to relevant page, clears badge)
+  - **Frontend — `app/src/lib/pushNotifications.ts`** (new): `PushNotificationManager` class — service worker registration, VAPID subscription, badge API, permission handling
+  - **Frontend — `app/src/components/NotificationBell.tsx`**: Integrated push manager — shows "Enable Push" banner when not subscribed, updates app icon badge via Badge API, category icons for notifications
+  - **Frontend — `app/src/main.tsx`**: Added `ServiceWorkerInit` component that registers the push manager on web (not Capacitor native)
+  - **Frontend — `app/public/site.webmanifest`**: Added `description`, cleaned up field order
+  - **Scripts**:
+    - `scripts/migrate_push_notifications.py`: Migration for `push_subscriptions`, `notification_preferences` tables + `notifications.data` column
+    - `scripts/generate_vapid_keys.py`: One-time VAPID keypair generator
+  - **Dependencies**: Added `pywebpush==2.0.0` to `requirements.txt`
+- **Deploy checklist (NOT YET DEPLOYED)**:
+  1. Install `pywebpush` on production: `pip install pywebpush==2.0.0`
+  2. Generate VAPID keys: `python scripts/generate_vapid_keys.py`
+  3. Add keys to `.env`: `VAPID_PUBLIC_KEY=...`, `VAPID_PRIVATE_KEY=...`
+  4. Run migration: `python scripts/migrate_push_notifications.py`
+  5. Restart `soundit` service
+  6. Build frontend: `cd app && npm run build`
+  7. Sync `app/dist/` to production server
+- **Verification**:
+  - Backend imports cleanly ✅
+  - Frontend compiles successfully ✅
+  - Service worker copied to `app/dist/service-worker.js` ✅
 
 ### 45. Past Events Archive + Auto-Hide from Main Events Page (2026-06-02)
 - **Problem**: User mistakenly rejected 2 past events as admin to remove them from the main events page. Past events were mixed with upcoming events on the public Events page, forcing admins to manually reject them.

@@ -171,6 +171,7 @@
     "showMore": "Show more",
     "accept": "Accept",
     "reject": "Reject",
+    "enable": "Enable",
     "showLess": "Show less",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
@@ -4603,6 +4604,11 @@
     "title": "Notifications",
     "unread": "unread",
     "empty": "No new notifications",
-    "staffInviteTitle": "Staff Invitation"
+    "staffInviteTitle": "Staff Invitation",
+    "enablePush": "Enable push notifications for real-time alerts",
+    "pushEnabled": "Push notifications enabled!",
+    "pushDenied": "Please enable notifications in browser settings.",
+    "markAllRead": "Mark all as read",
+    "settings": "Notification settings"
   }
 }

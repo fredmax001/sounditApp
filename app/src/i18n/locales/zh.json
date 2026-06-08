@@ -169,6 +169,9 @@
     "copy": "复制",
     "copied": "已复制",
     "showMore": "显示更多",
+    "accept": "接受",
+    "reject": "拒绝",
+    "enable": "启用",
     "showLess": "显示更少",
     "notifyMe": "Notify Me",
     "justNow": "Just Now",
@@ -4594,6 +4597,11 @@
     "title": "通知",
     "unread": "未读",
     "empty": "暂无新通知",
-    "staffInviteTitle": "员工邀请"
+    "staffInviteTitle": "员工邀请",
+    "enablePush": "启用推送通知以获取实时提醒",
+    "pushEnabled": "推送通知已启用！",
+    "pushDenied": "请在浏览器设置中启用通知。",
+    "markAllRead": "全部标记为已读",
+    "settings": "通知设置"
   }
 }
