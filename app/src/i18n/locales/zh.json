@@ -3020,7 +3020,7 @@
     "visionBadge": "我们的愿景",
     "visionTitle": "我们的",
     "visionHighlight": "愿景",
-    "visionText": "成为塑造全球音乐文化的领先娱乐公司，赋能人才并创造难忘的体验。",
+    "visionText": "打造非洲领先的娱乐生态系统，通过统一的平台连接人、机遇、活动、音乐、文化和技术，赋能创作者、企业、组织者和全球社区。",
     "ecosystemBadge": "我们的生态",
     "entitiesTitle": "品牌",
     "entitiesHighlight": "矩阵",
@@ -3028,37 +3028,43 @@
       {
         "icon": "PartyPopper",
         "name": "Sound It Events",
-        "description": "精心策划的派对、演出和文化聚会，融合非洲与全球音乐以及现代夜生活文化。",
+        "description": "Sound It Events 是 Sound It 生态系统的现场体验部门，策划派对、演出、社交活动和文化聚会，庆祝非洲与全球音乐。通过独特的概念、优质娱乐和社区互动，Sound It Events 连接跨市场的艺术家、观众、品牌和活动专业人士。",
         "status": "运营中"
       },
       {
         "icon": "Music",
         "name": "RNB & Slow Sessions",
-        "description": "专注于灵魂音乐、R&B、慢歌和永恒经典的招牌系列活动。已举办超过10场。",
+        "description": "RNB & Slow Sessions 是 Sound It 的招牌系列活动，致力于灵魂乐、R&B、慢歌、Afro-R&B 和永恒经典。自推出以来，该系列已成功举办多届，为音乐爱好者创造亲密体验，同时围绕优质音乐和夜生活文化建立忠诚且不断壮大的社区。",
         "status": "运营中"
       },
       {
         "icon": "Globe",
         "name": "Sound It Festival",
-        "description": "将于2026年推出的高端室内音乐文化体验。上海单舞台工业风格音乐节。",
-        "status": "2026年推出"
+        "description": "Sound It Festival 是一场融合音乐、艺术和文化的高端体验，旨在汇聚杰出人才、沉浸式制作和多元观众。计划于2026年推出，该音乐节旨在成为旗舰年度活动，通过音乐、时尚、艺术、美食和文化交流展示非洲与国际创意。",
+        "status": "即将推出"
       },
       {
-        "icon": "Ticket",
-        "name": "Sound It Salone",
-        "description": "数字化票务平台，提供无缝售票、观众数据洞察和品牌整合服务。",
-        "status": "2026年推出"
+        "icon": "Zap",
+        "name": "Sound It Platform",
+        "description": "Sound It Platform 是连接娱乐行业的旗舰数字生态系统。该平台为活动组织者、艺术家、DJ、摄影师、舞者、供应商、场地、企业和粉丝提供发现机会、推广服务、售票、管理预订并通过强大的社交和商业工具扩大影响力的能力。",
+        "status": "运营中"
       },
       {
         "icon": "Headphones",
-        "name": "Sound It Play",
-        "description": "专注于支持非洲艺术家的音乐流媒体与发行平台，从塞拉利昂起步。",
+        "name": "Sound It Muzik",
+        "description": "Sound It Muzik 是一个专注于音乐流媒体、发现和分发的平台，旨在赋能独立艺术家，从塞拉利昂起步并扩展到整个非洲。该平台旨在为艺术家提供更高的知名度、直接的粉丝互动、分发机会、表现分析和变现工具，同时在全球范围内推广非洲音乐。",
         "status": "开发中"
       },
       {
         "icon": "BarChart3",
-        "name": "SoundIt DJ Ecosystem",
-        "description": "面向DJ的数字生态系统，提供演出分析、播放列表管理和数据驱动的洞察。",
+        "name": "Sound It DJ",
+        "description": "Sound It DJ 是专为 DJ 和音乐策展人打造的专业生态系统。该平台将提供个人资料管理、预订机会、演出跟踪、播放列表管理、观众分析和职业发展工具，使 DJ 能够做出数据驱动的决策并在娱乐行业内提升专业影响力。",
+        "status": "开发中"
+      },
+      {
+        "icon": "Users",
+        "name": "Sound It Salone",
+        "description": "Sound It Salone 是一个专注于塞拉利昂的娱乐和文化中心。该倡议旨在通过提供数字工具、推广机会、行业联系和更广泛的全球受众渠道，支持本地艺术家、活动、场地、企业和创意人士，同时颂扬塞拉利昂的人才和文化。",
         "status": "开发中"
       }
     ],
@@ -3073,27 +3079,32 @@
       {
         "icon": "Sparkles",
         "title": "创意与创新",
-        "description": "我们不断探索娱乐和吸引观众的新方式。"
+        "description": "我们不断探索娱乐、连接和赋能社区的新方式。"
       },
       {
         "icon": "Award",
         "title": "真实性",
-        "description": "每一场活动和制作都反映真实的音乐文化。"
+        "description": "我们创造的一切都根植于真实的文化、真实的体验和真诚的连接。"
       },
       {
         "icon": "Users",
         "title": "社群与协作",
-        "description": "我们在艺术家、品牌与观众之间搭建桥梁。"
+        "description": "我们汇聚艺术家、企业、组织者和观众，共同成长。"
       },
       {
         "icon": "Zap",
         "title": "卓越",
-        "description": "品质和对细节的关注是每一个项目的核心。"
+        "description": "品质、专业和对细节的关注是我们一切工作的核心。"
       },
       {
         "icon": "Globe",
         "title": "全球视野",
-        "description": "我们将本土文化与国际影响力相融合。"
+        "description": "我们在颂扬本土文化的同时，建立跨越世界的连接。"
+      },
+      {
+        "icon": "Heart",
+        "title": "赋能",
+        "description": "我们为创作者、企业家和社区创造蓬勃发展的机会。"
       }
     ],
     "philosophyBadge": "我们的信念",

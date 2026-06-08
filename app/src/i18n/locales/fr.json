@@ -3024,7 +3024,7 @@
     "visionBadge": "Notre avenir",
     "visionTitle": "NOTRE",
     "visionHighlight": "VISION",
-    "visionText": "Devenir la principale entreprise de divertissement qui façonne la culture musicale mondiale tout en valorisant les talents et en créant des expériences inoubliables.",
+    "visionText": "Construire l'écosystème de divertissement leader en Afrique en connectant les gens, les opportunités, les événements, la musique, la culture et la technologie sur une plateforme unifiée qui donne du pouvoir aux créateurs, aux entreprises, aux organisateurs et aux communautés du monde entier.",
     "ecosystemBadge": "Notre écosystème",
     "entitiesTitle": "ENTITÉS",
     "entitiesHighlight": "DE MARQUE",
@@ -3032,37 +3032,43 @@
       {
         "icon": "PartyPopper",
         "name": "Sound It Events",
-        "description": "Fêtes organisées, showcases et rassemblements culturels mêlant musique africaine et mondiale avec la culture nightlife moderne.",
+        "description": "Sound It Events est la division expériences live de l'écosystème Sound It, produisant des soirées, showcases, événements de réseautage et rencontres culturelles qui célèbrent la musique africaine et mondiale. À travers des concepts uniques, un divertissement de qualité et un engagement communautaire, Sound It Events connecte artistes, publics, marques et professionnels de l'événementiel à travers plusieurs marchés.",
         "status": "Actif"
       },
       {
         "icon": "Music",
         "name": "RNB & Slow Sessions",
-        "description": "Une série d'événements signature dédiée à la musique soul, au R&B, aux slow jams et aux classiques intemporels. Plus de 10 éditions organisées.",
+        "description": "RNB & Slow Sessions est la série d'événements phare de Sound It dédiée à la musique soul, au R&B, aux slow jams, à l'Afro-R&B et aux classiques intemporels. Depuis son lancement, la série a accueilli plusieurs éditions avec succès, créant des expériences intimes pour les amateurs de musique tout en construisant une communauté fidèle et en pleine croissance autour d'une musique et d'une culture nightlife de qualité.",
         "status": "Actif"
       },
       {
         "icon": "Globe",
         "name": "Sound It Festival",
-        "description": "Une expérience musicale et culturelle premium en intérieur lancée en 2026. Festival à scène unique de style industriel à Shanghai.",
-        "status": "Lancement 2026"
+        "description": "Sound It Festival est une expérience premium de musique, d'art et de culture conçue pour réunir des talents exceptionnels, une production immersive et un public diversifié. Lancé en 2026, le festival vise à devenir un événement phare annuel mettant en valeur la créativité africaine et internationale à travers la musique, la mode, l'art, la gastronomie et les échanges culturels.",
+        "status": "Bientôt lancé"
       },
       {
-        "icon": "Ticket",
-        "name": "Sound It Salone",
-        "description": "Une plateforme de billetterie numérique pour des ventes de billets fluides, des insights sur l'audience et l\\intégration de marques.",
-        "status": "Lancement 2026"
+        "icon": "Zap",
+        "name": "Sound It Platform",
+        "description": "Sound It Platform est l'écosystème numérique phare qui connecte l'industrie du divertissement en un seul lieu. La plateforme permet aux organisateurs d'événements, artistes, DJs, photographes, danseurs, fournisseurs, lieux, entreprises et fans de découvrir des opportunités, promouvoir leurs services, vendre des billets, gérer des réservations et développer leur présence grâce à de puissants outils de réseautage et d'affaires.",
+        "status": "Actif"
       },
       {
         "icon": "Headphones",
-        "name": "Sound It Play",
-        "description": "Une plateforme de streaming et de distribution musicale axée sur le soutien aux artistes africains, à commencer par la Sierra Leone.",
+        "name": "Sound It Muzik",
+        "description": "Sound It Muzik est une plateforme de streaming, de découverte et de distribution musicale axée sur l'autonomisation des artistes indépendants, en commençant par la Sierra Leone et en s'étendant à travers l'Afrique. La plateforme vise à offrir aux artistes une plus grande visibilité, un engagement direct avec les fans, des opportunités de distribution, des analyses de performance et des outils de monétisation tout en promouvant la musique africaine à l'échelle mondiale.",
         "status": "En développement"
       },
       {
         "icon": "BarChart3",
-        "name": "SoundIt DJ Ecosystem",
-        "description": "Un écosystème numérique dédié aux DJ pour l'analyse de performance, la gestion de playlists et les insights basés sur les données.",
+        "name": "Sound It DJ",
+        "description": "Sound It DJ est un écosystème spécialisé conçu pour les DJs et curateurs musicaux. La plateforme offrira la gestion de profils, des opportunités de booking, le suivi des performances, la gestion de playlists, des analyses d'audience et des outils de développement de carrière, permettant aux DJs de prendre des décisions basées sur les données et de développer leur présence professionnelle au sein de l'industrie du divertissement.",
+        "status": "En développement"
+      },
+      {
+        "icon": "Users",
+        "name": "Sound It Salone",
+        "description": "Sound It Salone est un centre de divertissement et de culture dédié à la Sierra Leone. L'initiative vise à soutenir les artistes locaux, événements, lieux, entreprises et créatifs en fournissant des outils numériques, des opportunités de promotion, des connexions industrielles et un accès à un public mondial plus large tout en célébrant le talent et la culture sierra-léonaise.",
         "status": "En développement"
       }
     ],
@@ -3077,27 +3083,32 @@
       {
         "icon": "Sparkles",
         "title": "Créativité & Innovation",
-        "description": "Nous explorons constamment de nouvelles façons de divertir et d'engager le public."
+        "description": "Nous explorons constamment de nouvelles façons de divertir, connecter et autonomiser les communautés."
       },
       {
         "icon": "Award",
         "title": "Authenticité",
-        "description": "Chaque événement et production reflète une véritable culture musicale."
+        "description": "Tout ce que nous créons est ancré dans une culture réelle, des expériences réelles et des connexions authentiques."
       },
       {
         "icon": "Users",
         "title": "Communauté & Collaboration",
-        "description": "Nous construisons des ponts entre les artistes, les marques et le public."
+        "description": "Nous réunissons artistes, entreprises, organisateurs et publics pour grandir ensemble."
       },
       {
         "icon": "Zap",
         "title": "Excellence",
-        "description": "La qualité et l'attention aux détails sont au cœur de chaque projet."
+        "description": "La qualité, le professionnalisme et l'attention aux détails sont au cœur de tout ce que nous faisons."
       },
       {
         "icon": "Globe",
         "title": "Perspective mondiale",
-        "description": "Nous fusionnons la culture locale avec une portée internationale."
+        "description": "Nous célébrons la culture locale tout en construisant des connexions à travers le monde."
+      },
+      {
+        "icon": "Heart",
+        "title": "Autonomisation",
+        "description": "Nous créons des opportunités pour que les créateurs, les entrepreneurs et les communautés prospèrent."
       }
     ],
     "philosophyBadge": "Notre philosophie",
