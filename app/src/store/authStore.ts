@@ -400,12 +400,12 @@ export const useAuthStore = create<AuthState>()(
 
                 return;
               } else {
-                // Token invalid, remove it
-                localStorage.removeItem('auth-token');
+                // Token invalid — fully log out
+                await get().logout();
               }
             } catch (error) {
               console.error('Token validation error:', error);
-              localStorage.removeItem('auth-token');
+              await get().logout();
             }
           }
 
@@ -572,12 +572,13 @@ export const useAuthStore = create<AuthState>()(
             access_token: accessToken,
             token_type: 'bearer',
             expires_in: 3600 * 24,
-            refresh_token: '',
+            refresh_token: data.refresh_token || '',
             user: user,
           };
 
-          // Store token in localStorage for persistence
+          // Store tokens in localStorage for persistence
           localStorage.setItem('auth-token', accessToken);
+          localStorage.setItem('refresh-token', data.refresh_token || '');
 
           set({
             user: user,
@@ -652,13 +653,14 @@ export const useAuthStore = create<AuthState>()(
           const authData = await response.json();
 
           if (authData.access_token) {
-            // Store token and user data
+            // Store tokens and user data
             localStorage.setItem('auth-token', authData.access_token);
+            localStorage.setItem('refresh-token', authData.refresh_token || '');
 
             const session = {
               access_token: authData.access_token,
-              refresh_token: '',
-              expires_in: 3600,
+              refresh_token: authData.refresh_token || '',
+              expires_in: 3600 * 24,
               token_type: 'bearer',
               user: authData.user,
             } as unknown as Session;
@@ -703,6 +705,7 @@ export const useAuthStore = create<AuthState>()(
         cartStore.clearCart();
 
         localStorage.removeItem('auth-token');
+        localStorage.removeItem('refresh-token');
 
         set({
           user: null,
@@ -1045,25 +1048,41 @@ export const useAuthStore = create<AuthState>()(
       // Refresh Session
       refreshSession: async () => {
         try {
-          // Check for stored token first
-          const token = localStorage.getItem('auth-token');
+          const refreshToken = localStorage.getItem('refresh-token');
+          if (!refreshToken) return;
 
-          if (token) {
-            const response = await fetch(`${API_BASE_URL}/auth/me`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-              },
+          const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const accessToken = data.access_token;
+            const newRefreshToken = data.refresh_token;
+
+            localStorage.setItem('auth-token', accessToken);
+            localStorage.setItem('refresh-token', newRefreshToken);
+
+            const { session, profile } = get();
+            if (session) {
+              set({
+                session: { ...session, access_token: accessToken, refresh_token: newRefreshToken },
+              });
+            }
+
+            // Also refresh user profile
+            const meRes = await fetch(`${API_BASE_URL}/auth/me`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` },
             });
-
-            if (response.ok) {
-              const backendUser = await response.json();
-
-              const { profile } = get();
-              if (profile) {
-                const city = get().cities.find(c =>
-                  c.id.toLowerCase() === (backendUser.preferred_city || '').toLowerCase()
-                ) || null;
-                const updatedProfile: Profile = {
+            if (meRes.ok && profile) {
+              const backendUser = await meRes.json();
+              const city = get().cities.find(c =>
+                c.id.toLowerCase() === (backendUser.preferred_city || '').toLowerCase()
+              ) || null;
+              set({
+                profile: {
                   ...profile,
                   first_name: backendUser.first_name,
                   last_name: backendUser.last_name,
@@ -1084,13 +1103,17 @@ export const useAuthStore = create<AuthState>()(
                   verification_status: backendUser.is_verified ? 'verified' : 'unverified',
                   followers_count: backendUser.followers_count || 0,
                   following_count: backendUser.following_count || 0,
-                };
-                set({ profile: updatedProfile, selectedCity: backendUser.preferred_city || null });
-              }
+                },
+                selectedCity: backendUser.preferred_city || null,
+              });
             }
+          } else {
+            // Refresh failed — log out
+            await get().logout();
           }
         } catch (error) {
           console.error('Session refresh error:', error);
+          await get().logout();
         }
       },
 
