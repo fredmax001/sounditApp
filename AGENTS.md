@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-06-08
+2026-06-10
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-02
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-10
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,51 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 47. Vendor Marketplace Upgrade — China-First (2026-06-10)
+- **Objective**: Transform the basic vendor product system into a full vendor marketplace with smart menu import, WeChat/Alipay QR payments, multi-item cart orders, real-time notifications, vendor dashboards, customer tracking, event integration, and vendor analytics.
+- **Database changes** (`models.py`):
+  - Added `VendorOrderStatus` and `VendorPaymentMethod` enums
+  - Enhanced `Product` with `images`, `is_featured`, `sort_order`, `event_id`
+  - New `VendorPaymentSettings` model — vendor-level WeChat/Alipay QR configuration
+  - New `VendorOrder` model — multi-item orders with status workflow (pending_verification → accepted → preparing → ready → completed)
+  - New `VendorOrderItem` model — line items in vendor orders
+  - Added relationships: `VendorProfile.payment_settings`, `VendorProfile.vendor_orders`, `User.vendor_orders`, `Event.vendor_products`, `Event.vendor_orders`
+- **Backend services**:
+  - `services/menu_import_service.py` — OCR + text parsing for image/PDF/text menu extraction into structured products
+  - `services/vendor_analytics_service.py` — orders, revenue, best sellers, daily sales trends, repeat customers
+- **Backend APIs**:
+  - `api/vendor_orders.py` (new router) — full CRUD for multi-item cart orders, accept/reject/status updates/QR validation
+  - `api/vendors.py` — added payment settings, menu import (image/PDF/text), bulk product import, analytics endpoints
+  - Registered at `/api/v1/vendor-orders`
+- **Frontend pages** (new):
+  - `/marketplace` — browse all vendor products and vendors
+  - `/store/:vendorId` — dedicated storefront with cart, categories, featured products
+  - `/checkout/vendor/:vendorId` — multi-item checkout with customer info, payment method selection, screenshot upload
+  - `/my-orders` — customer order history with status filtering
+  - `/orders/:orderId` — public order tracking with live status tracker
+  - `/dashboard/vendor/payment-settings` — vendor QR upload and display preference
+  - `/dashboard/vendor/menu-import` — image/PDF/text menu import with review/confirm
+  - `/dashboard/vendor/analytics` — revenue charts, best sellers, stat cards
+- **Frontend components** (new):
+  - `ProductCard` — add-to-cart with quantity selector
+  - `VendorCart` — slide-out cart drawer
+  - `MenuImportModal` — reusable menu import modal
+  - `OrderStatusTracker` — visual progress bar (Pending → Accepted → Preparing → Ready → Completed)
+  - `VendorAnalyticsCharts` — Recharts area charts and best-seller lists
+- **Frontend store**:
+  - `vendorMarketplaceStore.ts` — Zustand store with per-vendor cart, checkout, order fetching
+- **Vendor Orders Dashboard** (`app/src/pages/vendor/Orders.tsx`):
+  - Added "New Orders" / "Legacy" toggle
+  - New orders support full status workflow: Accept → Preparing → Ready → Completed
+- **Navigation**:
+  - Navbar updated with "Marketplace" link
+  - `VendorDetail.tsx` updated with "Shop Now" button and per-product "Buy" links
+- **Migration script**: `scripts/migrate_vendor_marketplace.py` — ran successfully, created all new tables and columns
+- **Build verification**:
+  - Backend imports cleanly ✅
+  - Frontend compiles successfully ✅ (`npm run build` in 20.41s)
+  - Database migration ran successfully on SQLite ✅
 
 ### 46. Push Notification System — Web Push + Service Worker (2026-06-08)
 - **Problem**: PWA installed on phones did not deliver real-time push notifications, badge counts, or background alerts. Users only saw activity when manually opening the app. The in-app notification bell worked but there was no actual browser push delivery.

@@ -9,7 +9,7 @@ import {
     Plus, Edit, TrendingUp, Package, MessageSquare,
     Eye, X, Check, MapPin, Trash2, Inbox,
     Loader2, Image as ImageIcon, User, Phone, Mail, Globe,
-    QrCode, Filter, Search
+    QrCode, Filter, Search, Upload, CreditCard, BarChart3
 } from 'lucide-react';
 import type { Product } from '@/store/vendorStore';
 import { Link, useNavigate } from 'react-router-dom';
@@ -442,7 +442,7 @@ const VendorDashboard = () => {
     }, [vendorProfile]);
 
     const handleViewMessages = () => {
-        navigate('/dashboard/vendor/community');
+        navigate('/dashboard/vendor/messages');
     };
 
     const handleApplyForBooth = () => {
@@ -707,12 +707,12 @@ const VendorDashboard = () => {
 
     // Tab configuration with all tabs including the new Profile tab
     const tabs = [
-        { id: 'overview', label: t('vendor.dashboard.tabOverview'), icon: TrendingUp },
-        { id: 'products', label: t('vendor.dashboard.tabProducts'), icon: Package },
-        { id: 'orders', label: t('vendor.dashboard.tabOrders'), icon: ShoppingBag },
-        { id: 'events', label: t('vendor.dashboard.tabEvents'), icon: Calendar },
-        { id: 'reviews', label: t('vendor.dashboard.tabReviews'), icon: Star },
-        { id: 'profile', label: t('vendor.dashboard.tabProfile'), icon: User },
+        { id: 'overview', label: t('vendor.dashboard.tabOverview') || 'Overview', icon: TrendingUp },
+        { id: 'products', label: t('vendor.dashboard.tabProducts') || 'Products', icon: Package },
+        { id: 'orders', label: t('vendor.dashboard.tabOrders') || 'Orders', icon: ShoppingBag },
+        { id: 'events', label: t('vendor.dashboard.tabEvents') || 'Events', icon: Calendar },
+        { id: 'reviews', label: t('vendor.dashboard.tabReviews') || 'Reviews', icon: Star },
+        { id: 'profile', label: t('vendor.dashboard.tabProfile') || 'Profile', icon: User },
     ];
 
     return (
@@ -825,24 +825,38 @@ const VendorDashboard = () => {
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <Link
-                                to="/vendor/analytics"
+                                to="/dashboard/vendor/menu-import"
+                                className="w-full block p-4 bg-gradient-to-br from-[#d3da0c]/20 to-[#d3da0c]/5 border border-[#d3da0c]/30 rounded-lg text-[#d3da0c] font-bold hover:bg-[#d3da0c]/30 transition-all text-center"
+                            >
+                                <Upload className="w-4 h-4 inline mr-2" />
+                                Import Menu
+                            </Link>
+                            <Link
+                                to="/dashboard/vendor/payment-settings"
+                                className="w-full block p-4 bg-gradient-to-br from-green-600/20 to-green-700/10 border border-green-500/30 rounded-lg text-green-400 font-bold hover:bg-green-600/30 transition-all text-center"
+                            >
+                                <QrCode className="w-4 h-4 inline mr-2" />
+                                Payment QR Codes
+                            </Link>
+                            <Link
+                                to="/dashboard/vendor/analytics"
                                 className="w-full block p-4 bg-gradient-to-br from-purple-600/20 to-purple-700/10 border border-purple-500/30 rounded-lg text-purple-400 font-bold hover:bg-purple-600/30 transition-all text-center"
                             >
-                                <Eye className="w-4 h-4 inline mr-2" />
-                                {t('vendor.dashboard.viewAnalytics')}
+                                <BarChart3 className="w-4 h-4 inline mr-2" />
+                                Analytics
                             </Link>
                             <button
                                 onClick={handleViewMessages}
-                                className="w-full p-4 bg-gradient-to-br from-green-600/20 to-green-700/10 border border-green-500/30 rounded-lg text-green-400 font-bold hover:bg-green-600/30 transition-all"
+                                className="w-full p-4 bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-lg text-blue-400 font-bold hover:bg-blue-600/30 transition-all"
                             >
                                 <MessageSquare className="w-4 h-4 inline mr-2" />
                                 {t('vendor.dashboard.messages')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('profile')}
-                                className="w-full p-4 bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-lg text-blue-400 font-bold hover:bg-blue-600/30 transition-all"
+                                className="w-full p-4 bg-gradient-to-br from-gray-600/20 to-gray-700/10 border border-gray-500/30 rounded-lg text-gray-400 font-bold hover:bg-gray-600/30 transition-all"
                             >
                                 <User className="w-4 h-4 inline mr-2" />
                                 {t('vendor.dashboard.editProfile')}
@@ -1596,6 +1610,8 @@ const VendorDashboard = () => {
                         </div>
                     </div>
                 )}
+
+
             </motion.div>
 
             {/* Booth Application Modal */}

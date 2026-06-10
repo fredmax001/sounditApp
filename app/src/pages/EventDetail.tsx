@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -38,6 +38,25 @@ export default function EventDetail() {
   const [referralCode, setReferralCode] = useState('');
   const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
+  const [eventVendors, setEventVendors] = useState<Array<{
+    id: number;
+    vendor_id: number;
+    business_name: string;
+    description?: string;
+    vendor_type?: string;
+    logo_url?: string;
+    booth_location?: string;
+    rating?: number;
+    reviews_count?: number;
+    is_verified?: boolean;
+    products?: Array<{
+      id: number;
+      name: string;
+      price: number;
+      image_url?: string;
+      category?: string;
+    }>;
+  }>>([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<'ticket' | 'save' | null>(null);
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
@@ -47,6 +66,17 @@ export default function EventDetail() {
   const [authLastName, setAuthLastName] = useState('');
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+
+  // Fetch event vendors
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${API_BASE_URL}/events/${id}/vendors`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.vendors) setEventVendors(data.vendors);
+      })
+      .catch(() => {});
+  }, [id]);
 
   // Read referral code from URL ?ref= and track click
   useEffect(() => {
@@ -465,6 +495,54 @@ export default function EventDetail() {
                       </p>
                     </div>
                   </Link>
+                </div>
+              )}
+
+              {/* Vendors at this Event */}
+              {eventVendors.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-white mb-4">
+                    Vendors at this Event
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {eventVendors.map((vendor) => (
+                      <Link
+                        key={vendor.id}
+                        to={`/store/${vendor.vendor_id}`}
+                        className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                      >
+                        <div className="w-16 h-16 rounded-xl bg-gray-800 overflow-hidden flex-shrink-0">
+                          {vendor.logo_url ? (
+                            <img
+                              src={vendor.logo_url}
+                              alt={vendor.business_name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Store className="w-6 h-6 text-gray-600" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold flex items-center gap-2 truncate">
+                            {vendor.business_name}
+                            {vendor.is_verified && <VerificationBadge size="sm" />}
+                          </p>
+                          <p className="text-white/50 text-sm capitalize">
+                            {vendor.vendor_type || 'Vendor'}
+                            {vendor.booth_location && ` · Booth ${vendor.booth_location}`}
+                          </p>
+                          {vendor.products && vendor.products.length > 0 && (
+                            <p className="text-[#d3da0c] text-xs mt-1">
+                              {vendor.products.length} item{vendor.products.length > 1 ? 's' : ''} available
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
 

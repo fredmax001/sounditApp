@@ -64,6 +64,21 @@ class EventPromoterStatus(str, enum.Enum):
     REMOVED = "removed"
 
 
+class VendorOrderStatus(str, enum.Enum):
+    PENDING_VERIFICATION = "pending_verification"
+    ACCEPTED = "accepted"
+    PREPARING = "preparing"
+    READY = "ready"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class VendorPaymentMethod(str, enum.Enum):
+    WECHAT_ONLY = "wechat_only"
+    ALIPAY_ONLY = "alipay_only"
+    BOTH = "both"
+
+
 class City(str, enum.Enum):
     BEIJING = "beijing"
     SHANGHAI = "shanghai"
@@ -254,6 +269,7 @@ class User(Base):
     table_orders = relationship("TableOrder", back_populates="user", foreign_keys="TableOrder.user_id")
     ticket_orders = relationship("TicketOrder", back_populates="user", foreign_keys="TicketOrder.user_id")
     tickets = relationship("Ticket", back_populates="user", foreign_keys="Ticket.user_id")
+    vendor_orders = relationship("VendorOrder", back_populates="user", foreign_keys="VendorOrder.user_id")
     vendor_profile = relationship("VendorProfile", back_populates="user", uselist=False)
     verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
     conversations = relationship("Conversation", primaryjoin="or_(User.id==Conversation.participant_1_id, User.id==Conversation.participant_2_id)")
@@ -688,6 +704,8 @@ class VendorProfile(Base):
     events = relationship("EventVendor", back_populates="vendor")
     followers = relationship("VendorFollow", back_populates="vendor")
     reviews = relationship("VendorReview", back_populates="vendor")
+    payment_settings = relationship("VendorPaymentSettings", back_populates="vendor", uselist=False)
+    vendor_orders = relationship("VendorOrder", back_populates="vendor")
     
     @property
     def city_id(self):
@@ -705,6 +723,7 @@ class Product(Base):
     price = Column(Float, nullable=False)
     currency = Column(String(3), default="CNY")
     image_url = Column(String(500), nullable=True)
+    images = Column(JSON, default=list)  # Array of image URLs
     category = Column(String(100), nullable=True)
     stock_quantity = Column(Integer, default=0)
     
@@ -714,6 +733,11 @@ class Product(Base):
     payment_instructions = Column(Text, nullable=True)
     
     status = Column(String(20), default="active")
+    is_featured = Column(Boolean, default=False)
+    sort_order = Column(Integer, default=0)
+    
+    # Event-specific product (nullable = general catalog)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -721,6 +745,99 @@ class Product(Base):
     # Relationships
     vendor = relationship("VendorProfile", back_populates="products")
     product_orders = relationship("ProductOrder", back_populates="product")
+    event = relationship("Event", back_populates="vendor_products")
+
+
+class VendorPaymentSettings(Base):
+    __tablename__ = "vendor_payment_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), unique=True, nullable=False)
+    
+    # WeChat Pay
+    wechat_qr_url = Column(String(500), nullable=True)
+    wechat_display_name = Column(String(100), nullable=True)
+    
+    # Alipay
+    alipay_qr_url = Column(String(500), nullable=True)
+    alipay_display_name = Column(String(100), nullable=True)
+    
+    # Preferred method
+    preferred_method = Column(Enum(VendorPaymentMethod), default=VendorPaymentMethod.BOTH)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    vendor = relationship("VendorProfile", back_populates="payment_settings")
+
+
+class VendorOrder(Base):
+    __tablename__ = "vendor_orders"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    
+    # Customer info
+    customer_name = Column(String(100), nullable=False)
+    customer_phone = Column(String(20), nullable=True)
+    delivery_location = Column(Text, nullable=True)
+    customer_notes = Column(Text, nullable=True)
+    
+    # Payment
+    payment_method = Column(String(20), nullable=False)  # wechat_pay, alipay
+    payment_screenshot = Column(String(500), nullable=False)
+    payment_proof_hash = Column(String(64), nullable=True, index=True)
+    payment_reference = Column(String(100), nullable=True)
+    total_amount = Column(Float, nullable=False)
+    currency = Column(String(3), default="CNY")
+    
+    # Order status
+    status = Column(Enum(VendorOrderStatus), default=VendorOrderStatus.PENDING_VERIFICATION, index=True)
+    
+    # QR Code for approved order
+    order_code = Column(String(255), unique=True, nullable=True, index=True)
+    order_qr_code = Column(String(1500), nullable=True)
+    
+    # Vendor approval
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    
+    # Usage tracking
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    used_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    vendor = relationship("VendorProfile", back_populates="vendor_orders")
+    user = relationship("User", foreign_keys=[user_id], back_populates="vendor_orders")
+    event = relationship("Event", back_populates="vendor_orders")
+    items = relationship("VendorOrderItem", back_populates="vendor_order", cascade="all, delete-orphan")
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+
+class VendorOrderItem(Base):
+    __tablename__ = "vendor_order_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    vendor_order_id = Column(Integer, ForeignKey("vendor_orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    
+    product_name = Column(String(200), nullable=False)
+    product_price = Column(Float, nullable=False)
+    quantity = Column(Integer, default=1)
+    subtotal = Column(Float, nullable=False)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    vendor_order = relationship("VendorOrder", back_populates="items")
+    product = relationship("Product")
 
 
 class EventVendor(Base):
@@ -1124,6 +1241,10 @@ class Event(Base):
     followers = relationship("EventFollow", back_populates="event")
     tickets = relationship("Ticket", back_populates="event")
     community_posts = relationship("CommunityPost", back_populates="event")
+    
+    # Vendor marketplace relationships
+    vendor_products = relationship("Product", back_populates="event")
+    vendor_orders = relationship("VendorOrder", back_populates="event")
     
     # Ticketing system relationships
     ticket_orders = relationship("TicketOrder", back_populates="event")

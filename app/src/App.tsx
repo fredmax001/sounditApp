@@ -85,6 +85,9 @@ const VendorEvents = lazy(() => import('./pages/vendor/Events'));
 const VendorEarnings = lazy(() => import('./pages/vendor/Earnings'));
 const VendorProfile = lazy(() => import('./pages/vendor/Profile'));
 const VendorCommunity = lazy(() => import('./pages/vendor/Community'));
+const VendorPaymentSettings = lazy(() => import('./pages/vendor/PaymentSettings'));
+const VendorMenuImport = lazy(() => import('./pages/vendor/MenuImport'));
+const VendorAnalytics = lazy(() => import('./pages/vendor/Analytics'));
 
 // Artist Dashboard
 const ArtistDashboard = lazy(() => import('./pages/artist/Dashboard'));
@@ -415,6 +418,26 @@ function App() {
             <Route path="/dashboard/vendor/community" element={
               <ResponsiveLayout>
                 <Suspense fallback={<PageLoader />}><VendorCommunity /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/vendor/messages" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><ArtistMessages /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/vendor/payment-settings" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><VendorPaymentSettings /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/vendor/menu-import" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><VendorMenuImport /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/vendor/analytics" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><VendorAnalytics /></Suspense>
               </ResponsiveLayout>
             } />
 
