@@ -18,11 +18,22 @@ export const getFullApiUrl = (path: string) => {
   return `${base}/${cleanPath}`;
 };
 
-// Global axios interceptor for PLAN_RESTRICTED errors
+// Global axios interceptor for PLAN_RESTRICTED errors and 401 auth failures
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
     const data = error?.response?.data;
+    const status = error?.response?.status;
+
+    if (status === 401) {
+      // Token expired or invalid — clear auth and redirect to login
+      localStorage.removeItem('auth-token');
+      localStorage.removeItem('refresh-token');
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
+    }
+
     if (data?.code === 'PLAN_RESTRICTED' || (typeof data?.detail === 'object' && data?.detail?.code === 'PLAN_RESTRICTED')) {
       const detail = typeof data.detail === 'object' ? data.detail : data;
       window.dispatchEvent(new CustomEvent('plan-restricted', {

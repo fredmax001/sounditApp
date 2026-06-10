@@ -245,7 +245,11 @@ class User(Base):
     # Password reset
     password_reset_token = Column(String(255), unique=True, nullable=True, index=True)
     password_reset_expires_at = Column(DateTime(timezone=True), nullable=True)
-    
+
+    # Refresh tokens (for persistent sessions)
+    refresh_token = Column(String(255), unique=True, nullable=True, index=True)
+    refresh_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Relationships
