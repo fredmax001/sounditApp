@@ -1850,6 +1850,171 @@ class ProductOrderListResponse(BaseModel):
     orders: List[ProductOrderResponse]
 
 
+# ==================== VENDOR PAYMENT SETTINGS SCHEMAS ====================
+
+class VendorPaymentSettingsBase(BaseModel):
+    wechat_qr_url: Optional[str] = None
+    wechat_display_name: Optional[str] = None
+    alipay_qr_url: Optional[str] = None
+    alipay_display_name: Optional[str] = None
+    preferred_method: Optional[str] = "both"
+
+
+class VendorPaymentSettingsCreate(VendorPaymentSettingsBase):
+    pass
+
+
+class VendorPaymentSettingsResponse(VendorPaymentSettingsBase):
+    id: int
+    vendor_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+
+# ==================== VENDOR ORDER SCHEMAS ====================
+
+class VendorOrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int = 1
+
+
+class VendorOrderItemResponse(BaseModel):
+    id: int
+    vendor_order_id: int
+    product_id: int
+    product_name: str
+    product_price: float
+    quantity: int
+    subtotal: float
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class VendorOrderCreate(BaseModel):
+    vendor_id: int
+    items: List[VendorOrderItemCreate]
+    customer_name: str
+    customer_phone: Optional[str] = None
+    delivery_location: Optional[str] = None
+    customer_notes: Optional[str] = None
+    payment_method: str  # wechat_pay, alipay
+    event_id: Optional[int] = None
+
+
+class VendorOrderUpdateStatus(BaseModel):
+    status: str
+
+
+class VendorOrderResponse(BaseModel):
+    id: int
+    vendor_id: int
+    user_id: int
+    event_id: Optional[int] = None
+    customer_name: str
+    customer_phone: Optional[str] = None
+    delivery_location: Optional[str] = None
+    customer_notes: Optional[str] = None
+    payment_method: str
+    payment_screenshot: str
+    payment_reference: Optional[str] = None
+    total_amount: float
+    currency: str
+    status: str
+    order_code: Optional[str] = None
+    order_qr_code: Optional[str] = None
+    reviewed_by: Optional[int] = None
+    reviewed_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    used_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    items: List[VendorOrderItemResponse] = []
+    
+    class Config:
+        from_attributes = True
+
+
+class VendorOrderListResponse(BaseModel):
+    orders: List[VendorOrderResponse]
+
+
+class VendorOrderTrackResponse(BaseModel):
+    id: int
+    status: str
+    customer_name: str
+    total_amount: float
+    currency: str
+    vendor_name: Optional[str] = None
+    items: List[VendorOrderItemResponse] = []
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+
+# ==================== MENU IMPORT SCHEMAS ====================
+
+class MenuItem(BaseModel):
+    name: str
+    price: float
+    description: Optional[str] = None
+    category: Optional[str] = None
+    confidence: float = 1.0
+
+
+class MenuImportResponse(BaseModel):
+    items: List[MenuItem]
+    total_items: int
+    source: str  # image, pdf, text
+
+
+class MenuImportConfirmRequest(BaseModel):
+    items: List[MenuItem]
+    category: Optional[str] = None
+
+
+# ==================== VENDOR ANALYTICS SCHEMAS ====================
+
+class VendorAnalyticsOverview(BaseModel):
+    orders_today: int
+    orders_this_week: int
+    orders_this_month: int
+    revenue_today: float
+    revenue_this_week: float
+    revenue_this_month: float
+    total_revenue: float
+    total_orders: int
+    average_order_value: float
+    unique_customers: int
+    repeat_customers: int
+
+
+class VendorDailySales(BaseModel):
+    date: str
+    revenue: float
+    orders: int
+
+
+class VendorSalesTrend(BaseModel):
+    daily: List[VendorDailySales]
+
+
+class VendorBestSeller(BaseModel):
+    product_id: int
+    product_name: str
+    total_sold: int
+    total_revenue: float
+
+
+class VendorAnalyticsResponse(BaseModel):
+    overview: VendorAnalyticsOverview
+    sales_trend: VendorSalesTrend
+    best_sellers: List[VendorBestSeller]
+
+
 # ==================== REVIEW SCHEMAS ====================
 
 class VendorReviewCreate(BaseModel):

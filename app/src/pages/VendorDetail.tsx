@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2 } from 'lucide-react';
+import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
+import MessageModal from '@/components/MessageModal';
 
 interface Product {
   id: number;
@@ -20,6 +21,7 @@ interface Product {
 
 interface Vendor {
   id: number;
+  user_id: number;
   business_name: string;
   description?: string;
   vendor_type?: string;
@@ -47,6 +49,7 @@ export default function VendorDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -161,6 +164,15 @@ export default function VendorDetail() {
               </div>
 
               <div className="flex flex-wrap gap-4">
+                {session?.access_token && vendor?.user_id && (
+                  <button
+                    onClick={() => setShowMessageModal(true)}
+                    className="px-8 py-4 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#c4cb0b] transition-colors flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Message
+                  </button>
+                )}
                 {session?.access_token && (
                   <button
                     onClick={async () => {
@@ -292,6 +304,14 @@ export default function VendorDetail() {
           <ReviewsSection entityId={vendor.id} entityType="vendor" entityName={vendor.business_name} />
         </div>
       </div>
+
+      {/* Message Modal */}
+      <MessageModal
+        recipientId={vendor.user_id}
+        recipientName={vendor.business_name}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+      />
     </div>
   );
 }
