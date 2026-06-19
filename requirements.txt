@@ -36,3 +36,6 @@ pytesseract==0.3.10
 
 # Web Push Notifications
 pywebpush==2.0.0
+
+# SIA — Sound It Assistant (optional LLM enhancement)
+openai==1.35.0

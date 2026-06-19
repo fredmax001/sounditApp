@@ -300,7 +300,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       )}
 
       {/* Main Content */}
-      <main ref={mainRef} className={`flex-1 ${hideHeader ? 'pt-0' : 'pt-16'} safe-area-pt pb-app-nav overflow-y-auto app-page`}>
+      <main ref={mainRef} className={`flex-1 ${hideHeader ? 'pt-0' : 'pt-20'} safe-area-pt pb-app-nav overflow-y-auto app-page`}>
         <AnimatePresence mode="wait">
           <MobilePageTransition key={location.pathname}>
             {children}

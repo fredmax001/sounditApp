@@ -47,7 +47,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
     setLoading(true);
     try {
       const [notifRes, inviteRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/notifications?unread_only=true`, {
+        fetch(`${API_BASE_URL}/notifications/?unread_only=true`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         }),
         fetch(`${API_BASE_URL}/business/staff/invitations`, {

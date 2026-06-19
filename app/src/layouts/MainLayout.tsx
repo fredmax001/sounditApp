@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import MobilePageTransition from '@/components/MobilePageTransition';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
+
 const MainLayout = () => {
   const isMobile = useIsMobile();
   useAnalytics();
@@ -36,7 +37,7 @@ const MainLayout = () => {
       {isMobile && <MobileHeader />}
 
       {/* Main Content */}
-      <main className={`relative z-10 ${isMobile ? 'pt-16 safe-area-pt pb-app-nav' : 'pt-20'}`}>
+      <main className={`relative z-10 ${isMobile ? 'pt-20 safe-area-pt pb-app-nav' : 'pt-24'}`}>
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobilePageTransition key="mobile-outlet">
@@ -60,6 +61,8 @@ const MainLayout = () => {
 
       {/* Mobile Bottom Navigation */}
       {isMobile && <MobileBottomNav />}
+
+      {/* SIA Assistant temporarily removed */}
     </div>
   );
 };

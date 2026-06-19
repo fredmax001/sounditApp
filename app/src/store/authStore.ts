@@ -259,6 +259,9 @@ interface ArtistProfileData {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+// Guard against concurrent refresh-token requests that can race and 401 the user out
+let isRefreshingSession = false;
+
 // ============================================
 // AUTH STORE - PRODUCTION VERSION
 // ============================================
@@ -1047,6 +1050,8 @@ export const useAuthStore = create<AuthState>()(
 
       // Refresh Session
       refreshSession: async () => {
+        if (isRefreshingSession) return;
+        isRefreshingSession = true;
         try {
           const refreshToken = localStorage.getItem('refresh-token');
           if (!refreshToken) return;
@@ -1114,6 +1119,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Session refresh error:', error);
           await get().logout();
+        } finally {
+          isRefreshingSession = false;
         }
       },
 

@@ -135,6 +135,7 @@ const ManageCommunityComments = lazy(() => import('./pages/admin/ManageCommunity
 
 // Payment & Subscriptions
 const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+// const Assistant = lazy(() => import('./pages/Assistant')); // SIA temporarily removed
 const Checkout = lazy(() => import('./pages/payment/Checkout'));
 const PaymentSuccess = lazy(() => import('./pages/payment/PaymentSuccess'));
 const Cart = lazy(() => import('./pages/Cart'));
@@ -273,6 +274,7 @@ function App() {
             <Route path="/verification-policy" element={<Suspense fallback={<PageLoader />}><VerificationPolicy /></Suspense>} />
             <Route path="/cart" element={<Suspense fallback={<PageLoader />}><Cart /></Suspense>} />
             <Route path="/checkout/:eventId" element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
+            {/* <Route path="/assistant" element={<Suspense fallback={<PageLoader />}><Assistant /></Suspense>} /> */}
           </Route>
 
           {/* Auth Routes */}

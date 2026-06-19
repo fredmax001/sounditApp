@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useBookingStore, BookingStatus } from '@/store/bookingStore';
@@ -56,8 +56,10 @@ const ArtistDashboard = () => {
 
 
   // Fetch fresh profile data on mount - syncs with backend
+  const hasRefreshedOnMount = useRef(false);
   useEffect(() => {
-    if (session?.access_token) {
+    if (session?.access_token && !hasRefreshedOnMount.current) {
+      hasRefreshedOnMount.current = true;
       useAuthStore.getState().refreshSession().catch(err => console.error('Failed to refresh session:', err));
     }
   }, [session]);

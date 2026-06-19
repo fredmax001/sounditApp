@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-06-10
+2026-06-19
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-10
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-19
 - [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
@@ -26,6 +26,155 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 53. Mobile Auto-Logout Fix — Artist Dashboard Refresh Loop (2026-06-19)
+- **Problem**: Users kept getting logged out on mobile immediately after logging in.
+- **Root cause**: `pages/artist/Dashboard.tsx` had a `useEffect` dependent on the full `session` object that called `refreshSession()`. Because `refreshSession()` updates `session` with a new access/refresh token, the effect re-fired, causing concurrent `/auth/refresh` requests. The backend rotates refresh tokens, so the second concurrent request received `401 Invalid or expired refresh token`, which triggered `logout()`.
+- **Fixes applied**:
+  - `app/src/store/authStore.ts`: Added a module-level `isRefreshingSession` guard in `refreshSession()` to prevent concurrent refresh requests.
+  - `app/src/pages/artist/Dashboard.tsx`: Added a `hasRefreshedOnMount` ref guard around the mount-time `refreshSession()` call so it only runs once.
+  - `app/src/components/NotificationBell.tsx`: Fixed the notifications list URL from `/notifications?unread_only=true` to `/notifications/?unread_only=true` (the FastAPI route requires the trailing slash through the nginx proxy).
+- **Verification**: `npm run build` passes; frontend redeployed to production.
+
+### 52. Global Layout Spacing & Artist Dashboard Translation Fix (2026-06-19)
+- **Problem**: Content on several pages sat too close to or under fixed headers/sidebars. On mobile, the Messages search bar on the artist dashboard was hidden/covered by the top app header. On web/admin, the Notification Center and dashboard pages touched the sticky header and sidebar with no breathing room. Additionally, the artist dashboard mobile bottom nav used the non-existent `nav.messages` key instead of `nav.message`.
+- **Root cause**: Layout shells used top padding values that did not fully clear the actual fixed header heights (e.g., `MobileLayout` main had `pt-16` but the app header is ~60 px + safe-area). `AdminLayout` and `DashboardLayout` main containers had little or no layout-level padding, leaving pages without internal spacing flush against the chrome. The `nav` translation object lacked a `message` key.
+- **Fixes applied**:
+  - `app/src/layouts/MainLayout.tsx`: Increased content top padding to `pt-20 safe-area-pt` on mobile and `pt-24` on desktop, ensuring clearance below the fixed `Navbar`/`MobileHeader`.
+  - `app/src/layouts/MobileLayout.tsx`: Raised main top padding from `pt-16` to `pt-20` when the app header is shown, keeping the header from overlapping page content (e.g., the Messages search bar). Kept `pt-0` for `/dashboard/artist` because that page renders its own hero header.
+  - `app/src/layouts/DashboardLayout.tsx`: Increased main top padding from `pt-4` to `pt-6` so dashboard pages no longer sit flush against the top/sidebar corner.
+  - `app/src/pages/admin/AdminLayout.tsx`: Added `p-4 lg:p-6` to the main content area so admin pages (including Notification Center) have layout-level clearance from the sticky header and sidebar.
+  - `app/src/components/MobileBottomNav.tsx` + `app/src/layouts/DashboardLayout.tsx`: Changed artist messages label from `t('nav.messages')` to `t('nav.message')`.
+  - `app/src/i18n/locales/{en,zh,fr}.json`: Added `nav.message` translation key ("Messages" / "消息" / "Messages").
+- **Verification**: `npm run build` passes; only chunk-size warnings remain.
+- **Deploy**: Synced `app/dist/` to production server (`root@72.62.254.251:/var/www/soundit/app/dist/`). `curl -I https://sounditent.com/` → `HTTP 200`.
+
+### 49. Artist Account Showing as User — Profile Schema Fix (2026-06-19)
+- **Problem**: Artist user **Panashe BriaN** (ID 114, email: mpanasheb@gmail.com) saw their account as a regular user when logged in.
+- **Root cause**: `schemas.py` defined `ArtistProfileBase.genre_tags: List[str] = []`. The database stored `NULL` for this field, and Pydantic V2 rejected `None` even though a default list was provided. This caused `GET /auth/me` (which embeds `artist_profile`) to fail validation for any artist with `genre_tags = NULL`. The frontend then failed to load the correct artist profile/role.
+- **Fix**: Changed `genre_tags` to `Optional[List[str]] = []` in `ArtistProfileBase`.
+- **Verification**: Confirmed in production that `UserResponse.model_validate(user_id=114)` now succeeds and returns `role: UserRole.ARTIST` with `artist_profile` populated.
+- **Deploy**: Synced `schemas.py` to production and restarted `soundit` service. `GET /health` → `{"status":"healthy"}`.
+
+### 50. Artist Booking Form — Network Error Fix (2026-06-19)
+- **Problem**: Users filling out the artist booking form got a "network error" after submitting; the booking request was not sent.
+- **Root cause**: `schemas.py` had two conflicting `BookingRequestCreate` definitions and `BookingRequestBase` did not include `event_time`. The frontend sent `event_time`, but Pydantic rejected the unknown field, causing a 422 validation error that the frontend catch-block reported as a network error.
+- **Fix**: 
+  - Removed the obsolete duplicate `BookingRequestCreate/BookingRequestResponse` pair (with `proposed_date`) from the old booking schema section.
+  - Added `event_time: Optional[str]` to `BookingRequestBase`.
+- **Deploy**: Synced `schemas.py` to production and restarted `soundit` service. `GET /health` → `{"status":"healthy"}`.
+
+### 51. Super Admin Delete User Fix (2026-06-19)
+- **Problem**: Super Admin could not delete regular users. The `DELETE /admin/users/{user_id}` endpoint blocked deletion of any account with role `ADMIN` or `SUPER_ADMIN`, even when a Super Admin was trying to delete a non-super admin user or a regular user with the same ID mismatch check.
+- **Root cause**: `api/admin.py::delete_user` used `if user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN) and user.id != current_user.id`, which also triggered false positives.
+- **Fix**: Rewrote admin-deletion rules:
+  - Users cannot delete themselves.
+  - `SUPER_ADMIN` accounts cannot be deleted.
+  - Only a `SUPER_ADMIN` can delete `ADMIN` accounts.
+  - `ADMIN` users can still delete regular/non-admin users.
+- **Deploy**: Synced `api/admin.py` to production and restarted `soundit` service. `GET /health` → `{"status":"healthy"}`.
+
+### 48. SIA — Sound It Assistant (2026-06-19) — UI TEMPORARILY REMOVED
+- **Status**: Backend code, models, and database tables remain deployed, but the floating assistant button/drawer and `/assistant` page have been removed from the UI pending further review.
+- **Objective**: Build SIA into the platform as an embedded AI assistant for users, organizers, vendors, and businesses. SIA answers platform questions, helps with onboarding, and creates event/product drafts from flyers and menus without auto-publishing.
+- **Approach**: Rule-based extraction using existing OCR/menu parser infrastructure, with optional OpenAI enhancement when `OPENAI_API_KEY` is configured. No hard dependency on paid LLMs.
+- **Database changes** (`models.py`):
+  - Added `AssistantSession` model (table `assistant_sessions`)
+  - Added `AssistantMessage` model (table `assistant_messages`)
+  - Added `AssistantDraft` model (table `assistant_drafts`) with `draft_type` (event/product) and `status` (draft/published/discarded)
+  - Added `User.assistant_sessions` and `User.assistant_drafts` relationships
+- **Backend services**:
+  - `services/sia_service.py` — OCR-based flyer/event extraction, menu/product extraction, intent detection, natural language responses, optional OpenAI chat/enhancement fallback
+- **Backend APIs** (`api/assistant.py`):
+  - `POST /assistant/chat` — chat with SIA
+  - `GET /assistant/sessions`, `GET /assistant/sessions/{id}/messages`
+  - `POST /assistant/extract-event` — flyer → event draft
+  - `POST /assistant/extract-products` — menu/image/PDF/text → product draft
+  - `GET /assistant/drafts`, `GET /assistant/drafts/{id}`, `PUT /assistant/drafts/{id}`
+  - `POST /assistant/drafts/{id}/publish` — explicit publish action (creates real Event/Product records)
+  - `DELETE /assistant/drafts/{id}` — discard draft
+  - `GET /assistant/config` — public assistant config
+- **Frontend**:
+  - `app/src/store/assistantStore.ts` — Zustand store for sessions, messages, drafts, extraction, publish
+  - `app/src/components/assistant/AssistantButton.tsx` — floating action button
+  - `app/src/components/assistant/AssistantDrawer.tsx` — chat + drafts drawer UI
+  - `app/src/components/assistant/EventDraftCard.tsx` — review/edit/publish event drafts
+  - `app/src/components/assistant/ProductDraftCard.tsx` — review/edit/publish product drafts
+  - `app/src/pages/Assistant.tsx` — dedicated `/assistant` page
+  - Integrated floating SIA button into `MainLayout.tsx` and `ResponsiveLayout.tsx`
+  - Added `/assistant` route to `App.tsx`
+- **Config**:
+  - `config.py` — added `SIA_ENABLED`, `SIA_MAX_UPLOAD_SIZE`, `OPENAI_API_KEY`, `OPENAI_MODEL`
+  - `.env.example` — added SIA environment variables
+  - `requirements.txt` — added optional `openai==1.35.0`
+- **Migration script**: `scripts/migrate_sia.py` — creates `assistant_sessions`, `assistant_messages`, `assistant_drafts` tables
+- **i18n**: Added `sia.*` keys to `en.json`, `zh.json`, `fr.json`
+- **Rules enforced**:
+  - SIA never auto-publishes — all creations are `AssistantDraft` with `status=draft`
+  - Explicit `POST /assistant/drafts/{id}/publish` required to create real records
+  - Missing required fields block publish and prompt user to edit
+- **Build verification**:
+  - Backend imports cleanly ✅
+  - `scripts/migrate_sia.py` ran successfully on SQLite ✅
+  - Frontend compiles successfully ✅
+
+### 48b. SIA — Role-Based Public vs Dashboard UI (2026-06-19)
+- **Problem**: The floating SIA drawer exposed flyer/menu upload actions to ordinary public users, which is only relevant to organizers/vendors inside dashboards. Public users needed a navigation/FAQ/recommendation experience instead.
+- **Fixes applied**:
+  - `app/src/components/assistant/AssistantDrawer.tsx`: Added `mode?: 'public' | 'dashboard'` prop.
+    - **Public mode** (default): Hides flyer/menu upload chips and the drafts tab; shows FAQ quick actions for authenticated users (Find events, Buy tickets, Recommend DJs, Refund policy, Contact support); welcome message focuses on discovery, tickets, and help.
+    - **Dashboard mode**: Shows flyer/menu upload chips and the drafts tab; welcome message focuses on event/product draft creation for organizers/vendors.
+    - Automatically resets to the chat tab when switching from dashboard to public mode.
+  - `app/src/layouts/MainLayout.tsx`: Mounts `<AssistantDrawer mode="public" />` for the public site.
+  - `app/src/layouts/ResponsiveLayout.tsx`: Mounts `<AssistantDrawer mode="dashboard" />` for dashboard routes (business/organizer/vendor/artist/admin).
+  - `app/src/pages/Assistant.tsx`: Updated copy to describe the public assistant experience.
+- **Deploy**:
+  - Frontend rebuilt (`npm run build` ✅)
+  - `app/dist/` synced to production server (`72.62.254.251:/var/www/soundit/app/dist/`)
+  - `GET /health` → `{"status":"healthy"}`
+  - Verified public events page opens SIA with public-mode welcome (no flyer/menu upload)
+- **Build verification**:
+  - Frontend compiles successfully ✅
+
+### 48c. SIA — Phase 1 Smart FAQ + Live Data (2026-06-19) — UI TEMPORARILY REMOVED
+- **Status**: Backend code and database remain in place, but the floating assistant button/drawer and `/assistant` page have been removed from the UI pending further review.
+- **Objective**: Implement the SIA spec Phase 1 — replace generic responses with FAQ-based answers, live platform data, and an escalation/learning queue.
+- **System prompt**: Replaced the old OpenAI prompt with the full `SIA_SYSTEM_PROMPT.md` persona (warm, specific, uses live data, escalates honestly, ends with offer to help).
+- **Database changes** (`models.py`):
+  - Extended `AssistantMessage` with `source`, `confidence`, `intent_detected`, `resolved`, `escalated_to_human`
+  - Added `AssistantFAQ` model (table `assistant_faq`) — FAQ knowledge base with `faq_id`, `category`, `question_patterns`, `answer`, usage/helpful counters
+  - Added `AssistantUnansweredQuestion` model (table `assistant_unanswered`) — review queue for questions SIA couldn't answer
+  - Added `User.assistant_unanswered` relationship
+- **Migration script**: `scripts/migrate_sia_faq.py` — creates new columns/tables and seeds 37 starter FAQs from `SIA_KNOWLEDGE_BASE.md`
+- **Backend service** (`services/sia_service.py`):
+  - `match_faq()` — keyword/phrase matching against FAQ patterns
+  - `detect_intent()` — expanded intent detection (event_discovery, trending_events, tickets, ticket_support, refund, contact_organizer, venue, artist, trending_djs, vendors, subscriptions, account, support)
+  - `_extract_date_window()` — understands "tonight", "tomorrow", "this weekend", "next week"
+  - Live data fetchers: `_fetch_events()`, `_fetch_trending_events()`, `_fetch_user_tickets()`, `_fetch_venues()`, `_fetch_artists()`
+  - `process_chat_message()` — orchestrates FAQ → intent → live data → rule-based/OpenAI response → escalation logging
+  - `ChatResult` dataclass with `source`, `confidence`, `intent`, `suggested_actions`, `related_events`, `escalated`
+- **Backend APIs** (`api/assistant.py`):
+  - `POST /assistant/chat` now accepts `user_context` and `history`; returns `source`, `confidence`, `suggested_actions`, `related_events`, `escalated`
+  - New admin endpoints (require admin):
+    - `GET /assistant/admin/faqs` — list/search FAQs
+    - `POST /assistant/admin/faqs` — create FAQ
+    - `PUT /assistant/admin/faqs/{faq_id}` — update FAQ
+    - `DELETE /assistant/admin/faqs/{faq_id}` — delete FAQ
+    - `GET /assistant/admin/unanswered` — unanswered question queue
+    - `POST /assistant/admin/unanswered/{id}/review` — review/ignore/convert-to-FAQ
+- **Frontend**:
+  - `app/src/store/assistantStore.ts`: persists last 100 messages in `localStorage`; sends `user_context` and recent `history` with each chat request
+  - `app/src/components/assistant/AssistantDrawer.tsx`: passes current page/user info as context; renders suggested-action chips and related-event cards below assistant messages
+- **Deploy**:
+  - Backend synced to production server (`72.62.254.251:/var/www/soundit/`)
+  - `scripts/migrate_sia_faq.py` ran on production PostgreSQL — 37 FAQs seeded
+  - `soundit` service restarted and healthy
+  - Frontend `app/dist/` synced to production server
+  - `GET /health` → `{"status":"healthy"}`
+- **Build verification**:
+  - Backend imports cleanly ✅
+  - `scripts/migrate_sia_faq.py` ran successfully on SQLite and PostgreSQL ✅
+  - Frontend compiles successfully ✅
 
 ### 47. Vendor Marketplace Upgrade — China-First (2026-06-10)
 - **Objective**: Transform the basic vendor product system into a full vendor marketplace with smart menu import, WeChat/Alipay QR payments, multi-item cart orders, real-time notifications, vendor dashboards, customer tracking, event integration, and vendor analytics.

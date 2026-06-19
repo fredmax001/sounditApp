@@ -179,7 +179,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const artistNavItems: NavItem[] = [
     { path: '/dashboard/artist', label: t('nav.artistHome') || 'Artist Home', icon: LayoutDashboard, locked: false },
     { path: '/dashboard/artist/bookings', label: t('artist.bookings.title') || 'Bookings', icon: CalendarPlus, locked: false },
-    { path: '/dashboard/artist/messages', label: t('nav.messages') || 'Messages', icon: MessageSquare, locked: false },
+    { path: '/dashboard/artist/messages', label: t('nav.message') || 'Messages', icon: MessageSquare, locked: false },
     { path: '/dashboard/artist/performances', label: t('artist.performances.title') || 'Performances', icon: CalendarDays, locked: false },
     { path: '/dashboard/artist/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
     { path: '/dashboard/artist/community', label: t('upgrade.fanFeed') || 'Fan Feed', icon: MessageSquare, locked: true, feature: 'fan_feed' },
@@ -406,7 +406,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen pt-4" style={{ marginLeft: sidebarWidth }}>
+      <main className="flex-1 min-h-screen pt-6" style={{ marginLeft: sidebarWidth }}>
         {children || <Outlet />}
       </main>
 

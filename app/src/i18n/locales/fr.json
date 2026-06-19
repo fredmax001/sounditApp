@@ -52,7 +52,8 @@
     "roles": "Rôles",
     "discovery": "Découverte",
     "menu": "Menu",
-    "promoters": "Promoters"
+    "promoters": "Promoters",
+    "message": "Messages"
   },
   "home": {
     "hero": {
@@ -4619,5 +4620,26 @@
     "pushDenied": "Veuillez activer les notifications dans les paramètres du navigateur.",
     "markAllRead": "Tout marquer comme lu",
     "settings": "Paramètres de notification"
+  },
+  "sia": {
+    "title": "Assistant Sound It",
+    "welcome": "Je suis SIA — votre assistant Sound It. Je peux vous aider à découvrir des événements, acheter des billets, créer des brouillons d'événements à partir d'affiches et importer des produits à partir de menus.",
+    "send": "Envoyer",
+    "placeholder": "Demandez à SIA...",
+    "uploadFlyer": "Uploader une affiche",
+    "uploadMenu": "Uploader un menu",
+    "drafts": "Vos brouillons",
+    "draftSaved": "Brouillon enregistré pour révision",
+    "publishConfirm": "Cela créera des enregistrements réels. Continuer ?",
+    "publishEvent": "Publier comme brouillon d'événement",
+    "publishProducts": "Publier les produits",
+    "discard": "Supprimer le brouillon",
+    "loginRequired": "Veuillez vous connecter pour utiliser les fonctions IA de SIA.",
+    "thinking": "SIA réfléchit...",
+    "noDrafts": "Aucun brouillon pour l'instant.",
+    "getStarted": "Uploader une affiche ou un menu pour commencer.",
+    "missingFields": "Champs manquants",
+    "eventDraft": "Brouillon d'événement",
+    "productDraft": "Brouillon de produit"
   }
 }

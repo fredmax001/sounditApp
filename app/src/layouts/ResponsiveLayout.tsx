@@ -12,6 +12,7 @@ import MobileLayout from './MobileLayout';
 import DashboardLayout from './DashboardLayout';
 import { useAuthStore } from '@/store/authStore';
 import { useAnalytics } from '@/hooks/useAnalytics';
+
 import type { ReactNode } from 'react';
 
 interface ResponsiveLayoutProps {
@@ -30,11 +31,16 @@ export const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
   
   // Mobile (non-admin): Use mobile layout (Mini Program style with bottom nav)
   // Desktop OR Admin: Use full dashboard layout (with sidebar)
-  if (isMobileLayout) {
-    return <MobileLayout>{children}</MobileLayout>;
-  } else {
-    return <DashboardLayout>{children}</DashboardLayout>;
-  }
+  return (
+    <>
+      {isMobileLayout ? (
+        <MobileLayout>{children}</MobileLayout>
+      ) : (
+        <DashboardLayout>{children}</DashboardLayout>
+      )}
+      {/* SIA Assistant temporarily removed */}
+    </>
+  );
 };
 
 /**

@@ -278,6 +278,11 @@ class User(Base):
     verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
     conversations = relationship("Conversation", primaryjoin="or_(User.id==Conversation.participant_1_id, User.id==Conversation.participant_2_id)")
     sent_messages = relationship("Message", primaryjoin="User.id==Message.sender_id")
+    
+    # SIA — Sound It Assistant
+    assistant_sessions = relationship("AssistantSession", back_populates="user", cascade="all, delete-orphan")
+    assistant_drafts = relationship("AssistantDraft", back_populates="user", cascade="all, delete-orphan")
+    assistant_unanswered = relationship("AssistantUnansweredQuestion", back_populates="user", cascade="all, delete-orphan")
 
 
 class PageVisit(Base):
@@ -2816,3 +2821,116 @@ class PromoterPayout(Base):
     
     # Relationships
     promoter = relationship("PromoterProfile", back_populates="payouts")
+
+
+# ============================================================================
+# SIA — Sound It Assistant
+# ============================================================================
+
+class AssistantSession(Base):
+    """Chat session with SIA"""
+    __tablename__ = "assistant_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(200), nullable=True)
+    context_json = Column(JSON, default=dict)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="assistant_sessions")
+    messages = relationship("AssistantMessage", back_populates="session", cascade="all, delete-orphan", order_by="AssistantMessage.created_at.asc()")
+
+
+class AssistantMessage(Base):
+    """Individual message in an assistant session"""
+    __tablename__ = "assistant_messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("assistant_sessions.id"), nullable=False, index=True)
+    role = Column(String(20), nullable=False)  # user, assistant, system
+    content = Column(Text, nullable=False)
+    payload_json = Column(JSON, nullable=True)  # structured data: draft_id, extracted_event, etc.
+    
+    # SIA intelligence/logging fields
+    source = Column(String(20), nullable=True)  # faq, ai, api, fallback
+    confidence = Column(Float, nullable=True)
+    intent_detected = Column(String(50), nullable=True)
+    resolved = Column(Boolean, default=False)
+    escalated_to_human = Column(Boolean, default=False)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    session = relationship("AssistantSession", back_populates="messages")
+
+
+class AssistantDraftStatus(str, enum.Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    DISCARDED = "discarded"
+
+
+class AssistantDraftType(str, enum.Enum):
+    EVENT = "event"
+    PRODUCT = "product"
+
+
+class AssistantDraft(Base):
+    """AI-generated draft event or product pending user review"""
+    __tablename__ = "assistant_drafts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    draft_type = Column(Enum(AssistantDraftType), nullable=False)
+    status = Column(Enum(AssistantDraftStatus), default=AssistantDraftStatus.DRAFT)
+    title = Column(String(300), nullable=True)  # extracted title for display
+    payload_json = Column(JSON, default=dict)  # full extracted data
+    source_media_url = Column(String(500), nullable=True)  # uploaded flyer/menu
+    published_event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    published_product_ids = Column(JSON, default=list)  # list of created product ids
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="assistant_drafts")
+    published_event = relationship("Event")
+
+
+class AssistantFAQ(Base):
+    """FAQ knowledge base for SIA"""
+    __tablename__ = "assistant_faq"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    faq_id = Column(String(100), unique=True, nullable=False, index=True)
+    category = Column(String(50), nullable=True, index=True)
+    question_patterns = Column(JSON, default=list)  # list of matching phrases
+    answer = Column(Text, nullable=False)
+    usage_count = Column(Integer, default=0)
+    helpful_count = Column(Integer, default=0)
+    not_helpful_count = Column(Integer, default=0)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class AssistantUnansweredQuestion(Base):
+    """Questions SIA couldn't answer, queued for admin review"""
+    __tablename__ = "assistant_unanswered"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    question = Column(Text, nullable=False)
+    context = Column(Text, nullable=True)
+    status = Column(String(30), default="pending", index=True)  # pending, reviewed, added_to_faq, ignored
+    admin_notes = Column(Text, nullable=True)
+    suggested_answer = Column(Text, nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="assistant_unanswered")

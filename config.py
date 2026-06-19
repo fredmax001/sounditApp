@@ -85,6 +85,12 @@ class Settings(BaseSettings):
     VAPID_PRIVATE_KEY: str = ""
     VAPID_CLAIM_EMAIL: str = "admin@sounditent.com"
     
+    # SIA — Sound It Assistant (optional LLM enhancement)
+    SIA_ENABLED: bool = True
+    SIA_MAX_UPLOAD_SIZE: int = 10_485_760  # 10 MB
+    OPENAI_API_KEY: str = ""  # Optional: enables GPT fallback for complex extractions
+    OPENAI_MODEL: str = "gpt-4o-mini"  # Cost-effective model for extraction/chat
+    
 
     class Config:
         env_file = ".env"

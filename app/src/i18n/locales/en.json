@@ -51,7 +51,8 @@
     "roles": "Roles",
     "discovery": "Discovery",
     "menu": "Menu",
-    "promoters": "Promoters"
+    "promoters": "Promoters",
+    "message": "Messages"
   },
   "home": {
     "hero": {
@@ -4621,5 +4622,26 @@
     "pushDenied": "Please enable notifications in browser settings.",
     "markAllRead": "Mark all as read",
     "settings": "Notification settings"
+  },
+  "sia": {
+    "title": "Sound It Assistant",
+    "welcome": "I'm SIA — your Sound It Assistant. I can help you discover events, buy tickets, create event drafts from flyers, and build product drafts from menus.",
+    "send": "Send",
+    "placeholder": "Ask SIA anything...",
+    "uploadFlyer": "Upload flyer",
+    "uploadMenu": "Upload menu",
+    "drafts": "Your Drafts",
+    "draftSaved": "Draft saved for review",
+    "publishConfirm": "This will create real records. Continue?",
+    "publishEvent": "Publish as Draft Event",
+    "publishProducts": "Publish Products",
+    "discard": "Discard draft",
+    "loginRequired": "Please log in to use SIA's AI features.",
+    "thinking": "SIA is thinking...",
+    "noDrafts": "No drafts yet.",
+    "getStarted": "Upload a flyer or menu to get started.",
+    "missingFields": "Missing fields",
+    "eventDraft": "Event Draft",
+    "productDraft": "Product Draft"
   }
 }

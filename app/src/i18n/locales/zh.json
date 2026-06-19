@@ -51,7 +51,8 @@
     "roles": "角色",
     "discovery": "发现",
     "menu": "菜单",
-    "promoters": "Promoters"
+    "promoters": "Promoters",
+    "message": "消息"
   },
   "home": {
     "hero": {
@@ -4614,5 +4615,26 @@
     "pushDenied": "请在浏览器设置中启用通知。",
     "markAllRead": "全部标记为已读",
     "settings": "通知设置"
+  },
+  "sia": {
+    "title": "Sound It 智能助手",
+    "welcome": "我是 SIA —— 您的 Sound It 智能助手。我可以帮您发现活动、购票、从海报创建活动草稿，以及从菜单导入商品草稿。",
+    "send": "发送",
+    "placeholder": "向 SIA 提问...",
+    "uploadFlyer": "上传海报",
+    "uploadMenu": "上传菜单",
+    "drafts": "您的草稿",
+    "draftSaved": "草稿已保存，请查看",
+    "publishConfirm": "这将创建真实记录，是否继续？",
+    "publishEvent": "发布为活动草稿",
+    "publishProducts": "发布商品",
+    "discard": "丢弃草稿",
+    "loginRequired": "请登录以使用 SIA 的 AI 功能。",
+    "thinking": "SIA 思考中...",
+    "noDrafts": "暂无草稿。",
+    "getStarted": "上传海报或菜单开始使用。",
+    "missingFields": "缺少字段",
+    "eventDraft": "活动草稿",
+    "productDraft": "商品草稿"
   }
 }

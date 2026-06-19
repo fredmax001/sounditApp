@@ -10,7 +10,7 @@ from config import get_settings
 from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, assistant
 import api.reviews as reviews
 import api.messaging as messaging
 import api.verification as verification
@@ -251,6 +251,7 @@ app.include_router(messaging.router, prefix="/api/v1")
 app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
+app.include_router(assistant.router, prefix="/api/v1")
 
 
 @app.get("/")

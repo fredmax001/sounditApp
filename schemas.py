@@ -290,7 +290,7 @@ class MusicLinkItem(BaseModel):
 class ArtistProfileBase(BaseModel):
     stage_name: str
     genre: Optional[str] = None
-    genre_tags: List[str] = []
+    genre_tags: Optional[List[str]] = []
     bio: Optional[str] = None
     booking_enabled: bool = False
     spotify_url: Optional[str] = None
@@ -985,27 +985,6 @@ class VerificationRequestResponse(BaseModel):
 
 # ==================== BOOKING SCHEMAS ====================
 
-class BookingRequestCreate(BaseModel):
-    artist_id: int
-    event_id: Optional[int] = None
-    proposed_date: datetime
-    message: Optional[str] = None
-
-
-class BookingRequestResponse(BaseModel):
-    id: int
-    artist_id: int
-    requester_id: int
-    event_id: Optional[int] = None
-    proposed_date: datetime
-    message: Optional[str] = None
-    status: BookingStatus
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
 # ==================== ADMIN SCHEMAS ====================
 
 class AdminDashboardStats(BaseModel):
@@ -1386,6 +1365,7 @@ class BookingRequestBase(BaseModel):
     event_name: Optional[str] = None
     event_type: Optional[str] = None
     event_date: Optional[datetime] = None
+    event_time: Optional[str] = None
     event_city: Optional[str] = None
     event_location: Optional[str] = None
     budget: Optional[float] = None
