@@ -3,30 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sound It - 5 years of Excellence in Entertainment</title>
-    <meta name="description" content="Discover curated events, artists, and nightlife experiences with Sound It." />
+
+    <!-- ── Primary identity — must match OAuth consent screen app name exactly ── -->
+    <title>Sound It - Entertainment Platform in China</title>
+    <meta name="application-name" content="Sound It" />
+    <meta name="description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
+    <meta name="keywords" content="Sound It, entertainment, events China, African community China, DJ booking, buy tickets, nightlife China, artists booking, vendors, Shanghai events" />
+    <meta name="author" content="Sound It Entertainment" />
+
+    <!-- ── Favicons ── -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#d3da0c" />
+
+    <!-- ── Cache control ── -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <!-- Open Graph defaults — overridden per-page by React -->
-    <meta property="og:title" content="Sound It - 5 years of Excellence in Entertainment" />
-    <meta property="og:description" content="Discover curated events, artists, and nightlife experiences with Sound It." />
+
+    <!-- ── Open Graph ── -->
+    <meta property="og:site_name" content="Sound It" />
+    <meta property="og:title" content="Sound It - Entertainment Platform in China" />
+    <meta property="og:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
     <meta property="og:image" content="https://sounditent.com/logo.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://sounditent.com" />
-    <!-- Twitter Card -->
+
+    <!-- ── Twitter Card ── -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sound It - 5 years of Excellence in Entertainment" />
-    <meta name="twitter:description" content="Discover curated events, artists, and nightlife experiences with Sound It." />
+    <meta name="twitter:title" content="Sound It - Entertainment Platform in China" />
+    <meta name="twitter:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
     <meta name="twitter:image" content="https://sounditent.com/logo.png" />
+
+    <!-- ── JSON-LD Structured Data — readable by Google bots without JS ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Sound It",
+      "url": "https://sounditent.com",
+      "logo": "https://sounditent.com/logo.png",
+      "description": "Sound It is an entertainment platform for the African and international community in China. It allows users to discover events, purchase tickets, book DJs and artists, find food and product vendors, connect with local businesses, and grow entertainment networks.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "featureList": [
+        "Discover entertainment events in China",
+        "Purchase tickets for events",
+        "Book DJs, artists, dancers, and photographers",
+        "Find food and product vendors",
+        "Connect with local businesses",
+        "City guides for African and international community"
+      ],
+      "publisher": {
+        "@type": "Organization",
+        "name": "Sound It Entertainment",
+        "url": "https://sounditent.com",
+        "logo": "https://sounditent.com/logo.png",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "info@sounditent.com",
+          "contactType": "customer support"
+        }
+      }
+    }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Static pre-rendered content — visible to Google OAuth reviewers and
+         search engine bots BEFORE JavaScript loads. React replaces this once
+         the app mounts. Keep this in sync with what the app actually does.
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="root">
+      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#111;">
+        <h1 style="font-size:2rem;font-weight:700;">Sound It</h1>
+        <p style="font-size:1.1rem;margin:12px 0 24px;">
+          <strong>Sound It</strong> is an entertainment platform for the African and international community in China.
+          Sign in with Google to access your personalised event feed, tickets, artist bookings, and vendor marketplace.
+        </p>
+
+        <h2 style="font-size:1.2rem;font-weight:600;margin-top:0;">What Sound It does</h2>
+        <ul style="line-height:1.9;padding-left:20px;margin-bottom:24px;">
+          <li>Discover upcoming entertainment events across China</li>
+          <li>Buy and manage tickets for events</li>
+          <li>Book DJs, artists, dancers, and photographers</li>
+          <li>Browse and order from food and product vendors</li>
+          <li>Connect with local businesses via city guides</li>
+          <li>Manage your organiser, artist, or vendor dashboard</li>
+        </ul>
+
+        <h2 style="font-size:1.2rem;font-weight:600;">Why we use Google Sign-In</h2>
+        <p style="line-height:1.7;margin-bottom:24px;">
+          Sound It uses Google Sign-In so you can create and access your account quickly and securely.
+          We only request your basic profile (name and email address) to create your Sound It account.
+          We do not access your Google contacts, calendar, Gmail, Drive, or any other Google services.
+        </p>
+
+        <p>
+          <a href="https://sounditent.com/privacy" style="color:#0066cc;margin-right:16px;">Privacy Policy</a>
+          <a href="https://sounditent.com/terms" style="color:#0066cc;margin-right:16px;">Terms of Service</a>
+          <a href="mailto:info@sounditent.com" style="color:#0066cc;">Contact Us</a>
+        </p>
+      </main>
+    </div>
+
+    <noscript>
+      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;">
+        <h1>Sound It — Entertainment Platform</h1>
+        <p>Sound It is an entertainment platform for the African and international community in China. Please enable JavaScript to use the full platform.</p>
+        <ul>
+          <li>Discover events in China</li>
+          <li>Buy tickets for entertainment experiences</li>
+          <li>Book DJs, artists, dancers, and photographers</li>
+          <li>Find vendors and connect with businesses</li>
+        </ul>
+        <p><a href="https://sounditent.com/about">Learn more about Sound It</a></p>
+      </main>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

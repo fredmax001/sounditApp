@@ -1,7 +1,7 @@
 // Sound It — Service Worker for Push Notifications
 // Must be at the root scope: /service-worker.js
 
-const CACHE_NAME = 'soundit-v2';
+const CACHE_NAME = 'soundit-v3';
 const urlsToCache = [
   '/',
   '/android-chrome-192x192.png',

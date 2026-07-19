@@ -14,6 +14,9 @@ import {
   Star,
   Clock,
   ChevronRight,
+  Camera,
+  Handshake,
+  Mic2,
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
@@ -147,9 +150,20 @@ const Home = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const quickChips = [
-    { icon: Music, label: 'DJs', path: '/artists' },
-    { icon: Utensils, label: 'Food', path: '/food' },
-    { icon: Ticket, label: 'Parties', path: '/events' },
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: Music, label: 'Talent', path: '/artists' },
+    { icon: Utensils, label: 'Vendors', path: '/marketplace' },
+  ];
+
+  const platformFeatures = [
+    { icon: Calendar, title: 'Discover Events', path: '/events', color: '#d3da0c' },
+    { icon: Ticket, title: 'Buy Tickets', path: '/events', color: '#FF2D8F' },
+    { icon: Music, title: 'Book DJs', path: '/artists', color: '#00E5FF' },
+    { icon: Mic2, title: 'Find Artists', path: '/artists', color: '#C8A000' },
+    { icon: Utensils, title: 'Find Vendors', path: '/marketplace', color: '#d3da0c' },
+    { icon: Handshake, title: 'Connect with Businesses', path: '/city-guide', color: '#FF2D8F' },
+    { icon: Camera, title: 'Hire Photographers', path: '/artists', color: '#00E5FF' },
+    { icon: Star, title: 'Discover Dancers', path: '/artists', color: '#C8A000' },
   ];
 
   const stats = [
@@ -246,11 +260,16 @@ const Home = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                aria-label="Sound It — Entertainment Platform"
                 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.95] tracking-tight hero-headline"
               >
-                <span className="block font-normal text-white/90">FEEL THE</span>
-                <span className="block font-bold hero-gradient-text mt-1">AFROBEATS IN CHINA</span>
+                <span className="block font-bold hero-gradient-text mt-1" aria-hidden="true">Sound It</span>
               </motion.h1>
+              {/* Visually hidden — readable by bots and screen readers */}
+              <p className="sr-only">
+                Sound It is an entertainment platform for the African and international community in China.
+                Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses.
+              </p>
             </div>
 
             {/* Subtext */}
@@ -260,7 +279,7 @@ const Home = () => {
               transition={{ delay: 0.7, duration: 0.6 }}
               className="text-gray-300/80 text-base md:text-lg mb-6 max-w-md leading-relaxed"
             >
-              Discover the hottest Afrobeats events, African restaurants, and DJs across Shanghai, Beijing, Guangzhou & more. Your home away from home.
+              Sound It is an entertainment platform for the African and international community in China. Use it to discover events, buy tickets, book DJs and artists, find vendors, connect with businesses, and grow your entertainment network.
             </motion.p>
 
             {/* CTAs */}
@@ -322,6 +341,89 @@ const Home = () => {
       {/* ==================== AD BANNER (MOBILE) ==================== */}
       <section className="md:hidden px-5 pt-4 pb-2">
         <AdBanner position="mobile_banner" />
+      </section>
+
+      {/* ==================== PLATFORM INTRO ==================== */}
+      <section className="py-10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00E5FF]/[0.03] to-transparent pointer-events-none" />
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="max-w-4xl"
+          >
+            <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-2">
+              What is Sound It?
+            </span>
+            <h2 className="text-2xl md:text-4xl font-display text-white mb-4">
+              Built for entertainment, community, and business growth.
+            </h2>
+            <p className="text-gray-300/85 text-sm md:text-lg leading-relaxed max-w-3xl">
+              Sound It is a digital entertainment platform built for the African and international community in China. It helps users discover events, connect with entertainers, book talent, promote businesses, sell tickets, and build meaningful connections within the entertainment industry.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ==================== PLATFORM FEATURES ==================== */}
+      <section className="py-8 relative">
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="flex items-end justify-between mb-5"
+          >
+            <div>
+              <span className="inline-block text-[#FF2D8F] text-xs font-medium tracking-wider uppercase mb-1">
+                Platform Features
+              </span>
+              <h2 className="text-xl font-bold text-white">Everything Sound It Helps You Do</h2>
+            </div>
+            <Link to="/city-guide" className="hidden sm:flex items-center gap-1 text-[#FF2D8F] text-sm font-medium">
+              Explore <ChevronRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {platformFeatures.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={feature.title}
+                  custom={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                >
+                  <Link
+                    to={feature.path}
+                    className="group glass-card-premium min-h-[132px] p-4 flex flex-col justify-between active:scale-[0.98] transition-transform"
+                  >
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${feature.color}18` }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: feature.color }} />
+                    </div>
+                    <div className="flex items-end justify-between gap-3">
+                      <h3 className="text-white font-semibold text-sm md:text-base leading-tight group-hover:text-[#d3da0c] transition-colors">
+                        {feature.title}
+                      </h3>
+                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* ==================== TRENDING NOW ==================== */}
