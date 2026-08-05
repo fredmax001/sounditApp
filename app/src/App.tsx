@@ -37,6 +37,7 @@ import EmailVerification from './pages/auth/EmailVerification';
 
 // Components
 import LoadingScreen from './components/LoadingScreen';
+import GlobalAudioPlayer from './components/ui/GlobalAudioPlayer';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -228,6 +229,7 @@ function App() {
 
   return (
     <Router>
+      <GlobalAudioPlayer />
       <Toaster
         position="top-right"
         toastOptions={{

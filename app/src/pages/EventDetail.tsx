@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/authStore';
 import { QRCodeSVG } from 'qrcode.react';
 import VerificationBadge from '@/components/VerificationBadge';
 import TableBooking from '@/components/TableBooking';
+import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import { API_BASE_URL } from '@/config/api';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 import { Analytics } from '@/lib/analytics';
@@ -875,106 +876,26 @@ export default function EventDetail() {
         </div>
       )}
 
-      {/* Share Modal */}
-      {isShareModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl max-w-sm w-full border border-white/10 overflow-hidden">
-            {/* Event Preview Card */}
-            <div className="relative h-40 bg-gradient-to-br from-[#d3da0c]/20 to-[#FF2D8F]/20">
-              {currentEvent?.flyer_image ? (
-                <img
-                  src={currentEvent.flyer_image}
-                  alt={currentEvent.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <img src="/logo.png" alt="Sound It" className="h-32 w-auto opacity-80" />
-                </div>
-              )}
-              <button
-                onClick={() => setIsShareModalOpen(false)}
-                className="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 rounded-full transition-colors"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
-            </div>
-
-            <div className="p-5">
-              <h3 className="text-lg font-semibold text-white mb-1 line-clamp-1">{currentEvent?.title}</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                {currentEvent?.start_date
-                  ? new Date(currentEvent.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-                  : ''}
-                {' • '}
-                {currentEvent?.venue?.name || currentEvent?.address || t('eventDetail.toBeAnnounced')}
-              </p>
-
-              {/* QR Code */}
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-48 h-48 bg-white rounded-xl flex items-center justify-center p-3 shadow-lg">
-                  <QRCodeSVG
-                    value={`${WEB_ORIGIN}/events/${id}`}
-                    size={180}
-                    level="H"
-                    includeMargin={true}
-                    imageSettings={{
-                      src: '/logo.png',
-                      x: undefined,
-                      y: undefined,
-                      height: 60,
-                      width: 60,
-                      excavate: true,
-                    }}
-                  />
-                </div>
-                <p className="text-gray-400 text-center text-xs">
-                  {t('eventDetail.scanQRToShare')}
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 w-full">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${WEB_ORIGIN}/events/${id}`);
-                      toast.success(t('eventDetail.linkCopied'));
-                    }}
-                    className="flex-1 px-4 py-2.5 bg-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/15 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Copy className="w-4 h-4" />
-                    {t('eventDetail.copyLink')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: currentEvent?.title || 'Sound It Event',
-                          text: currentEvent?.description ? currentEvent.description.replace(/<[^>]+>/g, '').slice(0, 100) : '',
-                          url: `${WEB_ORIGIN}/events/${id}`,
-                        }).catch(() => {});
-                      } else {
-                        navigator.clipboard.writeText(`${WEB_ORIGIN}/events/${id}`);
-                        toast.success(t('eventDetail.linkCopied'));
-                      }
-                    }}
-                    className="flex-1 px-4 py-2.5 bg-[#d3da0c] text-black text-sm font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    {t('eventDetail.shareNative')}
-                  </button>
-                </div>
-
-                {/* WeChat Tip */}
-                <div className="w-full bg-white/5 rounded-lg p-3 flex items-start gap-3">
-                  <MessageCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                  <p className="text-gray-400 text-xs leading-relaxed">
-                    {t('eventDetail.wechatShareTip')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Universal Share Modal */}
+      {isShareModalOpen && currentEvent && (
+        <UniversalShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          item={{
+            type: 'event',
+            id: currentEvent.id,
+            title: currentEvent.title,
+            subtitle: (currentEvent as any).organizer_name || (currentEvent as any).organizer?.organization_name || 'Sound It Event',
+            image: currentEvent.flyer_image,
+            date: currentEvent.start_date ? new Date(currentEvent.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+            time: currentEvent.start_date ? new Date(currentEvent.start_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '',
+            location: (currentEvent as any).venue_name || currentEvent.venue?.name || currentEvent.address || currentEvent.city || '',
+            city: currentEvent.city,
+            description: currentEvent.description,
+            price: currentEvent.ticket_tiers?.[0]?.price ? `¥${currentEvent.ticket_tiers[0].price}` : 'Free',
+            url: `${WEB_ORIGIN}/events/${currentEvent.id}`
+          }}
+        />
       )}
 
       {/* Order Success Modal */}

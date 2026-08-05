@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2, MessageCircle } from 'lucide-react';
+import { Store, MapPin, Star, Globe, Mail, Phone, ChevronLeft, Heart, Loader2, MessageCircle, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
 import MessageModal from '@/components/MessageModal';
+import UniversalShareModal from '@/components/ui/UniversalShareModal';
 
 interface Product {
   id: number;
@@ -50,6 +51,7 @@ export default function VendorDetail() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -212,12 +214,19 @@ export default function VendorDetail() {
                       isFollowing
                         ? 'bg-white/10 text-white hover:bg-white/20'
                         : 'bg-pink-500/20 text-pink-400 hover:bg-pink-500/30'
-                    } disabled:opacity-50`}
+                    }`}
                   >
                     <Heart className={`w-5 h-5 ${isFollowing ? 'fill-current' : ''}`} />
                     {isFollowing ? (t('vendorDetail.following') || 'Following') : (t('vendorDetail.follow') || 'Follow')}
                   </button>
                 )}
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="px-8 py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2"
+                >
+                  <Share2 className="w-5 h-5 text-[#d3da0c]" />
+                  <span>Share</span>
+                </button>
               </div>
             </motion.div>
           </div>
@@ -312,6 +321,24 @@ export default function VendorDetail() {
         isOpen={showMessageModal}
         onClose={() => setShowMessageModal(false)}
       />
+
+      {/* Universal Share Modal */}
+      {isShareModalOpen && vendor && (
+        <UniversalShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          item={{
+            type: 'vendor',
+            id: vendor.id,
+            title: vendor.business_name,
+            subtitle: (vendor.vendor_type || 'Vendor').toUpperCase(),
+            image: vendor.logo_url || vendor.banner_url,
+            location: vendor.city || vendor.address,
+            description: vendor.description,
+            rating: vendor.rating
+          }}
+        />
+      )}
     </div>
   );
 }

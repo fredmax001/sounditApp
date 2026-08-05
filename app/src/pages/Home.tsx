@@ -22,9 +22,16 @@ import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import EventCard from '@/components/EventCard';
+import CompactEventCard from '@/components/ui/CompactEventCard';
 import ArtistCard from '@/components/ArtistCard';
 import AdBanner from '@/components/AdBanner';
 import WeatherWidget from '@/components/WeatherWidget';
+import MobileHeroCarousel from '@/components/ui/MobileHeroCarousel';
+import MobileEventCard from '@/components/ui/MobileEventCard';
+import MobileListRow from '@/components/ui/MobileListRow';
+import MobileSectionHeader from '@/components/ui/MobileSectionHeader';
+import MobileFilterPills from '@/components/ui/MobileFilterPills';
+import type { DateFilter } from '@/components/ui/MobileFilterPills';
 
 import axios from 'axios';
 import type { DJ } from '@/store/eventStore';
@@ -72,6 +79,8 @@ const Home = () => {
   const { featuredEvents, fetchFeaturedEvents, isLoading } = useEventStore();
   const { user, profile, selectedCity } = useAuthStore();
   const [featuredDJs, setFeaturedDJs] = useState<DJ[]>([]);
+  const [mobileDateFilter, setMobileDateFilter] = useState<DateFilter>('all');
+  const [mobileCategoryFilter, setMobileCategoryFilter] = useState('');
   const [platformStats, setPlatformStats] = useState({
     total_events: 0,
     total_artists: 0,
@@ -182,10 +191,212 @@ const Home = () => {
     }),
   };
 
+  // Filter featured events for mobile based on date/category filter
+  const filteredMobileEvents = featuredEvents.filter((event) => {
+    const now = new Date();
+    const eventDate = new Date(event.start_date);
+    let passDate = true;
+    if (mobileDateFilter === 'today') {
+      passDate = eventDate.toDateString() === now.toDateString();
+    } else if (mobileDateFilter === 'tomorrow') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      passDate = eventDate.toDateString() === tomorrow.toDateString();
+    } else if (mobileDateFilter === 'this_week') {
+      const weekEnd = new Date(now);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      passDate = eventDate >= now && eventDate <= weekEnd;
+    } else if (mobileDateFilter === 'this_weekend') {
+      const day = eventDate.getDay();
+      passDate = day === 0 || day === 6;
+    }
+    let passCat = true;
+    if (mobileCategoryFilter && event.category) {
+      passCat = event.category.toLowerCase().includes(mobileCategoryFilter.toLowerCase());
+    }
+    return passDate && passCat;
+  });
+
   return (
     <div className="relative">
-      {/* ==================== HERO SECTION ==================== */}
-      <section ref={heroRef} className="relative h-[85vh] md:h-screen overflow-hidden">
+
+      {/* ==================== MOBILE HOME (hidden on desktop) ==================== */}
+      <section className="md:hidden pt-16 pb-2">
+        {/* Search bar */}
+        <div className="px-4 mb-4">
+          <div className="flex items-center gap-2.5 h-11 px-3.5 bg-[#1A1A1A] border border-white/8 rounded-2xl">
+            <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search events, artists, venues..."
+              readOnly
+              onClick={() => window.location.href = '/events'}
+              className="flex-1 bg-transparent text-gray-400 placeholder-gray-600 text-sm focus:outline-none cursor-pointer"
+            />
+          </div>
+        </div>
+
+        {/* Filter pills (Date only, category row removed per user request) */}
+        <div className="mb-4">
+          <MobileFilterPills
+            activeDate={mobileDateFilter}
+            onDateChange={setMobileDateFilter}
+            activeCategory={mobileCategoryFilter}
+            onCategoryChange={setMobileCategoryFilter}
+            showCategoryRow={false}
+          />
+        </div>
+
+        {/* Recommended — Hero Carousel */}
+        {!isLoading && featuredEvents.length > 0 && (
+          <div className="mb-6">
+            <MobileSectionHeader
+              title="Recommended"
+              seeAllPath="/events"
+              accentColor="#d3da0c"
+            />
+            <MobileHeroCarousel events={filteredMobileEvents.length > 0 ? filteredMobileEvents : featuredEvents} />
+          </div>
+        )}
+
+        {/* Loading skeleton for hero */}
+        {isLoading && (
+          <div className="mb-6 px-4">
+            <div className="h-[240px] rounded-2xl shimmer-glass" />
+          </div>
+        )}
+
+        {/* Popular Events — horizontal scroll cards */}
+        {!isLoading && featuredEvents.length > 0 && (
+          <div className="mb-6">
+            <MobileSectionHeader
+              label="Hot this week"
+              title="Popular"
+              seeAllPath="/events"
+              accentColor="#FF2D8F"
+            />
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar pl-4 pr-4 pb-1">
+              {featuredEvents.slice(0, 8).map((event) => (
+                <MobileEventCard key={event.id} event={event} variant="standard" />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Events list rows */}
+        {!isLoading && featuredEvents.length > 0 && (
+          <div className="mb-6">
+            <MobileSectionHeader
+              label="Don't miss out"
+              title="Upcoming Events"
+              seeAllPath="/events"
+              seeAllLabel="View all"
+              accentColor="#00E5FF"
+            />
+            <div className="flex flex-col gap-2 px-4">
+              {(filteredMobileEvents.length > 0 ? filteredMobileEvents : featuredEvents).slice(0, 5).map((event, index) => (
+                <MobileListRow key={event.id} event={event} index={index} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Featured DJs strip */}
+        {featuredDJs.length > 0 && (
+          <div className="mb-6">
+            <MobileSectionHeader
+              label="Top performers"
+              title="Featured Artists"
+              seeAllPath="/artists"
+              accentColor="#d3da0c"
+            />
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar pl-4 pr-4 pb-1">
+              {featuredDJs.slice(0, 8).map((artist) => (
+                <ArtistCard key={artist.id} artist={artist} variant="featured" />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Ad banner */}
+        <div className="px-4 mb-6">
+          <AdBanner position="mobile_banner" />
+        </div>
+
+        {/* City Guide mini grid */}
+        <div className="mb-6">
+          <MobileSectionHeader
+            label="Explore"
+            title="City Guide"
+            seeAllPath="/city-guide"
+            accentColor="#d3da0c"
+          />
+          <div className="grid grid-cols-2 gap-3 px-4">
+            {[
+              { title: 'Businesses', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.businesses || 0}`, color: '#d3da0c' },
+              { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0}`, color: '#FF2D8F' },
+              { title: 'Events', image: '/hero-bg.jpg', count: `${cityGuideCounts.events || 0}`, color: '#00E5FF' },
+              { title: 'Artists', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.artists || 0}`, color: '#C8A000' },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                to="/city-guide"
+                className="group relative h-28 rounded-2xl overflow-hidden active:scale-[0.97] transition-transform"
+              >
+                <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <div className="text-white font-semibold text-sm">{item.title}</div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-gray-300 text-[11px]">{item.count}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="px-4 mb-6">
+          <div className="grid grid-cols-4 gap-2">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div key={stat.label} className="bg-[#111111] border border-white/5 rounded-2xl p-2.5 text-center">
+                  <Icon className="w-4 h-4 text-[#d3da0c] mx-auto mb-1" />
+                  <div className="text-white font-bold text-sm">{stat.value}</div>
+                  <div className="text-gray-500 text-[9px] leading-tight">{stat.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mobile CTA */}
+        {!user && (
+          <div className="px-4 mb-6">
+            <div className="relative rounded-2xl overflow-hidden p-5 text-center" style={{ background: 'linear-gradient(135deg, #1A1A00 0%, #0A0A0A 50%, #1A0010 100%)' }}>
+              <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(circle at 30% 50%, rgba(211,218,12,0.15) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,45,143,0.1) 0%, transparent 60%)' }} />
+              <div className="relative z-10">
+                <h3 className="text-white font-bold text-lg mb-1">Find your favorite events.</h3>
+                <p className="text-gray-400 text-sm mb-4">Join Sound It to discover events based on your interests.</p>
+                <div className="flex gap-2 justify-center">
+                  <Link to="/login" className="px-5 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-full active:scale-95 transition-transform">Login</Link>
+                  <Link to="/register" className="px-5 py-2.5 bg-white/10 border border-white/20 text-white text-sm font-semibold rounded-full active:scale-95 transition-transform">Sign up</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ==================== DESKTOP HOME (hidden on mobile) ==================== */}
+      <div className="hidden md:block">
+        {/* ==================== HERO SECTION ==================== */}
+        <section ref={heroRef} className="relative h-screen overflow-hidden">
         {/* Background Image with Ken Burns + Parallax — sharp, no blur */}
         <motion.div
           className="absolute inset-0 bg-cover bg-center"
@@ -231,7 +442,7 @@ const Home = () => {
 
         {/* Hero Content */}
         <motion.div
-          className="relative z-10 h-full flex flex-col justify-end pb-8 md:justify-center md:pb-0 px-5"
+          className="relative z-10 h-full flex flex-col justify-center px-5"
           style={{ opacity: heroOpacity }}
         >
           <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
@@ -261,11 +472,10 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 aria-label="Sound It — Entertainment Platform"
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.95] tracking-tight hero-headline"
+                className="text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.95] tracking-tight hero-headline"
               >
                 <span className="block font-bold hero-gradient-text mt-1" aria-hidden="true">Sound It</span>
               </motion.h1>
-              {/* Visually hidden — readable by bots and screen readers */}
               <p className="sr-only">
                 Sound It is an entertainment platform for the African and international community in China.
                 Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses.
@@ -277,7 +487,7 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-gray-300/80 text-base md:text-lg mb-6 max-w-md leading-relaxed"
+              className="text-gray-300/80 text-lg mb-6 max-w-md leading-relaxed"
             >
               Sound It is an entertainment platform for the African and international community in China. Use it to discover events, buy tickets, book DJs and artists, find vendors, connect with businesses, and grow your entertainment network.
             </motion.p>
@@ -336,11 +546,6 @@ const Home = () => {
       {/* ==================== AD BANNER (DESKTOP HERO) ==================== */}
       <section className="hidden md:block px-5 pt-6 pb-2">
         <AdBanner position="homepage_hero" />
-      </section>
-
-      {/* ==================== AD BANNER (MOBILE) ==================== */}
-      <section className="md:hidden px-5 pt-4 pb-2">
-        <AdBanner position="mobile_banner" />
       </section>
 
       {/* ==================== PLATFORM INTRO ==================== */}
@@ -501,7 +706,7 @@ const Home = () => {
             </Link>
           </motion.div>
 
-          <div className="space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
+          <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
             {featuredEvents.slice(0, 4).map((event, index) => (
               <motion.div
                 key={event.id}
@@ -511,51 +716,7 @@ const Home = () => {
                 viewport={{ once: true }}
                 variants={sectionVariants}
               >
-                <Link
-                  to={`/events/${event.id}`}
-                  className="group flex gap-4 glass-card-premium p-3 active:scale-[0.98] transition-transform"
-                >
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                    <img
-                      src={event.flyer_image || '/placeholder_event.jpg'}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    <div className="absolute top-1.5 left-1.5 glass-pill-premium px-2 py-0.5">
-                      <span className="text-[10px] font-bold text-[#d3da0c]">
-                        {new Date(event.start_date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0 py-0.5">
-                    <h3 className="text-white font-semibold text-sm mb-1 line-clamp-1 group-hover:text-[#d3da0c] transition-colors">
-                      {event.title}
-                    </h3>
-                    <div className="flex items-center gap-3 text-gray-400 text-xs mb-2">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {new Date(event.start_date).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {event.venue?.name || event.city}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#d3da0c] font-bold text-sm">
-                        {event.ticket_tiers?.[0]?.price
-                          ? `${event.ticket_tiers[0].currency} ${event.ticket_tiers[0].price}`
-                          : 'Free'}
-                      </span>
-                      <button className="w-7 h-7 rounded-full glass-pill-premium flex items-center justify-center text-gray-400 hover:text-[#FF2D8F] transition-colors">
-                        <Heart className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
+                <CompactEventCard event={event} />
               </motion.div>
             ))}
           </div>
@@ -748,6 +909,7 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
+      </div>
     </div>
   );
 };

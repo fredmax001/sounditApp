@@ -14,9 +14,11 @@ import {
   Star,
   Users,
   Heart,
+  Share2,
 } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
+import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import { useAuthStore } from '@/store/authStore';
 
 interface PublicProfileData {
@@ -83,6 +85,7 @@ export default function PublicProfile() {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { user } = useAuthStore();
   const isOrganizer = user?.role === 'organizer' || user?.role === 'business';
 
@@ -278,6 +281,13 @@ export default function PublicProfile() {
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
               )}
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 transition-colors"
+              >
+                <Share2 className="w-4 h-4 text-[#d3da0c]" />
+                <span>Share</span>
+              </button>
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-300 capitalize">
@@ -435,6 +445,23 @@ export default function PublicProfile() {
               />
             )}
           </div>
+        )}
+
+        {/* Universal Share Modal */}
+        {isShareModalOpen && profile && (
+          <UniversalShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            item={{
+              type: role === 'business' ? 'business' : role === 'artist' ? 'artist' : role === 'vendor' ? 'vendor' : 'user',
+              id: profile.id,
+              title: displayName,
+              subtitle: role.toUpperCase(),
+              image: profile.avatar_url,
+              location: profile.city,
+              description: profile.bio || profile.organizer_profile?.description || profile.business_profile?.description || profile.vendor_profile?.description
+            }}
+          />
         )}
       </div>
     </div>

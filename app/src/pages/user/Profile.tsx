@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X, LogOut } from 'lucide-react';
+import { Camera, MapPin, Mail, Phone, Calendar, Edit2, Check, X, LogOut, Share2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
+import UniversalShareModal from '@/components/ui/UniversalShareModal';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const Profile = () => {
   const [isBannerUploading, setIsBannerUploading] = useState(false);
   const [eventsAttended, setEventsAttended] = useState<number>(0);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || '',
     last_name: profile?.last_name || '',
@@ -154,7 +156,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-6">
+    <div className="min-h-screen pb-20 pt-16 md:pt-0">
       {/* Banner */}
       <div className="relative h-40 sm:h-52">
         <div
@@ -294,13 +296,22 @@ const Profile = () => {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors text-sm"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      {t('user.profile.edit')}
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-[#d3da0c]" />
+                        <span>Share</span>
+                      </button>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        {t('user.profile.edit')}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -437,6 +448,23 @@ const Profile = () => {
             <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
           </button>
         </motion.div>
+
+        {/* Universal Share Modal */}
+        {isShareModalOpen && profile && (
+          <UniversalShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            item={{
+              type: profile.role_type === 'business' ? 'business' : profile.role_type === 'artist' ? 'artist' : profile.role_type === 'vendor' ? 'vendor' : 'user',
+              id: profile.id,
+              title: displayName,
+              subtitle: (profile.role || 'User').toUpperCase(),
+              image: profile.avatar_url,
+              location: profile.city?.name,
+              description: profile.bio
+            }}
+          />
+        )}
       </div>
     </div>
   );

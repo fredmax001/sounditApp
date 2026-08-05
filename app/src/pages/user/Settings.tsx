@@ -245,7 +245,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen pb-6 pt-14 lg:pt-24">
+    <div className="min-h-screen pb-20 pt-16 lg:pt-24">
       {/* Header */}
       <div className="px-4 pt-2 pb-4">
         <h1 className="text-2xl font-bold text-white">{t('settings.title')}</h1>

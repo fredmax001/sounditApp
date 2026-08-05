@@ -8,13 +8,24 @@ import {
   CheckCircle, MessageSquare, Play, Pause, ChevronLeft,
   Award, Globe, Briefcase, Volume2, X,
   Send, Check, AlertCircle, Instagram, Youtube, ExternalLink,
-  Heart, Loader2
+  Heart, Loader2, Share2
 } from 'lucide-react';
+import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { usePlayerStore } from '@/store/playerStore';
 import { API_BASE_URL } from '@/config/api';
 import VerificationBadge from '@/components/VerificationBadge';
 import MessageModal from '@/components/MessageModal';
+import {
+  SpotifyIcon,
+  AppleMusicIcon,
+  SoundCloudIcon,
+  AudiomackIcon,
+  HearThisIcon,
+  YouTubeIcon,
+  getPlatformIcon,
+} from '@/components/ui/MusicPlatformIcons';
 
 // Types
 interface ArtistProfile {
@@ -591,28 +602,20 @@ const BookingModal = ({
 // Music Player Component
 const MusicPlayer = ({ tracks }: { tracks: Track[] }) => {
   const { t } = useTranslation();
-  const [currentTrack, setCurrentTrack] = useState<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { currentTrack, isPlaying, playTrack, pause } = usePlayerStore();
 
-  const handlePlay = (index: number) => {
-    if (currentTrack === index) {
-      setIsPlaying(!isPlaying);
+  const handlePlay = (track: Track) => {
+    const playerTrack = {
+      ...track,
+      artist: 'Artist',
+    };
+    if (currentTrack?.id === track.id) {
+      if (isPlaying) pause();
+      else playTrack(playerTrack, tracks.map(t => ({ ...t, artist: 'Artist' })));
     } else {
-      setCurrentTrack(index);
-      setIsPlaying(true);
+      playTrack(playerTrack, tracks.map(t => ({ ...t, artist: 'Artist' })));
     }
   };
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play();
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isPlaying, currentTrack]);
 
   if (!tracks || tracks.length === 0) {
     return (
@@ -627,17 +630,17 @@ const MusicPlayer = ({ tracks }: { tracks: Track[] }) => {
     <div className="bg-[#111111] rounded-2xl p-6">
       <h3 className="text-xl font-bold text-white mb-6">{t('artistDetail.musicPreview')}</h3>
       <div className="space-y-3">
-        {tracks.map((track, index) => (
+        {tracks.map((track) => (
           <div
             key={track.id}
-            className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${currentTrack === index ? 'bg-[#d3da0c]/10 border border-[#d3da0c]/30' : 'bg-white/5 hover:bg-white/10'
+            className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${currentTrack?.id === track.id ? 'bg-[#d3da0c]/10 border border-[#d3da0c]/30' : 'bg-white/5 hover:bg-white/10'
               }`}
           >
             <button
-              onClick={() => handlePlay(index)}
+              onClick={() => handlePlay(track)}
               className="w-12 h-12 rounded-full bg-[#d3da0c] flex items-center justify-center flex-shrink-0"
             >
-              {currentTrack === index && isPlaying ? (
+              {currentTrack?.id === track.id && isPlaying ? (
                 <Pause className="w-5 h-5 text-black" />
               ) : (
                 <Play className="w-5 h-5 text-black ml-1" />
@@ -648,18 +651,11 @@ const MusicPlayer = ({ tracks }: { tracks: Track[] }) => {
               <p className="text-gray-400 text-sm">{track.genre} • {track.duration}</p>
             </div>
             <div className="text-gray-500 text-sm">
-              {track.plays_count.toLocaleString()} {t('artistDetail.plays')}
+              {track.plays_count?.toLocaleString()} {t('artistDetail.plays')}
             </div>
           </div>
         ))}
       </div>
-      {currentTrack !== null && tracks[currentTrack]?.audio_url && (
-        <audio
-          ref={audioRef}
-          src={tracks[currentTrack].audio_url}
-          onEnded={() => setIsPlaying(false)}
-        />
-      )}
     </div>
   );
 };
@@ -764,6 +760,7 @@ const ArtistDetail = () => {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const fetchArtistData = useCallback(async () => {
     if (!id) return;
@@ -992,19 +989,21 @@ const ArtistDetail = () => {
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-row items-center gap-2 overflow-x-auto hide-scrollbar w-full sm:w-auto pt-2">
                 <button
                   onClick={() => setShowBookingModal(true)}
-                  className="px-8 py-4 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center gap-2"
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-[#d3da0c] text-black text-xs sm:text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md"
                 >
-                  <Calendar className="w-5 h-5" />
-                  {t('artistDetail.bookNow')}
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span>{t('artistDetail.bookNow')}</span>
                 </button>
                 <button
                   onClick={() => setShowMessageModal(true)}
-                  className="px-8 py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2"
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-white/10 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
                 >
-                  <MessageSquare className="w-5 h-5" />{t('artistDetail.message')}</button>
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span>{t('artistDetail.message')}</span>
+                </button>
                 <button
                   onClick={async () => {
                     if (!session?.access_token) {
@@ -1045,14 +1044,21 @@ const ArtistDetail = () => {
                     }
                   }}
                   disabled={followLoading}
-                  className={`px-8 py-4 font-bold rounded-xl transition-colors flex items-center gap-2 ${
+                  className={`flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 ${
                     isFollowing
                       ? 'bg-white/10 text-white hover:bg-white/20'
                       : 'bg-pink-500/20 text-pink-400 hover:bg-pink-500/30'
                   } disabled:opacity-50`}
                 >
-                  <Heart className={`w-5 h-5 ${isFollowing ? 'fill-current' : ''}`} />
-                  {isFollowing ? t('artistDetail.following') : t('artistDetail.follow')}
+                  <Heart className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isFollowing ? 'fill-current' : ''}`} />
+                  <span>{isFollowing ? t('artistDetail.following') : t('artistDetail.follow')}</span>
+                </button>
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-5 py-2.5 sm:py-3.5 bg-white/10 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
+                >
+                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#d3da0c]" />
+                  <span>{t('common.share') || 'Share'}</span>
                 </button>
               </div>
             </motion.div>
@@ -1061,12 +1067,12 @@ const ArtistDetail = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-white/10 pb-4">
+            <div className="flex gap-1.5 sm:gap-2 border-b border-white/10 pb-3 overflow-x-auto hide-scrollbar">
               {[
                 { id: 'about', label: t('artistDetail.tabAbout') },
                 { id: 'reviews', label: t('artistDetail.tabReviews') },
@@ -1075,8 +1081,8 @@ const ArtistDetail = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as 'about' | 'reviews' | 'gallery')}
-                  className={`px-6 py-2 rounded-lg font-medium capitalize transition-colors ${activeTab === tab.id
-                    ? 'bg-[#d3da0c] text-black'
+                  className={`px-4 sm:px-6 py-2 text-xs sm:text-sm rounded-lg font-medium capitalize whitespace-nowrap shrink-0 transition-colors ${activeTab === tab.id
+                    ? 'bg-[#d3da0c] text-black font-bold'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
@@ -1239,7 +1245,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#1DB954] text-white hover:opacity-90 transition-opacity"
                           title="Spotify"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                          <SpotifyIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.apple_music_url && (
@@ -1250,7 +1256,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FA2D48] text-white hover:opacity-90 transition-opacity"
                           title="Apple Music"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.994 6.124a9.23 9.23 0 00-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043a5.022 5.022 0 00-1.877-.726 10.496 10.496 0 00-1.564-.15c-.04-.003-.083-.01-.124-.013H5.986c-.152.01-.303.017-.455.026-.747.043-1.49.123-2.206.333-1.57.457-2.74 1.39-3.272 2.997-.2.608-.302 1.242-.333 1.88-.017.343-.024.687-.024 1.031v8.16c.01.147.017.295.027.442.043.744.123 1.484.333 2.2.457 1.57 1.39 2.74 2.997 3.272.608.2 1.242.302 1.88.333.343.017.687.024 1.031.024h12.08c.147-.01.295-.017.442-.027.744-.043 1.484-.123 2.2-.333 1.57-.457 2.74-1.39 3.272-2.997.2-.608.302-1.242.333-1.88.017-.343.024-.687.024-1.031V7.24c0-.383-.007-.76-.02-1.117zM13.54 18.64c-.167.614-.653 1.057-1.245 1.18-.66.143-1.29-.143-1.69-.656-.403-.513-.52-1.19-.32-1.79.167-.53.57-.94 1.08-1.13.72-.27 1.56-.04 2.06.55.38.45.48 1.04.31 1.64l-.19.21zm.82-3.17c-.23.123-.5.15-.74.07-.49-.16-.79-.61-.74-1.12.05-.51.42-.91.92-1.01.3-.06.61.01.85.19.35.25.52.69.43 1.11-.09.41-.4.73-.81.76zM12 5.7l1.48 1.48c.1.1.1.26 0 .36l-1.48 1.48c-.1.1-.26.1-.36 0l-1.48-1.48c-.1-.1-.1-.26 0-.36l1.48-1.48c.1-.1.26-.1.36 0z"/></svg>
+                          <AppleMusicIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.soundcloud_url && (
@@ -1261,7 +1267,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF5500] text-white hover:opacity-90 transition-opacity"
                           title="SoundCloud"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M1.175 12.225c-.051 0-.094.046-.101.1l-.233 2.154.233 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.105-.27-2.154c-.009-.06-.052-.1-.084-.1zm-.899.828c-.06 0-.091.037-.104.094L0 14.479l.165 1.308c.014.057.045.094.09.094s.089-.037.099-.094l.21-1.319-.225-1.339c-.01-.057-.044-.094-.073-.094zm1.83-1.229c-.061 0-.12.045-.12.104l-.21 2.563.225 2.458c0 .06.045.104.105.104.061 0 .12-.044.12-.104l.24-2.474-.255-2.547c0-.06-.06-.104-.105-.104zm.945-.089c-.075 0-.135.06-.15.135l-.193 2.64.21 2.544c.016.077.075.138.149.138.075 0 .135-.061.15-.138l.225-2.544-.24-2.64c-.015-.075-.06-.135-.151-.135zm.93-.045c-.09 0-.149.075-.165.165l-.18 2.7.195 2.52c.016.09.075.165.165.165.09 0 .165-.075.165-.165l.21-2.52-.21-2.7c0-.09-.075-.165-.18-.165zm.915-.06c-.105 0-.18.09-.195.18l-.165 2.76.18 2.49c.016.105.09.18.195.18.105 0 .18-.09.18-.18l.195-2.49-.195-2.76c-.016-.105-.09-.18-.195-.18zm.93-.015c-.12 0-.195.105-.21.21l-.15 2.79.165 2.475c.016.105.09.195.21.195.105 0 .195-.09.21-.195l.18-2.475-.18-2.79c-.015-.12-.09-.21-.225-.21zm.945-.015c-.135 0-.225.12-.24.24l-.135 2.82.15 2.46c.015.12.105.225.24.225.12 0 .225-.105.24-.225l.165-2.46-.165-2.82c-.015-.135-.105-.24-.255-.24zm.96 0c-.15 0-.24.135-.255.27l-.12 2.805.135 2.445c.015.135.105.255.255.255.135 0 .24-.12.255-.255l.15-2.445-.15-2.805c-.015-.15-.12-.27-.27-.27zm.93.03c-.15 0-.27.15-.285.285l-.105 2.79.12 2.43c.015.15.135.285.285.285.15 0 .27-.135.285-.285l.135-2.43-.135-2.79c-.015-.165-.12-.3-.3-.3zm.96.045c-.165 0-.3.165-.315.33l-.09 2.76.105 2.415c.015.165.15.315.315.315.165 0 .3-.165.315-.315l.12-2.415-.12-2.76c-.015-.18-.15-.33-.33-.33zm.945.075c-.18 0-.33.18-.345.36l-.075 2.715.09 2.385c.015.18.165.345.345.345.18 0 .33-.165.345-.345l.105-2.385-.105-2.715c-.015-.195-.165-.36-.36-.36zm.96.09c-.195 0-.36.195-.375.39l-.06 2.685.075 2.37c.015.195.18.375.375.375.195 0 .36-.18.375-.375l.09-2.37-.09-2.685c-.015-.21-.18-.39-.39-.39zm1.02.12c-.21 0-.39.21-.405.42l-.045 2.64.06 2.34c.015.21.195.405.405.405.21 0 .39-.195.405-.405l.075-2.34-.075-2.64c-.015-.225-.195-.42-.42-.42zm1.005.15c-.225 0-.42.225-.435.45l-.03 2.595.045 2.31c.015.225.21.435.435.435.225 0 .42-.21.435-.435l.06-2.31-.06-2.595c-.015-.24-.21-.45-.45-.45zm1.02.165c-.24 0-.45.24-.465.48l-.015 2.55.03 2.28c.015.24.225.465.465.465.24 0 .45-.225.465-.465l.045-2.28-.045-2.55c-.015-.255-.225-.48-.48-.48zm1.005.195c-.255 0-.48.255-.495.51l.015 2.505.015 2.25c.015.255.24.495.495.495s.48-.24.495-.495l.03-2.25-.03-2.505c-.015-.27-.24-.51-.525-.51zm1.005.21c-.27 0-.51.27-.525.54l.045 2.46.045 2.22c.015.27.255.51.525.51.27 0 .51-.24.525-.51l.06-2.22-.06-2.46c-.015-.285-.255-.54-.615-.54zm1.02.225c-.285 0-.54.285-.555.57l.075 2.415.075 2.19c.015.285.27.54.555.54.285 0 .54-.255.555-.54l.09-2.19-.09-2.415c-.015-.3-.27-.57-.705-.57zm1.005.255c-.3 0-.57.3-.585.6l.105 2.37.105 2.16c.015.3.285.57.585.57.3 0 .57-.27.585-.57l.12-2.16-.12-2.37c-.015-.315-.285-.6-.795-.6zm1.02.27c-.315 0-.6.315-.615.63l.135 2.325.135 2.13c.015.315.3.6.615.6.315 0 .6-.285.615-.6l.15-2.13-.15-2.325c-.015-.33-.3-.63-.885-.63z"/></svg>
+                          <SoundCloudIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.youtube_url && (
@@ -1272,7 +1278,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF0000] text-white hover:opacity-90 transition-opacity"
                           title="YouTube"
                         >
-                          <Youtube className="w-5 h-5" />
+                          <YouTubeIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.audiomack_url && (
@@ -1283,7 +1289,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF8200] text-white hover:opacity-90 transition-opacity"
                           title="Audiomack"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97-.001c-.156 0-.313.127-.344.283l-.63 3.572-1.55-3.855c-.062-.156-.22-.283-.375-.283h-.031c-.157 0-.314.127-.376.283l-.783 3.855-.471-3.572c-.031-.156-.188-.283-.344-.283h-2.258c-.156 0-.282.127-.282.283 0 .031 0 .063.016.094l1.224 8.382c.031.156.188.283.344.283h1.85c.156 0 .313-.127.375-.283l.97-4.178 1.177 4.178c.062.156.219.283.375.283h1.881c.156 0 .313-.127.344-.283l1.224-8.382c.016-.031.016-.063.016-.094.016-.156-.11-.283-.266-.283z"/></svg>
+                          <AudiomackIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.hearthis_url && (
@@ -1294,7 +1300,7 @@ const ArtistDetail = () => {
                           className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#E94E1B] text-white hover:opacity-90 transition-opacity"
                           title="HearThis.at"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2V7h2v10zm4 0h-2V7h2v10z"/></svg>
+                          <HearThisIcon className="w-6 h-6" />
                         </a>
                       )}
                       {artist.music_links?.map((link, idx) => (
@@ -1558,6 +1564,25 @@ const ArtistDetail = () => {
           recipientName={artist.stage_name}
           isOpen={showMessageModal}
           onClose={() => setShowMessageModal(false)}
+        />
+      )}
+
+      {/* Universal Share Modal */}
+      {isShareModalOpen && artist && (
+        <UniversalShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          item={{
+            type: 'artist',
+            id: artist.id,
+            title: artist.stage_name,
+            subtitle: (artist.artist_type || 'Artist').toUpperCase(),
+            image: artist.avatar_url,
+            location: artist.city,
+            description: artist.bio,
+            price: (artist as any).performance_fee ? `¥${(artist as any).performance_fee}` : ((artist as any).hourly_rate ? `¥${(artist as any).hourly_rate}` : undefined),
+            rating: artist.rating
+          }}
         />
       )}
     </div>

@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-06-19
+2026-08-05
 
 ---
 
@@ -18,14 +18,61 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-06-19
-- [OK] Backend imports cleanly (`python3 -c "from main import app"` works)
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-08-05
+- [OK] Backend imports cleanly (`python3 -m py_compile main.py api/meta_tags.py` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
 
 ---
 
 ## Completed Audits & Fixes
+
+### 57. Universal Social Media Sharing System & Dynamic OpenGraph Meta Tags (2026-08-05)
+- **Problem**: 
+  1. Sharing Event, Artist, Vendor, or Profile links to WeChat, WhatsApp, iMessage, X (Twitter), Facebook, etc. previously rendered generic static platform meta tags instead of the specific item's flyer image, title, date, location, and description.
+  2. Sharing was limited and lacked dedicated poster card download capabilities for image-heavy social platforms (WeChat Moments, Instagram Feed/Stories, TikTok/Douyin, RedNote/Xiaohongshu).
+- **Fixes Applied**:
+  - **Backend (`api/meta_tags.py` & `main.py` & `/etc/nginx/conf.d/soundit.conf`)**:
+    - Created `api/meta_tags.py` which dynamically extracts item-specific metadata (title, flyer image, avatar, date, location, bio/description) for Events (`/events/:id`), Artists (`/artists/:id`), Vendors (`/vendors/:id`), and Profiles/Businesses (`/profiles/:id`).
+    - Configured `main.py` `serve_frontend` to dynamically inject `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card`, `twitter:title`, `twitter:description`, and `twitter:image` tags.
+    - Updated Nginx routing on production to proxy `/events/`, `/artists/`, `/vendors/`, `/profiles/` requests through FastAPI so link crawlers (WeChat, WhatsApp, iMessage, Twitterbot, etc.) receive rich card previews.
+  - **Frontend (`UniversalShareModal.tsx`)**:
+    - Built a universal multi-platform share modal featuring 1-click share buttons for WeChat, WhatsApp, iMessage, X, Instagram, TikTok/Douyin, and RedNote (小红书).
+    - Integrated HTML5 Canvas HD Share Poster generator (`1080x1440` PNG) allowing users to download a styled share card with flyer/avatar, Sound It watermark, item details, and high-res QR code directly to their phone gallery.
+    - Integrated `UniversalShareModal` into `EventDetail.tsx`, `ArtistDetail.tsx`, `VendorDetail.tsx`, `PublicProfile.tsx`, and `user/Profile.tsx`.
+- **Verification**: `npm run build` passes; Capacitor synced; `SoundIt-Android-debug.apk` built; `main.py`, `api/meta_tags.py`, Nginx config, and `app/dist/` deployed to production (`72.62.254.251`). Verified live link crawler response for `https://sounditent.com/events/10` returns dynamic title, flyer image, date, and venue details.
+
+### 56. Discovery Business Profile Navigation & Mobile Artist Page Layout (2026-07-31)
+- **Problem**: 
+  1. Clicking a business card in Discovery/CityGuide failed to load the business profile because `dummyUser.id` passed `item.id` (business profile ID) instead of `item.user_id` to `/profiles/:id`.
+  2. Discovery category tab order was not strictly aligned with requested sequence.
+  3. On the Artist Page mobile layout, the action buttons (**Book Now - Message - Follow**) wrapped onto multiple lines, and tabs were oversized.
+- **Fixes Applied**:
+  - `CityGuide.tsx`: Updated `dummyUser.id` to `Number(item.user_id || item.id)` and `DiscoveryResultCard.tsx` `linkPath` to `/profiles/${targetId}` so clicking any business opens the public profile.
+  - `CityGuide.tsx`: Re-ordered `TAB_CONFIG` to exact sequence: **Events - Business - Artists - Vendors - Food - Venues**.
+  - `ArtistDetail.tsx`: Set action buttons (`Book Now`, `Message`, `Follow`) to flex row with `whitespace-nowrap` so all 3 sit on a **single line** on mobile. Made tabs horizontal scrolling with compact single-line labels.
+- **Verification**: `npm run build` passes; Capacitor synced; `SoundIt-Android-debug.apk` built; `app/dist/` deployed to production (`72.62.254.251`). `curl -I https://sounditent.com/` → `HTTP/2 200`.
+
+### 55. DJ Dashboard Messages — Persistent Unread Status Fix (2026-07-31)
+- **Problem**: Messages in the DJ / Artist Dashboard remained marked as unread (showing unread badges) even after opening, reading, and replying to them.
+- **Root Cause**: 
+  - `api/messaging.py`: `GET /messages/conversations/{id}` returned messages but never updated `is_read = True` in the database for incoming unread messages.
+  - `POST /messages/conversations/{id}/messages` created new replies but did not update existing incoming messages in that conversation to `is_read = True`.
+  - Missing bulk conversation mark-as-read endpoint.
+- **Fixes Applied**:
+  - `api/messaging.py`: Updated `get_messages()` and `send_message()` to automatically set `is_read = True` for incoming messages from the other user. Added `PUT /messages/conversations/{id}/read` endpoint.
+  - `app/src/pages/artist/Messages.tsx`: Immediately clears `unread_count` for active conversation in local state upon selection.
+- **Verification**: Backend compiled with `python3 -m py_compile`, restarted `soundit` daemon on production (`72.62.254.251`), rebuilt frontend (`npm run build`), updated Android debug APK (`SoundIt-Android-debug.apk`), and deployed to production. `GET /health` → `{"status":"healthy"}`.
+
+### 54. Mobile UI/UX Redesign — Eventix Design System (2026-07-31)
+- **Problem**: Mobile interface felt oversized, text-heavy, and had lower information density. Also Home page rendered duplicate old/new sections simultaneously on mobile.
+- **Fixes applied**:
+  - `app/src/components/MobileHeader.tsx`: Eventix top bar with Logo left, Date + City selector center, Notifications + Avatar right.
+  - `app/src/components/MobileBottomNav.tsx`: Eventix 5-tab bottom dock (`Home`, `Discover`, `Ticket`, `Saved`, `Profile`).
+  - `app/src/pages/Home.tsx`: Wrapped desktop sections in `hidden md:block` to prevent double rendering. Added dedicated `md:hidden` Mobile Home layout featuring Hero Carousel, Filter Pills, Horizontal Event Scroll, Compact List Rows, and City Guide.
+  - `app/src/pages/Events.tsx`: Eventix search header, filter chips (`Today`, `Tomorrow`, `This week`, `Weekend`), view toggle (Cards/List), and bottom-sheet filter modal.
+  - `app/src/pages/EventDetail.tsx`: Sticky mobile bottom action bar (`Register / Buy Ticket` with price).
+- **Verification**: `npm run build` passes; synced Capacitor (`npx cap sync android`) and built `SoundIt-Android-debug.apk`. Deployed dist to production server (`72.62.254.251:/var/www/soundit/app/dist/`). `curl -I https://sounditent.com/` → `HTTP/2 200`.
 
 ### 53. Mobile Auto-Logout Fix — Artist Dashboard Refresh Loop (2026-06-19)
 - **Problem**: Users kept getting logged out on mobile immediately after logging in.

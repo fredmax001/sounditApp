@@ -25,6 +25,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCityGuideStore } from '@/store/cityGuideStore';
 import type { GuideItem } from '@/store/cityGuideStore';
 import { openDirections } from '@/lib/directions';
+import DiscoveryResultCard from '@/components/ui/DiscoveryResultCard';
 
 type GMap = {
   setCenter: (center: { lat: number; lng: number }) => void;
@@ -79,11 +80,11 @@ type FilterTab = 'all' | 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'bus
 const TAB_CONFIG: { key: FilterTab; labelKey: string; fallback: string; icon: typeof MapPin }[] = [
   { key: 'all', labelKey: 'cityGuide.all', fallback: 'All', icon: MapPin },
   { key: 'event', labelKey: 'cityGuide.events', fallback: 'Events', icon: Calendar },
-  { key: 'venue', labelKey: 'cityGuide.venues', fallback: 'Clubs & Bars', icon: Music },
-  { key: 'food', labelKey: 'cityGuide.food', fallback: 'Food', icon: Utensils },
+  { key: 'business', labelKey: 'discovery.businesses', fallback: 'Businesses', icon: Building2 },
   { key: 'artist', labelKey: 'discovery.artists', fallback: 'Artists', icon: Users },
   { key: 'vendor', labelKey: 'discovery.vendors', fallback: 'Vendors', icon: Store },
-  { key: 'business', labelKey: 'discovery.businesses', fallback: 'Businesses', icon: Building2 },
+  { key: 'food', labelKey: 'cityGuide.food', fallback: 'Food', icon: Utensils },
+  { key: 'venue', labelKey: 'cityGuide.venues', fallback: 'Venues', icon: Music },
 ];
 
 // Only these types appear on the map
@@ -122,160 +123,14 @@ function MetricPill({ icon: Icon, value }: { icon: typeof Star; value: string })
   );
 }
 
-function CityDropdown({
-  selectedCity,
-  onSelect,
-}: {
-  selectedCity: string;
-  onSelect: (cityId: string) => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const topCities = useMemo(() => ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'chengdu', 'hangzhou'], []);
-  const otherCities = useMemo(
-    () => chinaCities.filter((c) => c.id !== 'other' && !topCities.includes(c.id)),
-    [topCities]
-  );
-
-  const filteredOthers = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return otherCities;
-    return otherCities.filter((c) => c.name.toLowerCase().includes(q) || c.nameCN.includes(q));
-  }, [otherCities, search]);
-
-  const selected = chinaCities.find((c) => c.id === selectedCity) || chinaCities[0];
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    if (open) document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [open]);
-
-  return (
-    <div ref={containerRef} className="relative w-full md:w-64">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-[#111111] border border-white/10 rounded-xl text-white hover:border-[#d3da0c]/50 transition-colors"
-      >
-        <span className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-[#d3da0c]" />
-          <span className="font-medium">{selected.name}</span>
-          <span className="text-gray-500 text-sm">{selected.nameCN}</span>
-        </span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-[#151515] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
-          >
-            <div className="p-3 border-b border-white/5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t('discovery.searchCity') || 'Search city...'}
-                  className="w-full pl-9 pr-8 py-2 bg-[#0f0f0f] border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="max-h-[60vh] overflow-y-auto">
-              {!search && (
-                <>
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {t('discovery.topCities') || 'Top Cities'}
-                  </div>
-                  {topCities.map((id) => {
-                    const city = chinaCities.find((c) => c.id === id)!;
-                    const isActive = selectedCity === city.id;
-                    return (
-                      <button
-                        key={city.id}
-                        onClick={() => {
-                          onSelect(city.id);
-                          setOpen(false);
-                          setSearch('');
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/5 transition-colors ${
-                          isActive ? 'bg-[#d3da0c]/10 text-[#d3da0c]' : 'text-white'
-                        }`}
-                      >
-                        <span className="text-sm">
-                          {city.name} <span className="text-gray-500">{city.nameCN}</span>
-                        </span>
-                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />}
-                      </button>
-                    );
-                  })}
-
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t border-white/5">
-                    {t('discovery.others') || 'Others'}
-                  </div>
-                </>
-              )}
-
-              {filteredOthers.length === 0 && (
-                <div className="px-4 py-4 text-sm text-gray-500 text-center">
-                  {t('discovery.noCitiesFound') || 'No cities found'}
-                </div>
-              )}
-
-              {filteredOthers.map((city) => {
-                const isActive = selectedCity === city.id;
-                return (
-                  <button
-                    key={city.id}
-                    onClick={() => {
-                      onSelect(city.id);
-                      setOpen(false);
-                      setSearch('');
-                    }}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/5 transition-colors ${
-                      isActive ? 'bg-[#d3da0c]/10 text-[#d3da0c]' : 'text-white'
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {city.name} <span className="text-gray-500">{city.nameCN}</span>
-                    </span>
-                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 const CityGuide = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedCity, setSelectedCity } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
@@ -523,19 +378,28 @@ const CityGuide = () => {
       {/* Header */}
       <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-3 md:py-4">
-          {/* Title row on desktop */}
-          <div className="hidden md:block mb-4">
-            <h1 className="text-2xl font-display text-white">
-              {t('discovery.title') || 'Discovery'} <span className="text-[#d3da0c]">{t('discovery.hub') || 'Hub'}</span>
-            </h1>
-            <p className="text-gray-400 text-sm">
-              {t('discovery.subtitle') || 'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
-            </p>
+          {/* Title row */}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-2xl font-display text-white">
+                {t('discovery.title') || 'Discovery'} <span className="text-[#d3da0c]">{t('discovery.hub') || 'Hub'}</span>
+              </h1>
+              <p className="text-gray-400 text-sm hidden md:block mt-1">
+                {t('discovery.subtitle') || 'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
+              </p>
+            </div>
+            
+            {/* Mobile Search Icon Button */}
+            <button 
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+              className="md:hidden p-2 bg-white/5 rounded-full text-white/70 hover:text-white"
+            >
+              <Search className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Controls */}
-          <div className="flex flex-col md:flex-row gap-3">
-            <CityDropdown selectedCity={selectedCity || 'shanghai'} onSelect={setSelectedCity} />
+          <div className={`flex flex-col md:flex-row gap-3 ${isSearchExpanded ? 'block' : 'hidden md:block'}`}>
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
@@ -587,7 +451,7 @@ const CityGuide = () => {
                 onClick={() => {
                   if (item.type === 'artist') navigate(`/artists/${item.id}`);
                   else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                  else if (item.type === 'business' && item.user_id) navigate(`/profiles/${item.user_id}`);
+                  else if (item.type === 'business') navigate(`/profiles/${item.user_id || item.id}`);
                   else if (item.type === 'event') navigate(`/events/${item.id}`);
                   else {
                     setSelectedItem(item);
@@ -642,45 +506,60 @@ const CityGuide = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {displayItems.map((item, index) => (
-                <motion.div
-                  key={`${item.type}-${item.id}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(index * 0.02, 0.3) }}
-                  onClick={() => {
-                    if (item.type === 'artist') navigate(`/artists/${item.id}`);
-                    else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                    else if (item.type === 'business' && item.user_id) navigate(`/profiles/${item.user_id}`);
-                    else if (item.type === 'event') navigate(`/events/${item.id}`);
-                    else {
-                      setSelectedItem(item);
-                      if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
-                    }
-                  }}
-                  className={`group flex gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                    selectedItem?.id === item.id && selectedItem?.type === item.type
-                      ? 'bg-[#d3da0c]/10 border-[#d3da0c]/40'
-                      : 'bg-[#111111] border-white/5 hover:border-white/15'
-                  }`}
-                >
-                  <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-[#1a1a1a]">
-                    <img
-                      src={item.image || '/placeholder-club.jpg'}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-club.jpg'; }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                      <EntityBadge type={item.type} />
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-3">
+              {displayItems.map((item, index) => {
+                if (item.type === 'artist' || item.type === 'vendor' || item.type === 'business') {
+                  const dummyUser = {
+                    id: Number(item.user_id || item.id),
+                    user_id: item.user_id ? Number(item.user_id) : undefined,
+                    role: item.type,
+                    first_name: item.name,
+                    avatar_url: item.image,
+                    is_verified: item.meta?.is_verified,
+                  };
+                  return (
+                    <motion.div
+                      key={`${item.type}-${item.id}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(index * 0.02, 0.3) }}
+                    >
+                      <DiscoveryResultCard user={dummyUser as any} />
+                    </motion.div>
+                  );
+                }
 
-                      {item.type === 'vendor' && item.meta.is_verified && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400">Verified</span>
-                      )}
+                return (
+                  <motion.div
+                    key={`${item.type}-${item.id}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(index * 0.02, 0.3) }}
+                    onClick={() => {
+                      if (item.type === 'event') navigate(`/events/${item.id}`);
+                      else {
+                        setSelectedItem(item);
+                        if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
+                      }
+                    }}
+                    className={`group flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer ${
+                      selectedItem?.id === item.id && selectedItem?.type === item.type
+                        ? 'bg-[#d3da0c]/10 border-[#d3da0c]/40'
+                        : 'bg-[#1A1A1A] border-white/5 hover:border-white/15'
+                    }`}
+                  >
+                    <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-[#1a1a1a]">
+                      <img
+                        src={item.image || '/placeholder-club.jpg'}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-club.jpg'; }}
+                      />
                     </div>
+                    <div className="flex-1 min-w-0 py-0.5">
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <EntityBadge type={item.type} />
+                      </div>
                     <h3 className="text-sm md:text-base font-semibold text-white truncate">{item.name}</h3>
 
                     {/* Event-specific: clickable address + venue info */}
@@ -718,21 +597,7 @@ const CityGuide = () => {
                     )}
 
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      {item.type === 'artist' && (
-                        <>
-                          <MetricPill icon={Heart} value={`${Number(item.meta.followers_count || 0)}`} />
-                          <MetricPill icon={Calendar} value={`${Number(item.meta.events_count || 0)}`} />
-                        </>
-                      )}
-                      {item.type === 'vendor' && (
-                        <>
-                          <MetricPill icon={Star} value={`${Number(item.meta.rating || 0).toFixed(1)}`} />
-                          <MetricPill icon={Users} value={`${Number(item.meta.reviews_count || 0)}`} />
-                        </>
-                      )}
-                      {item.type === 'business' && (
-                        <MetricPill icon={Calendar} value={`${Number(item.meta.events_count || 0)}`} />
-                      )}
+
 
                       {/* Directions button for mappable items (non-events handled here, events have address link above) */}
                       {item.type !== 'event' && MAPPABLE_TYPES.has(item.type) && (
@@ -749,8 +614,9 @@ const CityGuide = () => {
                       )}
                     </div>
                   </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>

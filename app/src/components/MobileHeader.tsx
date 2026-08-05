@@ -1,6 +1,6 @@
 /**
- * Mobile Header — Premium Floating Glass Top Bar (2025)
- * Glassmorphism, animated logo, pulsing location, gradient avatar ring
+ * Mobile Header — Eventix-inspired compact top bar
+ * Left: Logo | Center: Date + Location pill | Right: Notifications + Avatar
  */
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,11 +14,11 @@ import {
   LogOut,
   Ticket,
   Heart,
-  ChevronDown,
   LayoutDashboard,
   X,
   ScanLine,
   Crown,
+  ChevronDown,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { useStaffStore } from '@/store/staffStore';
@@ -44,11 +44,16 @@ const MobileHeader = () => {
   const currentCity = chinaCities.find((c) => c.id === selectedCity) || chinaCities[0];
   const role = profile?.role_type || profile?.role;
 
+  // Today's date for header display
+  const today = new Date();
+  const dayStr = today.toLocaleDateString('en-US', { weekday: 'short' });
+  const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollDepth(currentScrollY);
-      if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
         setIsHidden(true);
       } else {
         setIsHidden(false);
@@ -106,59 +111,59 @@ const MobileHeader = () => {
       <motion.header
         initial={{ y: 0 }}
         animate={{ y: isHidden ? '-100%' : 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-40 safe-area-pt"
         style={{
-          background: `rgba(10, 10, 15, ${0.3 + headerOpacity * 0.5})`,
-          backdropFilter: scrollDepth > 20 ? 'blur(24px) saturate(180%)' : 'blur(12px) saturate(150%)',
-          WebkitBackdropFilter: scrollDepth > 20 ? 'blur(24px) saturate(180%)' : 'blur(12px) saturate(150%)',
+          background: `rgba(10, 10, 10, ${0.7 + headerOpacity * 0.25})`,
+          backdropFilter: 'blur(20px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(160%)',
           borderBottom: `1px solid rgba(255,255,255,${0.05 + headerOpacity * 0.05})`,
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          {/* Left: Logo */}
+          <Link to="/" className="flex items-center flex-shrink-0">
             <motion.img
               src="/logo.png"
               alt="SOUND IT"
-              className="h-7 w-auto object-contain"
+              className="h-6 w-auto object-contain"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ filter: 'drop-shadow(0 0 8px rgba(211,218,12,0.3))' }}
+              style={{ filter: 'drop-shadow(0 0 6px rgba(211,218,12,0.35))' }}
             />
           </Link>
 
-          {/* Center — Location Pill */}
+          {/* Center: Date + Location */}
           <button
             onClick={() => setShowCitySheet(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill-premium text-xs font-medium text-gray-300 active:scale-95 transition-transform"
+            className="flex flex-col items-center active:scale-95 transition-transform"
           >
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
+            <span className="text-[10px] text-gray-500 font-medium leading-none mb-0.5">
+              {dayStr}, {dateStr}
+            </span>
+            <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3 text-[#d3da0c]" />
-            </motion.span>
-            <span className="max-w-[5rem] truncate">{currentCity.name.split(' ')[0]}</span>
-            <ChevronDown className="w-3 h-3 opacity-60" />
+              <span className="text-white text-[13px] font-semibold leading-none">{currentCity.name.split(' ')[0]}</span>
+              <ChevronDown className="w-3 h-3 text-gray-500" />
+            </div>
           </button>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-2">
+          {/* Right: Cart + Notifications + Avatar */}
+          <div className="flex items-center gap-1.5">
             {isAuthenticated && (
               <>
                 {/* Cart */}
                 <Link
                   to="/cart"
-                  className="relative w-9 h-9 rounded-full glass-pill-premium flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform"
+                  className="relative w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-gray-400 active:scale-90 transition-transform"
                 >
                   <ShoppingCart className="w-4 h-4" />
                   {cartItemsCount > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full flex items-center justify-center"
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-[#d3da0c] text-black text-[8px] font-bold rounded-full flex items-center justify-center"
                     >
                       {cartItemsCount > 9 ? '9+' : cartItemsCount}
                     </motion.span>
@@ -170,31 +175,32 @@ const MobileHeader = () => {
               </>
             )}
 
-            {/* Avatar with gradient ring */}
+            {/* Avatar */}
             <button
               onClick={() => setShowDrawer(true)}
-              className="relative w-9 h-9 rounded-full flex items-center justify-center overflow-hidden active:scale-90 transition-transform"
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden active:scale-90 transition-transform"
             >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[2px]">
-                <div className="w-full h-full rounded-full bg-[#0A0A0F] p-[2px]">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[1.5px]">
+                <div className="w-full h-full rounded-xl bg-[#0A0A0A] p-[1.5px]">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
                       alt=""
-                      className="w-full h-full rounded-full object-cover"
+                      className="w-full h-full rounded-xl object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/default-avatar.png';
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
-                      <User className="w-4 h-4 text-black" />
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#d3da0c]/20 to-[#FF2D8F]/20 flex items-center justify-center">
+                      <User className="w-4 h-4 text-[#d3da0c]" />
                     </div>
                   )}
                 </div>
               </div>
-              {/* Online dot */}
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00E676] rounded-full border-2 border-[#0A0A0F]" />
+              {isAuthenticated && (
+                <span className="absolute bottom-0 right-0 w-2 h-2 bg-[#00E676] rounded-full border-[1.5px] border-[#0A0A0A]" />
+              )}
             </button>
           </div>
         </div>
@@ -269,7 +275,7 @@ const MobileHeader = () => {
                       key={item.label}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
+                      transition={{ delay: i * 0.04 }}
                       onClick={() => {
                         trigger('light');
                         item.onClick();

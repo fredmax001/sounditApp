@@ -605,14 +605,14 @@ const Community = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-[#141414] rounded-2xl border border-white/10 overflow-hidden"
+                  className="bg-[#141414] rounded-xl border border-white/10 overflow-hidden"
                 >
                   {/* Post Header */}
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
+                  <div className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
                         <AvatarImage src={post.user.avatar_url || ''} />
-                        <AvatarFallback className="bg-[#d3da0c] text-black">
+                        <AvatarFallback className="bg-[#d3da0c] text-black text-xs">
                           {getInitials(post.user.first_name, post.user.last_name)}
                         </AvatarFallback>
                       </Avatar>
@@ -645,13 +645,13 @@ const Community = () => {
 
                   {/* Title */}
                   {post.title && (
-                    <div className="px-4 pb-2">
-                      <h4 className="text-white font-semibold text-lg">{post.title}</h4>
+                    <div className="px-3 pb-1">
+                      <h4 className="text-white font-semibold text-base">{post.title}</h4>
                     </div>
                   )}
 
                   {/* Badges */}
-                  <div className="px-4 pb-3 flex flex-wrap gap-2">
+                  <div className="px-3 pb-2 flex flex-wrap gap-2">
                     {post.section && (
                       <div className="inline-flex items-center gap-1.5 bg-white/10 text-white px-3 py-1 rounded-full text-xs">
                         <FolderOpen className="w-3.5 h-3.5" />
@@ -667,8 +667,8 @@ const Community = () => {
                   </div>
 
                   {/* Post Content */}
-                  <div className="px-4 pb-3">
-                    <p className="text-white whitespace-pre-wrap">
+                  <div className="px-3 pb-2">
+                    <p className="text-white text-sm whitespace-pre-wrap">
                       {expandedPosts[post.id]
                         ? post.content
                         : post.content.slice(0, 300)
@@ -686,8 +686,8 @@ const Community = () => {
 
                   {/* Post Media */}
                   {mediaItems.length > 0 && (
-                    <div className="px-4 pb-3">
-                      <div className={`grid gap-2 rounded-xl overflow-hidden ${mediaItems.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+                    <div className="px-3 pb-2">
+                      <div className={`grid gap-1.5 rounded-lg overflow-hidden ${mediaItems.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                         {mediaItems.map((media, idx) => (
                           media.type === 'image' ? (
                             <img
@@ -710,7 +710,7 @@ const Community = () => {
                   )}
 
                   {/* Post Stats */}
-                  <div className="px-4 py-2 flex items-center justify-between text-white/50 text-sm">
+                  <div className="px-3 py-1.5 flex items-center justify-between text-white/50 text-[11px]">
                     <div className="flex gap-4">
                       <span>{post.likes_count || 0} {t('community.likes')}</span>
                       <span className="flex items-center gap-1">
@@ -727,25 +727,25 @@ const Community = () => {
                   <Separator className="bg-white/10" />
 
                   {/* Action Buttons */}
-                  <div className="p-2 flex items-center justify-around">
+                  <div className="p-1 flex items-center justify-around">
                     <Button
                       variant="ghost"
                       onClick={() => handleLike(post)}
-                      className={`flex-1 min-h-[44px] ${post.has_liked ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
+                      className={`flex-1 min-h-[36px] h-9 text-xs ${post.has_liked ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
                     >
-                      <Heart className={`w-5 h-5 mr-2 ${post.has_liked ? 'fill-current' : ''}`} />{t('community.like')}</Button>
+                      <Heart className={`w-4 h-4 mr-1.5 ${post.has_liked ? 'fill-current' : ''}`} />{t('community.like')}</Button>
                     <Button
                       variant="ghost"
                       onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
-                      className="flex-1 min-h-[44px] text-gray-400 hover:text-white"
+                      className="flex-1 min-h-[36px] h-9 text-xs text-gray-400 hover:text-white"
                     >
-                      <MessageCircle className="w-5 h-5 mr-2" />{t('community.comment')}</Button>
+                      <MessageCircle className="w-4 h-4 mr-1.5" />{t('community.comment')}</Button>
                     <Button
                       variant="ghost"
                       onClick={() => openShareModal(post.id)}
-                      className="flex-1 min-h-[44px] text-gray-400 hover:text-white"
+                      className="flex-1 min-h-[36px] h-9 text-xs text-gray-400 hover:text-white"
                     >
-                      <Share2 className="w-5 h-5 mr-2" />{t('community.share')}</Button>
+                      <Share2 className="w-4 h-4 mr-1.5" />{t('community.share')}</Button>
                   </div>
 
                   {/* Comments Section */}

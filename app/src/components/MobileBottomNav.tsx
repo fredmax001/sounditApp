@@ -1,10 +1,11 @@
 /**
- * Mobile Bottom Navigation — Premium Floating Glass Dock (2025)
- * Detached pill shape with glassmorphism, spring animations, brand accents.
+ * Mobile Bottom Navigation — Eventix-inspired 5-tab dock
+ * Clean flat bar: Home | Discover | Ticket | Saved | Profile
+ * Dashboard roles retain their own nav sets.
  */
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useStaffStore } from '@/store/staffStore';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +15,7 @@ import {
   Home,
   Calendar,
   MessageCircle,
-  MapPin,
+  Compass,
   User,
   ScanLine,
   LayoutDashboard,
@@ -22,6 +23,7 @@ import {
   Store,
   ShoppingBag,
   BarChart3,
+  Bookmark,
   Users,
 } from 'lucide-react';
 
@@ -94,7 +96,6 @@ const MobileBottomNav = () => {
       ];
     }
 
-    // Regular users — floating glass dock layout
     if (isStaffScanner) {
       return [
         { path: '/', label: t('nav.home') || 'Home', icon: Home },
@@ -105,11 +106,12 @@ const MobileBottomNav = () => {
       ];
     }
 
+    // Regular users — Eventix-style: Home | Discover | Tickets | Saved | Profile
     return [
       { path: '/', label: t('nav.home') || 'Home', icon: Home },
-      { path: '/events', label: t('nav.events') || 'Events', icon: Calendar },
-      { path: '/community', label: t('nav.community') || 'Community', icon: MessageCircle },
-      { path: '/discovery', label: t('nav.discovery') || 'Discovery', icon: MapPin },
+      { path: '/discovery', label: t('nav.discovery') || 'Discover', icon: Compass },
+      { path: '/tickets', label: t('nav.myTickets') || 'Ticket', icon: Ticket },
+      { path: '/favorites', label: t('nav.favorites') || 'Saved', icon: Bookmark },
       { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
     ];
   }, [isBusiness, isArtist, isVendor, isAdmin, isStaffScanner, t]);
@@ -124,15 +126,15 @@ const MobileBottomNav = () => {
     navigate(path);
   };
 
-  // Dashboard roles use the existing anchored nav style
   const isDashboardRole = isBusiness || isArtist || isVendor || isAdmin;
 
+  /* ── Dashboard roles: anchored bottom bar ── */
   if (isDashboardRole) {
     return (
       <>
-        <nav className="fixed bottom-0 left-0 right-0 z-50 mobile-bottom-nav">
+        <nav className="fixed bottom-0 left-0 right-0 z-50">
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#111111] to-[#111111]/95 border-t border-white/10" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d3da0c]/40 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d3da0c]/30 to-transparent" />
           <div className="relative flex items-end justify-around max-w-lg mx-auto px-2 pt-2 pb-safe">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -160,22 +162,17 @@ const MobileBottomNav = () => {
                   key={item.path}
                   onClick={() => handleNavClick(item.path)}
                   className={`relative flex flex-col items-center justify-center min-w-[48px] min-h-[48px] rounded-xl touch-feedback ${
-                    active ? 'text-[#d3da0c]' : 'text-gray-400'
+                    active ? 'text-[#d3da0c]' : 'text-gray-500'
                   }`}
                   aria-label={item.label}
                 >
+                  <Icon className={`w-5 h-5 relative z-10 transition-all ${active ? 'scale-110 mb-0.5' : ''}`} strokeWidth={active ? 2.5 : 2} />
                   {active && (
-                    <motion.div
-                      layoutId="bottomNavPillDash"
-                      className="absolute inset-0 bg-[#d3da0c]/10 rounded-xl"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
+                    <span className="text-[10px] font-medium mt-0.5 relative z-10 text-[#d3da0c]">
+                      {item.label}
+                    </span>
                   )}
-                  <Icon className={`w-5 h-5 relative z-10 ${active ? 'scale-110' : ''}`} strokeWidth={active ? 2.5 : 2} />
-                  <span className={`text-[10px] font-medium mt-0.5 relative z-10 ${active ? 'text-[#d3da0c]' : 'text-gray-400'}`}>
-                    {item.label}
-                  </span>
-                  {active && <div className="absolute -bottom-0.5 w-1 h-1 bg-[#d3da0c] rounded-full" />}
+                  {active && <div className="absolute -bottom-1.5 w-1 h-1 bg-[#d3da0c] rounded-full" />}
                 </button>
               );
             })}
@@ -186,11 +183,24 @@ const MobileBottomNav = () => {
     );
   }
 
-  // Regular users — Floating Glass Dock
+  /* ── Regular users — Eventix-style flat bottom bar ── */
   return (
     <>
-      <nav className="floating-nav">
-        <div className="flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 z-50">
+        {/* Background */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'rgba(10, 10, 10, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+          }}
+        />
+        {/* Lime accent line at top */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d3da0c]/25 to-transparent" />
+
+        <div className="relative flex items-center justify-around max-w-lg mx-auto pb-safe">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -199,56 +209,47 @@ const MobileBottomNav = () => {
               <button
                 key={item.path}
                 onClick={() => handleNavClick(item.path)}
-                className="relative flex flex-col items-center justify-center py-1 px-2 min-w-[52px]"
+                className="relative flex flex-col items-center justify-center flex-1 py-3 min-h-[56px] touch-feedback"
                 aria-label={item.label}
               >
-                {/* Active background */}
+                {/* Active indicator pill behind icon */}
                 {active && (
                   <motion.div
-                    layoutId="floatingNavIndicator"
-                    className="absolute inset-0 bg-[#d3da0c]/15 rounded-2xl border border-[#d3da0c]/20"
-                    transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                    layoutId="nav-active-pill"
+                    className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-8 rounded-xl bg-[#d3da0c]/12"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
 
                 {/* Icon */}
                 <motion.div
-                  animate={active ? { scale: 1.15, y: -2 } : { scale: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  animate={active ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 >
                   <Icon
-                    className={`w-5 h-5 relative z-10 transition-colors duration-200 ${
-                      active ? 'text-[#d3da0c]' : 'text-white/50'
+                    className={`w-[22px] h-[22px] transition-colors duration-150 ${
+                      active ? 'text-[#d3da0c]' : 'text-white/35'
                     }`}
-                    strokeWidth={active ? 2.5 : 1.5}
+                    strokeWidth={active ? 2.5 : 1.75}
                   />
                 </motion.div>
 
-                {/* Label */}
+                {/* Label — always visible */}
                 <span
-                  className={`text-[9px] font-medium mt-0.5 relative z-10 transition-colors duration-200 ${
-                    active ? 'text-[#d3da0c]' : 'text-white/40'
+                  className={`text-[10px] font-medium mt-1 transition-colors duration-150 ${
+                    active ? 'text-[#d3da0c]' : 'text-white/35'
                   }`}
                 >
                   {item.label}
                 </span>
-
-                {/* Active dot */}
-                {active && (
-                  <motion.div
-                    layoutId="floatingNavDot"
-                    className="absolute -bottom-0.5 w-1 h-1 bg-[#d3da0c] rounded-full"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
               </button>
             );
           })}
         </div>
       </nav>
 
-      {/* Spacer for floating nav */}
-      <div className="h-24" />
+      {/* Spacer */}
+      <div className="h-20" />
     </>
   );
 };

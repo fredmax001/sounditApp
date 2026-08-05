@@ -292,6 +292,9 @@ def serve_admin_dashboard():
     raise HTTPException(status_code=404, detail="Admin dashboard not found")
 
 
+from api.meta_tags import get_dynamic_meta_html
+from fastapi.responses import HTMLResponse, FileResponse
+
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")
 def serve_frontend(path: str):
@@ -302,15 +305,21 @@ def serve_frontend(path: str):
     
     # Production build lives in app/dist/; fallback to dist/ for backward compatibility
     for dist_dir in ("app/dist", "dist"):
-        # Serve actual files from dist (images, etc.)
+        # Serve actual files from dist (images, logos, js/css, etc.)
         file_path = os.path.join(dist_dir, path)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return FileResponse(file_path)
         
-        # Serve index.html for all other routes (SPA routing)
+        # Serve index.html for all other routes (SPA routing) with dynamic OpenGraph meta tags
         index_path = os.path.join(dist_dir, "index.html")
         if os.path.exists(index_path):
-            return FileResponse(index_path)
+            try:
+                with open(index_path, "r", encoding="utf-8") as f:
+                    index_content = f.read()
+                dynamic_html = get_dynamic_meta_html(path, index_content)
+                return HTMLResponse(content=dynamic_html, status_code=200)
+            except Exception:
+                return FileResponse(index_path)
     
     raise HTTPException(status_code=404, detail="Frontend not built")
 

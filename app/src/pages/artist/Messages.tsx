@@ -147,6 +147,9 @@ export default function Messages() {
   // Handle active conversation selection
   useEffect(() => {
     if (activeConversation) {
+      // Clear unread count locally for instant UI update
+      setConversations(prev => prev.map(c => c.id === activeConversation.id ? { ...c, unread_count: 0 } : c));
+
       fetchMessages(activeConversation.id);
       
       // Clear previous polling
