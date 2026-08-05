@@ -459,7 +459,7 @@ const Profile = () => {
               id: profile.id,
               title: displayName,
               subtitle: (profile.role || 'User').toUpperCase(),
-              image: profile.avatar_url,
+              image: profile.avatar_url || (profile as any).avatar || (profile as any).artist_profile?.avatar_url || (profile as any).vendor_profile?.logo_url,
               location: profile.city?.name,
               description: profile.bio
             }}

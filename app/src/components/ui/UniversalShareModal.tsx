@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
@@ -9,15 +9,22 @@ import {
   Copy,
   Share2,
   Download,
-  MessageCircle,
   Sparkles,
-  ExternalLink,
   QrCode,
   Calendar,
   MapPin,
-  Tag,
-  Check
+  Check,
+  Image as ImageIcon
 } from 'lucide-react';
+import {
+  WeChatIcon,
+  WhatsAppIcon,
+  IMessageIcon,
+  XIcon,
+  InstagramIcon,
+  TikTokIcon,
+  RedNoteIcon
+} from './SocialMediaIcons';
 
 export interface ShareableItem {
   type: 'event' | 'artist' | 'vendor' | 'business' | 'user';
@@ -56,6 +63,16 @@ export default function UniversalShareModal({
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sounditent.com';
   
+  // Resolve image URL cleanly
+  const resolveImageUrl = (imgUrl?: string) => {
+    if (!imgUrl) return '/logo.png';
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://') || imgUrl.startsWith('data:')) {
+      return imgUrl;
+    }
+    const clean = imgUrl.startsWith('/') ? imgUrl.substring(1) : imgUrl;
+    return `${origin}/${clean}`;
+  };
+
   // Construct canonical route URL based on item type
   const getItemPath = () => {
     switch (item.type) {
@@ -74,8 +91,7 @@ export default function UniversalShareModal({
   };
 
   const shareUrl = item.url || `${origin}${getItemPath()}`;
-  const displayImage = item.image || '/logo.png';
-  const cleanDescription = (item.description || '').replace(/<[^>]+>/g, '').trim();
+  const displayImage = resolveImageUrl(item.image);
 
   // Formatted share message text
   const getShareText = () => {
@@ -93,7 +109,7 @@ export default function UniversalShareModal({
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    toast.success(t('common.linkCopied') || 'Link copied to clipboard!');
+    toast.success(t('common.linkCopied', 'Link copied to clipboard!'));
     setTimeout(() => setCopied(false), 2500);
   };
 
@@ -110,7 +126,7 @@ export default function UniversalShareModal({
         return;
       }
     } catch {
-      // Fallback to browser web share
+      // Fallback
     }
 
     if (navigator.share) {
@@ -185,6 +201,11 @@ export default function UniversalShareModal({
       ctx.fillStyle = pinkGlow;
       ctx.fillRect(0, 0, 1080, 1440);
 
+      // Sanitized description for the poster
+      const cleanDescription = item.description
+        ? item.description.replace(/<[^>]*>/g, '').trim()
+        : '';
+
       // Top Sound It Header Brand Bar
       ctx.fillStyle = '#d3da0c';
       ctx.font = 'bold 36px sans-serif';
@@ -192,99 +213,233 @@ export default function UniversalShareModal({
 
       ctx.fillStyle = '#888888';
       ctx.font = '24px sans-serif';
-      ctx.fillText('• EVENTIX PLATFORM', 270, 100);
+      ctx.fillText('• ENTERTAINMENT PLATFORM', 270, 100);
 
-      // Load Image function
+      // Robust Image Loader (Tries CORS anonymous first, then fallback without crossOrigin)
       const loadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => resolve(img);
-          img.onerror = () => reject(new Error('Failed to load image'));
+          img.onerror = () => {
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => resolve(fallbackImg);
+            fallbackImg.onerror = () => reject(new Error('Failed to load image'));
+            fallbackImg.src = src;
+          };
           img.src = src;
         });
       };
 
-      // Poster Image Box
+      // Draw Main Avatar / Image Section on Poster
+      const isProfileType = item.type === 'artist' || item.type === 'user' || item.type === 'vendor' || item.type === 'business';
       let imgLoaded = false;
-      if (item.image) {
-        try {
-          const img = await loadImage(item.image);
-          ctx.save();
-          // Rounded rect clipping path
-          const x = 80, y = 140, w = 920, h = 580, r = 32;
+      const targetImageSrc = resolveImageUrl(item.image);
+
+      if (isProfileType) {
+        // --- PROFILE / ARTIST / VENDOR / BUSINESS POSTER LAYOUT ---
+        const avatarX = 340, avatarY = 130, avatarW = 400, avatarH = 400, r = 32;
+
+        if (targetImageSrc) {
+          try {
+            const img = await loadImage(targetImageSrc);
+            ctx.save();
+            ctx.shadowColor = 'rgba(211, 218, 12, 0.4)';
+            ctx.shadowBlur = 30;
+
+            ctx.beginPath();
+            ctx.moveTo(avatarX + r, avatarY);
+            ctx.arcTo(avatarX + avatarW, avatarY, avatarX + avatarW, avatarY + avatarH, r);
+            ctx.arcTo(avatarX + avatarW, avatarY + avatarH, avatarX, avatarY + avatarH, r);
+            ctx.arcTo(avatarX, avatarY + avatarH, avatarX, avatarY, r);
+            ctx.arcTo(avatarX, avatarY, avatarX + avatarW, avatarY, r);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, avatarX, avatarY, avatarW, avatarH);
+            ctx.restore();
+            imgLoaded = true;
+          } catch {}
+        }
+
+        if (!imgLoaded) {
+          ctx.fillStyle = '#1A1A1A';
           ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(img, x, y, w, h);
-          ctx.restore();
-          imgLoaded = true;
-        } catch {
-          // Fallback if image fails cross-origin
+          ctx.roundRect(avatarX, avatarY, avatarW, avatarH, 32);
+          ctx.fill();
+          ctx.fillStyle = '#d3da0c';
+          ctx.font = 'bold 72px sans-serif';
+          ctx.fillText(item.title.substring(0, 2).toUpperCase(), avatarX + 150, avatarY + 230);
         }
-      }
 
-      if (!imgLoaded) {
-        ctx.fillStyle = '#1A1A1A';
+        // 1. Category Pill Badge
+        const badgeY = 560;
+        ctx.fillStyle = 'rgba(211, 218, 12, 0.2)';
         ctx.beginPath();
-        ctx.roundRect(80, 140, 920, 580, 32);
+        ctx.roundRect(80, badgeY, 200, 44, 22);
         ctx.fill();
+        ctx.strokeStyle = 'rgba(211, 218, 12, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
         ctx.fillStyle = '#d3da0c';
-        ctx.font = 'bold 72px sans-serif';
-        ctx.fillText(item.title.substring(0, 2).toUpperCase(), 480, 450);
-      }
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(item.type.toUpperCase(), 110, badgeY + 29);
 
-      // Category / Type Pill Badge
-      ctx.fillStyle = 'rgba(211, 218, 12, 0.2)';
-      ctx.beginPath();
-      ctx.roundRect(80, 760, 220, 48, 24);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(211, 218, 12, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        // 2. Main Title
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 52px sans-serif';
+        ctx.fillText(item.title, 80, 660);
 
-      ctx.fillStyle = '#d3da0c';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(item.type.toUpperCase(), 110, 792);
+        let currentY = 710;
 
-      // Title
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 56px sans-serif';
-      const maxTitleWidth = 920;
-      let words = item.title.split(' ');
-      let line = '';
-      let yPos = 870;
-      for (let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        let metrics = ctx.measureText(testLine);
-        if (metrics.width > maxTitleWidth && n > 0) {
-          ctx.fillText(line, 80, yPos);
-          line = words[n] + ' ';
-          yPos += 70;
-        } else {
-          line = testLine;
+        // 3. Subtitle / Role / Genre
+        if (item.subtitle) {
+          ctx.fillStyle = '#d3da0c';
+          ctx.font = 'bold 26px sans-serif';
+          ctx.fillText(item.subtitle, 80, currentY);
+          currentY += 45;
         }
-      }
-      ctx.fillText(line, 80, yPos);
-      yPos += 50;
 
-      // Date / Location Details
-      if (item.date) {
-        ctx.fillStyle = '#CCCCCC';
-        ctx.font = '28px sans-serif';
-        ctx.fillText(`📅  ${item.date}`, 80, yPos);
-        yPos += 45;
-      }
-      if (item.location) {
-        ctx.fillStyle = '#CCCCCC';
-        ctx.font = '28px sans-serif';
-        ctx.fillText(`📍  ${item.location}`, 80, yPos);
-        yPos += 45;
+        // 4. Location / City
+        let locationStr = item.location || item.city || '';
+        if (locationStr) {
+          if (!locationStr.toLowerCase().includes('china') && !locationStr.includes('中国')) {
+            locationStr += ', China';
+          }
+          ctx.fillStyle = '#CCCCCC';
+          ctx.font = '26px sans-serif';
+          ctx.fillText(`📍  ${locationStr}`, 80, currentY);
+          currentY += 45;
+        }
+
+        // 5. Price / Booking Fee (if available)
+        if (item.price) {
+          ctx.fillStyle = '#FF2D8F';
+          ctx.font = 'bold 26px sans-serif';
+          ctx.fillText(`🎟️  Fee: ${item.price}`, 80, currentY);
+          currentY += 45;
+        }
+
+        // 6. Bio / Description Quote Card Box
+        if (cleanDescription) {
+          currentY += 15;
+          const cardX = 80, cardY = currentY, cardW = 920, cardH = 190, cardR = 20;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx.beginPath();
+          ctx.roundRect(cardX, cardY, cardW, cardH, cardR);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#DDDDDD';
+          ctx.font = 'italic 24px sans-serif';
+
+          let bioWords = cleanDescription.split(' ');
+          let bioLine = '"';
+          let bioY = cardY + 48;
+          let linesCount = 0;
+
+          for (let n = 0; n < bioWords.length; n++) {
+            let testLine = bioLine + bioWords[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            if (metrics.width > 860 && n > 0) {
+              ctx.fillText(bioLine, cardX + 30, bioY);
+              bioLine = bioWords[n] + ' ';
+              bioY += 38;
+              linesCount++;
+              if (linesCount >= 3) {
+                bioLine += '..."';
+                break;
+              }
+            } else {
+              bioLine = testLine;
+            }
+          }
+          if (linesCount < 3) {
+            ctx.fillText(bioLine.trim() + '"', cardX + 30, bioY);
+          }
+        }
+
+      } else {
+        // --- EVENT POSTER LAYOUT ---
+        const x = 80, y = 140, w = 920, h = 580, r = 32;
+        if (targetImageSrc) {
+          try {
+            const img = await loadImage(targetImageSrc);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, x, y, w, h);
+            ctx.restore();
+            imgLoaded = true;
+          } catch {}
+        }
+
+        if (!imgLoaded) {
+          ctx.fillStyle = '#1A1A1A';
+          ctx.beginPath();
+          ctx.roundRect(x, y, w, h, 32);
+          ctx.fill();
+          ctx.fillStyle = '#d3da0c';
+          ctx.font = 'bold 72px sans-serif';
+          ctx.fillText(item.title.substring(0, 2).toUpperCase(), 480, 450);
+        }
+
+        // Category Pill Badge
+        const badgeY = 760;
+        ctx.fillStyle = 'rgba(211, 218, 12, 0.2)';
+        ctx.beginPath();
+        ctx.roundRect(80, badgeY, 220, 48, 24);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(211, 218, 12, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#d3da0c';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText(item.type.toUpperCase(), 110, badgeY + 32);
+
+        // Event Title
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 56px sans-serif';
+        const maxTitleWidth = 920;
+        let words = item.title.split(' ');
+        let line = '';
+        let yPos = badgeY + 110;
+        for (let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + ' ';
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxTitleWidth && n > 0) {
+            ctx.fillText(line, 80, yPos);
+            line = words[n] + ' ';
+            yPos += 70;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, 80, yPos);
+        yPos += 50;
+
+        // Date / Location Details
+        if (item.date) {
+          ctx.fillStyle = '#CCCCCC';
+          ctx.font = '28px sans-serif';
+          ctx.fillText(`📅  ${item.date}`, 80, yPos);
+          yPos += 45;
+        }
+        if (item.location) {
+          ctx.fillStyle = '#CCCCCC';
+          ctx.font = '28px sans-serif';
+          ctx.fillText(`📍  ${item.location}`, 80, yPos);
+          yPos += 45;
+        }
       }
 
       // Bottom Card Divider
@@ -313,25 +468,71 @@ export default function UniversalShareModal({
       // Scan Call To Action
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 30px sans-serif';
-      ctx.fillText('Scan to View Full Details', 290, 1280);
+      ctx.fillText('Scan QR Code to View', 290, 1280);
 
       ctx.fillStyle = '#888888';
       ctx.font = '24px sans-serif';
       ctx.fillText('Available live on sounditent.com', 290, 1330);
 
-      // Export Canvas to PNG Image Link
+      // Export Canvas to PNG Image
       const imageUri = canvas.toDataURL('image/png');
+      const mime = 'image/png';
+      const bstr = atob(imageUri.split(',')[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      const fileName = `soundit-${item.type}-${item.id}-poster.png`;
+      const file = new File([blob], fileName, { type: mime });
+
+      // 1. Try Web Share API with File (iOS Safari 15+ & Chrome Mobile)
+      // Opens native OS sheet with "Save Image" button to write straight to Photos / Gallery
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Sound It - ${item.title}`,
+            text: `Save poster to Photo Gallery`
+          });
+          toast.success(t('common.posterSavedToGallery', 'Choose "Save Image" to add to your Photo Gallery!'));
+          return;
+        } catch {
+          // User canceled or fallback needed
+        }
+      }
+
+      // 2. Try Capacitor Native App Share Sheet if available
+      try {
+        if (CapShare) {
+          await CapShare.share({
+            title: `Sound It - ${item.title}`,
+            text: `Save poster to Photo Gallery`,
+            url: imageUri,
+            dialogTitle: 'Save Image to Photos / Gallery'
+          });
+          toast.success(t('common.posterSavedToGallery', 'Choose "Save Image" to add to your Photo Gallery!'));
+          return;
+        }
+      } catch {
+        // Fallback
+      }
+
+      // 3. Fallback: Blob URL download for desktop / browsers
+      const blobUrl = URL.createObjectURL(blob);
       const downloadLink = document.createElement('a');
-      downloadLink.download = `soundit-${item.type}-${item.id}-poster.png`;
-      downloadLink.href = imageUri;
+      downloadLink.download = fileName;
+      downloadLink.href = blobUrl;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 
-      toast.success(t('common.posterDownloaded') || 'Share Poster saved to your device!');
+      toast.success(t('common.posterSavedToGallery', 'Poster downloaded to your device!'));
     } catch (err) {
       console.error('Poster generation error:', err);
-      toast.error(t('common.posterError') || 'Failed to download poster image.');
+      toast.error('Failed to download poster image.');
     } finally {
       setIsGeneratingPoster(false);
     }
@@ -352,8 +553,8 @@ export default function UniversalShareModal({
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#171717]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[#d3da0c]" />
-              <h3 className="text-base sm:text-lg font-bold text-white">
-                {t('common.shareItemTitle') || `Share ${item.title}`}
+              <h3 className="text-base sm:text-lg font-bold text-white truncate max-w-[280px]">
+                {t('common.shareItemTitle', { title: item.title, defaultValue: `Share ${item.title}` })}
               </h3>
             </div>
             <button
@@ -368,21 +569,21 @@ export default function UniversalShareModal({
           <div className="flex border-b border-white/5 bg-black/30 p-1">
             <button
               onClick={() => setActiveTab('quick')}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
                 activeTab === 'quick' ? 'bg-[#d3da0c] text-black shadow' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{t('common.quickShare') || 'Quick Share & Links'}</span>
+              <Share2 className="w-4 h-4" />
+              <span>{t('common.quickShare', 'Quick Share & Links')}</span>
             </button>
             <button
               onClick={() => setActiveTab('poster')}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
                 activeTab === 'poster' ? 'bg-[#d3da0c] text-black shadow' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>{t('common.shareCardPoster') || 'Share Card & Poster'}</span>
+              <QrCode className="w-4 h-4" />
+              <span>{t('common.shareCardPoster', 'Share Card & Poster')}</span>
             </button>
           </div>
 
@@ -393,7 +594,7 @@ export default function UniversalShareModal({
               <div className="space-y-4">
                 {/* Item Card Preview */}
                 <div className="flex items-center gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 shrink-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 shrink-0 border border-white/10">
                     <img
                       src={displayImage}
                       alt={item.title}
@@ -406,6 +607,9 @@ export default function UniversalShareModal({
                       {item.type}
                     </span>
                     <h4 className="text-sm font-bold text-white truncate mt-1">{item.title}</h4>
+                    {item.subtitle && (
+                      <p className="text-xs text-gray-400 truncate">{item.subtitle}</p>
+                    )}
                     {item.date && (
                       <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                         <Calendar className="w-3 h-3 text-gray-500" />
@@ -424,7 +628,7 @@ export default function UniversalShareModal({
                 {/* Social Share Grid */}
                 <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
-                    {t('common.shareToSocials') || 'Share to Platform'}
+                    {t('common.shareToSocials', 'Share to Social Media')}
                   </p>
                   <div className="grid grid-cols-4 gap-2.5">
                     {/* WeChat */}
@@ -432,7 +636,7 @@ export default function UniversalShareModal({
                       onClick={() => setActiveTab('poster')}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#07C160]/10 hover:bg-[#07C160]/20 border border-[#07C160]/20 transition-all text-[#07C160]"
                     >
-                      <MessageCircle className="w-6 h-6" />
+                      <WeChatIcon className="w-6 h-6 text-[#07C160]" />
                       <span className="text-[11px] font-medium text-white">WeChat</span>
                     </button>
 
@@ -441,7 +645,7 @@ export default function UniversalShareModal({
                       onClick={shareToWhatsApp}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/20 transition-all text-[#25D366]"
                     >
-                      <MessageCircle className="w-6 h-6" />
+                      <WhatsAppIcon className="w-6 h-6 text-[#25D366]" />
                       <span className="text-[11px] font-medium text-white">WhatsApp</span>
                     </button>
 
@@ -450,7 +654,7 @@ export default function UniversalShareModal({
                       onClick={shareToSMS}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all text-blue-400"
                     >
-                      <MessageCircle className="w-6 h-6" />
+                      <IMessageIcon className="w-6 h-6 text-blue-400" />
                       <span className="text-[11px] font-medium text-white">iMessage</span>
                     </button>
 
@@ -459,36 +663,34 @@ export default function UniversalShareModal({
                       onClick={shareToX}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white"
                     >
-                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                      </svg>
+                      <XIcon className="w-5 h-5 text-white" />
                       <span className="text-[11px] font-medium text-white">X</span>
                     </button>
 
                     {/* Instagram */}
                     <button
-                      onClick={() => handlePlatformPosterShare('Instagram', 'Poster downloaded & link copied! Upload to Feed or Story.')}
+                      onClick={() => handlePlatformPosterShare('Instagram', 'Poster saved & link copied! Upload to Story or Feed.')}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-purple-500/15 via-pink-500/15 to-orange-500/15 hover:opacity-90 border border-pink-500/30 transition-all text-pink-400"
                     >
-                      <Sparkles className="w-6 h-6 text-pink-400" />
+                      <InstagramIcon className="w-6 h-6 text-pink-400" />
                       <span className="text-[11px] font-medium text-white">Instagram</span>
                     </button>
 
                     {/* TikTok / Douyin */}
                     <button
-                      onClick={() => handlePlatformPosterShare('TikTok / 抖音', 'Poster saved & link copied! Add to your video post.')}
+                      onClick={() => handlePlatformPosterShare('TikTok / 抖音', 'Poster saved & link copied! Attach to your video post.')}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#00f2fe]/10 hover:bg-[#00f2fe]/20 border border-[#00f2fe]/20 transition-all text-[#00f2fe]"
                     >
-                      <Sparkles className="w-6 h-6 text-[#ff0050]" />
+                      <TikTokIcon className="w-6 h-6 text-[#ff0050]" />
                       <span className="text-[11px] font-medium text-white">TikTok/抖音</span>
                     </button>
 
                     {/* RedNote (Xiaohongshu) */}
                     <button
-                      onClick={() => handlePlatformPosterShare('RedNote / 小红书', 'Poster saved & link copied! Create your Note on RedNote.')}
+                      onClick={() => handlePlatformPosterShare('RedNote / 小红书', 'Poster saved & link copied! Publish Note on RedNote.')}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#ff2442]/10 hover:bg-[#ff2442]/20 border border-[#ff2442]/20 transition-all text-[#ff2442]"
                     >
-                      <Tag className="w-6 h-6 text-[#ff2442]" />
+                      <RedNoteIcon className="w-6 h-6 text-[#ff2442]" />
                       <span className="text-[11px] font-medium text-white">小红书</span>
                     </button>
 
@@ -497,7 +699,7 @@ export default function UniversalShareModal({
                       onClick={handleNativeShare}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#d3da0c]/10 hover:bg-[#d3da0c]/20 border border-[#d3da0c]/20 transition-all text-[#d3da0c]"
                     >
-                      <Share2 className="w-6 h-6" />
+                      <Share2 className="w-6 h-6 text-[#d3da0c]" />
                       <span className="text-[11px] font-medium text-white">More</span>
                     </button>
                   </div>
@@ -512,7 +714,7 @@ export default function UniversalShareModal({
                       className="px-3 py-1.5 bg-[#d3da0c] text-black text-xs font-bold rounded-lg hover:bg-[#bbc10b] transition-colors flex items-center gap-1 shrink-0"
                     >
                       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? t('common.copied') || 'Copied!' : t('common.copy') || 'Copy'}</span>
+                      <span>{copied ? t('common.copied', 'Copied!') : t('common.copyLink', 'Copy Link')}</span>
                     </button>
                   </div>
                 </div>
@@ -535,15 +737,15 @@ export default function UniversalShareModal({
                     </span>
                   </div>
 
-                  {/* Poster Image */}
-                  <div className="relative h-44 rounded-xl overflow-hidden mb-3 border border-white/10">
+                  {/* Poster Image / Avatar Container */}
+                  <div className="relative rounded-xl overflow-hidden mb-3 border border-white/10 bg-black/60 flex items-center justify-center min-h-[180px]">
                     <img
                       src={displayImage}
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      className={`object-cover ${item.type === 'event' ? 'w-full h-48' : 'w-36 h-36 rounded-2xl my-3 shadow-2xl border-2 border-[#d3da0c]/40'}`}
                       onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
                       <div>
                         <h3 className="text-base font-bold text-white line-clamp-1">{item.title}</h3>
@@ -571,8 +773,8 @@ export default function UniversalShareModal({
                   {/* QR Code Section */}
                   <div className="flex items-center justify-between pt-3 border-t border-white/10 bg-black/40 p-3 rounded-xl">
                     <div>
-                      <p className="text-xs font-bold text-white">Scan QR Code</p>
-                      <p className="text-[11px] text-gray-400">View live details on Sound It</p>
+                      <p className="text-xs font-bold text-white">{t('common.scanQrCode', 'Scan QR Code')}</p>
+                      <p className="text-[11px] text-gray-400">{t('common.scanQrToView', 'View live details on Sound It')}</p>
                     </div>
 
                     <div className="w-16 h-16 bg-white p-1 rounded-lg shrink-0 flex items-center justify-center">
@@ -594,16 +796,16 @@ export default function UniversalShareModal({
                   className="w-full py-3 bg-[#d3da0c] text-black font-bold text-sm rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
                 >
                   <Download className="w-4 h-4" />
-                  <span>{isGeneratingPoster ? (t('common.generatingPoster') || 'Generating Poster...') : (t('common.downloadPoster') || 'Download HD Share Poster')}</span>
+                  <span>{isGeneratingPoster ? (t('common.generatingPoster', 'Generating Poster...')) : (t('common.downloadPoster', 'Save Poster to Gallery'))}</span>
                 </button>
 
-                {/* WeChat / Instagram Sharing Guidance Box */}
+                {/* WeChat / Social Media Sharing Tip */}
                 <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-2.5">
-                  <MessageCircle className="w-4 h-4 text-[#07C160] shrink-0 mt-0.5" />
+                  <ImageIcon className="w-4 h-4 text-[#d3da0c] shrink-0 mt-0.5" />
                   <div className="text-xs text-gray-300 leading-relaxed">
-                    <p className="font-semibold text-white mb-0.5">WeChat, Instagram & Social Sharing Tip:</p>
+                    <p className="font-semibold text-white mb-0.5">Photo Gallery Access & Sharing:</p>
                     <p className="text-gray-400">
-                      Download the HD Share Poster above to share directly on <strong>WeChat Moments (朋友圈)</strong>, <strong>Instagram Stories</strong>, <strong>TikTok/抖音</strong>, or <strong>Xiaohongshu (小红书)</strong> with instant QR code scanning.
+                      {t('common.wechatShareTip', 'Saving the poster stores the image in your Photo Gallery / Downloads. Allow gallery access if prompted by your phone.')}
                     </p>
                   </div>
                 </div>

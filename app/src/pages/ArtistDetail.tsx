@@ -1577,7 +1577,7 @@ const ArtistDetail = () => {
             id: artist.id,
             title: artist.stage_name,
             subtitle: (artist.artist_type || 'Artist').toUpperCase(),
-            image: artist.avatar_url,
+            image: artist.avatar_url || (artist as any).user?.avatar_url || (artist as any).press_kit_photo || (artist as any).cover_image,
             location: artist.city,
             description: artist.bio,
             price: (artist as any).performance_fee ? `¥${(artist as any).performance_fee}` : ((artist as any).hourly_rate ? `¥${(artist as any).hourly_rate}` : undefined),

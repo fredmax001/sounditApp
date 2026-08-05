@@ -6,43 +6,34 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null
+    hasError: false
   };
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+  public static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log error details internally; do not expose them in the UI
     console.error('Uncaught error:', error, errorInfo);
-    this.setState({ error, errorInfo });
   }
 
   public render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
-          <div className="bg-[#111111] border border-red-500/30 rounded-xl p-8 max-w-2xl w-full">
+          <div className="bg-[#111111] border border-red-500/30 rounded-xl p-8 max-w-md w-full text-center">
             <h1 className="text-2xl font-bold text-red-400 mb-4">Something went wrong</h1>
-            <div className="bg-black/50 rounded-lg p-4 mb-4 overflow-auto">
-              <p className="text-red-300 font-mono text-sm mb-2">{this.state.error?.toString()}</p>
-              {this.state.errorInfo && (
-                <pre className="text-gray-400 text-xs mt-4 whitespace-pre-wrap">
-                  {this.state.errorInfo.componentStack}
-                </pre>
-              )}
-            </div>
+            <p className="text-gray-400 mb-6">
+              We're sorry, but an unexpected error occurred. Please try refreshing the page or contact support if the problem persists.
+            </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#bbc10b]"
+              className="px-6 py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
             >
               Reload Page
             </button>

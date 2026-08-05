@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, Float, ForeignKey, Text, Enum, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, Float, ForeignKey, Text, Enum, JSON, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -249,6 +249,7 @@ class User(Base):
     # Refresh tokens (for persistent sessions)
     refresh_token = Column(String(255), unique=True, nullable=True, index=True)
     refresh_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+    last_login = Column(DateTime(timezone=True), nullable=True, index=True)
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -725,7 +726,7 @@ class Product(Base):
     __tablename__ = "products"
     
     id = Column(Integer, primary_key=True, index=True)
-    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"))
+    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), index=True)
     
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
@@ -746,7 +747,7 @@ class Product(Base):
     sort_order = Column(Integer, default=0)
     
     # Event-specific product (nullable = general catalog)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -785,8 +786,8 @@ class VendorOrder(Base):
     __tablename__ = "vendor_orders"
     
     id = Column(Integer, primary_key=True, index=True)
-    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    vendor_id = Column(Integer, ForeignKey("vendor_profiles.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
     
     # Customer info
@@ -873,9 +874,9 @@ class BookingRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # References
-    artist_id = Column(Integer, ForeignKey("artist_profiles.id"), nullable=False)
+    artist_id = Column(Integer, ForeignKey("artist_profiles.id"), nullable=False, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
-    requester_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    requester_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Status
     status = Column(Enum(BookingStatus), default=BookingStatus.PENDING)
@@ -1014,8 +1015,8 @@ class Conversation(Base):
     __tablename__ = "conversations"
     
     id = Column(Integer, primary_key=True, index=True)
-    participant_1_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    participant_2_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    participant_1_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    participant_2_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -1028,8 +1029,8 @@ class Message(Base):
     __tablename__ = "messages"
     
     id = Column(Integer, primary_key=True, index=True)
-    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     content = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -1188,7 +1189,7 @@ class Event(Base):
     
     # Date & Time
     start_date = Column(DateTime(timezone=True), nullable=False, index=True)
-    end_date = Column(DateTime(timezone=True), nullable=True)
+    end_date = Column(DateTime(timezone=True), nullable=True, index=True)
     
     # Location
     city = Column(Enum(City), nullable=False, index=True)
@@ -1208,11 +1209,11 @@ class Event(Base):
     show_remaining_tickets = Column(Boolean, default=True)
     
     # Stats
-    views_count = Column(Integer, default=0)
-    tickets_sold = Column(Integer, default=0)
+    views_count = Column(Integer, default=0, index=True)
+    tickets_sold = Column(Integer, default=0, index=True)
     
     # Featured status
-    is_featured = Column(Boolean, default=False)
+    is_featured = Column(Boolean, default=False, index=True)
     
     # Social sharing
     share_url = Column(String(500), nullable=True)
@@ -1266,6 +1267,12 @@ class Event(Base):
     # Promoter relationships
     event_promoters = relationship("EventPromoter", back_populates="event")
     promoter_referrals = relationship("PromoterReferral", back_populates="event")
+    
+    # Composite indexes for common event queries
+    __table_args__ = (
+        Index('ix_events_status_start_end', status, start_date, end_date),
+        Index('ix_events_city_status_start', city, status, start_date),
+    )
 
 
 class EventArtist(Base):
@@ -1318,11 +1325,11 @@ class Ticket(Base):
     __tablename__ = "tickets"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"))
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"), index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True, index=True)
     ticket_order_id = Column(Integer, ForeignKey("ticket_orders.id"), nullable=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
     
     # Ticket Info
     ticket_number = Column(String(50), unique=True, nullable=False)
@@ -1356,7 +1363,7 @@ class Order(Base):
     __tablename__ = "orders"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     
     # Order Info
     order_number = Column(String(50), unique=True, nullable=False)
@@ -1378,7 +1385,6 @@ class Order(Base):
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
     verified_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Admin who verified
     verified_at = Column(DateTime(timezone=True), nullable=True)
-    payment_proof_hash = Column(String(64), nullable=True, index=True)  # SHA256 hash to prevent reuse
     rejection_reason = Column(Text, nullable=True)  # If payment rejected
     
     # Refund
@@ -1564,14 +1570,14 @@ class Post(Base):
     __tablename__ = "posts"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Content
     content = Column(Text, nullable=False)
     image_url = Column(String(500), nullable=True)
     
     # Optional event tag
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
     
     # Stats
     likes_count = Column(Integer, default=0)
@@ -1598,8 +1604,8 @@ class Comment(Base):
     __tablename__ = "comments"
     
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Content
     content = Column(Text, nullable=False)
@@ -1621,8 +1627,8 @@ class PostLike(Base):
     __tablename__ = "post_likes"
     
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
@@ -1632,6 +1638,7 @@ class PostLike(Base):
     
     # Unique constraint - one like per user per post
     __table_args__ = (
+        UniqueConstraint('post_id', 'user_id', name='uq_post_likes_post_user'),
         {'sqlite_autoincrement': True},
     )
 
@@ -1685,7 +1692,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)
@@ -2161,10 +2168,10 @@ class CommunityLike(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Post being liked
-    post_id = Column(Integer, ForeignKey("community_posts.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("community_posts.id"), nullable=False, index=True)
     
     # User who liked
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     
     # Guest liker info
     guest_id = Column(String(64), nullable=True, index=True)
@@ -2178,6 +2185,7 @@ class CommunityLike(Base):
     
     # Unique constraint: one like per user per post
     __table_args__ = (
+        UniqueConstraint('post_id', 'user_id', name='uq_community_likes_post_user'),
         {'sqlite_autoincrement': True},
     )
 
@@ -2325,8 +2333,8 @@ class TicketOrder(Base):
     __tablename__ = "ticket_orders"
     
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Payment proof
     payment_screenshot = Column(String(500), nullable=False)

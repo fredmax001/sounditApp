@@ -64,6 +64,12 @@ class RateLimiter:
         except Exception as e:
             logger.error(f"Redis connection failed: {e}")
             self.redis_client = None
+            if not settings.DEBUG:
+                # Redis is required for rate limiting in production
+                logger.critical(
+                    "Redis is unavailable in production. Rate limiting will not function correctly. "
+                    "Install/start Redis or set REDIS_URL to a valid Redis instance."
+                )
     
     def _memory_clean(self, key: str, cutoff: float):
         """Remove expired entries from in-memory store."""
@@ -262,16 +268,43 @@ class RateLimiter:
         return f"{client_ip}:{user_id}"
     
     def _get_client_ip(self, request: Request) -> str:
-        """Get real client IP considering proxies"""
+        """
+        Get real client IP considering trusted proxies.
+        
+        If TRUSTED_PROXIES is set, only trust X-Forwarded-For entries added by
+        those proxies. Otherwise fall back to the direct connection IP.
+        """
+        trusted_proxies = set()
+        if settings.TRUSTED_PROXIES:
+            trusted_proxies = {p.strip() for p in settings.TRUSTED_PROXIES.split(",") if p.strip()}
+        
+        direct_ip = request.client.host if request.client else "unknown"
+        
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return forwarded.split(",")[0].strip()
+            # X-Forwarded-For is client, proxy1, proxy2, ...
+            # Take the rightmost address that is not a trusted proxy, up to TRUSTED_PROXY_COUNT.
+            ips = [ip.strip() for ip in forwarded.split(",")]
+            chain = [direct_ip] + ips
+            
+            # Walk from the right (closest to the app) skipping trusted proxies
+            skip_count = max(1, settings.TRUSTED_PROXY_COUNT)
+            candidate = direct_ip
+            for ip in reversed(chain):
+                if ip in trusted_proxies or ip == "unknown":
+                    continue
+                candidate = ip
+                skip_count -= 1
+                if skip_count <= 0:
+                    break
+            return candidate if candidate != "unknown" else direct_ip
         
         real_ip = request.headers.get("X-Real-IP")
         if real_ip:
-            return real_ip
+            if not trusted_proxies or direct_ip in trusted_proxies:
+                return real_ip
         
-        return request.client.host if request.client else "unknown"
+        return direct_ip
     
     def _is_async(self, func) -> bool:
         """Check if function is async"""
@@ -321,8 +354,39 @@ limiter = RateLimiter()
 def setup_rate_limiting(app):
     """Setup rate limiting middleware for FastAPI app"""
     
+    # Public read-only paths exempt from the global default rate limit
+    EXEMPT_PATHS = {
+        "/health",
+        "/api/v1/system/status",
+        "/",
+        "/sitemap.xml",
+    }
+    EXEMPT_PREFIXES = (
+        "/static/",
+        "/assets/",
+        "/uploads/",
+    )
+    
     @app.middleware("http")
-    async def add_rate_limit_headers(request: Request, call_next):
+    async def global_rate_limit_middleware(request: Request, call_next):
+        path = request.url.path
+        
+        # Skip rate limiting for public static/read-only assets
+        if path in EXEMPT_PATHS or path.startswith(EXEMPT_PREFIXES):
+            return await call_next(request)
+        
+        # Apply a sane global default limit to all other routes
+        identifier = limiter._get_identifier(request)
+        allowed, remaining, reset_time = limiter.is_allowed(
+            identifier, path, RATE_LIMITS["api"]["default"]
+        )
+        if not allowed:
+            logger.warning(
+                f"Global rate limit exceeded for {identifier} on {path}"
+            )
+            raise RateLimitExceeded(retry_after=reset_time)
+        
+        request.state.rate_limit_remaining = remaining
         response = await call_next(request)
         
         # Add rate limit headers

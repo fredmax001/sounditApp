@@ -26,6 +26,7 @@ import Community from './pages/Community';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Scan from './pages/Scan';
+import NotFound from './pages/NotFound';
 
 // Auth Pages (eager — entry points)
 import Login from './pages/auth/Login';
@@ -228,6 +229,7 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
     <Router>
       <GlobalAudioPlayer />
       <Toaster
@@ -624,11 +626,12 @@ function App() {
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       <PWAInstallPrompt />
       <CookieConsent />
     </Router>
+    </ErrorBoundary>
   );
 }
 

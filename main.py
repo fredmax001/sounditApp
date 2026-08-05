@@ -1,5 +1,9 @@
 import os
 import asyncio
+import logging
+import uuid
+import traceback
+from contextvars import ContextVar
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,14 +14,35 @@ from config import get_settings
 from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
+from utils.logging_config import setup_logging
 from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, assistant
 import api.reviews as reviews
 import api.messaging as messaging
 import api.verification as verification
 import api.sms_test as sms_test
-# monitoring module temporarily disabled
+import api.monitoring as monitoring
 
 settings = get_settings()
+
+# ─── Structured Logging ─────────────────────────────────────────────────────
+setup_logging(settings.LOG_LEVEL, settings.LOG_FILE)
+logger = logging.getLogger(__name__)
+
+# Request ID context var for correlation
+request_id_var: ContextVar[str] = ContextVar("request_id", default="")
+
+# ─── Sentry Error Tracking (Optional) ───────────────────────────────────────
+if settings.SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            traces_sample_rate=0.2,
+            profiles_sample_rate=0.1,
+        )
+        logger.info("Sentry error tracking initialized")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Sentry: {e}")
 
 # ─── Security: Strong Secret Validation ─────────────────────────────────────
 _WEAK_SECRETS = {
@@ -37,12 +62,12 @@ def _validate_secrets():
         warnings.append("JWT_SECRET is weak or using default value. Set a strong random secret.")
     
     if warnings:
-        print("\n" + "=" * 60)
-        print("SECURITY WARNING — Production secrets are weak!")
-        print("=" * 60)
+        logger.warning("=" * 60)
+        logger.warning("SECURITY WARNING — Production secrets are weak!")
+        logger.warning("=" * 60)
         for w in warnings:
-            print(f"  • {w}")
-        print("=" * 60 + "\n")
+            logger.warning(f"  • {w}")
+        logger.warning("=" * 60)
         # Don't crash, but warn loudly. In a future version, raise RuntimeError.
 
 _validate_secrets()
@@ -68,11 +93,11 @@ async def _auto_cancel_worker():
                 from services.ticketing_service import cancel_stale_orders
                 count = cancel_stale_orders(db, hours=24)
                 if count > 0:
-                    print(f"[auto-cancel] Cancelled {count} stale ticket order(s)")
+                    logger.info(f"[auto-cancel] Cancelled {count} stale ticket order(s)")
             finally:
                 db.close()
         except Exception as e:
-            print(f"[auto-cancel] Error: {e}")
+            logger.error(f"[auto-cancel] Error: {e}")
 
 
 @asynccontextmanager
@@ -87,7 +112,7 @@ async def lifespan(app: FastAPI):
         try:
             os.makedirs("/var/www/soundit-uploads", exist_ok=True)
         except PermissionError:
-            print("[warn] Cannot create /var/www/soundit-uploads — ensure the directory exists in production")
+            logger.warning("[warn] Cannot create /var/www/soundit-uploads — ensure the directory exists in production")
     
     # Start background auto-cancel worker
     task = asyncio.create_task(_auto_cancel_worker())
@@ -108,6 +133,70 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# ─── Global Exception Handlers ──────────────────────────────────────────────
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+def _error_response(request: Request, status_code: int, message: str, code: str = None) -> JSONResponse:
+    request_id = request_id_var.get() or str(uuid.uuid4())
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "error": {
+                "code": code or "error",
+                "message": message,
+                "request_id": request_id,
+                "path": request.url.path,
+            }
+        }
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    logger.warning(
+        f"HTTP {exc.status_code} at {request.url.path}: {exc.detail}",
+        extra={"request_id": request_id_var.get(), "status_code": exc.status_code}
+    )
+    return _error_response(request, exc.status_code, str(exc.detail))
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(
+        f"Validation error at {request.url.path}: {exc.errors()}",
+        extra={"request_id": request_id_var.get()}
+    )
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "validation_error",
+                "message": "Request validation failed",
+                "details": exc.errors(),
+                "request_id": request_id_var.get() or str(uuid.uuid4()),
+                "path": request.url.path,
+            }
+        }
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    request_id = request_id_var.get() or str(uuid.uuid4())
+    logger.error(
+        f"Unhandled exception at {request.url.path}: {exc}",
+        exc_info=True,
+        extra={"request_id": request_id}
+    )
+    return _error_response(
+        request, 500,
+        "An unexpected error occurred. Please try again later.",
+        code="internal_error"
+    )
+
 
 # ─── Security Headers (OWASP) ───────────────────────────────────────────────
 from security.security_headers import setup_security_headers
@@ -133,15 +222,14 @@ if _settings.DEBUG:
         "http://localhost:5173",
     ]
 else:
-    # Production: Allow both global and China domains + Capacitor mobile apps
+    # Production: Allow only own domains + Capacitor mobile apps.
+    # NOTE: localhost origins are intentionally removed in production.
     ALLOWED_ORIGINS = [
         "https://sounditent.com",
         "https://www.sounditent.com",
         "https://app.sounditent.com",
         "https://sounditent.cn",
         "https://www.sounditent.cn",
-        "http://localhost",
-        "https://localhost",
         "capacitor://localhost",
     ]
 
@@ -153,6 +241,20 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
     expose_headers=["X-Total-Count"]
 )
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Attach a request ID for logging correlation."""
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    token = request_id_var.set(request_id)
+    request.state.request_id = request_id
+    try:
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+    finally:
+        request_id_var.reset(token)
 
 
 @app.middleware("http")
@@ -235,7 +337,7 @@ app.include_router(business.router, prefix="/api/v1")
 app.include_router(recaps.router, prefix="/api/v1")
 app.include_router(artist_dashboard.router, prefix="/api/v1")
 app.include_router(ads.router, prefix="/api/v1")
-# app.include_router(monitoring.router, prefix="/api/v1")
+app.include_router(monitoring.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(subscriptions.router, prefix="/api/v1")
 app.include_router(ticketing.router, prefix="/api/v1")

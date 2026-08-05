@@ -7,9 +7,9 @@ Wants=postgresql.service redis.service
 Type=exec
 User=nginx
 Group=nginx
-WorkingDirectory=/var/www/soundit
+WorkingDirectory=/var/www/soundit/current
 Environment=PATH=/var/www/soundit/venv/bin
-EnvironmentFile=/var/www/soundit/.env
+EnvironmentFile=/var/www/soundit/current/.env
 ExecStart=/var/www/soundit/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 4
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always

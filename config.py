@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_HOURS: int = 24
     
+    # Password reset token signing (falls back to JWT_SECRET if empty)
+    RESET_TOKEN_SECRET: str = ""
+    
     # OTP
     OTP_EXPIRATION_MINUTES: int = 5
     
@@ -90,6 +93,14 @@ class Settings(BaseSettings):
     SIA_MAX_UPLOAD_SIZE: int = 10_485_760  # 10 MB
     OPENAI_API_KEY: str = ""  # Optional: enables GPT fallback for complex extractions
     OPENAI_MODEL: str = "gpt-4o-mini"  # Cost-effective model for extraction/chat
+    
+    # Logging & Monitoring
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "logs/app.log"
+    SENTRY_DSN: str = ""  # Optional: Sentry error tracking
+    ERROR_WEBHOOK_URL: str = ""  # Optional: webhook for critical alerts
+    TRUSTED_PROXIES: str = ""  # Comma-separated list of trusted proxy IPs
+    TRUSTED_PROXY_COUNT: int = 1  # Number of trusted proxies in front of the app
     
 
     class Config:

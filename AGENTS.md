@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-08-05
+2026-08-06
 
 ---
 
@@ -26,6 +26,48 @@
 ---
 
 ## Completed Audits & Fixes
+
+### 61. Pre-Deployment Security & Operations Hardening (2026-08-06)
+- **Problem**: A full pre-deployment audit against the 9-item checklist found blockers across authorization, password-reset tokens, input validation, CORS, rate limiting, error handling, database indexes, logging/monitoring, and rollback strategy.
+- **Fixes Applied**:
+  - **Authorization / IDOR (`api/payments.py`)**: Added `_get_user_organizer_ids()` and `_require_event_checkin_access()` helpers covering direct organizer profiles, business-linked organizers, and active `StaffMember` assignments. `GET /payments/tickets/validate/{ticket_number}` and `POST /payments/tickets/{ticket_id}/check-in` now require organizer/staff/admin access. Fixed broken field references (`tier_id` → `ticket_tier_id`, removed non-existent `holder_name`/`holder_email`/`checked_in_by`).
+  - **Password Reset Token Security (`api/auth_password.py`, `api/auth.py`, `config.py`, `.env.example`)**: Reset tokens now use `secrets.token_urlsafe(32)` and are stored as HMAC-SHA256 hashes (with `secrets.compare_digest` comparison). Added `RESET_TOKEN_SECRET` setting. Tokens are cleared on successful password reset, password change, and login. Inactive/non-existent accounts return the same generic message to prevent email enumeration. `GET /auth/verify-reset-token` is now rate-limited.
+  - **Admin Privilege Separation (`api/admin.py`)**: Destructive lifecycle endpoints (`suspend_user`, `ban_user`, verify/unverify/freeze/unfreeze/activate user, approve/reject/cancel/feature event, verify/approve business/artist/vendor, refund payment) now require `SUPER_ADMIN`. Added self-target guards to `suspend_user`/`ban_user`.
+  - **Global Error Handling (`main.py`, `app/src/App.tsx`, `app/src/components/ErrorBoundary.tsx`, `app/src/pages/NotFound.tsx`)**: Added structured exception handlers for HTTP, validation, and catch-all errors with `request_id` correlation. Replaced silent `/` redirect with a dedicated `NotFound` page. Wrapped the entire `<Router>` in `<ErrorBoundary>`. Removed stack-trace leakage from the error fallback UI.
+  - **Structured Logging & Sentry (`utils/logging_config.py`, `main.py`, `config.py`)**: Added JSON rotating-file + console logging configured from `LOG_LEVEL`/`LOG_FILE`. Integrated conditional Sentry init from `SENTRY_DSN`. Replaced `print()` calls in `main.py` with logger calls.
+  - **CORS (`main.py`)**: Removed `http://localhost` and `https://localhost` from the production origin list.
+  - **Rate Limiting (`security/rate_limiter.py`, `api/auth.py`)**: Added trusted-proxy-aware `X-Forwarded-For` parsing (`TRUSTED_PROXIES`, `TRUSTED_PROXY_COUNT`). Added a global default 100/min middleware covering all non-exempt routes. Added tighter per-endpoint limits to `/auth/refresh`, `/auth/me`, `/auth/google/login`, `/auth/wechat/login`, and `/auth/roles`.
+  - **Security Monitoring Wiring (`security/monitoring.py`, `api/monitoring.py`, `api/auth.py`, `main.py`)**: Fixed `import secrets` ordering bug in `security/monitoring.py`. Rewrote `api/monitoring.py` to import from `security.monitoring` and expose real alert/online-user/revenue endpoints. Re-enabled the monitoring router in `main.py`. Wired `detect_brute_force`, `detect_suspicious_login`, and `audit_log` into login and registration flows.
+  - **Deployment Safety (`deploy/`)**: Created `deploy/deploy_safe.sh` (versioned release deploy with health gates, migration runner, symlink switch, and last-5-release pruning), `deploy/rollback.sh`, and `deploy/health_check.sh`. Added `limit_req_zone` definitions to `deploy/nginx_sounditent.conf`. Updated `deploy/sounditent.service` to use `/var/www/soundit/current`. Deprecated the destructive `deploy/deploy_sounditent.sh` with a warning comment.
+- **Verification**: `python3 -m py_compile main.py api/*.py models.py utils/*.py security/*.py scripts/migrate_indexes.py` passes. `npm run build` passes. TestClient smoke test confirms `GET /health` returns `{"status":"healthy"}`. Existing `tests/test_security_fixes.py` has a pre-existing import error (`get_password_hash` not exported from `auth.py`) unrelated to these changes.
+- **Production Deploy (2026-08-06)**: Deployed to `72.62.254.251` using `deploy/deploy_safe.sh`. Migrations ran successfully; all indexes created. Initial restart hit a permission issue because the root-run smoke test created root-owned log files; fixed by `chown -R nginx:nginx /var/www/soundit/current/logs` and restarting. `deploy/deploy_safe.sh` was updated to pre-chown log files after the smoke test. `https://sounditent.com/health` returns `HTTP 200 {"status":"healthy"}`.
+
+### 60. Database Performance Indexes & Unique Constraints (2026-08-06)
+- **Problem**: Many hot foreign keys and filter/sort columns lacked indexes, causing slow queries. The `orders` table had a duplicate `payment_proof_hash` column. The `users.last_login` column was referenced by `api/auth.py` but did not exist in `models.py`.
+- **Fixes Applied**:
+  - `models.py`: Added `index=True` to hot columns on `events`, `products`, `vendor_orders`, `ticket_orders`, `tickets`, `orders`, `notifications`, `messages`, `conversations`, `posts`, `comments`, `post_likes`, `community_likes`, and `booking_requests`. Added `users.last_login` with `index=True`. Added composite indexes `ix_events_status_start_end` and `ix_events_city_status_start`. Added unique constraints `uq_post_likes_post_user` and `uq_community_likes_post_user`. Removed the duplicate `payment_proof_hash` definition from `Order`.
+  - `scripts/migrate_indexes.py` (new): Idempotent migration script that adds the missing column, indexes, and constraints for SQLite and PostgreSQL, with `--rollback` support.
+- **Verification**: `python3 -m py_compile models.py scripts/migrate_indexes.py` passes. Tested migrate/rollback on in-memory SQLite for both fresh (`Base.metadata.create_all`) and legacy (manually created old schema) databases.
+
+### 59. SIA & Media Upload Security Fixes (2026-08-06)
+- **Problem**: SIA upload endpoints (`/assistant/extract-event`, `/assistant/extract-products`) saved files with arbitrary extensions, no size enforcement, no MIME whitelist, and no malware scan. The media delete endpoint only verified a file was inside the upload directory, not that it belonged to the requesting user.
+- **Fixes Applied**:
+  - `api/assistant.py`: Added `_validate_upload_file()` helper that enforces `settings.SIA_MAX_UPLOAD_SIZE` (default 10 MB), whitelists `image/*` and `application/pdf`, maps MIME types to safe extensions, and scans files via `security.file_security.FileSecurityScanner`. Updated `_save_uploaded_file()` to use the validated safe extension instead of the original extension. Applied validation in `extract-event` and `extract-products` before saving.
+  - `api/media.py`: Updated `DELETE /media/delete` to verify the resolved file path lies within the current user's folder (`uploads/{user_id}`), returning 403 otherwise; added the same ownership check for S3 keys.
+- **Verification**: `python3 -m py_compile api/assistant.py api/media.py` passes.
+
+### 58. Universal Share Modal — Authentic Social Icons, Avatar Resolution, Translation Keys, and Gallery Saving (2026-08-05)
+- **Problem**: 
+  1. Profile/Artist/Vendor avatars were falling back to default platform logo on shared cards/posters.
+  2. Raw translation keys (`common.quickShare`, `common.shareItemTitle`, `common.shareCardPoster`, `COMMON.SHARETOSOCIALS`) were visible in the UI.
+  3. Social platform buttons used generic Lucide icons instead of authentic platform brand SVGs.
+  4. Clarification requested on poster downloads & native gallery saving location.
+- **Fixes Applied**:
+  - **Avatar Resolution (`UniversalShareModal.tsx`)**: Created robust `resolveImageUrl` helper and dual-mode CORS canvas loader. Profile cards (Artist, Vendor, Business, User) render a dedicated rounded avatar frame (`500x500`) with glow outline on posters.
+  - **Translations (`en.json`, `zh.json`, `fr.json`)**: Added missing keys for `shareItemTitle`, `quickShare`, `shareCardPoster`, `shareToSocials`, `downloadPoster`, `generatingPoster`, `posterSavedToGallery`, `scanQrToView`, `copyLink`, `linkCopied`, `wechatShareTip`, and provided fallback defaults in React.
+  - **Authentic Social Icons (`SocialMediaIcons.tsx`)**: Created authentic brand SVGs for **WeChat (微信)**, **WhatsApp**, **iMessage**, **X (Twitter)**, **Instagram**, **TikTok / Douyin (抖音)**, and **RedNote (小红书)**.
+  - **Gallery Saving**: Integrated HTML5 Canvas Blob generation with `navigator.share({ files: [file] })` (Web Share API). On iOS Safari & Android Mobile, tapping **"Save Poster to Gallery"** brings up the native OS share sheet with **"Save Image"** right at the top, which prompts for Photos permission and saves directly to Camera Roll / Photo Gallery. Added desktop fallback download.
+- **Verification**: `npm run build` passes; Capacitor synced; `SoundIt-Android-debug.apk` built; `app/dist/` deployed live to production (`72.62.254.251`).
 
 ### 57. Universal Social Media Sharing System & Dynamic OpenGraph Meta Tags (2026-08-05)
 - **Problem**: 

@@ -332,7 +332,7 @@ export default function VendorDetail() {
             id: vendor.id,
             title: vendor.business_name,
             subtitle: (vendor.vendor_type || 'Vendor').toUpperCase(),
-            image: vendor.logo_url || vendor.banner_url,
+            image: vendor.logo_url || vendor.banner_url || (vendor as any).user?.avatar_url,
             location: vendor.city || vendor.address,
             description: vendor.description,
             rating: vendor.rating

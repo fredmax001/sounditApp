@@ -457,7 +457,7 @@ export default function PublicProfile() {
               id: profile.id,
               title: displayName,
               subtitle: role.toUpperCase(),
-              image: profile.avatar_url,
+              image: profile.avatar_url || (profile as any).business_profile?.avatar_url || (profile as any).vendor_profile?.logo_url || (profile as any).artist_profile?.avatar_url,
               location: profile.city,
               description: profile.bio || profile.organizer_profile?.description || profile.business_profile?.description || profile.vendor_profile?.description
             }}

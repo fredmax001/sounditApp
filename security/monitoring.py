@@ -8,6 +8,7 @@ Integrates with audit logs to detect suspicious patterns.
 
 import json
 import logging
+import secrets
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
@@ -439,6 +440,3 @@ def default_alert_handler(alert: SecurityAlert):
 
 
 security_monitor.register_alert_handler(default_alert_handler)
-
-
-import secrets

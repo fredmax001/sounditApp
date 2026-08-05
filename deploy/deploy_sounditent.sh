@@ -1,5 +1,18 @@
 #!/bin/bash
 # ============================================================
+# ⚠️  DEPRECATED — DESTRUCTIVE FRESH DEPLOY
+#
+# This script performs a destructive fresh deploy: it stops the
+# service, removes /var/www/soundit, and rebuilds from scratch.
+# It also contains a hardcoded password and uses sshpass.
+#
+# For safe, versioned deployments with rollback support, use:
+#     deploy/deploy_safe.sh
+#
+# Only use this script if you intentionally want to wipe the
+# server and start over. You have been warned.
+# ============================================================
+#
 # Sound It - Fresh Production Deploy Script for sounditent.com
 # Target: root@72.62.254.251
 # Domain: sounditent.com
