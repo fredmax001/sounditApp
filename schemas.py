@@ -107,31 +107,36 @@ class BookingStatus(str, Enum):
 
 class UserBase(BaseModel):
     email: Optional[Any] = None
-    phone: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    username: Optional[str] = None
-    avatar_url: Optional[str] = None
-    background_url: Optional[str] = None
-    bio: Optional[str] = None
-    instagram: Optional[str] = None
-    twitter: Optional[str] = None
-    wechat_id: Optional[str] = None
-    website: Optional[str] = None
-    preferred_city: Optional[str] = None  # Changed from City enum to str
-    city_id: Optional[str] = None  # Frontend sends city_id, maps to preferred_city
-    preferred_language: str = "en"
+    phone: Optional[str] = Field(None, max_length=30)
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    username: Optional[str] = Field(None, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=1000)
+    background_url: Optional[str] = Field(None, max_length=1000)
+    bio: Optional[str] = Field(None, max_length=2000)
+    instagram: Optional[str] = Field(None, max_length=255)
+    twitter: Optional[str] = Field(None, max_length=255)
+    wechat_id: Optional[str] = Field(None, max_length=100)
+    website: Optional[str] = Field(None, max_length=500)
+    preferred_city: Optional[str] = Field(None, max_length=100)  # Changed from City enum to str
+    city_id: Optional[str] = Field(None, max_length=100)  # Frontend sends city_id, maps to preferred_city
+    preferred_language: str = Field("en", max_length=10)
     foreigner_mode: Optional[bool] = False
     role: UserRole = UserRole.USER
-    city: Optional[str] = None  # Changed from City enum to str
+    city: Optional[str] = Field(None, max_length=100)  # Changed from City enum to str
     
     @field_validator('email', mode='before')
     @classmethod
     def validate_email(cls, v):
         if v is None:
             return v
-        # Accept any string as email (bypass Pydantic email validation)
-        return str(v) if v else None
+        v_str = str(v).strip()
+        if not v_str:
+            return None
+        import re
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v_str):
+            raise ValueError("Invalid email format")
+        return v_str.lower()
     
     def get_preferred_city(self) -> Optional[str]:
         """Returns the preferred city from either city_id or preferred_city"""
@@ -141,7 +146,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=6, max_length=128)
 
 
 class UserUpdate(UserBase):
@@ -167,9 +172,9 @@ class UserResponse(UserBase):
 
 
 class UserLogin(BaseModel):
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    password: str
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=30)
+    password: str = Field(..., max_length=128)
 
 
 class Token(BaseModel):
@@ -187,36 +192,47 @@ class TokenData(BaseModel):
 class UserRegistration(BaseModel):
     """User registration - No verification codes required (Beta Launch)"""
     # Required fields for all roles
-    email: str
-    password: str
-    first_name: str
-    last_name: str
-    phone: Optional[str] = None
+    email: str = Field(..., max_length=255)
+    password: str = Field(..., min_length=6, max_length=128)
+    first_name: str = Field(..., max_length=100)
+    last_name: str = Field(..., max_length=100)
+    phone: Optional[str] = Field(None, max_length=30)
     role: UserRole
     
     # Optional fields
     city: Optional[City] = None
-    avatar_url: Optional[str] = None
+    avatar_url: Optional[str] = Field(None, max_length=1000)
     
     # Role-specific fields
     # Business/Artist/Vendor
-    business_name: Optional[str] = None  # Business/Venue/Stage Name
-    business_type: Optional[str] = None  # organizer, club, venue, etc.
+    business_name: Optional[str] = Field(None, max_length=200)  # Business/Venue/Stage Name
+    business_type: Optional[str] = Field(None, max_length=100)  # organizer, club, venue, etc.
     
     # Artist specific
-    artist_type: Optional[str] = None  # DJ, MC, Musician, Band
+    artist_type: Optional[str] = Field(None, max_length=100)  # DJ, MC, Musician, Band
     
     # Vendor specific
-    vendor_type: Optional[str] = None  # food, clothing, merchandise
+    vendor_type: Optional[str] = Field(None, max_length=100)  # food, clothing, merchandise
     
     # Social links (Artist required, others optional)
-    instagram: Optional[str] = None
-    twitter: Optional[str] = None
-    weibo: Optional[str] = None
-    website: Optional[str] = None
+    instagram: Optional[str] = Field(None, max_length=255)
+    twitter: Optional[str] = Field(None, max_length=255)
+    weibo: Optional[str] = Field(None, max_length=255)
+    website: Optional[str] = Field(None, max_length=500)
     
     # Bio (Artist required, others optional)
-    bio: Optional[str] = None
+    bio: Optional[str] = Field(None, max_length=2000)
+
+    @field_validator('email', mode='before')
+    @classmethod
+    def validate_reg_email(cls, v):
+        if not v:
+            raise ValueError("Email is required")
+        v_str = str(v).strip()
+        import re
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v_str):
+            raise ValueError("Invalid email format")
+        return v_str.lower()
 
 
 class RoleSignupConfig(BaseModel):
@@ -633,19 +649,20 @@ class TicketTierResponse(TicketTierBase):
 # ==================== EVENT SCHEMAS ====================
 
 class EventBase(BaseModel):
-    title: str
-    title_cn: Optional[str] = None
-    description: Optional[str] = None
-    description_cn: Optional[str] = None
+    title: str = Field(..., max_length=255)
+    title_cn: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = Field(None, max_length=10000)
+    description_cn: Optional[str] = Field(None, max_length=10000)
     start_date: datetime
     end_date: Optional[datetime] = None
     city: City
-    address: Optional[str] = None
-    capacity: Optional[int] = None
-    event_type: Optional[str] = None
-    refund_policy: Optional[str] = None
+    address: Optional[str] = Field(None, max_length=500)
+    capacity: Optional[int] = Field(None, ge=0)
+    event_type: Optional[str] = Field(None, max_length=100)
+    refund_policy: Optional[str] = Field(None, max_length=2000)
     require_id: Optional[bool] = False
     show_remaining_tickets: Optional[bool] = True
+    ticket_sales_closed: Optional[bool] = False
     tags: Optional[List[str]] = None
 
 
@@ -653,47 +670,44 @@ class EventCreate(EventBase):
     venue_id: Optional[int] = None
     dj_ids: Optional[List[int]] = None
     status: Optional[EventStatus] = None
-    flyer_image: Optional[str] = None
+    flyer_image: Optional[str] = Field(None, max_length=1000)
     gallery_images: Optional[List[str]] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    wechat_qr_url: Optional[str] = None
-    alipay_qr_url: Optional[str] = None
-    ticket_price: Optional[float] = None
-    payment_instructions: Optional[str] = None
-    event_type: Optional[str] = None
-    refund_policy: Optional[str] = None
-    require_id: Optional[bool] = False
-    tags: Optional[List[str]] = None
+    wechat_qr_url: Optional[str] = Field(None, max_length=1000)
+    alipay_qr_url: Optional[str] = Field(None, max_length=1000)
+    ticket_price: Optional[float] = Field(None, ge=0)
+    payment_instructions: Optional[str] = Field(None, max_length=2000)
     promoter_enabled: Optional[bool] = False
-    default_commission_rate: Optional[float] = 10.0
-    default_discount_percent: Optional[float] = 5.0
-    max_discount_amount: Optional[float] = None
+    default_commission_rate: Optional[float] = Field(10.0, ge=0, le=100)
+    default_discount_percent: Optional[float] = Field(5.0, ge=0, le=100)
+    max_discount_amount: Optional[float] = Field(None, ge=0)
 
 
 class EventUpdate(BaseModel):
-    title: Optional[str] = None
-    title_cn: Optional[str] = None
-    description: Optional[str] = None
-    description_cn: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=255)
+    title_cn: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = Field(None, max_length=10000)
+    description_cn: Optional[str] = Field(None, max_length=10000)
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     city: Optional[City] = None
-    address: Optional[str] = None
-    capacity: Optional[int] = None
+    address: Optional[str] = Field(None, max_length=500)
+    capacity: Optional[int] = Field(None, ge=0)
     status: Optional[EventStatus] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    flyer_image: Optional[str] = None
+    flyer_image: Optional[str] = Field(None, max_length=1000)
     gallery_images: Optional[List[str]] = None
-    wechat_qr_url: Optional[str] = None
-    alipay_qr_url: Optional[str] = None
-    ticket_price: Optional[float] = None
-    payment_instructions: Optional[str] = None
-    event_type: Optional[str] = None
-    refund_policy: Optional[str] = None
+    wechat_qr_url: Optional[str] = Field(None, max_length=1000)
+    alipay_qr_url: Optional[str] = Field(None, max_length=1000)
+    ticket_price: Optional[float] = Field(None, ge=0)
+    payment_instructions: Optional[str] = Field(None, max_length=2000)
+    event_type: Optional[str] = Field(None, max_length=100)
+    refund_policy: Optional[str] = Field(None, max_length=2000)
     require_id: Optional[bool] = False
     show_remaining_tickets: Optional[bool] = None
+    ticket_sales_closed: Optional[bool] = None
     tags: Optional[List[str]] = None
     dj_ids: Optional[List[int]] = None
     promoter_enabled: Optional[bool] = False
@@ -721,6 +735,7 @@ class EventResponse(EventBase):
     refund_policy: Optional[str] = None
     require_id: Optional[bool] = False
     show_remaining_tickets: bool = True
+    ticket_sales_closed: bool = False
     tags: Optional[List[str]] = None
     promoter_enabled: bool = False
     default_commission_rate: float = 10.0

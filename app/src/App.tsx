@@ -27,6 +27,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Scan from './pages/Scan';
 import NotFound from './pages/NotFound';
+import OnSiteTools from './pages/OnSiteTools';
+import CheckedInGuests from './pages/CheckedInGuests';
 
 // Auth Pages (eager — entry points)
 import Login from './pages/auth/Login';
@@ -109,7 +111,7 @@ const Analytics = lazy(() => import('./pages/business/Analytics'));
 const OrganizerRecaps = lazy(() => import('./pages/organizer/Recaps'));
 
 // Admin Pages
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminDashboard = lazy(() => import('./pages/admin/DashboardOverview'));
 const ManageUsers = lazy(() => import('./pages/admin/ManageUsers'));
 const ManageArtists = lazy(() => import('./pages/admin/ManageArtists'));
 const ManageVendors = lazy(() => import('./pages/admin/ManageVendors'));
@@ -278,8 +280,15 @@ function App() {
             <Route path="/verification-policy" element={<Suspense fallback={<PageLoader />}><VerificationPolicy /></Suspense>} />
             <Route path="/cart" element={<Suspense fallback={<PageLoader />}><Cart /></Suspense>} />
             <Route path="/checkout/:eventId" element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
+            <Route path="/tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
             {/* <Route path="/assistant" element={<Suspense fallback={<PageLoader />}><Assistant /></Suspense>} /> */}
           </Route>
+
+          {/* Standalone Public Staff & Tool Routes (No platform login required) */}
+          <Route path="/on-site-tools" element={<OnSiteTools />} />
+          <Route path="/on-site-tools/guests" element={<CheckedInGuests />} />
+          <Route path="/scan" element={<Scan />} />
+          <Route path="/validate/:token" element={<Suspense fallback={<PageLoader />}><Validate /></Suspense>} />
 
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>
@@ -297,19 +306,12 @@ function App() {
               <Route path="/profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
               <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
               <Route path="/dashboard/user" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
-              <Route path="/tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
               <Route path="/table-bookings" element={<Suspense fallback={<PageLoader />}><TableBookings /></Suspense>} />
               <Route path="/favorites" element={<Suspense fallback={<PageLoader />}><Favorites /></Suspense>} />
               <Route path="/followers" element={<Suspense fallback={<PageLoader />}><Followers /></Suspense>} />
               <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
               <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
             </Route>
-
-            {/* Scan Page - Works on all devices */}
-            <Route path="/scan" element={<Scan />} />
-
-            {/* Validate Page - QR code validation route */}
-            <Route path="/validate/:token" element={<Suspense fallback={<PageLoader />}><Validate /></Suspense>} />
 
             {/* Dashboard Routes - Auto-switch between Mobile and Desktop layouts */}
 

@@ -185,7 +185,7 @@ const Profile = () => {
 
     try {
       const { session } = useAuthStore.getState();
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/business/profile`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1'}/business/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`,

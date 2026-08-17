@@ -98,12 +98,18 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const [myRoleInfo, setMyRoleInfo] = useState<{ role_name?: string; is_system?: boolean }>({});
+
   const fetchPermissions = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/admins/me/permissions`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
-      if (!res.ok) console.error('Failed to fetch permissions');
+      if (res.ok) {
+        const data = await res.json();
+        setMyRoleInfo(data);
+        useAuthStore.setState({ permissions: data.permissions || [] });
+      }
     } catch (error) {
       console.error('Failed to fetch permissions', error);
     } finally {
@@ -380,6 +386,13 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
             >
               <Settings className="w-4 h-4" />
             </button>
+
+            {myRoleInfo.role_name && (
+              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-[#d3da0c]/10 text-[#d3da0c] rounded-full border border-[#d3da0c]/20 text-xs font-semibold">
+                <Shield className="w-3 h-3" />
+                <span>{myRoleInfo.role_name}</span>
+              </div>
+            )}
 
             <div className="w-8 h-8 bg-gradient-to-br from-[#d3da0c] to-[#a8b009] rounded-full flex items-center justify-center text-black font-bold text-sm cursor-default">
               {profile?.first_name?.[0] || 'A'}

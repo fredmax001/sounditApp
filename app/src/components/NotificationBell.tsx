@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { pushManager } from '@/lib/pushNotifications';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 interface NotificationItem {
   id: number;

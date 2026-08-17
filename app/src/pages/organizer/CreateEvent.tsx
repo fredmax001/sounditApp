@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 interface TicketTierData {
   id: string;

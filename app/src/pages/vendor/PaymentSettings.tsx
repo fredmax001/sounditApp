@@ -5,7 +5,7 @@ import { ArrowLeft, Upload, CreditCard, Check, Loader2, ImageIcon } from 'lucide
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 interface PaymentSettings {
     wechat_qr_url?: string;

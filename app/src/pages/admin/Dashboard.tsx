@@ -85,6 +85,7 @@ interface PendingActionItem {
   type: string;
   title?: string;
   description?: string;
+  action_url?: string;
 }
 
 // Stats Card Component
@@ -630,8 +631,12 @@ const AdminDashboard = () => {
                   </div>
                   <button
                     onClick={() => {
-                      if (action.type === 'event_approval') navigate('/admin/events');
+                      if (action.action_url) navigate(action.action_url);
+                      else if (action.type === 'event_approval') navigate('/admin/events');
                       else if (action.type === 'vendor_approval') navigate('/admin/vendors');
+                      else if (action.type === 'business_approval') navigate('/admin/businesses');
+                      else if (action.type === 'artist_approval') navigate('/admin/artists');
+                      else if (action.type === 'verification_request') navigate('/admin/verification-center');
                       else navigate('/admin/users');
                     }}
                     className="text-[#d3da0c] text-xs font-semibold hover:underline whitespace-nowrap ml-3 shrink-0"

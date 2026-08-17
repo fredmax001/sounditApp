@@ -873,3 +873,111 @@ def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
     )
     return send_email(to_email, subject, body, html)
 
+
+def send_organizer_announcement_email(
+    to_emails: List[str],
+    announcement_title: str,
+    announcement_body: str,
+    organizer_name: str,
+    event_title: Optional[str] = None,
+    event_id: Optional[int] = None
+) -> dict:
+    """Send an organizer broadcast announcement email to multiple recipients."""
+    if not to_emails:
+        return {"sent": 0, "failed": 0}
+
+    subject = f"📢 {announcement_title}"
+    if event_title:
+        subject += f" — {event_title}"
+
+    plain_body = f"Announcement from {organizer_name}:\n\n{announcement_title}\n\n{announcement_body}\n\n— Sound It Platform"
+    
+    event_url = f"https://sounditent.com/events/{event_id}" if event_id else "https://sounditent.com"
+
+    html_content = f"""
+    <div style="text-align: center; margin-bottom: 24px;">
+        <span style="background-color: rgba(211, 218, 12, 0.15); color: #d3da0c; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
+            📢 ORGANIZER ANNOUNCEMENT
+        </span>
+    </div>
+    <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
+        {announcement_title}
+    </h2>
+    {f'<p style="text-align: center; color: #d3da0c; font-size: 14px; font-weight: 600; margin-bottom: 20px;">Event: {event_title}</p>' if event_title else ''}
+    <p style="font-size: 14px; color: #888888; margin-bottom: 20px;">
+        Message from <strong>{organizer_name}</strong>:
+    </p>
+
+    <div style="background-color: #181818; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin: 20px 0;">
+        <p style="font-size: 15px; color: #e1e1e1; line-height: 1.7; white-space: pre-wrap; margin: 0;">
+            {announcement_body}
+        </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0 16px 0;">
+        <a href="{event_url}" class="cta">View Event Details →</a>
+    </div>
+    """
+
+    full_html = _email_wrapper(subject, html_content)
+    return send_broadcast_email(to_emails, subject, plain_body, full_html)
+
+
+def send_admin_role_invite_email(
+    to_email: str,
+    name: str,
+    role_name: str,
+    invite_url: str,
+    assigned_by_name: str = "Administrator"
+) -> bool:
+    """Send an invitation email to a user appointed to an admin role (Finance, Marketing, Community Manager, etc.)."""
+    subject = f"🛡️ You've been invited to join Sound It as {role_name}"
+    
+    plain_body = f"""Hello {name},
+
+You have been appointed to the {role_name} role on Sound It by {assigned_by_name}.
+
+You now have access to the Sound It Admin Workspace tailored to your role.
+
+Access your dashboard here:
+{invite_url}
+
+If you have any questions, please contact your administrator.
+
+— Sound It Platform Team
+"""
+
+    html_content = f"""
+    <div style="text-align: center; margin-bottom: 24px;">
+        <span style="background-color: rgba(211, 218, 12, 0.15); color: #d3da0c; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
+            🛡️ ADMIN ROLE INVITATION
+        </span>
+    </div>
+    <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
+        Welcome to the Team, {name}!
+    </h2>
+    <p style="text-align: center; color: #888888; font-size: 14px; margin-bottom: 24px;">
+        You have been granted <strong>{role_name}</strong> permissions by {assigned_by_name}.
+    </p>
+
+    <div style="background-color: #181818; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin: 20px 0;">
+        <p style="font-size: 14px; color: #e1e1e1; margin: 0 0 12px 0;">
+            <strong>Your Role:</strong> <span style="color: #d3da0c;">{role_name}</span>
+        </p>
+        <p style="font-size: 13px; color: #aaaaaa; margin: 0; line-height: 1.6;">
+            Your account now has direct access to the specialized <strong>{role_name} Dashboard</strong>. When you log in, you will be taken directly to your management workspace.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0 16px 0;">
+        <a href="{invite_url}" class="cta">Access {role_name} Dashboard →</a>
+    </div>
+    <p style="text-align: center; color: #666666; font-size: 12px; margin-top: 16px;">
+        Direct link: <a href="{invite_url}" style="color: #d3da0c;">{invite_url}</a>
+    </p>
+    """
+
+    full_html = _email_wrapper(subject, html_content)
+    return send_email(to_email, subject, plain_body, full_html)
+
+

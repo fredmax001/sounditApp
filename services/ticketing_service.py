@@ -168,7 +168,7 @@ def generate_tickets_from_order(
     
     # If tier exists, increment quantity_sold and update status
     if order.ticket_tier_id:
-        tier = db.query(TicketTier).filter(TicketTier.id == order.ticket_tier_id).first()
+        tier = db.query(TicketTier).filter(TicketTier.id == order.ticket_tier_id).with_for_update().first()
         if tier:
             tier.quantity_sold = (tier.quantity_sold or 0) + tickets_to_generate
             if tier.quantity_sold >= tier.quantity:

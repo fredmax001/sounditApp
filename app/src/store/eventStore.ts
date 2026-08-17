@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import axios from 'axios';
 import { useAuthStore } from './authStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 function getErrorMessage(err: unknown): string {
   if (typeof err === 'string') return err;
@@ -76,6 +76,7 @@ export interface Event {
   tags?: string[];
   ticket_tiers?: TicketTier[];
   show_remaining_tickets?: boolean;
+  ticket_sales_closed?: boolean;
   wechat_qr_url?: string;
   alipay_qr_url?: string;
   ticket_price?: number;
@@ -121,7 +122,7 @@ export interface TicketTier {
   quantity: number;
   quantity_sold: number;
   max_per_order: number;
-  status: 'available' | 'sold_out' | 'limited' | 'paused';
+  status: 'available' | 'sold_out' | 'limited' | 'paused' | 'closed' | 'ended';
   sale_start?: string;
   sale_end?: string;
 }

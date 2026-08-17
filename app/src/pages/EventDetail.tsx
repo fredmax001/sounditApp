@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -204,6 +204,9 @@ export default function EventDetail() {
   }
 
   const hasQrPayment = currentEvent.wechat_qr_url || currentEvent.alipay_qr_url || currentEvent.ticket_price != null || currentEvent.ticket_tiers != null;
+  const eventEndDate = currentEvent.end_date ? new Date(currentEvent.end_date) : (currentEvent.start_date ? new Date(currentEvent.start_date) : null);
+  const isEventPast = eventEndDate ? new Date() > eventEndDate : false;
+  const isSalesClosed = Boolean(currentEvent.ticket_sales_closed || isEventPast || currentEvent.status === 'completed' || currentEvent.status === 'cancelled');
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -586,6 +589,21 @@ export default function EventDetail() {
             {/* Sidebar / Ticket Card */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 bg-[#141414] rounded-2xl p-6 border border-white/5">
+                {isSalesClosed && (
+                  <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                    <p className="font-semibold text-sm flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      {isEventPast 
+                        ? t('eventDetail.eventEnded', 'Event Ended') 
+                        : t('eventDetail.salesClosed', 'Ticket Sales Closed')}
+                    </p>
+                    <p className="text-xs text-red-400/80 mt-1">
+                      {isEventPast 
+                        ? t('eventDetail.eventEndedDesc', 'This event has already ended. Ticket sales are closed.') 
+                        : t('eventDetail.salesClosedDesc', 'Ticket sales for this event have been closed by the organizer.')}
+                    </p>
+                  </div>
+                )}
                 {currentEvent.ticket_tiers && currentEvent.ticket_tiers.length > 0 ? (
                   <>
                     <div className="mb-4">
@@ -593,37 +611,42 @@ export default function EventDetail() {
                         {t('eventDetail.selectTicketType')}
                       </label>
                       <div className="space-y-3">
-                        {currentEvent.ticket_tiers.map((tier) => (
-                          <button
-                            key={tier.id}
-                            disabled={tier.status === 'sold_out'}
-                            onClick={() => setSelectedTierId(String(tier.id))}
-                            className={`w-full p-4 rounded-xl border text-left transition-all disabled:opacity-50 ${
-                              selectedTierId === String(tier.id)
-                                ? 'border-[#d3da0c] bg-[#d3da0c]/10'
-                                : 'border-white/10 bg-white/5 hover:border-white/20'
-                            }`}
-                          >
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-semibold text-white">{tier.name}</span>
-                              <span className="text-[#d3da0c] font-bold">
-                                {tier.currency} {tier.price}
-                              </span>
-                            </div>
-                            <p className="text-white/50 text-xs">
-                              {(tier.status === 'sold_out' || (tier.quantity_sold || 0) >= (tier.quantity || 0))
-                                ? t('eventDetail.soldOut')
-                                : currentEvent.show_remaining_tickets === false
-                                  ? t('eventDetail.ticketsAvailable')
-                                  : `${(tier.quantity || 0) - (tier.quantity_sold || 0)} ${t('eventDetail.ticketsRemaining')}`
-                              }
-                            </p>
-                          </button>
-                        ))}
+                        {currentEvent.ticket_tiers.map((tier) => {
+                          const isTierClosed = tier.status === 'sold_out' || tier.status === 'closed' || tier.status === 'ended' || (tier.sale_end ? new Date() > new Date(tier.sale_end) : false);
+                          return (
+                            <button
+                              key={tier.id}
+                              disabled={isSalesClosed || isTierClosed}
+                              onClick={() => setSelectedTierId(String(tier.id))}
+                              className={`w-full p-4 rounded-xl border text-left transition-all disabled:opacity-50 ${
+                                selectedTierId === String(tier.id)
+                                  ? 'border-[#d3da0c] bg-[#d3da0c]/10'
+                                  : 'border-white/10 bg-white/5 hover:border-white/20'
+                              }`}
+                            >
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-semibold text-white">{tier.name}</span>
+                                <span className="text-[#d3da0c] font-bold">
+                                  {tier.currency} {tier.price}
+                                </span>
+                              </div>
+                              <p className="text-white/50 text-xs">
+                                {isTierClosed
+                                  ? (tier.status === 'closed' || tier.status === 'ended' ? t('eventDetail.salesClosed', 'Sales Closed') : t('eventDetail.soldOut'))
+                                  : currentEvent.show_remaining_tickets === false
+                                    ? t('eventDetail.ticketsAvailable')
+                                    : `${(tier.quantity || 0) - (tier.quantity_sold || 0)} ${t('eventDetail.ticketsRemaining')}`
+                                }
+                              </p>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                     <button
+                      disabled={isSalesClosed}
                       onClick={() => {
+                        if (isSalesClosed) return;
                         if (!selectedTierId) {
                           toast.error(t('eventDetail.pleaseSelectTicketType'));
                           return;
@@ -635,9 +658,17 @@ export default function EventDetail() {
                         }
                         setShowQuantityModal(true);
                       }}
-                      className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer"
+                      className={`w-full py-4 rounded-xl font-semibold transition-colors ${
+                        isSalesClosed
+                          ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
+                          : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b] cursor-pointer'
+                      }`}
                     >
-                      {t('eventDetail.buyTicket')}
+                      {isEventPast 
+                        ? t('eventDetail.eventEnded', 'Event Ended') 
+                        : isSalesClosed 
+                          ? t('eventDetail.salesClosed', 'Sales Closed') 
+                          : t('eventDetail.buyTicket')}
                     </button>
                   </>
                 ) : (
@@ -650,7 +681,9 @@ export default function EventDetail() {
                     </div>
 
                     <button
+                      disabled={isSalesClosed}
                       onClick={() => {
+                        if (isSalesClosed) return;
                         if (!profile) {
                           setPendingAction('ticket');
                           setShowAuthModal(true);
@@ -658,14 +691,18 @@ export default function EventDetail() {
                         }
                         setShowQuantityModal(true);
                       }}
-                      className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors cursor-pointer mb-4"
+                      className={`w-full py-4 rounded-xl font-semibold transition-colors mb-4 ${
+                        isSalesClosed
+                          ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
+                          : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b] cursor-pointer'
+                      }`}
                     >
-                      {t('eventDetail.buyTicket')}
+                      {isEventPast 
+                        ? t('eventDetail.eventEnded', 'Event Ended') 
+                        : isSalesClosed 
+                          ? t('eventDetail.salesClosed', 'Sales Closed') 
+                          : t('eventDetail.buyTicket')}
                     </button>
-
-                    {/* Ticket QR and approval details are intentionally NOT shown here.
-                        They are backend-only and only accessible via the ticket scanner/check-in flow
-                        to prevent fraud and ticket duplication. */}
                   </>
                 )}
 

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 type StaffRole = 'Manager' | 'Cashier' | 'Guest Check-In' | 'Scanner';
 
@@ -56,7 +56,6 @@ const Staff = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [sendEmail, setSendEmail] = useState(false);
   const [addMode, setAddMode] = useState<'new' | 'existing'>('new');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<ExistingUser[]>([]);
@@ -212,6 +211,7 @@ const Staff = () => {
           phone: formData.phone.trim() || null,
           role: formData.role,
           user_id: selectedUser?.id || null,
+          password: formData.password || null,
           permissions: {
             qrScanner: permissions.qrScanner,
             checkedInInfo: permissions.checkedInInfo,
@@ -225,7 +225,7 @@ const Staff = () => {
       }
 
       await fetchStaff();
-      toast.success(t('business.staff.staffAdded') || 'Staff member added successfully');
+      toast.success(t('business.staff.staffAdded') || 'Staff member saved successfully');
       setShowInviteModal(false);
       setFormData({
         fullName: '',
@@ -236,7 +236,6 @@ const Staff = () => {
         role: 'Manager',
       });
       setPermissions({ qrScanner: false, checkedInInfo: false });
-      setSendEmail(false);
       setSelectedUser(null);
       setAddMode('new');
     } catch (err: any) {
@@ -410,7 +409,7 @@ const Staff = () => {
               className="bg-[#111111] rounded-2xl border border-white/10 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">{t('business.staff.inviteModalTitle') || 'Add new Member'}</h3>
+                <h3 className="text-xl font-bold text-white">{t('business.staff.inviteModalTitle') || 'Add Staff Member'}</h3>
                 <button
                   onClick={() => setShowInviteModal(false)}
                   className="p-2 text-gray-500 hover:text-white transition-colors"
@@ -673,16 +672,6 @@ const Staff = () => {
                   </label>
                 </div>
 
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={sendEmail}
-                    onChange={(e) => setSendEmail(e.target.checked)}
-                    className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
-                  />
-                  <span className="text-gray-400 text-sm">{t('business.staff.sendDataToEmail') || 'I want to send data to user email'}</span>
-                </label>
-
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -699,12 +688,12 @@ const Staff = () => {
                     {isInviting ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {t('business.staff.sending')}
+                        {t('business.staff.saving') || 'Saving...'}
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-5 h-5" />
-                        {t('business.staff.sendInvite') || 'Create'}
+                        <Check className="w-5 h-5" />
+                        {t('business.staff.saveStaff') || 'Save Staff'}
                       </>
                     )}
                   </button>

@@ -20,6 +20,9 @@
 
 set -euo pipefail
 
+SSH_PASS="${SSH_PASS:-***REMOVED***}"
+export SSHPASS="$SSH_PASS"
+
 SERVER_USER="root"
 SERVER_HOST="72.62.254.251"
 SERVER_PORT="22"
@@ -42,25 +45,17 @@ trap 'echo ""; echo "[ERR] Deploy failed at line $LINENO. New release $NEW_RELEA
 
 # SSH/SCP helpers that correctly handle password auth via sshpass
 remote() {
-  if [ -n "${SSH_PASS:-}" ]; then
-    sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
-  else
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
-  fi
+  sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
 }
 
 remote_scp() {
   # Usage: remote_scp <local> <remote>
-  if [ -n "${SSH_PASS:-}" ]; then
-    sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "$SERVER_PORT" "$1" "$2"
-  else
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "$SERVER_PORT" "$1" "$2"
-  fi
+  sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -P "$SERVER_PORT" "$1" "$2"
 }
 
 remote_rsync() {
   # Usage: remote_rsync <src> <dest>
-  local ssh_cmd="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SERVER_PORT"
+  local ssh_cmd="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p $SERVER_PORT"
   local rsync_cmd=(rsync -avz -e "$ssh_cmd"
     --exclude='.venv/'
     --exclude='venv/'
@@ -92,11 +87,7 @@ remote_rsync() {
     --exclude='tests/'
     --exclude='cli/'
     "$1" "$2")
-  if [ -n "${SSH_PASS:-}" ]; then
-    sshpass -p "$SSH_PASS" "${rsync_cmd[@]}"
-  else
-    "${rsync_cmd[@]}"
-  fi
+  "${rsync_cmd[@]}"
 }
 
 section() {
@@ -258,11 +249,14 @@ remote "
 echo "▶ Activating new release..."
 remote "ln -sfn '$NEW_RELEASE' '$CURRENT_LINK'"
 
-# ── Step 10: Update systemd service if needed and restart ───
-echo "▶ Restarting soundit service..."
+# ── Step 10: Update systemd service & Nginx config and restart ───
+echo "▶ Updating Nginx config and restarting soundit service..."
 remote "
   set -e
   cp '$NEW_RELEASE/deploy/sounditent.service' /etc/systemd/system/soundit.service
+  cp '$NEW_RELEASE/deploy/nginx_sounditent.conf' /etc/nginx/conf.d/soundit.conf
+  nginx -t
+  systemctl reload nginx
   systemctl daemon-reload
   systemctl restart soundit
   sleep 3

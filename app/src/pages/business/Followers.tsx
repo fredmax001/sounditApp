@@ -13,7 +13,7 @@ interface Follower {
   eventsAttended: number;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 const Followers = () => {
   const { t } = useTranslation();

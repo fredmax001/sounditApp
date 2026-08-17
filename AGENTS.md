@@ -25,7 +25,43 @@
 
 ---
 
-## Completed Audits & Fixes
+### 63. Automated and Manual Ticket Sales Closing System (2026-08-15)
+- **Problem**: 
+  1. Ticket sales remained open for purchasing even after an event's date or end time had passed.
+  2. Organizers had no manual toggle to close or re-open ticket sales on demand.
+  3. Order creation endpoints (`create_ticket_order` in `api/tickets.py` and `create_order` in `api/payments.py`) did not enforce date expiration, ticket tier sales windows, or manual closure status.
+- **Fixes Applied**:
+  - **Database & Schemas (`models.py`, `schemas.py`, `scripts/migrate_indexes.py`)**: Added `ticket_sales_closed = Column(Boolean, default=False, index=True)` to `Event`. Added `CLOSED = "closed"` and `ENDED = "ended"` to `TicketStatus` enum. Updated `EventBase`, `EventUpdate`, `EventResponse`, and `TicketTierResponse` Pydantic schemas. Added idempotent database migration in `scripts/migrate_indexes.py` and applied `ALTER TABLE events ADD COLUMN IF NOT EXISTS ticket_sales_closed BOOLEAN DEFAULT FALSE;` to PostgreSQL database (`soundit_prod`).
+  - **Backend Automated & Manual Enforcement (`api/tickets.py`, `api/payments.py`)**:
+    - In `POST /tickets/order` (`create_ticket_order`) and `POST /payments/orders` (`create_order`), added validation against `event.ticket_sales_closed`, event end/start dates (`now > event_end_time`), `tier.sale_end`, and `tier.status` (`closed`, `ended`, `sold_out`). Blocked orders with standard `HTTP 400 Bad Request` messages if sales are closed.
+    - Added `POST /tickets/events/{event_id}/toggle-sales` to allow event organizers and super admins to manually close or re-open ticket sales at any time.
+    - Added `PUT /tickets/tiers/{tier_id}/status` for updating tier statuses (`available`, `sold_out`, `limited`, `closed`, `ended`).
+  - **Frontend UI & Organizer Controls (`EventDetail.tsx`, `ManageEvents.tsx`, `eventStore.ts`)**:
+    - Updated `eventStore.ts` interfaces (`Event`, `EventWithDetails`, `TicketTier`).
+    - In `EventDetail.tsx`, computed `isEventPast` and `isSalesClosed`. Rendered prominent **"Ticket Sales Closed"** / **"Event Ended"** alert banners, disabled ticket tier selection for closed/ended tiers, and disabled the **"Buy Ticket"** button with clear text indicators when sales are closed.
+    - In `ManageEvents.tsx` (Organizer/Business Dashboard), added a 1-click **"Toggle Ticket Sales"** clock button and a red `"Sales Closed"` badge on event rows.
+- **Verification & Deployment**:
+  - Verified backend compilation (`python3 -m py_compile`), frontend build (`npm run build`), Capacitor Android sync (`npx cap sync android`), and Android Debug APK build (`SoundIt-Android-debug.apk`).
+  - Deployed backend updates and frontend distribution live to `72.62.254.251`. Executed PostgreSQL schema migration. Verified `GET /health` returns `HTTP 200 {"status":"healthy"}` and `GET /api/v1/events/10` returns `"ticket_sales_closed": false`.
+
+### 62. Role-Based Admin Dashboards, Email Invitations, and Pending Actions Fix (2026-08-11)
+- **Problem**: 
+  1. Non-system admin roles (Community Manager, Content Moderator, Finance, Marketing, Support) lacked dedicated, tailored dashboards. When invited or logging in, they needed direct dashboard landing pages tailored to their roles.
+  2. Only Super Admins should be able to create, assign, or invite users to these roles via email.
+  3. "Pending Actions" was querying all unverified users (`User.is_verified == False`), incorrectly displaying users whose verifications had expired or ended.
+- **Fixes Applied**:
+  - **Pending Actions & Verifications Fix (`api/admin.py`)**: Replaced the incorrect `User.is_verified == False` query in `get_dashboard_stats` and `get_pending_actions` with queries targeting active `VerificationRequest(status=PENDING)`, initial unapproved `ArtistProfile`, `OrganizerProfile`, `VendorProfile`, and pending `Event`.
+  - **Admin Roles Management & Email Invitations (`api/admin.py`, `email_service.py`)**:
+    - Added `/admin/admin-roles` (GET, POST, PUT, DELETE), `/admin/admins` (GET), `/admin/admins/me/permissions` (GET), `/admin/users/{id}/assign-role` (POST), and `/admin/admins/invite` (POST).
+    - Built `send_admin_role_invite_email` in `email_service.py` to send role assignment notifications with direct login links.
+    - Added `/admin/verifications` (GET, approve, reject) and `/admin/verification-badge` (users list, direct badge toggle).
+  - **Role-Tailored Frontend Dashboards (`DashboardOverview.tsx`, `AdminLayout.tsx`, `RolePermissions.tsx`)**:
+    - In `DashboardOverview.tsx`, detected the user's non-system role (`Finance`, `Marketing`, `Content Moderator`, `Community Manager`, `Support`) and rendered custom role workspace banners, tailored metrics cards, and role-specific quick action links.
+    - In `AdminLayout.tsx`, added role badge indicators to the header and filtered sidebar menu items according to assigned permissions.
+    - In `RolePermissions.tsx`, added the "Invite Admin" button and email invitation modal dialog.
+- **Verification & Deployment**: 
+  - Backend compile (`python3 -m py_compile`) and frontend build (`npm run build`) passed with zero errors.
+  - Safe versioned production deploy completed successfully via `deploy/deploy_safe.sh` to `72.62.254.251` (Release: `/var/www/soundit/releases/20260812114724`). All `.env` and uploaded media were preserved intact with zero data loss. Health check on port 8000 passed.
 
 ### 61. Pre-Deployment Security & Operations Hardening (2026-08-06)
 - **Problem**: A full pre-deployment audit against the 9-item checklist found blockers across authorization, password-reset tokens, input validation, CORS, rate limiting, error handling, database indexes, logging/monitoring, and rollback strategy.

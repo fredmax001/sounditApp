@@ -4,17 +4,15 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image, Share2, UserPlus
+  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image, Share2, UserPlus, Megaphone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import BroadcastAnnouncementModal from '@/components/BroadcastAnnouncementModal';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
-// ============================================
-// TYPES
-// ============================================
 interface Event {
   id: string;
   title: string;
@@ -64,7 +62,6 @@ const BusinessDashboard = () => {
   const { events, fetchMyEvents } = useEventStore();
   const { stats: dashboardStats, fetchStats, isLoading: statsLoading } = useDashboardStore();
 
-  // Edit Event modal state
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editEventForm, setEditEventForm] = useState({
     title: '',
@@ -77,7 +74,6 @@ const BusinessDashboard = () => {
   const [isUpdatingEvent, setIsUpdatingEvent] = useState(false);
   const [isDeletingEvent, setIsDeletingEvent] = useState(false);
 
-  // Ticket orders
   const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
   const [ticketOrdersLoading, setTicketOrdersLoading] = useState(false);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'used'>('all');
@@ -85,8 +81,12 @@ const BusinessDashboard = () => {
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  const [revenueUnlocked, setRevenueUnlocked] = useState(() => sessionStorage.getItem('biz_revenue_unlocked') === '1');
+  const [showRevenueUnlock, setShowRevenueUnlock] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState('');
+  const [unlockLoading, setUnlockLoading] = useState(false);
 
-  // Open edit modal
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
     setEditEventForm({
@@ -99,20 +99,16 @@ const BusinessDashboard = () => {
     });
   };
 
-  // Update event
   const handleUpdateEvent = async () => {
     if (!session?.access_token || !editingEvent) {
       toast.error(t('business.dashboard.notAuthenticated'));
       return;
     }
-
     if (!editEventForm.title.trim()) {
       toast.error(t('business.dashboard.pleaseEnterEventTitle'));
       return;
     }
-
     setIsUpdatingEvent(true);
-
     try {
       const response = await fetch(`${API_BASE_URL}/events/${editingEvent.id}`, {
         method: 'PUT',
@@ -129,7 +125,6 @@ const BusinessDashboard = () => {
           venue_name: editEventForm.venue_name
         })
       });
-
       if (response.ok) {
         toast.success(t('business.dashboard.eventUpdated'));
         setEditingEvent(null);
@@ -146,18 +141,14 @@ const BusinessDashboard = () => {
     }
   };
 
-  // Delete event
   const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
     if (!session?.access_token) {
       toast.error(t('business.dashboard.notAuthenticated'));
       return;
     }
-
     const confirmed = window.confirm(t('business.dashboard.deleteConfirm', { title: eventTitle }));
     if (!confirmed) return;
-
     setIsDeletingEvent(true);
-
     try {
       const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
         method: 'DELETE',
@@ -166,7 +157,6 @@ const BusinessDashboard = () => {
           'Content-Type': 'application/json'
         }
       });
-
       if (response.ok) {
         toast.success(t('business.dashboard.eventDeleted'));
         fetchMyEvents();
@@ -182,7 +172,6 @@ const BusinessDashboard = () => {
     }
   };
 
-  // Fetch ticket orders
   const fetchTicketOrders = useCallback(async () => {
     if (!session?.access_token) return;
     setTicketOrdersLoading(true);
@@ -209,6 +198,34 @@ const BusinessDashboard = () => {
       setTicketOrdersLoading(false);
     }
   }, [session, ticketFilter, eventFilter, t]);
+
+  const handleUnlockRevenue = async () => {
+    if (!unlockPassword.trim()) return;
+    setUnlockLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: (profile as any)?.email || '',
+          password: unlockPassword,
+        }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem('biz_revenue_unlocked', '1');
+        setRevenueUnlocked(true);
+        setShowRevenueUnlock(false);
+        setUnlockPassword('');
+        toast.success('Revenue unlocked');
+      } else {
+        toast.error('Incorrect password');
+      }
+    } catch {
+      toast.error('Verification failed');
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
 
   const handleApproveOrder = async (orderId: number) => {
     if (!session?.access_token) return;
@@ -272,20 +289,11 @@ const BusinessDashboard = () => {
   }, [ticketFilter, eventFilter]);
 
   const bizStats = dashboardStats?.business_stats;
-
-  // Filter upcoming events for dashboard display
   const now = new Date();
   const upcomingEvents = events.filter((e) => {
     if (e.end_date) return new Date(e.end_date) >= now;
     return new Date(e.start_date) >= now;
   });
-
-  const stats = [
-    { label: t('business.dashboard.totalEvents'), value: bizStats?.total_events || 0, icon: Calendar, color: 'text-blue-400' },
-    { label: t('business.dashboard.ticketsSold'), value: bizStats?.tickets_sold || 0, icon: Ticket, color: 'text-green-400' },
-    { label: t('business.dashboard.totalRevenue'), value: `¥${bizStats?.total_revenue?.toLocaleString() || '0'}`, icon: DollarSign, color: 'text-[#d3da0c]' },
-    { label: t('business.dashboard.pendingArtistPayments'), value: `¥${bizStats?.pending_artist_payments?.toLocaleString() || '0'}`, icon: Wallet, color: 'text-red-400' },
-  ];
 
   if (!profile) {
     return (
@@ -300,7 +308,7 @@ const BusinessDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 lg:pb-10">
-      {/* ── Page Header ── */}
+      {/* Page Header */}
       <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-white/[0.06]">
         <div className="flex items-center justify-between">
           <div>
@@ -317,23 +325,41 @@ const BusinessDashboard = () => {
       </div>
 
       <div className="px-4 py-5 lg:px-10 lg:py-8 space-y-6">
-
-        {/* ── Bento Stats ── */}
+        {/* Bento Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-12 gap-3">
           {/* Featured — Revenue */}
           <div className="col-span-2 lg:col-span-4">
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="h-full bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#d3da0c]/35 transition-all"
+              className="h-full bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#d3da0c]/35 transition-all relative overflow-hidden"
             >
               <div className="p-2.5 bg-[#d3da0c]/15 rounded-xl w-fit">
                 <DollarSign className="w-5 h-5 text-[#d3da0c]" />
               </div>
               <div>
                 <p className="text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('business.dashboard.totalRevenue')}</p>
-                <p className="text-3xl font-bold text-white lg:text-4xl">
-                  {statsLoading ? <Loader2 className="w-7 h-7 animate-spin text-[#d3da0c]" /> : `¥${bizStats?.total_revenue?.toLocaleString() || '0'}`}
-                </p>
+                {revenueUnlocked ? (
+                  <div className="flex items-end justify-between">
+                    <p className="text-3xl font-bold text-white lg:text-4xl">
+                      {statsLoading ? <Loader2 className="w-7 h-7 animate-spin text-[#d3da0c]" /> : `¥${bizStats?.total_revenue?.toLocaleString() || '0'}`}
+                    </p>
+                    <button
+                      onClick={() => {
+                        sessionStorage.removeItem('biz_revenue_unlocked');
+                        setRevenueUnlocked(false);
+                      }}
+                      className="text-[10px] text-[#d3da0c]/40 hover:text-[#d3da0c] transition-colors mb-1"
+                      title="Lock revenue"
+                    >
+                      🔒 Lock
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowRevenueUnlock(true)} className="text-left group">
+                    <p className="text-3xl font-bold text-white/30 lg:text-4xl tracking-widest">••••••</p>
+                    <p className="text-[10px] text-[#d3da0c]/60 mt-1 group-hover:text-[#d3da0c] transition-colors">🔒 Tap to unlock</p>
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>
@@ -360,11 +386,10 @@ const BusinessDashboard = () => {
               </motion.div>
             </div>
           ))}
-          {/* Extra 2 cols for 12-col balance on desktop */}
           <div className="hidden lg:block lg:col-span-2" />
         </div>
 
-        {/* ── Ticket Orders ── */}
+        {/* Ticket Orders */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-white">{t('business.dashboard.ticketOrders') || 'Ticket Orders'}</h2>
@@ -480,17 +505,13 @@ const BusinessDashboard = () => {
           )}
         </section>
 
-        {/* ── Events ── */}
+        {/* Events */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-white">{t('business.dashboard.liveEvents')}</h2>
             <div className="flex items-center gap-3">
-              <Link to="/dashboard/business/events?tab=past" className="text-gray-400 text-xs font-medium hover:text-white transition-colors">
-                Past Events
-              </Link>
-              <Link to="/dashboard/business/events" className="text-[#d3da0c] text-xs font-semibold hover:underline">
-                {t('business.dashboard.manageAll')} →
-              </Link>
+              <Link to="/dashboard/business/events?tab=past" className="text-gray-400 text-xs font-medium hover:text-white transition-colors">Past Events</Link>
+              <Link to="/dashboard/business/events" className="text-[#d3da0c] text-xs font-semibold hover:underline">{t('business.dashboard.manageAll')} →</Link>
             </div>
           </div>
 
@@ -545,7 +566,7 @@ const BusinessDashboard = () => {
           )}
         </section>
 
-        {/* ── Quick Actions ── */}
+        {/* Quick Actions */}
         <section>
           <h2 className="text-base font-semibold text-white mb-4">{t('business.dashboard.quickActions')}</h2>
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-3">
@@ -556,8 +577,9 @@ const BusinessDashboard = () => {
               { icon: Share2, color: 'text-purple-400', bg: 'bg-purple-400/10', label: t('business.dashboard.promoters') || 'Promoters', sub: t('business.dashboard.promotersDesc') || 'Referral codes', path: '/dashboard/business/promoters', border: 'hover:border-purple-400/30' },
               { icon: BarChart3, color: 'text-orange-400', bg: 'bg-orange-400/10', label: t('business.dashboard.analytics'), sub: t('business.dashboard.viewInsights'), path: '/dashboard/business/analytics', border: 'hover:border-orange-400/30' },
               { icon: Wallet, color: 'text-green-400', bg: 'bg-green-400/10', label: t('business.dashboard.payouts'), sub: t('business.dashboard.viewEarnings'), path: '/dashboard/business/payouts', border: 'hover:border-green-400/30' },
+              { icon: Megaphone, color: 'text-amber-400', bg: 'bg-amber-400/10', label: 'Send Broadcast', sub: 'Notify attendees & followers', path: null, border: 'hover:border-amber-400/30', action: () => setIsBroadcastOpen(true) },
             ].map((a, i) => (
-              <motion.button key={i} whileHover={{ scale: 1.02 }} onClick={() => navigate(a.path)}
+              <motion.button key={i} whileHover={{ scale: 1.02 }} onClick={() => a.action ? a.action() : navigate(a.path)}
                 className={`bg-[#111111] border border-white/[0.07] rounded-xl p-4 text-left ${a.border} transition-all`}>
                 <div className={`w-9 h-9 ${a.bg} rounded-xl flex items-center justify-center mb-3`}>
                   <a.icon className={`w-4 h-4 ${a.color}`} />
@@ -570,7 +592,41 @@ const BusinessDashboard = () => {
         </section>
       </div>
 
-      {/* ── Edit Event Modal ── */}
+      {/* Revenue Unlock Modal */}
+      {showRevenueUnlock && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowRevenueUnlock(false)}>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#111111] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-white">Unlock Revenue</h3>
+              <button onClick={() => setShowRevenueUnlock(false)} className="w-8 h-8 bg-white/[0.06] hover:bg-white/[0.1] rounded-lg flex items-center justify-center transition-all">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">Enter your account password to view total revenue.</p>
+            <input
+              type="password"
+              value={unlockPassword}
+              onChange={(e) => setUnlockPassword(e.target.value)}
+              placeholder="Enter password"
+              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:border-[#d3da0c] outline-none transition-all mb-4"
+              onKeyDown={(e) => e.key === 'Enter' && handleUnlockRevenue()}
+            />
+            <button
+              onClick={handleUnlockRevenue}
+              disabled={unlockLoading || !unlockPassword.trim()}
+              className="w-full py-3 bg-[#d3da0c] text-black text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {unlockLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : 'Unlock'}
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Edit Event Modal */}
       {editingEvent && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col justify-end md:justify-center z-50 p-0 md:p-4">
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
@@ -582,17 +638,13 @@ const BusinessDashboard = () => {
               </button>
             </div>
             <div className="space-y-3">
-              {[
-                { label: t('business.dashboard.eventTitleLabel'), key: 'title', type: 'text', placeholder: t('business.dashboard.eventTitlePlaceholder') },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-gray-500 text-xs mb-1.5 block font-medium">{f.label}</label>
-                  <input type={f.type} value={editEventForm[f.key as keyof typeof editEventForm]}
-                    onChange={(e) => setEditEventForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    placeholder={f.placeholder}
-                    className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
-                </div>
-              ))}
+              <div>
+                <label className="text-gray-500 text-xs mb-1.5 block font-medium">{t('business.dashboard.eventTitleLabel')}</label>
+                <input type="text" value={editEventForm.title}
+                  onChange={(e) => setEditEventForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder={t('business.dashboard.eventTitlePlaceholder')}
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
+              </div>
               <div>
                 <label className="text-gray-500 text-xs mb-1.5 block font-medium">{t('business.dashboard.descriptionLabel')}</label>
                 <textarea value={editEventForm.description}
@@ -643,7 +695,7 @@ const BusinessDashboard = () => {
         </div>
       )}
 
-      {/* ── Screenshot Modal ── */}
+      {/* Screenshot Modal */}
       {selectedScreenshot && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedScreenshot(null)}>
           <div className="relative max-w-3xl w-full">
@@ -655,7 +707,7 @@ const BusinessDashboard = () => {
         </div>
       )}
 
-      {/* ── QR Modal ── */}
+      {/* QR Modal */}
       {selectedQr && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedQr(null)}>
           <div className="bg-white p-6 rounded-2xl text-center max-w-xs w-full" onClick={(e) => e.stopPropagation()}>
@@ -664,6 +716,12 @@ const BusinessDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Broadcast Modal */}
+      <BroadcastAnnouncementModal
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+      />
     </div>
   );
 };

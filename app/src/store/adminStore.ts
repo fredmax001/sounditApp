@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 function getErrorMessage(err: unknown): string {
   if (typeof err === 'string') return err;
@@ -125,6 +125,7 @@ interface AdminState {
     updateAdminRole: (token: string, id: number, data: { name?: string; description?: string; permissions?: string[] }) => Promise<void>;
     deleteAdminRole: (token: string, id: number) => Promise<void>;
     assignAdminRole: (token: string, userId: string, roleId: number | null) => Promise<void>;
+    inviteAdminUser: (token: string, data: { email: string; role_id: number; first_name?: string; last_name?: string }) => Promise<void>;
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -596,6 +597,20 @@ export const useAdminStore = create<AdminState>((set, get) => ({
             await axios.post(`${API_URL}/admin/users/${userId}/assign-role`, roleId, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
+            set({ isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+            throw err;
+        }
+    },
+
+    inviteAdminUser: async (token, data) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.post(`${API_URL}/admin/admins/invite`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await get().fetchAdminRoles(token);
             set({ isLoading: false });
         } catch (err: unknown) {
             set({ error: getErrorMessage(err), isLoading: false });

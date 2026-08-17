@@ -72,47 +72,133 @@
     </script>
   </head>
   <body>
+    <!-- WeChat in-app browser detection & redirect helper -->
+    <script>
+      (function() {
+        var ua = navigator.userAgent.toLowerCase();
+        var isWeChat = /micromessenger/.test(ua);
+        var isWeiBo = /weibo/.test(ua);
+        var isSocialBrowser = isWeChat || isWeiBo;
+
+        if (isSocialBrowser) {
+          var path = window.location.pathname;
+          // Exclude app pages and ticket/content routes from static WeChat lock screen
+          var isAppPage = /^\/(events|artists|vendors|profiles|marketplace|city-guide|food|recaps|community|tickets|ticket|checkout|login|register|user|payment|on-site-tools|validate|scan)\b/.test(path) || path === '/';
+          if (!isAppPage) {
+            document.documentElement.setAttribute('data-wechat', '1');
+          }
+        }
+      })();
+    </script>
+
     <!-- ═══════════════════════════════════════════════════════════════════════
          Static pre-rendered content — visible to Google OAuth reviewers and
          search engine bots BEFORE JavaScript loads. React replaces this once
          the app mounts. Keep this in sync with what the app actually does.
     ═══════════════════════════════════════════════════════════════════════ -->
     <div id="root">
-      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#111;">
-        <h1 style="font-size:2rem;font-weight:700;">Sound It</h1>
-        <p style="font-size:1.1rem;margin:12px 0 24px;">
-          <strong>Sound It</strong> is an entertainment platform for the African and international community in China.
-          Sign in with Google to access your personalised event feed, tickets, artist bookings, and vendor marketplace.
-        </p>
+      <!-- Branded loading screen shown while React initialises -->
+      <div id="static-loader" style="
+        min-height: 100vh;
+        background: #0a0a0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 24px;
+        box-sizing: border-box;
+      ">
+        <!-- Logo -->
+        <img
+          src="/logo.png"
+          alt="Sound It"
+          style="height: 56px; width: auto; margin-bottom: 24px;"
+          onerror="this.style.display='none'"
+        />
 
-        <h2 style="font-size:1.2rem;font-weight:600;margin-top:0;">What Sound It does</h2>
-        <ul style="line-height:1.9;padding-left:20px;margin-bottom:24px;">
-          <li>Discover upcoming entertainment events across China</li>
-          <li>Buy and manage tickets for events</li>
-          <li>Book DJs, artists, dancers, and photographers</li>
-          <li>Browse and order from food and product vendors</li>
-          <li>Connect with local businesses via city guides</li>
-          <li>Manage your organiser, artist, or vendor dashboard</li>
-        </ul>
+        <!-- Spinner -->
+        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px;">
+          <p style="color:#999; font-size:14px; text-align:center; margin:0; line-height:1.6;">
+            For the best experience, open Sound It in your default browser.
+          </p>
+          <a
+            id="open-in-browser-link"
+            href="#"
+            onclick="window.location.href = window.location.href.replace('http://','https://') + (window.location.href.indexOf('?')>=0?'&':'?') + '_t=' + Date.now(); return false;"
+            style="
+              display: block;
+              width: 100%;
+              padding: 14px 0;
+              background: #d3da0c;
+              color: #000;
+              text-align: center;
+              border-radius: 12px;
+              font-weight: 800;
+              font-size: 16px;
+              text-decoration: none;
+              box-sizing: border-box;
+            "
+          >
+            🌐 Open in Browser
+          </a>
+          <p style="color:#555; font-size:12px; text-align:center; margin:0;">
+            Tap <strong style="color:#d3da0c;">···</strong> in the top right → <strong style="color:#d3da0c;">Open in Browser</strong>
+          </p>
+        </div>
 
-        <h2 style="font-size:1.2rem;font-weight:600;">Why we use Google Sign-In</h2>
-        <p style="line-height:1.7;margin-bottom:24px;">
-          Sound It uses Google Sign-In so you can create and access your account quickly and securely.
-          We only request your basic profile (name and email address) to create your Sound It account.
-          We do not access your Google contacts, calendar, Gmail, Drive, or any other Google services.
-        </p>
+        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+          <div style="
+            width: 36px; height: 36px;
+            border: 3px solid #222;
+            border-top-color: #d3da0c;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          "></div>
+          <p style="color:#555; font-size:14px; margin:0;">Loading Sound It...</p>
+        </div>
 
-        <p>
-          <a href="https://sounditent.com/privacy" style="color:#0066cc;margin-right:16px;">Privacy Policy</a>
-          <a href="https://sounditent.com/terms" style="color:#0066cc;margin-right:16px;">Terms of Service</a>
-          <a href="mailto:info@sounditent.com" style="color:#0066cc;">Contact Us</a>
-        </p>
-      </main>
+        <style>
+          @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+      </div>
+
+      <!-- Hidden SEO / OAuth review content (not visible to users) -->
+      <div aria-hidden="true" style="display:none;">
+        <main>
+          <h1>Sound It</h1>
+          <p>
+            <strong>Sound It</strong> is an entertainment platform for the African and international community in China.
+            Sign in with Google to access your personalised event feed, tickets, artist bookings, and vendor marketplace.
+          </p>
+          <h2>What Sound It does</h2>
+          <ul>
+            <li>Discover upcoming entertainment events across China</li>
+            <li>Buy and manage tickets for events</li>
+            <li>Book DJs, artists, dancers, and photographers</li>
+            <li>Browse and order from food and product vendors</li>
+            <li>Connect with local businesses via city guides</li>
+            <li>Manage your organiser, artist, or vendor dashboard</li>
+          </ul>
+          <h2>Why we use Google Sign-In</h2>
+          <p>
+            Sound It uses Google Sign-In so you can create and access your account quickly and securely.
+            We only request your basic profile (name and email address) to create your Sound It account.
+            We do not access your Google contacts, calendar, Gmail, Drive, or any other Google services.
+          </p>
+          <p>
+            <a href="https://sounditent.com/privacy">Privacy Policy</a>
+            <a href="https://sounditent.com/terms">Terms of Service</a>
+            <a href="mailto:info@sounditent.com">Contact Us</a>
+          </p>
+        </main>
+      </div>
     </div>
 
     <noscript>
-      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;">
-        <h1>Sound It — Entertainment Platform</h1>
+      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#0a0a0a;color:#e5e5e5;min-height:100vh;">
+        <img src="/logo.png" alt="Sound It" style="height:48px;margin-bottom:24px;" />
+        <h1 style="color:#d3da0c;">Sound It — Entertainment Platform</h1>
         <p>Sound It is an entertainment platform for the African and international community in China. Please enable JavaScript to use the full platform.</p>
         <ul>
           <li>Discover events in China</li>
@@ -120,10 +206,31 @@
           <li>Book DJs, artists, dancers, and photographers</li>
           <li>Find vendors and connect with businesses</li>
         </ul>
-        <p><a href="https://sounditent.com/about">Learn more about Sound It</a></p>
+        <p><a href="https://sounditent.com/about" style="color:#d3da0c;">Learn more about Sound It</a></p>
       </main>
     </noscript>
+
+    <script>
+      // Show "Open in Browser" button if WeChat browser is detected — BUT allow
+      // all content, ticket, and app routes to load normally in WeChat.
+      (function() {
+        var ua = navigator.userAgent.toLowerCase();
+        if (!/micromessenger/.test(ua)) return;
+
+        var path = window.location.pathname;
+        var isAppPage = /^\/(events|artists|vendors|profiles|marketplace|city-guide|food|recaps|community|tickets|ticket|checkout|login|register|user|payment|on-site-tools|validate|scan)\b/.test(path) || path === '/';
+
+        // On content & app pages, let the SPA load normally — do NOT show interstitial
+        if (isAppPage) return;
+
+        var btn = document.getElementById('wechat-open-btn');
+        var spinner = document.getElementById('loading-spinner');
+        if (btn) btn.style.display = 'flex';
+        if (spinner) spinner.style.display = 'none';
+      })();
+    </script>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

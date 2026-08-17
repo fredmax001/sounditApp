@@ -20,6 +20,7 @@ from database import engine, SessionLocal
 SINGLE_COLUMN_INDEXES = [
     ("events", "end_date", "ix_events_end_date"),
     ("events", "is_featured", "ix_events_is_featured"),
+    ("events", "ticket_sales_closed", "ix_events_ticket_sales_closed"),
     ("events", "views_count", "ix_events_views_count"),
     ("events", "tickets_sold", "ix_events_tickets_sold"),
     ("products", "vendor_id", "ix_products_vendor_id"),
@@ -68,6 +69,8 @@ def _column_type_for_dialect(dialect_name, col_type):
     """Return a type string suitable for the current dialect."""
     if col_type == "last_login":
         return "TIMESTAMP WITH TIME ZONE" if dialect_name == "postgresql" else "DATETIME"
+    if col_type == "ticket_sales_closed":
+        return "BOOLEAN DEFAULT FALSE" if dialect_name == "postgresql" else "BOOLEAN DEFAULT 0"
     return "TEXT"
 
 
@@ -148,9 +151,11 @@ def migrate():
         inspector = inspect(engine)
         tables = set(inspector.get_table_names())
 
-        # 1. Ensure users.last_login column exists (required for its index)
+        # 1. Ensure columns exist (required for indexes)
         if "users" in tables:
             _ensure_column(db, inspector, "users", "last_login", "last_login")
+        if "events" in tables:
+            _ensure_column(db, inspector, "events", "ticket_sales_closed", "ticket_sales_closed")
 
         # 2. Single-column indexes
         for table, column, name in SINGLE_COLUMN_INDEXES:

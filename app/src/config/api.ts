@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 // For backwards compatibility with existing code
-export const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+export const getApiUrl = () => import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 // Helper to get full API URL with path
 export const getFullApiUrl = (path: string) => {

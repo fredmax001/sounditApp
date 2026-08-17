@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { useStaffAuthStore } from '@/store/staffAuthStore';
 import { useStaffStore } from '@/store/staffStore';
 import { API_BASE_URL } from '@/config/api';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -150,7 +151,8 @@ const ScanPage = () => {
     await stopScanner();
 
     try {
-      const token = session?.access_token || localStorage.getItem('auth-token') || '';
+      const staffToken = useStaffAuthStore.getState().token;
+      const token = session?.access_token || staffToken || localStorage.getItem('auth-token') || '';
       if (!token) {
         setScanResult({
           success: false,

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
-import { Calendar, MapPin, Clock, X, Download, Share2, Check, Loader2, Ticket, Package } from 'lucide-react';
+import { Calendar, MapPin, Clock, X, Download, Share2, Check, Loader2, Ticket, Package, Lock, ExternalLink } from 'lucide-react';
 import { useTicketStore } from '@/store/ticketStore';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
@@ -48,6 +49,7 @@ interface ProductOrder {
 
 const Tickets = () => {
   const { t } = useTranslation();
+  const isAuthenticated = !!(localStorage.getItem('auth-token') || localStorage.getItem('token'));
   const { tickets, fetchUserTickets, isLoading } = useTicketStore();
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
@@ -136,6 +138,8 @@ const Tickets = () => {
   const handleShare = async (item: typeof tickets[0] | TicketOrder | ProductOrder) => {
     const isProduct = isProductOrder(item);
     const isOrder = isTicketOrder(item);
+    const eventId = isProduct ? null : (item as TicketOrder | typeof tickets[0]).event?.id;
+    const shareUrl = eventId ? `${WEB_ORIGIN}/events/${eventId}` : `${WEB_ORIGIN}/events`;
     const shareData = {
       title: isProduct
         ? item.product?.name || t('user.tickets.thisEvent')
@@ -151,7 +155,7 @@ const Tickets = () => {
           ? (item.product?.vendor?.business_name || t('user.tickets.tba'))
           : (item as typeof tickets[0]).event?.city || t('user.tickets.tba')
       }),
-      url: WEB_ORIGIN + (isProduct ? '/events' : `/events/${(item as TicketOrder | typeof tickets[0]).event?.id || ''}`)
+      url: shareUrl
     };
 
     try {
@@ -227,16 +231,26 @@ const Tickets = () => {
 
   const getTicketStatus = (ticket: typeof tickets[0]) => {
     if (ticket.is_used) return 'used';
-    const eventDate = ticket.event ? new Date(ticket.event.start_date) : null;
-    if (eventDate && eventDate <= now) return 'expired';
+    const event = ticket.event as any;
+    if (!event) return 'active';
+    // Use end_date if available; fallback to 24h after start_date if no end_date is provided
+    const eventEnd = event.end_date 
+      ? new Date(event.end_date) 
+      : (event.start_date ? new Date(new Date(event.start_date).getTime() + 24 * 3600 * 1000) : null);
+    if (eventEnd && eventEnd <= now) return 'expired';
     return 'active';
   };
 
   const getTicketOrderStatus = (order: TicketOrder) => {
     if (order.status === 'rejected') return 'rejected';
     if (order.status === 'pending') return 'pending';
-    const eventDate = order.event ? new Date(order.event.start_date) : null;
-    if (eventDate && eventDate <= now) return 'expired';
+    if (order.status === 'used') return 'used';
+    const event = order.event as any;
+    if (!event) return 'active';
+    const eventEnd = event.end_date 
+      ? new Date(event.end_date) 
+      : (event.start_date ? new Date(new Date(event.start_date).getTime() + 24 * 3600 * 1000) : null);
+    if (eventEnd && eventEnd <= now) return 'expired';
     return 'active';
   };
 
@@ -291,6 +305,39 @@ const Tickets = () => {
 
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {!isAuthenticated && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass rounded-2xl p-8 text-center border border-[#d3da0c]/30 mb-8"
+            >
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#d3da0c]/10 flex items-center justify-center">
+                <Ticket className="w-7 h-7 text-[#d3da0c]" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Access Your Event Tickets</h3>
+              <p className="text-gray-300 max-w-md mx-auto mb-6 text-sm">
+                Sign in to view your tickets, QR passes, and event entry details.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  to="/login?redirect=/tickets"
+                  className="w-full sm:w-auto px-8 py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-all shadow-lg shadow-[#d3da0c]/20"
+                >
+                  Sign In to View Tickets
+                </Link>
+                <button
+                  onClick={() => {
+                    window.location.href = window.location.href.replace('http://', 'https://') + (window.location.href.indexOf('?') >= 0 ? '&' : '?') + '_t=' + Date.now();
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4 text-[#d3da0c]" />
+                  Open in Default Browser
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex gap-4 mb-8">
             <button
               onClick={() => setActiveTab('active')}

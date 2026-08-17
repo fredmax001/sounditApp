@@ -69,7 +69,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}) {
       if ((error as TypeError).message.includes('Failed to fetch')) {
         throw new Error(
           'Network error: Unable to reach server. Please check if the backend is running at ' +
-          (import.meta.env.VITE_API_URL || 'http://localhost:8000') +
+          (import.meta.env.VITE_API_URL || 'https://sounditent.com') +
           ' and that CORS is enabled.'
         );
       }
@@ -257,7 +257,7 @@ interface ArtistProfileData {
   bio?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 // Guard against concurrent refresh-token requests that can race and 401 the user out
 let isRefreshingSession = false;
@@ -479,11 +479,12 @@ export const useAuthStore = create<AuthState>()(
       // Email + Password Login
       loginWithEmail: async (email: string, password: string) => {
         set({ isLoading: true });
+        const cleanEmail = (email || '').trim().toLowerCase();
 
         try {
           const response = await fetchWithErrorHandling(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email: cleanEmail, password }),
           });
 
           const data = await response.json();
@@ -627,6 +628,7 @@ export const useAuthStore = create<AuthState>()(
           // Normalize role type
           const rawRoleType = data.role_type as string || 'user';
           const roleType = rawRoleType === 'artist_dj' ? 'artist' : rawRoleType as UserRole;
+          const cleanEmail = (data.email || '').trim().toLowerCase();
 
           const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
@@ -634,8 +636,8 @@ export const useAuthStore = create<AuthState>()(
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              email: data.email,
-              phone: data.phone,
+              email: cleanEmail,
+              phone: data.phone ? data.phone.trim() : undefined,
               password: data.password,
               first_name: data.first_name,
               last_name: data.last_name,

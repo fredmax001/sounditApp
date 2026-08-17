@@ -425,18 +425,26 @@ class SecurityMonitor:
 security_monitor = SecurityMonitor()
 
 
-# Default alert handler - logs to console
 def default_alert_handler(alert: SecurityAlert):
-    """Default handler that just logs alerts"""
-    print(f"\nSECURITY ALERT [{alert.threat_level.value.upper()}]")
-    print(f"   Type: {alert.alert_type.value}")
-    print(f"   Message: {alert.message}")
-    print(f"   Time: {alert.timestamp}")
+    """Default handler that logs alerts via the structured logger."""
+    level = alert.threat_level.value.upper()
+    msg_parts = [
+        f"SECURITY ALERT [{level}]",
+        f"  Type: {alert.alert_type.value}",
+        f"  Message: {alert.message}",
+        f"  Time: {alert.timestamp}",
+    ]
     if alert.source_ip:
-        print(f"   IP: {alert.source_ip}")
+        msg_parts.append(f"  IP: {alert.source_ip}")
     if alert.user_id:
-        print(f"   User: {alert.user_id}")
-    print()
+        msg_parts.append(f"  User: {alert.user_id}")
+
+    log_line = " | ".join(msg_parts)
+    if alert.threat_level in (ThreatLevel.CRITICAL, ThreatLevel.HIGH):
+        logger.critical(log_line)
+    else:
+        logger.warning(log_line)
 
 
 security_monitor.register_alert_handler(default_alert_handler)
+

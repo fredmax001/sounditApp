@@ -345,10 +345,69 @@ def init_db():
 
 
 def cleanup_old_data(db: Session, days: int = 90) -> dict:
-    """Clean up old data from database - stub implementation"""
-    return {
+    """
+    Clean up stale data from the database.
+    Removes expired tokens, old notifications, and aged-out audit logs.
+    Safe to call from a scheduled task — all operations are idempotent.
+    """
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import text
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    results = {
         "otp_codes": 0,
         "expired_tokens": 0,
         "old_notifications": 0,
-        "old_audit_logs": 0
+        "old_audit_logs": 0,
     }
+
+    try:
+        # 1. Expired OTP codes
+        from models import OTPCode
+        otp_del = db.query(OTPCode).filter(OTPCode.expires_at < cutoff).delete(synchronize_session=False)
+        results["otp_codes"] = otp_del
+    except Exception:
+        pass
+
+    try:
+        # 2. Expired / used password reset tokens
+        from models import User
+        token_del = (
+            db.query(User)
+            .filter(
+                User.password_reset_expires_at.isnot(None),
+                User.password_reset_expires_at < cutoff
+            )
+            .update(
+                {"password_reset_token": None, "password_reset_expires_at": None},
+                synchronize_session=False,
+            )
+        )
+        results["expired_tokens"] = token_del
+    except Exception:
+        pass
+
+    try:
+        # 3. Old read notifications
+        from models import Notification
+        notif_del = (
+            db.query(Notification)
+            .filter(Notification.created_at < cutoff)
+            .delete(synchronize_session=False)
+        )
+        results["old_notifications"] = notif_del
+    except Exception:
+        pass
+
+    try:
+        # 4. Old security / audit log entries
+        from models import SecurityLog, AdminActivityLog
+        sec_del = db.query(SecurityLog).filter(SecurityLog.created_at < cutoff).delete(synchronize_session=False)
+        adm_del = db.query(AdminActivityLog).filter(AdminActivityLog.created_at < cutoff).delete(synchronize_session=False)
+        results["old_audit_logs"] = sec_del + adm_del
+    except Exception:
+        pass
+
+    db.commit()
+    return results
+

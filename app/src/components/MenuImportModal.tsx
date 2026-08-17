@@ -18,7 +18,7 @@ interface MenuImportModalProps {
     token: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 export default function MenuImportModal({ isOpen, onClose, onConfirm, token }: MenuImportModalProps) {
     const [mode, setMode] = useState<'select' | 'image' | 'pdf' | 'text' | 'review'>('select');

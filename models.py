@@ -34,6 +34,8 @@ class TicketStatus(str, enum.Enum):
     AVAILABLE = "available"
     SOLD_OUT = "sold_out"
     LIMITED = "limited"
+    CLOSED = "closed"
+    ENDED = "ended"
 
 
 class PaymentStatus(str, enum.Enum):
@@ -408,6 +410,8 @@ class StaffMember(Base):
     phone = Column(String(20), nullable=True)
     role = Column(String(50), nullable=False, default="Scanner")
     status = Column(String(20), nullable=False, default="Pending")
+    
+    password_hash = Column(String(255), nullable=True)
     
     permissions = Column(JSON, nullable=True, default=dict)
     
@@ -1205,8 +1209,9 @@ class Event(Base):
     capacity = Column(Integer, nullable=True)
     status = Column(Enum(EventStatus), default=EventStatus.DRAFT, index=True)
     
-    # Display options
+    # Display & Ticket Control options
     show_remaining_tickets = Column(Boolean, default=True)
+    ticket_sales_closed = Column(Boolean, default=False, index=True)
     
     # Stats
     views_count = Column(Integer, default=0, index=True)

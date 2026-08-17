@@ -103,7 +103,7 @@ const VerifyOTP = () => {
 
   const completeRegistration = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
       const token = localStorage.getItem('auth-token');
       
       if (!token) {

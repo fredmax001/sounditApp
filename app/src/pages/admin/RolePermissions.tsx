@@ -6,7 +6,7 @@ import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Shield, Check, X, Loader2, UserCog, Crown, AlertTriangle,
-  Plus, Trash2, Save, ChevronDown, ChevronUp
+  Plus, Trash2, Save, ChevronDown, ChevronUp, UserPlus, Mail
 } from 'lucide-react';
 
 interface PermissionDef {
@@ -53,7 +53,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 const RolePermissions = () => {
   const { t } = useTranslation();
   const { session, isSuperAdmin } = useAuthStore();
-  const { adminRoles, fetchAdminRoles, createAdminRole, updateAdminRole, deleteAdminRole, assignAdminRole } = useAdminStore();
+  const {
+    adminRoles,
+    fetchAdminRoles,
+    createAdminRole,
+    updateAdminRole,
+    deleteAdminRole,
+    assignAdminRole,
+    inviteAdminUser
+  } = useAdminStore();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [permissions, setPermissions] = useState<PermissionDef[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +73,8 @@ const RolePermissions = () => {
   const [editForm, setEditForm] = useState({ name: '', description: '', permissions: [] as string[] });
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', description: '', permissions: [] as string[] });
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: '', role_id: 0, first_name: '', last_name: '' });
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -203,6 +213,36 @@ const RolePermissions = () => {
     }
   };
 
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteForm.email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!inviteForm.role_id) {
+      toast.error('Please select a role to invite');
+      return;
+    }
+    setActionLoading('invite-admin');
+    try {
+      await inviteAdminUser(session?.access_token || '', {
+        email: inviteForm.email.trim(),
+        role_id: Number(inviteForm.role_id),
+        first_name: inviteForm.first_name.trim() || undefined,
+        last_name: inviteForm.last_name.trim() || undefined,
+      });
+      toast.success(`Invitation sent to ${inviteForm.email}`);
+      setShowInviteModal(false);
+      setInviteForm({ email: '', role_id: 0, first_name: '', last_name: '' });
+      await loadAdmins();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to send invitation';
+      toast.error(msg);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const groupedPermissions = permissions.length > 0 ? permissions : AVAILABLE_PERMISSIONS;
   const categories = [...new Set(groupedPermissions.map(p => p.category))];
 
@@ -264,16 +304,25 @@ const RolePermissions = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Admin Roles & Permissions</h1>
-          <p className="text-gray-400 mt-1">Create custom roles and assign permissions to admin users</p>
+          <p className="text-gray-400 mt-1">Create custom roles, assign permissions, and invite role managers</p>
         </div>
         {isSuperAdmin() && (
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Role
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="px-4 py-2 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2 border border-white/10"
+            >
+              <Mail className="w-4 h-4 text-[#d3da0c]" />
+              Invite Admin
+            </button>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create Role
+            </button>
+          </div>
         )}
       </div>
 
@@ -496,6 +545,106 @@ const RolePermissions = () => {
                 >
                   {actionLoading === 'create-role' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Create Role
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Admin Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-[#d3da0c]/10 text-[#d3da0c] rounded-lg">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Invite Role Manager</h2>
+                  <p className="text-gray-400 text-xs">Send an invite link with dedicated dashboard access</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleInviteUser} className="space-y-4">
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">Email Address *</label>
+                <input
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  placeholder="manager@example.com"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1">First Name</label>
+                  <input
+                    type="text"
+                    value={inviteForm.first_name}
+                    onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
+                    placeholder="First name"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    value={inviteForm.last_name}
+                    onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
+                    placeholder="Last name"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-400 text-xs mb-1">Assign Role *</label>
+                <select
+                  value={inviteForm.role_id || ''}
+                  onChange={(e) => setInviteForm({ ...inviteForm, role_id: Number(e.target.value) })}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  required
+                >
+                  <option value="" disabled>Select a role...</option>
+                  {adminRoles.filter(r => !r.is_system).map(role => (
+                    <option key={role.id} value={role.id}>
+                      {role.name} ({role.permissions?.length || 0} permissions)
+                    </option>
+                  ))}
+                </select>
+                <p className="text-gray-500 text-[11px] mt-1">
+                  The user will be granted this role and emailed a direct login link to their dashboard.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setShowInviteModal(false)}
+                  className="px-4 py-2 border border-white/10 text-white rounded-lg text-sm hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading === 'invite-admin'}
+                  className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg text-sm hover:bg-white disabled:opacity-50 flex items-center gap-2"
+                >
+                  {actionLoading === 'invite-admin' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  Send Invitation
                 </button>
               </div>
             </form>

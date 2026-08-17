@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -51,9 +51,9 @@ def get_REDACTED_PLACEHOLDER_hash(REDACTED_PLACEHOLDER: str) -> str:
 def REDACTED_PLACEHOLDER(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(hours=settings.JWT_EXPIRATION_HOURS)
+        expire = datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRATION_HOURS)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
@@ -96,6 +96,35 @@ async def get_current_user(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Handle staff tokens (sub = "staff:123")
+    if isinstance(user_id, str) and user_id.startswith("staff:"):
+        from models import StaffMember
+        staff_id = int(user_id.split(":")[1])
+        staff = db.query(StaffMember).filter(StaffMember.id == staff_id).first()
+        if not staff or staff.status != "Active":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Staff account not found or inactive",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        # Return the business user that the staff belongs to
+        user = db.query(User).filter(User.id == staff.business_id).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Business user not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        # Attach staff info to user for downstream use
+        user._staff_context = {
+            "staff_id": staff.id,
+            "staff_name": staff.full_name,
+            "staff_role": staff.role,
+            "staff_permissions": staff.permissions or {},
+            "event_id": payload.get("event_id"),
+        }
+        return user
     
     user = db.query(User).filter(User.id == int(user_id)).first()
     
@@ -196,3 +225,30 @@ async def require_organizer(current_user: User = Depends(get_current_user)) -> U
             detail="Organizer access required",
         )
     return current_user
+
+
+# ─── Shared Password Validation ─────────────────────────────────────────────
+import re as _re
+
+def validate_password_strength(password: str) -> None:
+    """Validate password meets security requirements. Shared across auth endpoints."""
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+    if not _re.search(r'[A-Z]', password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one uppercase letter"
+        )
+    if not _re.search(r'[a-z]', password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one lowercase letter"
+        )
+    if not _re.search(r'\d', password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one digit"
+        )

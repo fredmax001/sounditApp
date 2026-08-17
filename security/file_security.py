@@ -55,13 +55,12 @@ class FileSecurityScanner:
     Multi-layer file upload security scanner.
     """
     
-    # Allowed MIME types for images
+    # Allowed MIME types for images (SVG intentionally excluded — XSS risk)
     ALLOWED_IMAGE_TYPES = {
         'image/jpeg',
         'image/png',
         'image/gif',
         'image/webp',
-        'image/svg+xml',
     }
     
     # Allowed MIME types for documents
@@ -235,14 +234,15 @@ class FileSecurityScanner:
         return None
     
     def _get_mime_type(self, content: bytes) -> Optional[str]:
-        """Get MIME type using python-magic"""
+        """Detect MIME type from magic bytes (python-magic fallback)."""
+        # Try python-magic first if available
         try:
-            # Temporarily disabled for testing
-            # return magic.from_buffer(content, mime=True)
-            return None
-        except Exception as e:
-            logger.error(f"MIME type detection error: {e}")
-            return None
+            import magic
+            return magic.from_buffer(content, mime=True)
+        except (ImportError, Exception):
+            pass
+        # Fallback: use our own magic bytes lookup
+        return self._check_magic_bytes(content)
     
     def _validate_image(self, content: bytes) -> Tuple[bool, str]:
         """Validate image file integrity"""

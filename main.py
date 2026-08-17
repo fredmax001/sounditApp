@@ -3,6 +3,8 @@ import asyncio
 import logging
 import uuid
 import traceback
+import time
+from importlib import import_module
 from contextvars import ContextVar
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +36,7 @@ request_id_var: ContextVar[str] = ContextVar("request_id", default="")
 # ─── Sentry Error Tracking (Optional) ───────────────────────────────────────
 if settings.SENTRY_DSN:
     try:
-        import sentry_sdk
+        sentry_sdk = import_module("sentry_sdk")
         sentry_sdk.init(
             dsn=settings.SENTRY_DSN,
             traces_sample_rate=0.2,
@@ -72,11 +74,22 @@ def _validate_secrets():
 
 _validate_secrets()
 
+# ─── Maintenance Mode (cached — avoids DB hit on every request) ──────────────────
+_maintenance_cache: dict = {"value": False, "expires": 0.0}
+_MAINTENANCE_CACHE_TTL = 30  # seconds
+
+
 def _is_maintenance_mode() -> bool:
+    now = time.monotonic()
+    if now < _maintenance_cache["expires"]:
+        return _maintenance_cache["value"]
     db = SessionLocal()
     try:
         setting = db.query(SystemSetting).filter(SystemSetting.key == "maintenance_mode").first()
-        return setting.value == "true" if setting and setting.value else False
+        result = setting.value == "true" if setting and setting.value else False
+        _maintenance_cache["value"] = result
+        _maintenance_cache["expires"] = now + _MAINTENANCE_CACHE_TTL
+        return result
     except Exception:
         return False
     finally:
@@ -206,40 +219,29 @@ setup_security_headers(app, debug=settings.DEBUG)
 from security.rate_limiter import setup_rate_limiting
 setup_rate_limiting(app)
 
-# CORS - Environment-specific configuration
-# Security: Development origins only allowed in DEBUG mode
-from config import get_settings
-_settings = get_settings()
-
-if _settings.DEBUG:
-    ALLOWED_ORIGINS = [
-        "https://sounditent.com",
-        "https://www.sounditent.com",
-        "https://app.sounditent.com",
-        "https://sounditent.cn",
-        "https://www.sounditent.cn",
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ]
-else:
-    # Production: Allow only own domains + Capacitor mobile apps.
-    # NOTE: localhost origins are intentionally removed in production.
-    ALLOWED_ORIGINS = [
-        "https://sounditent.com",
-        "https://www.sounditent.com",
-        "https://app.sounditent.com",
-        "https://sounditent.cn",
-        "https://www.sounditent.cn",
-        "capacitor://localhost",
-    ]
+# CORS - Allow production domains + Capacitor mobile apps (iOS & Android)
+ALLOWED_ORIGINS = [
+    "https://sounditent.com",
+    "https://www.sounditent.com",
+    "https://app.sounditent.com",
+    "https://sounditent.cn",
+    "https://www.sounditent.cn",
+    "capacitor://localhost",
+    "https://localhost",
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "file://",
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:[0-9]+)?|capacitor://.*|file://.*",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
-    expose_headers=["X-Total-Count"]
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Total-Count", "X-RateLimit-Remaining", "X-Request-ID"]
 )
 
 
@@ -354,6 +356,7 @@ app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(assistant.router, prefix="/api/v1")
+app.include_router(sitemap.router)
 
 
 @app.get("/")
@@ -362,7 +365,13 @@ def root():
     for dist_dir in ("app/dist", "dist"):
         index_path = os.path.join(dist_dir, "index.html")
         if os.path.exists(index_path):
-            return FileResponse(index_path)
+            try:
+                with open(index_path, "r", encoding="utf-8") as f:
+                    index_content = f.read()
+                dynamic_html = get_dynamic_meta_html("", index_content)
+                return HTMLResponse(content=dynamic_html, status_code=200)
+            except Exception:
+                return FileResponse(index_path)
     # Fallback to API info if frontend not built
     return {
         "name": settings.APP_NAME,
@@ -400,9 +409,9 @@ from fastapi.responses import HTMLResponse, FileResponse
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")
 def serve_frontend(path: str):
-    # Skip API, static, assets, and admin routes
+    # Skip API, static, assets, admin, sitemap.xml, and robots.txt routes
     if (path.startswith("api/") or path.startswith("static/") or 
-        path.startswith("assets/") or path == "admin"):
+        path.startswith("assets/") or path in ("admin", "sitemap.xml", "robots.txt")):
         raise HTTPException(status_code=404, detail="Not found")
     
     # Production build lives in app/dist/; fallback to dist/ for backward compatibility

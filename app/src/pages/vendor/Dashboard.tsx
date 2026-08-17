@@ -60,7 +60,7 @@ interface ProductOrderItem {
     created_at: string | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 const VendorDashboard = () => {
     const { session, profile, updateProfile: updateAuthProfile } = useAuthStore();

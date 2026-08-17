@@ -5,7 +5,7 @@ import { ArrowLeft, Loader2, Package, MapPin, Phone, User, MessageSquare } from 
 import { Link } from 'react-router-dom';
 import OrderStatusTracker from '@/components/OrderStatusTracker';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 interface TrackOrder {
     id: number;

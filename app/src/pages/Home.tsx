@@ -36,7 +36,7 @@ import type { DateFilter } from '@/components/ui/MobileFilterPills';
 import axios from 'axios';
 import type { DJ } from '@/store/eventStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 /* Floating music note particles for hero background */
 const FloatingNotes = () => {

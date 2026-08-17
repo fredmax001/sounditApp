@@ -1,12 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X, Share2, Clock, History } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Calendar, Users, Loader2, AlertCircle, RefreshCw, ArrowRight, Building2, QrCode, X, Share2, Clock, History, Megaphone } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import type { Event } from '@/store/eventStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { WEB_ORIGIN } from '@/lib/appUrl';
+import BroadcastAnnouncementModal from '@/components/BroadcastAnnouncementModal';
+import { API_BASE_URL } from '@/config/api';
+
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
@@ -36,6 +39,9 @@ const ManageEvents = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [qrModalEvent, setQrModalEvent] = useState<Event | null>(null);
+  const [broadcastModalEvent, setBroadcastModalEvent] = useState<Event | null>(null);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+
 
   const handleTabChange = (tab: 'upcoming' | 'past') => {
     setActiveTab(tab);
@@ -196,6 +202,17 @@ const ManageEvents = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => {
+              setBroadcastModalEvent(null);
+              setIsBroadcastOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-medium rounded-lg hover:bg-amber-500/20 transition-colors"
+            title="Broadcast announcement to attendees or followers"
+          >
+            <Megaphone className="w-5 h-5" />
+            <span className="hidden sm:inline">Send Broadcast</span>
+          </button>
+          <button
             onClick={handleRefresh}
             disabled={isRefreshing || isLoading}
             className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
@@ -290,9 +307,16 @@ const ManageEvents = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 text-xs rounded-full ${getStatusBadgeClass(event.status)}`}>
-                      {getStatusLabel(event.status)}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-block px-3 py-1 text-xs rounded-full w-max ${getStatusBadgeClass(event.status)}`}>
+                        {getStatusLabel(event.status)}
+                      </span>
+                      {(event as any).ticket_sales_closed && (
+                        <span className="inline-block px-2 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-semibold w-max">
+                          Sales Closed
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
@@ -332,6 +356,16 @@ const ManageEvents = () => {
                           <QrCode className="w-4 h-4" />
                         </button>
                       )}
+                      <button
+                        onClick={() => {
+                          setBroadcastModalEvent(event);
+                          setIsBroadcastOpen(true);
+                        }}
+                        className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 transition-colors"
+                        title="Broadcast Update to Attendees"
+                      >
+                        <Megaphone className="w-4 h-4" />
+                      </button>
                       <Link
                         to={`/dashboard/business/events/${event.id}/promoters`}
                         className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
@@ -339,6 +373,36 @@ const ManageEvents = () => {
                       >
                         <Share2 className="w-4 h-4" />
                       </Link>
+                      <button
+                        onClick={async () => {
+                          const isClosed = (event as any).ticket_sales_closed;
+                          const confirmMsg = isClosed
+                            ? 'Re-open ticket sales for this event?'
+                            : 'Close ticket sales for this event? Customers will no longer be able to purchase tickets.';
+                          if (!confirm(confirmMsg)) return;
+
+                          try {
+                            const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
+                            const res = await fetch(`${API_BASE_URL}/tickets/events/${event.id}/toggle-sales`, {
+                              method: 'POST',
+                              headers: { Authorization: `Bearer ${token}` }
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                              toast.success(data.message || 'Ticket sales status updated');
+                              await loadEvents();
+                            } else {
+                              toast.error(data.detail || 'Failed to update ticket sales status');
+                            }
+                          } catch {
+                            toast.error('Failed to update ticket sales status');
+                          }
+                        }}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${(event as any).ticket_sales_closed ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'}`}
+                        title={(event as any).ticket_sales_closed ? "Re-open Ticket Sales" : "Close Ticket Sales"}
+                      >
+                        <Clock className="w-4 h-4" />
+                      </button>
                       <Link
                         to={`/dashboard/business/events/${event.id}/edit`}
                         className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -436,6 +500,17 @@ const ManageEvents = () => {
           </div>
         </div>
       )}
+
+      {/* Broadcast Announcement Modal */}
+      <BroadcastAnnouncementModal
+        isOpen={isBroadcastOpen}
+        onClose={() => {
+          setIsBroadcastOpen(false);
+          setBroadcastModalEvent(null);
+        }}
+        eventId={broadcastModalEvent?.id}
+        eventTitle={broadcastModalEvent?.title}
+      />
 
     </div>
   );
