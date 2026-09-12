@@ -50,7 +50,8 @@
   4. **Duplicate route registration**: `POST /admin/verification-badge` and `GET /admin/verification-badge/users` were each defined twice; the FIRST registration wins in FastAPI, and the live `POST` handler never sent notifications while the fixed one was unreachable dead code. Added `badge_granted` notification to the live handler and deleted the duplicate block (~66 lines) + unused `VerificationBadgeToggleRequest` schema.
 - **Verification**: `py_compile` OK; TestClient smoke test passes end-to-end (apply → 200, duplicate apply blocked, admin list = 1 real request, `?type=artist` filter works, approve → `verification_approved` notification row created, badge toggle → `badge_granted` notification row created, badge users list works).
 - **IMPORTANT REPO FACT**: `api/` (all backend Python) is **deliberately NOT tracked in git** (`.gitignore` line 98, excluded since the initial commit). Backend changes cannot be committed; they deploy via rsync (`deploy_safe.sh`). Do not `git add -f api/`.
-- **Deploy status**: fixed locally; production deploy pending (prod currently has the broken notification kwarg).
+- **Production Deploy (2026-09-13)**: Deployed release `20260913000217` via `deploy/deploy_safe.sh`. Health check passed; verified on the server: `notification_type=` kwarg present, `VerificationType` imported, `badge_granted` notification in the live badge handler, duplicate routes removed (0), phantom attribute gone (0), no errors in `journalctl` since restart.
+- **Deploy status**: ✅ live in production.
 
 ---
 
