@@ -5,11 +5,12 @@ import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Bell, Send, Loader2, Mail, Smartphone, Clock, Layers,
-  Image as ImageIcon, Trash2, Eye, X
+  Image as ImageIcon, Trash2, Eye, X, RotateCcw
 } from 'lucide-react';
 
 interface NotificationHistoryItem {
   id: number;
+  source?: string;
   type: string;
   title: string;
   message: string;
@@ -17,6 +18,12 @@ interface NotificationHistoryItem {
   target_role?: string;
   created_at: string;
   status?: string;
+  channels?: string[];
+  total_recipients?: number;
+  in_app_sent?: number;
+  push_sent?: number;
+  email_sent?: number;
+  email_failed?: number;
 }
 
 const resolveImageUrl = (url?: string | null): string => {
@@ -44,6 +51,7 @@ const NotificationCenter = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<NotificationHistoryItem | null>(null);
   const [notification, setNotification] = useState({
     title: '',
     message: '',
@@ -58,6 +66,17 @@ const NotificationCenter = () => {
 
   const loadHistory = async () => {
     try {
+      // Dedicated log endpoint — covers ALL channel types (incl. email-only sends)
+      const res = await fetch(`${API_BASE_URL}/admin/notifications/log`, {
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.notifications || []);
+        return;
+      }
+    } catch { /* fall through to legacy endpoint */ }
+    try {
       const res = await fetch(`${API_BASE_URL}/admin/notifications`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
@@ -70,6 +89,21 @@ const NotificationCenter = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = (item: NotificationHistoryItem) => {
+    const ch = item.channels || [];
+    setNotification({
+      title: item.title || '',
+      message: item.message || '',
+      type: ch.includes('push') && ch.includes('email') ? 'both'
+        : ch.includes('email') ? 'email'
+        : 'push',
+      target_role: item.target_role || 'all',
+      image_url: item.image_url || '',
+    });
+    setViewing(null);
+    toast.success(t('admin.notificationCenter.loadedForResend') || 'Loaded into the compose form — review and press Send Now');
   };
 
   const handleImageUpload = async (file: File) => {
@@ -381,7 +415,11 @@ const NotificationCenter = () => {
                 history.map((item) => {
                   const itemImg = resolveImageUrl(item.image_url);
                   return (
-                    <div key={item.id} className="p-4 bg-white/5 rounded-lg">
+                    <div
+                      key={`${item.source || 'legacy'}-${item.id}`}
+                      onClick={() => setViewing(item)}
+                      className="p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/[0.08] transition-colors"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className={`p-2 rounded-lg shrink-0 ${
@@ -444,6 +482,18 @@ const NotificationCenter = () => {
                           {t('admin.notificationCenter.scheduledLabel')}
                         </span>
                       )}
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-[11px] text-gray-500">
+                          {t('admin.notificationCenter.tapToView') || 'Click to view details'}
+                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleResend(item); }}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-[#d3da0c] bg-[#d3da0c]/10 rounded-md hover:bg-[#d3da0c]/20 transition-colors"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          {t('admin.notificationCenter.resend') || 'Resend'}
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -452,6 +502,112 @@ const NotificationCenter = () => {
           )}
         </div>
       </div>
+
+      {/* Notification Detail Modal */}
+      {viewing && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setViewing(null)}
+        >
+          <div
+            className="relative max-w-lg w-full bg-[#111111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-white font-semibold text-sm">
+                {t('admin.notificationCenter.details') || 'Notification Details'}
+              </h3>
+              <button
+                onClick={() => setViewing(null)}
+                className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                  viewing.type === 'push' ? 'bg-[#d3da0c]/10 text-[#d3da0c]' :
+                  viewing.type === 'email' ? 'bg-blue-500/10 text-blue-400' :
+                  'bg-purple-500/10 text-purple-400'
+                }`}>
+                  {viewing.type === 'push' ? <Bell className="w-3 h-3" /> :
+                   viewing.type === 'email' ? <Mail className="w-3 h-3" /> :
+                   <Layers className="w-3 h-3" />}
+                  {viewing.type === 'both'
+                    ? (t('admin.notificationCenter.typeBoth') || 'Both')
+                    : viewing.type === 'email'
+                    ? (t('admin.notificationCenter.typeEmail') || 'Email')
+                    : (t('admin.notificationCenter.typePush') || 'Push')}
+                </span>
+                <span className="text-gray-500 text-xs">
+                  {viewing.created_at ? new Date(viewing.created_at).toLocaleString() : '-'}
+                </span>
+              </div>
+
+              <h4 className="text-white font-semibold">{viewing.title || t('admin.notificationCenter.untitled')}</h4>
+              <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{viewing.message || ''}</p>
+
+              {(() => {
+                const img = resolveImageUrl(viewing.image_url);
+                return img ? (
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full max-h-56 object-cover rounded-lg border border-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setPreviewImage(img)}
+                    onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                  />
+                ) : null;
+              })()}
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-xs">
+                <div className="text-gray-500">{t('admin.notificationCenter.targetAudience')}</div>
+                <div className="text-gray-300 text-right">{viewing.target_role || 'all'}</div>
+                {typeof viewing.total_recipients === 'number' && (
+                  <>
+                    <div className="text-gray-500">{t('admin.notificationCenter.recipients') || 'Recipients'}</div>
+                    <div className="text-gray-300 text-right">{viewing.total_recipients}</div>
+                  </>
+                )}
+                {typeof viewing.in_app_sent === 'number' && viewing.in_app_sent > 0 && (
+                  <>
+                    <div className="text-gray-500">{t('admin.notificationCenter.inAppDelivered') || 'In-app delivered'}</div>
+                    <div className="text-gray-300 text-right">{viewing.in_app_sent}</div>
+                  </>
+                )}
+                {typeof viewing.push_sent === 'number' && viewing.push_sent > 0 && (
+                  <>
+                    <div className="text-gray-500">{t('admin.notificationCenter.pushDelivered') || 'Push delivered'}</div>
+                    <div className="text-gray-300 text-right">{viewing.push_sent}</div>
+                  </>
+                )}
+                {typeof viewing.email_sent === 'number' && (viewing.email_sent > 0 || typeof viewing.email_failed === 'number') && (
+                  <>
+                    <div className="text-gray-500">{t('admin.notificationCenter.emailsDelivered') || 'Emails delivered / failed'}</div>
+                    <div className="text-gray-300 text-right">{viewing.email_sent} / {viewing.email_failed || 0}</div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="p-3 bg-white/5 border-t border-white/10 flex justify-end gap-2">
+              <button
+                onClick={() => setViewing(null)}
+                className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {t('common.close') || 'Close'}
+              </button>
+              <button
+                onClick={() => handleResend(viewing)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-black bg-[#d3da0c] rounded-lg hover:bg-[#bbc10b] transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                {t('admin.notificationCenter.resend') || 'Resend'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Image Preview Modal */}
       {previewImage && (
