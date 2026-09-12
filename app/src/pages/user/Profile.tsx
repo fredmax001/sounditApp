@@ -8,12 +8,11 @@ import { Upload } from 'lucide-react';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
-import { resolveAvatarUrl } from '@/lib/avatar';
 import UniversalShareModal from '@/components/ui/UniversalShareModal';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, user, updateProfile, uploadAvatar, uploadBanner, session, logout } = useAuthStore();
+  const { profile, updateProfile, uploadAvatar, uploadBanner, session, logout } = useAuthStore();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -199,12 +198,13 @@ const Profile = () => {
             <div className="flex items-start gap-4">
               <div className="relative shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-3 border-[#0A0A0A] shadow-lg">
-                  <img
-                    src={resolveAvatarUrl({ avatar_url: profile?.avatar_url, email: user?.email }, 200)}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
-                  />
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }} />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                      <span className="text-2xl sm:text-3xl font-bold text-black">{displayName?.[0]}</span>
+                    </div>
+                  )}
                 </div>
                 <label className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center text-black hover:bg-[#bbc10b] transition-colors cursor-pointer shadow">
                   <Camera className="w-4 h-4" />

@@ -27,7 +27,6 @@ import {
   ScanLine,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
-import { resolveAvatarUrl } from '@/lib/avatar';
 import { useStaffStore } from '@/store/staffStore';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
@@ -104,31 +103,20 @@ const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-black/95 backdrop-blur-xl border-b ${isScrolled
-          ? 'border-[#d3da0c]/20 shadow-[0_4px_30px_rgba(0,0,0,0.65)]'
-          : 'border-white/5'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-white/5'
+          : 'bg-transparent'
           }`}
       >
         <div className="w-full">
           <div className="flex items-center justify-between h-16 lg:h-20 px-4 sm:px-6 lg:px-8 2xl:px-12">
-            {/* Brand */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex items-center justify-center h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#d3da0c]/10 border border-[#d3da0c]/25 overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:bg-[#d3da0c]/15 group-hover:border-[#d3da0c]/40">
-                <img
-                  src="/brand-mark.png"
-                  alt=""
-                  className="h-7 lg:h-8 w-auto object-contain"
-                  style={{ filter: 'drop-shadow(0 0 8px rgba(211,218,12,0.35))' }}
-                />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-white font-extrabold tracking-[0.2em] text-base lg:text-lg">
-                  SOUND <span className="text-[#d3da0c]">IT</span>
-                </span>
-                <span className="hidden sm:block text-[9px] text-gray-500 tracking-[0.32em] uppercase mt-1">
-                  {t('nav.tagline') || 'Events & Nightlife'}
-                </span>
-              </div>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src="/logo.png"
+                alt="SOUND IT"
+                className="h-8 lg:h-10 w-auto object-contain"
+              />
             </Link>
 
             {/* Desktop Navigation */}
@@ -243,12 +231,16 @@ const Navbar = () => {
                     className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
-                      <img
-                        src={resolveAvatarUrl({ avatar_url: profile?.avatar_url, email: user?.email }, 64)}
-                        alt={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('nav.user') || 'User'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
-                      />
+                      {profile?.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('nav.user') || 'User'}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-black" />
+                      )}
                     </div>
                     <span className="hidden sm:block text-sm">{profile?.first_name || t('nav.user') || 'User'}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />

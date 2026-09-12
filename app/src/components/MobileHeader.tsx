@@ -21,7 +21,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
-import { resolveAvatarUrl } from '@/lib/avatar';
 import { useStaffStore } from '@/store/staffStore';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
@@ -115,31 +114,24 @@ const MobileHeader = () => {
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-40 safe-area-pt"
         style={{
-          background: `rgba(0, 0, 0, ${0.92 + headerOpacity * 0.08})`,
+          background: `rgba(10, 10, 10, ${0.7 + headerOpacity * 0.25})`,
           backdropFilter: 'blur(20px) saturate(160%)',
           WebkitBackdropFilter: 'blur(20px) saturate(160%)',
-          borderBottom: `1px solid rgba(211,218,12,${0.06 + headerOpacity * 0.14})`,
+          borderBottom: `1px solid rgba(255,255,255,${0.05 + headerOpacity * 0.05})`,
         }}
       >
         <div className="flex items-center justify-between px-4 py-2.5">
-          {/* Left: Brand */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <motion.div
+          {/* Left: Logo */}
+          <Link to="/" className="flex items-center flex-shrink-0">
+            <motion.img
+              src="/logo.png"
+              alt="SOUND IT"
+              className="h-6 w-auto object-contain"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#d3da0c]/10 border border-[#d3da0c]/25 overflow-hidden"
-            >
-              <img
-                src="/brand-mark.png"
-                alt=""
-                className="h-6 w-auto object-contain"
-                style={{ filter: 'drop-shadow(0 0 6px rgba(211,218,12,0.35))' }}
-              />
-            </motion.div>
-            <span className="text-white font-extrabold tracking-[0.18em] text-sm leading-none">
-              SOUND <span className="text-[#d3da0c]">IT</span>
-            </span>
+              style={{ filter: 'drop-shadow(0 0 6px rgba(211,218,12,0.35))' }}
+            />
           </Link>
 
           {/* Center: Date + Location */}
@@ -190,14 +182,20 @@ const MobileHeader = () => {
             >
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[1.5px]">
                 <div className="w-full h-full rounded-xl bg-[#0A0A0A] p-[1.5px]">
-                  <img
-                    src={resolveAvatarUrl({ avatar_url: profile?.avatar_url, email: user?.email }, 72)}
-                    alt=""
-                    className="w-full h-full rounded-xl object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/default-avatar.png';
-                    }}
-                  />
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="w-full h-full rounded-xl object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#d3da0c]/20 to-[#FF2D8F]/20 flex items-center justify-center">
+                      <User className="w-4 h-4 text-[#d3da0c]" />
+                    </div>
+                  )}
                 </div>
               </div>
               {isAuthenticated && (
@@ -240,14 +238,20 @@ const MobileHeader = () => {
                   <div className="relative w-14 h-14">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[2px]">
                       <div className="w-full h-full rounded-full bg-[#0A0A0F] p-[2px]">
-                        <img
-                          src={resolveAvatarUrl({ avatar_url: profile?.avatar_url, email: user?.email }, 112)}
-                          alt=""
-                          className="w-full h-full rounded-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/default-avatar.png';
-                          }}
-                        />
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt=""
+                            className="w-full h-full rounded-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/default-avatar.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                            <User className="w-6 h-6 text-black" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
