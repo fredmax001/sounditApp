@@ -242,10 +242,15 @@ if settings.DEBUG:
         "file://",
     ])
 
+# Capacitor scheme stays always-on (mobile app); localhost/file origins only in DEBUG.
+ORIGIN_REGEX = r"capacitor://.*"
+if settings.DEBUG:
+    ORIGIN_REGEX = r"https?://(localhost|127\.0\.0\.1)(:[0-9]+)?|capacitor://.*|file://.*"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:[0-9]+)?|capacitor://.*|file://.*",
+    allow_origin_regex=ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

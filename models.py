@@ -1730,6 +1730,27 @@ class Notification(Base):
     user = relationship("User", back_populates="notifications")
 
 
+class AdminNotificationLog(Base):
+    """History of admin-sent broadcasts (push/email/both) — independent of per-user notification rows."""
+    __tablename__ = "admin_notification_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    channels = Column(JSON, nullable=False, default=list)  # e.g. ["push"], ["email"], ["push", "email"]
+    target_role = Column(String(20), default="all")
+    image_url = Column(String(500), nullable=True)
+
+    total_recipients = Column(Integer, default=0)
+    in_app_sent = Column(Integer, default=0)
+    push_sent = Column(Integer, default=0)
+    email_sent = Column(Integer, default=0)
+    email_failed = Column(Integer, default=0)
+
+    sent_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
 class PushSubscription(Base):
     __tablename__ = "push_subscriptions"
     
