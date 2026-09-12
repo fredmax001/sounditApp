@@ -25,6 +25,40 @@
 
 ---
 
+### 72. Admin Notification Center Audience & History Label Formatting (2026-09-12)
+- **Problem**: 
+  - Under Target Audience dropdown in Admin Notification Center, the options erroneously showed `audience ` prepended in front of each label (e.g. `audience All`, `audience User`, `audience Business`, `audience Artist`, `audience Vendor`, `audience Admin`).
+  - In Recent Notifications history cards, recipient labels rendered as unlocalized `admin.notificationCenter.toLabel` instead of a formatted string (e.g. `To: All Users`).
+- **Fixes Applied**:
+  - **Localization (`en.json`, `zh.json`, `fr.json`)**:
+    - Removed `audience ` prefix from all audience keys (`audienceAll`, `audienceUser`, `audienceBusiness`, `audienceArtist`, `audienceVendor`, `audienceAdmin`) across English, Chinese, and French locales (e.g., `All Users`, `Standard Users`, `Businesses`, `Artists`, `Vendors`, `Admins`).
+    - Added localized `toLabel` strings in all languages (`To: {{role}}`, `接收方: {{role}}`, `Destinataire: {{role}}`).
+  - **Frontend Component (`NotificationCenter.tsx`)**:
+    - Updated Recent Notifications card recipient display to resolve and pass localized target audience names into `toLabel` with a safe default fallback.
+- **Verification & Deployment**:
+  - `npm run build` compiled successfully.
+  - Deployed release `20260912234528` to production (`72.62.254.251`) via `deploy/deploy_safe.sh`. Smoke test on port 8001 and final health check on port 8000 passed successfully (`200 OK`).
+
+---
+
+### 73. Credential Exposure Cleanup & Git History Scrub (2026-09-12)
+- **Context**: User requested all passwords/secret keys be hidden from git. Audit found the production root SSH password and admin passwords committed in source and referenced across history (`.env` itself was never tracked — verified).
+- **Secrets removed from source (commit `9ae92af`)**:
+  - `deploy/check_logs.py`, `deploy/check_server_tools.py`: root password → `SSH_PASS` env var (script exits if unset).
+  - `deploy/deploy_sounditent.sh`, `deploy_quick.sh`: hardcoded `SSH_PASS` → env var + `sshpass -e` (SSHPASS exported).
+  - `scripts/create_admin.py`: hardcoded admin password → `ADMIN_PASSWORD` env var.
+  - `scripts/fix_accounts.py`: hardcoded reset password → `RESET_PASSWORD` env var.
+  - Deleted `login-page-2.md`, `login-page-snapshot.md`, `register-snapshot.md` (playwright snapshots containing a typed password).
+  - Redacted password mentions in `AGENTS.md` and `AUDIT_REPORT_2026-04-14.md`.
+- **History scrub**: `git filter-repo --replace-text` rewrote all 44 commits, replacing the root SSH password and both `SoundIt2026!*` passwords with `***REMOVED***`. Verified clean by scanning every commit of a **fresh clone of the remote** (empty results). Remote force-pushed (`main`: `39ec260` → `9ae92af`).
+- **Backup**: full pre-scrub repo bundle at `../soundit-backup-20260912234607.bundle` (59 MB) — contains the secrets, keep it private or delete it.
+- **STILL REQUIRED (manual — history scrub does not un-burn exposed credentials)**:
+  1. **Rotate the server root password** (`passwd` over SSH) — it was public in git history for months.
+  2. **Rotate the SoundIt admin/reset passwords** and any credential ever committed.
+  3. Old clones/forks of the repo may still contain the secrets — treat them as compromised.
+
+---
+
 ### 71. Verification Application Workflow & Admin Dashboard Isolation (2026-09-12)
 - **Problem**: 
   - When new artists/DJs (or other roles) registered, they were immediately appearing in the Admin Verification Center and Admin Dashboard as "Pending Verification" / "Pending Action" even though they never applied for verification.
