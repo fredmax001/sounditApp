@@ -48,6 +48,7 @@
 - **Note**: sends made before this release are not in the log (nothing was recorded); only new sends appear.
 - **Verification**: `py_compile` OK; TestClient smoke — email-only send returns 200 and appears in `/admin/notifications/log` with `type: email, channels: ['email']`; push send logged too; legacy endpoint intact; `tsc` + `npm run build` pass.
 - **Production Deploy (2026-09-13)**: release `20260913003353` — health 200, `admin_notification_logs` table created in PostgreSQL, `/admin/notifications/log` live (401 unauth as expected), log insert present in deployed code, no service errors.
+- **Hotfix (same night)**: `loadHistory` had an early `return` on log-endpoint success that skipped `setLoading(false)` (spinner spun forever — "side just loading, showing nothing"). Restructured to always call `setLoading(false)`. Also fixed unrelated `api/analytics.py` `TypeError: can't subtract offset-naive and offset-aware datetimes` (21 `datetime.utcnow()` → `datetime.now(timezone.utc)`). Deployed release `20260913004047`, verified.
 
 ---
 
