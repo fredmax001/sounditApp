@@ -65,6 +65,7 @@ const NotificationCenter = () => {
   }, []);
 
   const loadHistory = async () => {
+    let loaded = false;
     try {
       // Dedicated log endpoint — covers ALL channel types (incl. email-only sends)
       const res = await fetch(`${API_BASE_URL}/admin/notifications/log`, {
@@ -73,22 +74,23 @@ const NotificationCenter = () => {
       if (res.ok) {
         const data = await res.json();
         setHistory(data.notifications || []);
-        return;
+        loaded = true;
       }
     } catch { /* fall through to legacy endpoint */ }
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/notifications`, {
-        headers: { 'Authorization': `Bearer ${session?.access_token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setHistory(data.notifications || []);
+    if (!loaded) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/notifications`, {
+          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setHistory(data.notifications || []);
+        }
+      } catch {
+        toast.error(t('admin.notificationCenter.failedToLoadHistory'));
       }
-    } catch {
-      toast.error(t('admin.notificationCenter.failedToLoadHistory'));
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleResend = (item: NotificationHistoryItem) => {
