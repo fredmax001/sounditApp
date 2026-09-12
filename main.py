@@ -406,6 +406,19 @@ def system_status():
     }
 
 
+@app.get("/api/v1/system/intro-screen")
+def system_intro_screen():
+    """Public: intro/splash screen content (logo, title, tagline) set by admins."""
+    from api.admin import read_intro_screen
+    db = SessionLocal()
+    try:
+        return read_intro_screen(db)
+    except Exception:
+        return {"enabled": True, "logo_url": "", "title": "", "tagline": ""}
+    finally:
+        db.close()
+
+
 @app.get("/admin")
 def serve_admin_dashboard():
     """Serve the admin dashboard"""

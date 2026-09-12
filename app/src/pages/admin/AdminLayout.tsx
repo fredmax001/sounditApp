@@ -12,7 +12,7 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3
+  BarChart3, Sparkles
 } from 'lucide-react';
 
 // Grouped sidebar menu structure — each item has a permission key
@@ -49,6 +49,7 @@ const menuGroups = [
       { id: 'reports', label: 'Moderation', icon: Flag, path: '/admin/reports', permission: 'support_read' },
       { id: 'community', label: 'Community', icon: MessageSquare, path: '/admin/community', permission: 'support_read' },
       { id: 'cms', label: 'CMS', icon: BookOpen, path: '/admin/cms', permission: 'content_read' },
+      { id: 'intro-screen', label: 'Intro Screen', icon: Sparkles, path: '/admin/intro-screen', permission: 'content_read' },
       { id: 'recaps', label: 'Recaps', icon: Calendar, path: '/admin/recaps', permission: 'content_read' },
       { id: 'ads', label: 'Ads Manager', icon: Megaphone, path: '/admin/ads', permission: 'marketing_read' },
     ]

@@ -123,6 +123,7 @@ const FinancialControl = lazy(() => import('./pages/admin/FinancialControl'));
 const WithdrawalRequests = lazy(() => import('./pages/admin/WithdrawalRequests'));
 const ReportsModeration = lazy(() => import('./pages/admin/ReportsModeration'));
 const CMSContent = lazy(() => import('./pages/admin/CMSContent'));
+const IntroScreen = lazy(() => import('./pages/admin/IntroScreen'));
 const NotificationCenter = lazy(() => import('./pages/admin/NotificationCenter'));
 const RolePermissions = lazy(() => import('./pages/admin/RolePermissions'));
 const SystemSettings = lazy(() => import('./pages/admin/SystemSettings'));
@@ -154,12 +155,19 @@ const PageLoader = () => (
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [introScreen, setIntroScreen] = useState<{ enabled?: boolean; logo_url?: string; title?: string; tagline?: string } | null>(null);
   const initialize = useAuthStore((state) => state.initialize);
   const profile = useAuthStore((state) => state.profile);
 
   useEffect(() => {
     // Initialize auth state
     initialize();
+
+    // Fetch admin-configured intro/splash screen content
+    fetch('/api/v1/system/intro-screen')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => setIntroScreen(data || {}))
+      .catch(() => setIntroScreen({}));
 
     const checkMaintenance = () => {
       fetch('/api/v1/system/status')
@@ -201,10 +209,17 @@ function App() {
     };
   }, [initialize]);
 
+  // Skip the intro screen entirely when an admin has disabled it
+  useEffect(() => {
+    if (introScreen && introScreen.enabled === false) {
+      setIsLoading(false);
+    }
+  }, [introScreen]);
+
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen settings={introScreen} />;
   }
 
   if (maintenanceMode && !isAdminUser) {
@@ -559,6 +574,11 @@ function App() {
             <Route path="/admin/cms" element={
               <AdminLayout>
                 <Suspense fallback={<PageLoader />}><CMSContent /></Suspense>
+              </AdminLayout>
+            } />
+            <Route path="/admin/intro-screen" element={
+              <AdminLayout>
+                <Suspense fallback={<PageLoader />}><IntroScreen /></Suspense>
               </AdminLayout>
             } />
             <Route path="/admin/notifications" element={

@@ -10,8 +10,19 @@ const ORB_CONFIGS = [
   { width: 170, height: 200, left: '80%', top: '50%', duration: 6.5, xOffset: -20, yOffset: 50 },
 ];
 
-const LoadingScreen = () => {
+interface IntroSettings {
+  enabled?: boolean;
+  logo_url?: string;
+  title?: string;
+  tagline?: string;
+}
+
+const LoadingScreen = ({ settings }: { settings?: IntroSettings | null }) => {
   const [progress, setProgress] = useState(0);
+
+  const logoSrc = settings?.logo_url || '/logo.png';
+  const tagline = settings?.tagline || '5 years of Excellence in Entertainment';
+  const title = settings?.title || '';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,7 +98,7 @@ const LoadingScreen = () => {
               {/* Glow Effect Behind Logo */}
               <div className="absolute inset-0 blur-3xl scale-110">
                 <img 
-                  src="/logo.png" 
+                  src={logoSrc} 
                   alt=""
                   className="w-64 h-auto opacity-50"
                   style={{ filter: 'brightness(1.5)' }}
@@ -96,7 +107,7 @@ const LoadingScreen = () => {
               
               {/* Logo Image */}
               <motion.img 
-                src="/logo.png"
+                src={logoSrc}
                 alt="Sound It"
                 className="relative w-64 h-auto"
                 animate={{
@@ -116,6 +127,18 @@ const LoadingScreen = () => {
           </motion.div>
         </AnimatePresence>
 
+        {/* Title (optional, admin-configured) */}
+        {title ? (
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="text-white text-xl sm:text-2xl font-extrabold tracking-wide mb-3 text-center px-4"
+          >
+            {title}
+          </motion.h1>
+        ) : null}
+
         {/* Tagline */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -123,7 +146,7 @@ const LoadingScreen = () => {
           transition={{ delay: 0.3 }}
           className="text-[#d3da0c] text-sm tracking-[0.3em] uppercase mb-12 font-medium text-center px-4"
         >
-          5 years of Excellence in Entertainment
+          {tagline}
         </motion.p>
 
         {/* Progress Bar */}
