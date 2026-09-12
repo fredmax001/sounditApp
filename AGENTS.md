@@ -41,6 +41,16 @@
 
 ---
 
+### 76. Admin Notification History Log — Email-Only Sends Invisible (2026-09-13)
+- **Problem**: Admin sent an email-type notification; it delivered (SMTP log confirmed) but never appeared in the Notification Center history sidebar, couldn't be opened, and couldn't be resent. Root cause: history was derived from per-user `Notification` rows with `type IN ('admin','system','broadcast')`, which are only created for **push/both** sends — email-only sends created zero rows, leaving no history record.
+- **Backend**: new `AdminNotificationLog` model (`models.py`, table auto-created by `create_all` on deploy — confirmed in prod). `POST /admin/notifications/send` now records EVERY send (all channel types) with channels, target_role, image_url, and delivery counts. New endpoint `GET /admin/notifications/log` returns the log (new primary source; legacy `GET /admin/notifications` kept for fallback).
+- **Frontend (`NotificationCenter.tsx`)**: history loads from `/admin/notifications/log` (legacy fallback); items are clickable with a **detail modal** (channels, audience, recipients, in-app/push/email delivery stats, image preview) and a **Resend** button that repopulates the compose form (type mapped back from channels, image reused). New i18n keys in en/zh/fr.
+- **Note**: sends made before this release are not in the log (nothing was recorded); only new sends appear.
+- **Verification**: `py_compile` OK; TestClient smoke — email-only send returns 200 and appears in `/admin/notifications/log` with `type: email, channels: ['email']`; push send logged too; legacy endpoint intact; `tsc` + `npm run build` pass.
+- **Production Deploy (2026-09-13)**: release `20260913003353` — health 200, `admin_notification_logs` table created in PostgreSQL, `/admin/notifications/log` live (401 unauth as expected), log insert present in deployed code, no service errors.
+
+---
+
 ### 75. Upload False-Positive Rejections Fixed (2026-09-13)
 - **Problem**: Users reported uploads failing. Root cause: `FileSecurityScanner._check_embedded_scripts` scanned **raw binary image bytes** for text patterns (`<?=`, `<%`, `<script`, `onload=`…). Real phone photos (multi-MB JPEGs) naturally contain these short byte sequences in compressed data and EXIF metadata, causing random `400 File rejected: Potentially dangerous pattern detected` on `/api/v1/media/upload` (confirmed in prod service logs).
 - **Fix (`security/file_security.py`)**: the embedded-script check now only runs for **text-like image content** — `image/svg+xml` or content whose first 8 KB decodes as UTF-8 with >95% printable chars. Binary JPEG/PNG/WebP/GIF skip the text-pattern scan (they are served with their proper MIME type + `X-Content-Type-Options: nosniff`, so embedded text cannot execute). Added `_is_text_like_image()` helper.
