@@ -193,7 +193,12 @@ class FileSecurityScanner:
                     )
             
             # 7. Check for embedded scripts in images
-            if mime_type and mime_type.startswith('image/'):
+            # Only text-based image formats (SVG, or text-like content) can
+            # actually carry executable markup. Binary formats (JPEG/PNG/WebP/GIF)
+            # naturally contain byte sequences like '<%' or '<?=' in compressed
+            # data and EXIF metadata, which caused false-positive rejections of
+            # legitimate user photos.
+            if mime_type and mime_type.startswith('image/') and self._is_text_like_image(mime_type, file_content):
                 has_script, script_msg = self._check_embedded_scripts(file_content)
                 if has_script:
                     return FileSecurityReport(
@@ -307,6 +312,25 @@ class FileSecurityScanner:
             logger.error(f"Virus scan error: {e}")
             return ScanResult.ERROR, [str(e)]
     
+    def _is_text_like_image(self, mime_type: str, content: bytes) -> bool:
+        """True only for image formats that can contain executable text markup.
+
+        SVG is XML text and can embed scripts. Binary formats (JPEG, PNG, WebP,
+        GIF) cannot execute embedded markup when served with their proper MIME
+        type and X-Content-Type-Options: nosniff, and scanning their raw bytes
+        for text patterns produces false positives.
+        """
+        if mime_type == 'image/svg+xml':
+            return True
+        try:
+            text = content[:8192].decode('utf-8')
+        except (UnicodeDecodeError, ValueError):
+            return False
+        if not text:
+            return False
+        printable = sum(1 for ch in text if ch.isprintable() or ch in '\n\r\t')
+        return (printable / len(text)) > 0.95
+
     def _check_embedded_scripts(self, content: bytes) -> Tuple[bool, str]:
         """Check for embedded JavaScript/PHP in image files"""
         dangerous_patterns = [
