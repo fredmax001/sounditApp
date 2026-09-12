@@ -110,8 +110,14 @@ def send_email(
 # ─────────────────────────── Template Helpers ───────────────────────────
 
 def _email_wrapper(title: str, content_html: str) -> str:
-    """Standard HTML email wrapper with modern Sound It branding."""
-    logo_url = "https://sounditent.com/logo.png"
+    """Standard HTML email wrapper — light, email-client-safe Sound It branding.
+
+    Light design chosen deliberately: dark body backgrounds are stripped or
+    unpredictably inverted by Gmail/Apple Mail (incl. dark modes), while a
+    light card renders consistently everywhere. Brand mark sits on a black
+    header bar so the lime drum logo stays vivid.
+    """
+    logo_url = "https://sounditent.com/brand-mark.png"
     favicon_url = "https://sounditent.com/apple-touch-icon.png"
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -134,33 +140,32 @@ def _email_wrapper(title: str, content_html: str) -> str:
         body {{
             margin: 0;
             padding: 0;
-            background-color: #080808;
+            background-color: #f4f4f5;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }}
         .wrapper {{
             width: 100%;
-            background-color: #080808;
+            background-color: #f4f4f5;
             padding: 32px 12px;
         }}
         .container {{
             max-width: 580px;
             margin: 0 auto;
-            background-color: #121212;
+            background-color: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-            border: 1px solid #222222;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid #e4e4e7;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
         }}
         .top-accent {{
             height: 4px;
-            background: linear-gradient(90deg, #d3da0c 0%, #ff2d8f 100%);
+            background: linear-gradient(90deg, #d3da0c 0%, #a8ad0a 100%);
         }}
         .header {{
-            background-color: #0c0c0c;
-            padding: 28px 24px;
+            background-color: #000000;
+            padding: 26px 24px;
             text-align: center;
-            border-bottom: 1px solid #1a1a1a;
         }}
         .header img {{
             max-height: 52px;
@@ -169,16 +174,16 @@ def _email_wrapper(title: str, content_html: str) -> str:
             vertical-align: middle;
         }}
         .brand-subtitle {{
-            color: #777777;
+            color: #d3da0c;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2.5px;
-            margin-top: 10px;
+            margin-top: 12px;
         }}
         .content {{
             padding: 36px 28px;
-            color: #d1d1d1;
+            color: #27272a;
             font-size: 15px;
             line-height: 1.65;
         }}
@@ -186,10 +191,10 @@ def _email_wrapper(title: str, content_html: str) -> str:
             margin: 0 0 18px 0;
         }}
         .content strong {{
-            color: #ffffff;
+            color: #111111;
         }}
         .content a {{
-            color: #d3da0c;
+            color: #8a9000;
             text-decoration: underline;
         }}
         .cta {{
@@ -203,17 +208,18 @@ def _email_wrapper(title: str, content_html: str) -> str:
             font-weight: 800;
             font-size: 15px;
             letter-spacing: 0.3px;
-            box-shadow: 0 4px 15px rgba(211, 218, 12, 0.25);
+            box-shadow: 0 4px 15px rgba(211, 218, 12, 0.35);
         }}
         .card-box {{
-            background-color: #181818;
-            border: 1px solid #282828;
+            background-color: #fafafa;
+            border: 1px solid #e4e4e7;
             border-radius: 12px;
             padding: 20px;
             margin: 20px 0;
         }}
         .qr-box {{
             background-color: #ffffff;
+            border: 1px solid #e4e4e7;
             padding: 20px;
             border-radius: 14px;
             text-align: center;
@@ -230,28 +236,28 @@ def _email_wrapper(title: str, content_html: str) -> str:
             font-size: 32px;
             font-weight: 800;
             letter-spacing: 6px;
-            color: #d3da0c;
-            background-color: #0a0a0a;
+            color: #111111;
+            background-color: #f4f4f5;
             padding: 14px 28px;
             border-radius: 10px;
-            border: 1px solid #262626;
+            border: 1px solid #e4e4e7;
             display: inline-block;
             margin: 16px 0;
         }}
         .footer {{
             padding: 28px 32px;
             text-align: center;
-            color: #666666;
+            color: #71717a;
             font-size: 12px;
-            background-color: #0a0a0a;
-            border-top: 1px solid #1a1a1a;
+            background-color: #fafafa;
+            border-top: 1px solid #e4e4e7;
             line-height: 1.6;
         }}
         .footer p {{
             margin: 4px 0;
         }}
         .footer a {{
-            color: #888888;
+            color: #71717a;
             text-decoration: underline;
         }}
     </style>
@@ -264,20 +270,21 @@ def _email_wrapper(title: str, content_html: str) -> str:
                 <a href="https://sounditent.com" target="_blank" style="text-decoration: none;">
                     <img src="{logo_url}" alt="Sound It" />
                 </a>
-                <div class="brand-subtitle">ENTERTAINMENT & EVENT PLATFORM</div>
+                <div class="brand-subtitle">Entertainment &amp; Event Platform</div>
             </div>
             <div class="content">
                 {content_html}
             </div>
             <div class="footer">
-                <p style="font-weight: 700; color: #888888;">Sound It China — Your Nightlife & Event Connection</p>
+                <p style="font-weight: 700; color: #52525b;">Sound It China — Your Nightlife &amp; Event Connection</p>
                 <p>Need assistance? Contact us at <a href="mailto:support@sounditent.com">support@sounditent.com</a></p>
-                <p style="margin-top: 12px; color: #444444;">© 2026 Sound It. All rights reserved.</p>
+                <p style="margin-top: 12px; color: #a1a1aa;">© 2026 Sound It. All rights reserved.</p>
             </div>
         </div>
     </div>
 </body>
 </html>"""
+
 
 
 # ─── Welcome Email ───
@@ -326,8 +333,8 @@ We're building a smarter event and entertainment experience for everyone.
         <p>Welcome to <strong>Sound It</strong> 🎉</p>
         <p>We're excited to have you on the platform.</p>
         <p>Sound It is designed for different types of users, and here's how to get the best experience depending on your role:</p>
-        <div style="background:#0a0a0a; padding:20px; border-radius:12px; margin:16px 0;">
-            <h3 style="color:#d3da0c; margin:0 0 12px;">👤 USERS</h3>
+        <div style="background:#f9fafb; padding:20px; border-radius:12px; margin:16px 0;">
+            <h3 style="color:#8a9000; margin:0 0 12px;">👤 USERS</h3>
             <p style="margin:0 0 12px;">The mobile version is best for regular users. You can:</p>
             <ul style="margin:0; padding-left:20px; color:#ccc;">
                 <li>Discover events</li>
@@ -339,7 +346,7 @@ We're building a smarter event and entertainment experience for everyone.
             </ul>
         </div>
         <p>For a better mobile experience, you can also add Sound It to your home screen like an app:</p>
-        <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:12px 0;">
+        <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:12px 0;">
             <p style="margin:0 0 8px; font-weight:600;">📱 On iPhone (Safari):</p>
             <ol style="margin:0; padding-left:20px; color:#ccc;">
                 <li>Open the website</li>
@@ -347,7 +354,7 @@ We're building a smarter event and entertainment experience for everyone.
                 <li>Select "Add to Home Screen"</li>
             </ol>
         </div>
-        <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:12px 0;">
+        <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:12px 0;">
             <p style="margin:0 0 8px; font-weight:600;">📱 On Android (Chrome):</p>
             <ol style="margin:0; padding-left:20px; color:#ccc;">
                 <li>Open the website</li>
@@ -400,8 +407,8 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         <p>Welcome to <strong>Sound It</strong> 🎉</p>
         <p>We're excited to have you on the platform.</p>
         <p>Sound It is designed for different types of users, and here's how to get the best experience depending on your role:</p>
-        <div style="background:#0a0a0a; padding:20px; border-radius:12px; margin:16px 0;">
-            <h3 style="color:#d3da0c; margin:0 0 12px;">🎟️ ORGANIZERS</h3>
+        <div style="background:#f9fafb; padding:20px; border-radius:12px; margin:16px 0;">
+            <h3 style="color:#8a9000; margin:0 0 12px;">🎟️ ORGANIZERS</h3>
             <p style="margin:0 0 12px;">For organizers, we highly recommend using a <strong>laptop or desktop</strong> during setup and event creation.</p>
             <p style="margin:0 0 8px; font-weight:600;">Desktop gives you full access to:</p>
             <ul style="margin:0 0 16px; padding-left:20px; color:#ccc;">
@@ -465,8 +472,8 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         <p>Welcome to <strong>Sound It</strong> 🎉</p>
         <p>We're excited to have you on the platform.</p>
         <p>Sound It is designed for different types of users, and here's how to get the best experience depending on your role:</p>
-        <div style="background:#0a0a0a; padding:20px; border-radius:12px; margin:16px 0;">
-            <h3 style="color:#d3da0c; margin:0 0 12px;">🎤 ARTISTS & DJs</h3>
+        <div style="background:#f9fafb; padding:20px; border-radius:12px; margin:16px 0;">
+            <h3 style="color:#8a9000; margin:0 0 12px;">🎤 ARTISTS & DJs</h3>
             <p style="margin:0 0 12px;">Artists and DJs are encouraged to use a <strong>laptop or desktop</strong> for the best experience while setting up profiles and managing bookings.</p>
             <p style="margin:0 0 8px; font-weight:600;">Desktop access is best for:</p>
             <ul style="margin:0 0 16px; padding-left:20px; color:#ccc;">
@@ -530,8 +537,8 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         <p>Welcome to <strong>Sound It</strong> 🎉</p>
         <p>We're excited to have you on the platform.</p>
         <p>Sound It is designed for different types of users, and here's how to get the best experience depending on your role:</p>
-        <div style="background:#0a0a0a; padding:20px; border-radius:12px; margin:16px 0;">
-            <h3 style="color:#d3da0c; margin:0 0 12px;">🛍️ VENDORS</h3>
+        <div style="background:#f9fafb; padding:20px; border-radius:12px; margin:16px 0;">
+            <h3 style="color:#8a9000; margin:0 0 12px;">🛍️ VENDORS</h3>
             <p style="margin:0 0 12px;">Vendors are also encouraged to use a <strong>laptop or desktop</strong> for full setup and management.</p>
             <p style="margin:0 0 8px; font-weight:600;">Desktop access is best for:</p>
             <ul style="margin:0 0 16px; padding-left:20px; color:#ccc;">
@@ -630,7 +637,7 @@ You can also view your tickets online: https://sounditent.com/tickets
     # Build clean HTML (no embedded base64 images — they break in many email clients)
     ticket_rows = "\n".join(
         f"""<tr>
-            <td style="padding:10px 16px; border-bottom:1px solid #222; color:#d3da0c; font-weight:700;">Ticket #{i+1}</td>
+            <td style="padding:10px 16px; border-bottom:1px solid #222; color:#8a9000; font-weight:700;">Ticket #{i+1}</td>
             <td style="padding:10px 16px; border-bottom:1px solid #222; color:#e5e5e5; font-family:monospace;">{t['ticket_number']}</td>
         </tr>"""
         for i, t in enumerate(tickets)
@@ -640,7 +647,7 @@ You can also view your tickets online: https://sounditent.com/tickets
         subject,
         f"""<p>Hi {name},</p>
         <p>Great news! Your ticket order for <strong>{event_title}</strong> has been approved.</p>
-        <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:16px 0;">
+        <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:16px 0;">
             <p style="margin:4px 0;"><strong>Event:</strong> {event_title}</p>
             <p style="margin:4px 0;"><strong>Date:</strong> {event_date}</p>
             <p style="margin:4px 0;"><strong>Venue:</strong> {event_venue}</p>
@@ -797,7 +804,7 @@ You can view and manage your booking here: {dashboard_url}
             subject,
             f"""<p>Hi {name},</p>
             <p>Great news! <strong>{artist_name}</strong> has <span style="color:#22c55e; font-weight:700;">accepted</span> your booking request for <strong>{safe_event}</strong>.</p>
-            <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:16px 0;">
+            <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:16px 0;">
                 <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
                 <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
                 <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
@@ -827,7 +834,7 @@ You can submit a new request or explore other artists here: https://sounditent.c
             subject,
             f"""<p>Hi {name},</p>
             <p>Unfortunately, <strong>{artist_name}</strong> has <span style="color:#ef4444; font-weight:700;">declined</span> your booking request for <strong>{safe_event}</strong>.</p>
-            <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:16px 0;">
+            <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:16px 0;">
                 <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
                 <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
                 <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
@@ -913,38 +920,38 @@ def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
     subject = "🎉 Welcome to Sound It — Modern Design Upgrade"
     body = (
         "Hi Fred Max,\n\n"
-        "This is a test email demonstrating the new modern, high-contrast Sound It email template.\n\n"
+        "This is a test email demonstrating the new Sound It email template.\n\n"
         "Features:\n"
-        "• Deep obsidian dark header ensuring the yellow Sound It logo displays with 100% clarity\n"
-        "• Favicon and Apple Touch Icon integrated for email client avatar resolution\n"
-        "• Premium dark-mode card styling with neon lime highlights\n\n"
+        "• Black header bar with the new lime drum brand mark\n"
+        "• Light, client-safe layout that renders consistently in Gmail/Apple Mail (incl. dark modes)\n"
+        "• Favicon and Apple Touch Icon integrated for email client avatar resolution\n\n"
         "— Sound It Team"
     )
     html = _email_wrapper(
         subject,
         """<div style="text-align: center; margin-bottom: 24px;">
-            <span style="background-color: rgba(211, 218, 12, 0.15); color: #d3da0c; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
+            <span style="background-color: rgba(211, 218, 12, 0.15); color: #8a9000; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
                 ✨ EMAIL TEMPLATE REDESIGN
             </span>
         </div>
-        <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 16px 0; text-align: center; letter-spacing: -0.5px;">
+        <h2 style="color: #18181b; font-size: 24px; font-weight: 800; margin: 0 0 16px 0; text-align: center; letter-spacing: -0.5px;">
             Welcome to the New Sound It Experience!
         </h2>
-        <p style="font-size: 15px; color: #d1d1d1; line-height: 1.65; margin-bottom: 18px;">
+        <p style="font-size: 15px; color: #3f3f46; line-height: 1.65; margin-bottom: 18px;">
             Hi <strong>Fred Max</strong>,
         </p>
-        <p style="font-size: 15px; color: #d1d1d1; line-height: 1.65; margin-bottom: 20px;">
-            We have upgraded our entire email delivery system with a high-contrast, state-of-the-art dark mode design.
+        <p style="font-size: 15px; color: #3f3f46; line-height: 1.65; margin-bottom: 20px;">
+            We have upgraded our entire email delivery system with a clean, light design built for every email client.
         </p>
 
-        <div style="background-color: #181818; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin: 24px 0;">
-            <h3 style="color: #d3da0c; font-size: 15px; font-weight: 700; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px;">
+        <div style="background-color: #f9fafb; border: 1px solid #e4e4e7; border-radius: 12px; padding: 22px; margin: 24px 0;">
+            <h3 style="color: #8a9000; font-size: 15px; font-weight: 700; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px;">
                 🚀 Key Enhancements:
             </h3>
-            <ul style="margin: 0; padding-left: 20px; color: #bbbbbb; font-size: 14px; line-height: 1.8;">
-                <li><strong style="color:#ffffff;">High-Contrast Obsidian Header:</strong> Deep dark background `#0c0c0c` so the yellow Sound It logo is 100% visible and crisp.</li>
-                <li><strong style="color:#ffffff;">Email Avatar & Favicon:</strong> Formatted sender name <code style="color:#d3da0c; background:#000; padding:2px 6px; border-radius:4px;">Sound It &lt;support@sounditent.com&gt;</code> and embedded Apple Touch Icon / Favicon tags.</li>
-                <li><strong style="color:#ffffff;">Modern Responsive UI:</strong> Glassmorphism accent bar, rounded cards, and high-visibility CTA buttons.</li>
+            <ul style="margin: 0; padding-left: 20px; color: #52525b; font-size: 14px; line-height: 1.8;">
+                <li><strong style="color:#18181b;">Black Header with New Brand Mark:</strong> The new Sound It drum logo sits on a black bar so the lime mark stays vivid in every client.</li>
+                <li><strong style="color:#18181b;">Email Avatar &amp; Favicon:</strong> Formatted sender name <code style="color:#8a9000; background:#f4f4f5; padding:2px 6px; border-radius:4px;">Sound It &lt;support@sounditent.com&gt;</code> and embedded Apple Touch Icon / Favicon tags.</li>
+                <li><strong style="color:#18181b;">Light, Client-Safe Design:</strong> White card on a light gray canvas renders consistently in Gmail, Apple Mail, Outlook, and their dark modes — no more unpredictable color inverting.</li>
             </ul>
         </div>
 
@@ -978,19 +985,19 @@ def send_organizer_announcement_email(
 
     html_content = f"""
     <div style="text-align: center; margin-bottom: 24px;">
-        <span style="background-color: rgba(211, 218, 12, 0.15); color: #d3da0c; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
+        <span style="background-color: rgba(211, 218, 12, 0.15); color: #8a9000; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
             📢 ORGANIZER ANNOUNCEMENT
         </span>
     </div>
-    <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
+    <h2 style="color: #18181b; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
         {announcement_title}
     </h2>
-    {f'<p style="text-align: center; color: #d3da0c; font-size: 14px; font-weight: 600; margin-bottom: 20px;">Event: {event_title}</p>' if event_title else ''}
+    {f'<p style="text-align: center; color: #8a9000; font-size: 14px; font-weight: 600; margin-bottom: 20px;">Event: {event_title}</p>' if event_title else ''}
     <p style="font-size: 14px; color: #888888; margin-bottom: 20px;">
         Message from <strong>{organizer_name}</strong>:
     </p>
 
-    <div style="background-color: #181818; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin: 20px 0;">
+    <div style="background-color: #f9fafb; border: 1px solid #e4e4e7; border-radius: 12px; padding: 22px; margin: 20px 0;">
         <p style="font-size: 15px; color: #e1e1e1; line-height: 1.7; white-space: pre-wrap; margin: 0;">
             {announcement_body}
         </p>
@@ -1031,20 +1038,20 @@ If you have any questions, please contact your administrator.
 
     html_content = f"""
     <div style="text-align: center; margin-bottom: 24px;">
-        <span style="background-color: rgba(211, 218, 12, 0.15); color: #d3da0c; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
+        <span style="background-color: rgba(211, 218, 12, 0.15); color: #8a9000; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
             🛡️ ADMIN ROLE INVITATION
         </span>
     </div>
-    <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
+    <h2 style="color: #18181b; font-size: 24px; font-weight: 800; margin: 0 0 8px 0; text-align: center; letter-spacing: -0.5px;">
         Welcome to the Team, {name}!
     </h2>
     <p style="text-align: center; color: #888888; font-size: 14px; margin-bottom: 24px;">
         You have been granted <strong>{role_name}</strong> permissions by {assigned_by_name}.
     </p>
 
-    <div style="background-color: #181818; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin: 20px 0;">
+    <div style="background-color: #f9fafb; border: 1px solid #e4e4e7; border-radius: 12px; padding: 22px; margin: 20px 0;">
         <p style="font-size: 14px; color: #e1e1e1; margin: 0 0 12px 0;">
-            <strong>Your Role:</strong> <span style="color: #d3da0c;">{role_name}</span>
+            <strong>Your Role:</strong> <span style="color: #8a9000;">{role_name}</span>
         </p>
         <p style="font-size: 13px; color: #aaaaaa; margin: 0; line-height: 1.6;">
             Your account now has direct access to the specialized <strong>{role_name} Dashboard</strong>. When you log in, you will be taken directly to your management workspace.
@@ -1055,7 +1062,7 @@ If you have any questions, please contact your administrator.
         <a href="{invite_url}" class="cta">Access {role_name} Dashboard →</a>
     </div>
     <p style="text-align: center; color: #666666; font-size: 12px; margin-top: 16px;">
-        Direct link: <a href="{invite_url}" style="color: #d3da0c;">{invite_url}</a>
+        Direct link: <a href="{invite_url}" style="color: #8a9000;">{invite_url}</a>
     </p>
     """
 
