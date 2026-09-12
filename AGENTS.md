@@ -49,7 +49,10 @@
 
 ---
 
-### 78. New Brand Header + Gravatar Avatar Support (2026-09-13)
+### 78. New Brand Header + Gravatar Avatar Support (2026-09-13) — ⚠️ PLATFORM PART REVERTED
+- **REVISED (same night)**: the user clarified they only wanted the **EMAIL header** changed, not the platform UI. The platform header redesign (Navbar/MobileHeader black redesign, brand-mark badge, wordmark, Gravatar avatar helper) was fully reverted from commit `c86011d` and deployed (release `20260913021317`). `app/src/lib/avatar.ts` was deleted. **Do not re-apply platform header/branding changes without explicit user request.**
+- **Kept**: `app/public/brand-mark.png` (used by the email template, entry #79) and this entry as history.
+- **Original entry (for the record)**:
 - **Gravatar root cause**: user created a Gravatar months ago but it never appeared — a repo-wide search confirmed **zero Gravatar code existed** (frontend or backend). Users without a custom upload always got the generic icon.
 - **Fix**: new `app/src/lib/avatar.ts` (note: `app/src/lib/` is gitignored by the Python `lib/` rule and untracked by convention — deploys via rsync) with an RFC-1321-verified compact MD5 implementation and `resolveAvatarUrl(user, size)`: custom `avatar_url` → Gravatar (MD5 of trimmed+lowercased email, `d=identicon`) → `/default-avatar.png`. Applied in `Navbar.tsx`, `MobileHeader.tsx` (header + drawer), `pages/user/Profile.tsx`. MD5 verified against system `md5` vectors.
 - **Header redesign**: processed the new brand logo (`SI App Logo png.PNG`, 2-color lime-on-white) into `app/public/brand-mark.png` — white → transparent, color normalized to brand lime `#d3da0c` (source is exactly 2 colors, so binary threshold is lossless). Desktop `Navbar`: black `bg-black/95` background (was transparent over hero), brand mark in a lime-tinted rounded badge + "SOUND IT" wordmark (lime "IT") + tagline, lime hairline border on scroll. `MobileHeader`: solid black (`rgba(0,0,0,0.92+)`) with lime-tinted scroll border, same brand lockup. `nav.tagline` i18n key added to en/zh/fr.
