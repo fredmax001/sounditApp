@@ -41,6 +41,15 @@
 
 ---
 
+### 75. Upload False-Positive Rejections Fixed (2026-09-13)
+- **Problem**: Users reported uploads failing. Root cause: `FileSecurityScanner._check_embedded_scripts` scanned **raw binary image bytes** for text patterns (`<?=`, `<%`, `<script`, `onload=`…). Real phone photos (multi-MB JPEGs) naturally contain these short byte sequences in compressed data and EXIF metadata, causing random `400 File rejected: Potentially dangerous pattern detected` on `/api/v1/media/upload` (confirmed in prod service logs).
+- **Fix (`security/file_security.py`)**: the embedded-script check now only runs for **text-like image content** — `image/svg+xml` or content whose first 8 KB decodes as UTF-8 with >95% printable chars. Binary JPEG/PNG/WebP/GIF skip the text-pattern scan (they are served with their proper MIME type + `X-Content-Type-Options: nosniff`, so embedded text cannot execute). Added `_is_text_like_image()` helper.
+- **Admin notification image flow verified end-to-end** (user request): attach image → `POST /media/upload` returns absolute URL → `POST /admin/notifications/send` stores `image_url` + `channels` on the notification rows → history returns both → push payload includes `payload["image"]` → broadcast email embeds an `<img>` banner.
+- **Verification**: `py_compile` OK; TestClient matrix passes — real PIL photo uploads 200; the same photo with `<%`/`<?=`/`onload=` bytes injected into a JPEG COM segment (what cameras naturally produce) uploads 200 (was 400); unit check confirms the old raw scan flagged that exact file (false positive proven); `.svg`/script content still blocked.
+- **Production Deploy (2026-09-13)**: release `20260913001208` via `deploy/deploy_safe.sh` — health 200, scanner fix confirmed on server (`_is_text_like_image` present), `/media/upload` reachable (401 unauth, not 5xx), no service errors since restart.
+
+---
+
 ### 74. Verification-Fix Review: 4 Bugs Found & Fixed (2026-09-12)
 - **Context**: Reviewed another agent's verification-system fixes (entry #71, deployed release `20260912234117`). The core fix was verified correct: `GET /admin/verifications` returns only real `VerificationRequest` rows (no more synthesized `art_{id}`/`biz_{id}` entries), `pending_verifications` stat and `get_pending_actions` use only real PENDING requests, new artists register `is_approved=True`/`is_verified=False`, frontend shows a neutral "Unverified" badge. Fresh-clone scan of production confirmed the fake-id synthesis is gone.
 - **Bugs found in the new code and fixed (`api/admin.py`)**:
@@ -51,7 +60,7 @@
 - **Verification**: `py_compile` OK; TestClient smoke test passes end-to-end (apply → 200, duplicate apply blocked, admin list = 1 real request, `?type=artist` filter works, approve → `verification_approved` notification row created, badge toggle → `badge_granted` notification row created, badge users list works).
 - **IMPORTANT REPO FACT**: `api/` (all backend Python) is **deliberately NOT tracked in git** (`.gitignore` line 98, excluded since the initial commit). Backend changes cannot be committed; they deploy via rsync (`deploy_safe.sh`). Do not `git add -f api/`.
 - **Production Deploy (2026-09-13)**: Deployed release `20260913000217` via `deploy/deploy_safe.sh`. Health check passed; verified on the server: `notification_type=` kwarg present, `VerificationType` imported, `badge_granted` notification in the live badge handler, duplicate routes removed (0), phantom attribute gone (0), no errors in `journalctl` since restart.
-- **Deploy status**: ✅ live in production.
+- **Deploy status**: ✅ live in production (superseded by release `20260913001208`, see entry 75).
 
 ---
 
