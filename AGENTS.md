@@ -41,6 +41,14 @@
 
 ---
 
+### 79. Email Template Redesign — Light, Client-Safe + New Brand Mark (2026-09-13)
+- **Problem**: user received a test email that didn't match the branded template. Two root causes: (1) the test was sent with ad-hoc inline HTML, not the platform wrapper; (2) the existing `_email_wrapper` was dark-themed — Gmail/Apple Mail strip or invert dark body backgrounds (Gmail dark mode turned the lime header olive; Apple Mail light showed plain white), so the dark design rendered unpredictably.
+- **Fix (`email_service.py`)**: `_email_wrapper` redesigned — light gray canvas (`#f4f4f5`) + white card + near-black text; **black header bar with the new drum brand mark** (`https://sounditent.com/brand-mark.png`) and lime subtitle; lime accents darkened to `#8a9000` where they sit on white (contrast); CTA keeps lime bg/black text. Light design chosen deliberately — it renders consistently in Gmail/Apple Mail/Outlook including dark modes. Converted all content builders' inline dark styles (`#0a0a0a`, `#181818`, `#282828`, `#d1d1d1`, `#ffffff`, lime-on-dark) to the light theme. Admin broadcast email (`api/admin.py`) now uses the shared wrapper (image banner preserved). `send_test_email` updated to showcase the template.
+- **Verified**: `py_compile` OK; template rendered in a browser and screenshot-reviewed before deploy; test email `SENT` from production (release `20260913020248`, health 200).
+- **Note**: sender avatar shown by Apple Mail comes from the site's `apple-touch-icon`/Gravatar on the sending address — unchanged behavior.
+
+---
+
 ### 78. New Brand Header + Gravatar Avatar Support (2026-09-13)
 - **Gravatar root cause**: user created a Gravatar months ago but it never appeared — a repo-wide search confirmed **zero Gravatar code existed** (frontend or backend). Users without a custom upload always got the generic icon.
 - **Fix**: new `app/src/lib/avatar.ts` (note: `app/src/lib/` is gitignored by the Python `lib/` rule and untracked by convention — deploys via rsync) with an RFC-1321-verified compact MD5 implementation and `resolveAvatarUrl(user, size)`: custom `avatar_url` → Gravatar (MD5 of trimmed+lowercased email, `d=identicon`) → `/default-avatar.png`. Applied in `Navbar.tsx`, `MobileHeader.tsx` (header + drawer), `pages/user/Profile.tsx`. MD5 verified against system `md5` vectors.
