@@ -41,6 +41,15 @@
 
 ---
 
+### 80. Admin-Editable Intro/Splash Screen (2026-09-13)
+- **Feature**: new admin section to change the app intro screen info + logo without code changes.
+- **Backend (`api/admin.py` — untracked per convention)**: `intro_screen` JSON row in `SystemSetting` (category `content`); `GET/PUT /admin/intro-screen` (`require_admin`) with fields `enabled`, `logo_url`, `title`, `tagline`; public `GET /api/v1/system/intro-screen` in `main.py` for the frontend. Defaults: enabled, empty logo (= `/logo.png`), tagline "5 years of Excellence in Entertainment".
+- **Frontend**: `App.tsx` fetches the public endpoint and passes settings to `LoadingScreen` (custom logo/title/tagline, fallbacks to previous defaults); disabling the intro skips the 2s splash entirely. New admin page `app/src/pages/admin/IntroScreen.tsx` — Content > **Intro Screen** in the admin sidebar (`content_read` permission) with enable toggle, logo upload (`/media/upload`) or URL, title/tagline fields, and a live dark preview pane. Route `/admin/intro-screen`.
+- **Bug fixed along the way**: `log_activity()` passed `db=db` into the `AdminActivityLog` constructor → `TypeError` for every caller that supplied a session (including the existing `PUT /admin/settings/flags`). Removed the invalid kwarg.
+- **Verification**: TestClient smoke (public GET defaults → admin PUT → public GET reflects); `tsc` + `npm run build` pass; production release `20260913022754` — public endpoint returns defaults, admin endpoint 401-gated, health 200.
+
+---
+
 ### 79. Email Template Redesign — Light, Client-Safe + New Brand Mark (2026-09-13)
 - **Problem**: user received a test email that didn't match the branded template. Two root causes: (1) the test was sent with ad-hoc inline HTML, not the platform wrapper; (2) the existing `_email_wrapper` was dark-themed — Gmail/Apple Mail strip or invert dark body backgrounds (Gmail dark mode turned the lime header olive; Apple Mail light showed plain white), so the dark design rendered unpredictably.
 - **Fix (`email_service.py`)**: `_email_wrapper` redesigned — light gray canvas (`#f4f4f5`) + white card + near-black text; **black header bar with the new drum brand mark** (`https://sounditent.com/brand-mark.png`) and lime subtitle; lime accents darkened to `#8a9000` where they sit on white (contrast); CTA keeps lime bg/black text. Light design chosen deliberately — it renders consistently in Gmail/Apple Mail/Outlook including dark modes. Converted all content builders' inline dark styles (`#0a0a0a`, `#181818`, `#282828`, `#d1d1d1`, `#ffffff`, lime-on-dark) to the light theme. Admin broadcast email (`api/admin.py`) now uses the shared wrapper (image banner preserved). `send_test_email` updated to showcase the template.
