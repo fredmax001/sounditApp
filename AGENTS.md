@@ -41,6 +41,19 @@
 
 ---
 
+### 74. Verification-Fix Review: 4 Bugs Found & Fixed (2026-09-12)
+- **Context**: Reviewed another agent's verification-system fixes (entry #71, deployed release `20260912234117`). The core fix was verified correct: `GET /admin/verifications` returns only real `VerificationRequest` rows (no more synthesized `art_{id}`/`biz_{id}` entries), `pending_verifications` stat and `get_pending_actions` use only real PENDING requests, new artists register `is_approved=True`/`is_verified=False`, frontend shows a neutral "Unverified" badge. Fresh-clone scan of production confirmed the fake-id synthesis is gone.
+- **Bugs found in the new code and fixed (`api/admin.py`)**:
+  1. **Notifications never sent**: approve/reject/badge endpoints called `create_notification(..., type="verification_approved")` — wrong kwarg (must be `notification_type=`). `TypeError` was swallowed by `except Exception: pass`, so users got no in-app notification. Fixed all 3 call sites.
+  2. **`VerificationType` not imported** → `?type=` filter on `GET /admin/verifications` silently did nothing (`NameError` swallowed). Added to the models import.
+  3. **Phantom attribute**: `user.verification_status = ...` assigned on a column that does not exist on `User`. Removed.
+  4. **Duplicate route registration**: `POST /admin/verification-badge` and `GET /admin/verification-badge/users` were each defined twice; the FIRST registration wins in FastAPI, and the live `POST` handler never sent notifications while the fixed one was unreachable dead code. Added `badge_granted` notification to the live handler and deleted the duplicate block (~66 lines) + unused `VerificationBadgeToggleRequest` schema.
+- **Verification**: `py_compile` OK; TestClient smoke test passes end-to-end (apply → 200, duplicate apply blocked, admin list = 1 real request, `?type=artist` filter works, approve → `verification_approved` notification row created, badge toggle → `badge_granted` notification row created, badge users list works).
+- **IMPORTANT REPO FACT**: `api/` (all backend Python) is **deliberately NOT tracked in git** (`.gitignore` line 98, excluded since the initial commit). Backend changes cannot be committed; they deploy via rsync (`deploy_safe.sh`). Do not `git add -f api/`.
+- **Deploy status**: fixed locally; production deploy pending (prod currently has the broken notification kwarg).
+
+---
+
 ### 73. Credential Exposure Cleanup & Git History Scrub (2026-09-12)
 - **Context**: User requested all passwords/secret keys be hidden from git. Audit found the production root SSH password and admin passwords committed in source and referenced across history (`.env` itself was never tracked — verified).
 - **Secrets removed from source (commit `9ae92af`)**:
