@@ -53,7 +53,10 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}) {
         errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
       }
 
-      const errorMessage = errorData.detail ||
+      // Backend wraps errors as { error: { message, code, ... } } (post-security hardening)
+      // Fallback to legacy { detail } and { message } formats for compatibility
+      const errorMessage = errorData?.error?.message ||
+        errorData.detail ||
         errorData.message ||
         `HTTP ${response.status}: ${response.statusText}`;
 

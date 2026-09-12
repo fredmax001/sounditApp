@@ -374,9 +374,9 @@ const ManageArtists = () => {
                   <td className="p-4">
                     <div className="flex flex-col gap-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                        artist.is_verified ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                        artist.is_verified || artist.verification_badge ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-400'
                       }`}>
-                        {artist.is_verified ? t('admin.manageArtists.verifiedStatus') : t('admin.manageArtists.pendingStatus')}
+                        {artist.is_verified || artist.verification_badge ? (t('admin.manageArtists.verifiedStatus') || 'Verified') : (t('admin.manageArtists.unverifiedStatus') || 'Unverified')}
                       </span>
                       {artist.is_approved && (
                         <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-blue-500/20 text-blue-400">

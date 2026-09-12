@@ -324,11 +324,11 @@ class RateLimiter:
 # Predefined rate limits for different endpoint types
 RATE_LIMITS = {
     "auth": {
-        "login": "5/minute",
-        "register": "3/minute",
-        "otp_send": "3/minute",
-        "otp_verify": "10/minute",
-        "forgot_password": "3/minute",
+        "login": "20/minute",        # was 5 — too tight with multi-worker in-memory fallback
+        "register": "10/minute",     # was 3
+        "otp_send": "5/minute",
+        "otp_verify": "20/minute",
+        "forgot_password": "5/minute",
     },
     "payments": {
         "create_order": "10/minute",
@@ -337,10 +337,10 @@ RATE_LIMITS = {
     },
     "tickets": {
         "verify": "30/minute",
-        "purchase": "5/minute",
+        "purchase": "10/minute",
     },
     "api": {
-        "default": "100/minute",
+        "default": "200/minute",     # was 100 — lifted for normal browsing
         "upload": "10/minute",
         "search": "60/minute",
     }
@@ -365,6 +365,8 @@ def setup_rate_limiting(app):
         "/static/",
         "/assets/",
         "/uploads/",
+        "/analytics/",
+        "/api/v1/analytics/",
     )
     
     @app.middleware("http")

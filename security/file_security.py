@@ -10,7 +10,7 @@ import os
 import io
 import logging
 import hashlib
-# import magic  # Temporarily disabled for testing
+import importlib
 from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass
 from enum import Enum
@@ -237,8 +237,11 @@ class FileSecurityScanner:
         """Detect MIME type from magic bytes (python-magic fallback)."""
         # Try python-magic first if available
         try:
-            import magic
-            return magic.from_buffer(content, mime=True)
+            # Keep this optional: deployments without libmagic still use the
+            # conservative signature-based detector below. Importing by name
+            # also avoids making the editor require python-magic locally.
+            magic_module = importlib.import_module("magic")
+            return magic_module.from_buffer(content, mime=True)
         except (ImportError, Exception):
             pass
         # Fallback: use our own magic bytes lookup

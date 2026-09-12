@@ -24,13 +24,22 @@ set -e
 SERVER_USER="root"
 SERVER_HOST="72.62.254.251"
 SERVER_PORT="22"
-SSH_PASS='***REMOVED***'
+
+# SSH password must be provided via the SSH_PASS environment variable.
+# Never hardcode credentials in this script (it is tracked in git).
+if [ -z "${SSH_PASS:-}" ]; then
+  echo "[ERR] SSH_PASS environment variable is not set."
+  echo "      Export it before running:  export SSH_PASS='your-password'"
+  exit 1
+fi
+export SSHPASS="$SSH_PASS"
+
 REMOTE_DIR="/var/www/soundit"
 LOCAL_DIR="/Users/djfredmax/Desktop/SOUND IT WEB APP COMPLETE"
 UPLOAD_BACKUP_DIR="/var/backups/soundit-uploads"
 PERSISTENT_UPLOAD_DIR="/var/www/soundit-uploads"
 
-SSH="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+SSH="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
@@ -80,7 +89,7 @@ echo ""
 echo "▶ [4/6] Syncing project files..."
 eval "$SSH $SERVER_USER@$SERVER_HOST \"mkdir -p $REMOTE_DIR\""
 
-sshpass -p "$SSH_PASS" rsync -avz --delete \
+sshpass -e rsync -avz --delete \
   -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SERVER_PORT" \
   --exclude='.venv/' \
   --exclude='venv/' \
@@ -171,7 +180,7 @@ RESTORE_EOF
 chmod +x "$RESTORE_SCRIPT"
 
 # Copy and execute restore script on server
-sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "$SERVER_PORT" \
+sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "$SERVER_PORT" \
   "$RESTORE_SCRIPT" "$SERVER_USER@$SERVER_HOST:/tmp/restore_uploads.sh"
 
 eval "$SSH $SERVER_USER@$SERVER_HOST \"bash /tmp/restore_uploads.sh\""
@@ -182,7 +191,7 @@ rm -f "$RESTORE_SCRIPT"
 # Step 5: Upload deployment configs
 echo ""
 echo "▶ [5/6] Uploading deployment configs..."
-sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P $SERVER_PORT \
+sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P $SERVER_PORT \
   "$LOCAL_DIR/deploy/nginx_sounditent.conf" \
   "$LOCAL_DIR/deploy/sounditent.service" \
   "$LOCAL_DIR/deploy/server_setup_sounditent.sh" \

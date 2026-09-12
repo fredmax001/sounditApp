@@ -26,11 +26,20 @@ axios.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401) {
-      // Token expired or invalid — clear auth and redirect to login
-      localStorage.removeItem('auth-token');
-      localStorage.removeItem('refresh-token');
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      // Token expired or invalid — clear auth and redirect to login.
+      // BUT: don't redirect if this is a login/register attempt itself —
+      // a 401 there means wrong credentials, not an expired session.
+      const requestUrl = error?.config?.url || '';
+      const isAuthEndpoint = requestUrl.includes('/auth/login') ||
+        requestUrl.includes('/auth/register') ||
+        requestUrl.includes('/auth/verify');
+
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('auth-token');
+        localStorage.removeItem('refresh-token');
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
 

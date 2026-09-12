@@ -1,7 +1,7 @@
 """
 Ticketing Service - Hybrid payment logic, auto-approval, and ticket generation
 """
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime, timezone, timedelta
 from typing import Tuple, Optional
 from sqlalchemy.orm import Session
 import uuid
@@ -9,36 +9,36 @@ import qrcode
 import io
 import base64
 
-from models import (
-    Event, TicketOrder, TicketOrderStatus, Ticket, TicketStatus, OrganizerProfile,
-    UserRole, Notification, TicketTier
-)
-from services.subscription_service import SubscriptionService
+from models import Event, TicketOrder, TicketOrderStatus, Ticket, TicketStatus, TicketTier, OrganizerProfile, User
 from services.sms_notifications import (
-    notify_user_ticket_approved,
-    notify_user_ticket_rejected,
     notify_user_order_cancelled,
 )
 from api.notifications import create_notification as _create_notification
 
 
 def get_event_organizer_plan(db: Session, event_id: int) -> str:
-    """Returns the organizer's subscription plan: basic, pro, or premium"""
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event or not event.organizer_id:
-        return "basic"  # Default for events without organizer
-    
-    organizer = db.query(OrganizerProfile).filter(
-        OrganizerProfile.id == event.organizer_id
-    ).first()
-    if not organizer:
-        return "basic"
-    
-    status = SubscriptionService.get_subscription_status(db, organizer.user_id)
-    if status.get("has_active_subscription"):
-        return status.get("plan_type", "basic")
-    
-    return "basic"
+    """Return the subscription plan name of the event organizer (defaults to 'free')."""
+    try:
+        event = db.query(Event).filter(Event.id == event_id).first()
+        if not event:
+            return "free"
+        organizer = db.query(OrganizerProfile).filter(
+            OrganizerProfile.id == event.organizer_id
+        ).first()
+        if not organizer:
+            return "free"
+        user = db.query(User).filter(User.id == organizer.user_id).first()
+        if not user:
+            return "free"
+        # Return subscription plan if present
+        if hasattr(user, "subscription") and user.subscription:
+            plan = user.subscription
+            if hasattr(plan, "plan_type"):
+                return plan.plan_type.value if hasattr(plan.plan_type, "value") else str(plan.plan_type)
+        return "free"
+    except Exception:
+        return "free"
+
 
 
 def get_ticket_price(db: Session, order: TicketOrder, event: Event) -> float:
@@ -50,47 +50,6 @@ def get_ticket_price(db: Session, order: TicketOrder, event: Event) -> float:
     if event.ticket_price is not None:
         return event.ticket_price
     return 0.0
-
-
-def validate_payment_screenshot(db: Session, order: TicketOrder, event: Event) -> Tuple[bool, str]:
-    """
-    Validate uploaded payment screenshot for Basic/Pro auto-approval.
-    Returns (is_valid, notes).
-    """
-    unit_price = get_ticket_price(db, order, event)
-    quantity = order.quantity or 1
-    expected_amount = unit_price * quantity
-    
-    notes_parts = []
-    is_valid = True
-    
-    # Amount validation
-    if expected_amount > 0:
-        if order.payment_amount >= expected_amount:
-            notes_parts.append(f"Amount OK: ¥{order.payment_amount:.2f} >= ¥{expected_amount:.2f}")
-        else:
-            notes_parts.append(f"Amount insufficient: ¥{order.payment_amount:.2f} < ¥{expected_amount:.2f}")
-            is_valid = False
-    else:
-        notes_parts.append("Free event - amount not validated")
-    
-    # Date validation (allow within last 2 days to handle timezone edge cases)
-    today = date.today()
-    payment_date = order.payment_date
-    if not payment_date and order.created_at:
-        payment_date = order.created_at.date() if hasattr(order.created_at, 'date') else None
-    
-    if payment_date:
-        delta = (today - payment_date).days
-        if 0 <= delta <= 2:
-            notes_parts.append(f"Date OK: {payment_date}")
-        else:
-            notes_parts.append(f"Date mismatch: {payment_date} not within last 2 days")
-            is_valid = False
-    else:
-        notes_parts.append(f"Date assumed today: {today}")
-    
-    return is_valid, "; ".join(notes_parts)
 
 
 def _generate_qr_code(ticket_code: str) -> str:
@@ -181,71 +140,6 @@ def generate_tickets_from_order(
         db.refresh(t)
     
     return tickets_to_generate, generated
-
-
-def auto_process_ticket_order(db: Session, order_id: int) -> Tuple[bool, str]:
-    """
-    Auto-process a ticket order for ALL plans.
-    Strict validation: if amount/date checks fail, order is REJECTED.
-    If validation passes, tickets are generated immediately.
-    Returns (success, message).
-    """
-    order = db.query(TicketOrder).filter(TicketOrder.id == order_id).first()
-    if not order:
-        return False, "Order not found"
-    
-    if order.status != TicketOrderStatus.PENDING:
-        return False, f"Order is not pending (status: {order.status.value})"
-    
-    event = db.query(Event).filter(Event.id == order.event_id).first()
-    if not event:
-        return False, "Event not found"
-    
-    # Strict validation for all plans
-    is_valid, notes = validate_payment_screenshot(db, order, event)
-    order.validation_notes = notes
-    
-    if not is_valid:
-        order.status = TicketOrderStatus.REJECTED
-        order.rejection_reason = f"Auto-rejected: {notes}"
-        order.reviewed_at = datetime.now(timezone.utc)
-        db.commit()
-        
-        _create_notification(
-            db=db,
-            user_id=order.user_id,
-            title="Ticket Rejected",
-            message=f"Your ticket order for '{event.title}' was auto-rejected. Reason: {notes}",
-            notification_type="ticket_rejected",
-            data={"order_id": order.id, "event_id": event.id, "reason": notes}
-        )
-        notify_user_ticket_rejected(
-            db=db,
-            user_id=order.user_id,
-            event_title=event.title or "",
-            reason=notes
-        )
-        return False, f"Auto-rejected: {notes}"
-    
-    count, _ = generate_tickets_from_order(db, order, event, auto_approved=True)
-    
-    _create_notification(
-        db=db,
-        user_id=order.user_id,
-        title="Ticket Approved",
-        message=f"Your ticket for '{event.title}' has been approved. Show your QR code at the entrance.",
-        notification_type="ticket_approved",
-        data={"order_id": order.id, "event_id": event.id, "tickets_count": count, "auto_approved": True}
-    )
-    notify_user_ticket_approved(
-        db=db,
-        user_id=order.user_id,
-        event_title=event.title or "",
-        quantity=count,
-        ticket_code=order.ticket_code
-    )
-    
-    return True, f"Ticket approved. Generated {count} ticket(s)."
 
 
 def cancel_stale_orders(db: Session, hours: int = 24) -> int:

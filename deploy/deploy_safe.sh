@@ -20,7 +20,13 @@
 
 set -euo pipefail
 
-SSH_PASS="${SSH_PASS:-***REMOVED***}"
+# SSH password must be provided via the SSH_PASS environment variable.
+# Never hardcode credentials in this script (it is tracked in git).
+if [ -z "${SSH_PASS:-}" ]; then
+  echo "[ERR] SSH_PASS environment variable is not set."
+  echo "      Export it before running:  export SSH_PASS='your-password'"
+  exit 1
+fi
 export SSHPASS="$SSH_PASS"
 
 SERVER_USER="root"
@@ -56,7 +62,7 @@ remote_scp() {
 remote_rsync() {
   # Usage: remote_rsync <src> <dest>
   local ssh_cmd="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p $SERVER_PORT"
-  local rsync_cmd=(rsync -avz -e "$ssh_cmd"
+  local rsync_cmd=(rsync -avz --partial --timeout=120 -e "$ssh_cmd"
     --exclude='.venv/'
     --exclude='venv/'
     --exclude='.git/'
@@ -73,6 +79,9 @@ remote_rsync() {
     --exclude='app/node_modules/'
     --exclude='app/android/'
     --exclude='app/ios/'
+    --exclude='electron/node_modules/'
+    --exclude='electron/build/'
+    --exclude='electron/dist/' 
     --exclude='.vscode/'
     --exclude='sound-it-platform/'
     --exclude='Web images/'
@@ -219,9 +228,16 @@ remote "
   echo \$! > '$PID_FILE'
 "
 
-sleep 5
+HEALTH_PASSED=false
+for i in $(seq 1 15); do
+  sleep 2
+  if remote "curl -fsS --max-time 5 http://127.0.0.1:$TEMP_PORT/health" >/dev/null 2>&1; then
+    HEALTH_PASSED=true
+    break
+  fi
+done
 
-if ! remote "curl -fsS --max-time 10 http://127.0.0.1:$TEMP_PORT/health" >/dev/null 2>&1; then
+if [ "$HEALTH_PASSED" != "true" ]; then
   echo ""
   echo "[ERR] Health check on temporary port $TEMP_PORT failed."
   echo "      Log tail:"
@@ -262,10 +278,18 @@ remote "
   sleep 3
 "
 
-# ── Step 11: Final health check ─────────────────────────────
+# ── Step 11: Final health check (poll — app startup can take 15-30s) ──
 echo "▶ Running final health check..."
-remote "sleep 5"
-if ! remote "curl -4 -fsS --max-time 30 http://127.0.0.1:8000/health" >/dev/null 2>&1; then
+HEALTH_OK=""
+for i in $(seq 1 12); do
+  if remote "curl -4 -fsS --max-time 10 http://127.0.0.1:8000/health" >/dev/null 2>&1; then
+    HEALTH_OK=1
+    break
+  fi
+  echo "  ... waiting for app to come up (attempt $i/12)"
+  sleep 5
+done
+if [ -z "$HEALTH_OK" ]; then
   echo ""
   echo "[ERR] Final health check failed. Investigate with: journalctl -u soundit -n 50"
   exit 1

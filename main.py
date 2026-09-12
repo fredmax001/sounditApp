@@ -17,7 +17,7 @@ from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from utils.logging_config import setup_logging
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, assistant
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders
 import api.reviews as reviews
 import api.messaging as messaging
 import api.verification as verification
@@ -220,6 +220,7 @@ from security.rate_limiter import setup_rate_limiting
 setup_rate_limiting(app)
 
 # CORS - Allow production domains + Capacitor mobile apps (iOS & Android)
+# Localhost origins are only allowed in development (DEBUG=True).
 ALLOWED_ORIGINS = [
     "https://sounditent.com",
     "https://www.sounditent.com",
@@ -227,12 +228,19 @@ ALLOWED_ORIGINS = [
     "https://sounditent.cn",
     "https://www.sounditent.cn",
     "capacitor://localhost",
-    "https://localhost",
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "file://",
 ]
+
+if settings.DEBUG:
+    ALLOWED_ORIGINS.extend([
+        "http://localhost",
+        "https://localhost",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "file://",
+    ])
 
 app.add_middleware(
     CORSMiddleware,
@@ -355,7 +363,6 @@ app.include_router(messaging.router, prefix="/api/v1")
 app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
-app.include_router(assistant.router, prefix="/api/v1")
 app.include_router(sitemap.router)
 
 

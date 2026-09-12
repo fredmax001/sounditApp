@@ -99,7 +99,9 @@ class VerificationRequestType(str, Enum):
 class BookingStatus(str, Enum):
     PENDING = "pending"
     ACCEPTED = "accepted"
-    DECLINED = "declined"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    REJECTED = "rejected"
     CANCELLED = "cancelled"
 
 
@@ -1067,6 +1069,7 @@ class NotificationResponse(BaseModel):
     title: str
     message: str
     type: Optional[str] = None
+    image_url: Optional[str] = None
     data: Optional[dict] = None
     entity_type: Optional[str] = None
     entity_id: Optional[int] = None
@@ -1089,6 +1092,10 @@ class PushSubscriptionCreate(BaseModel):
     keys: dict
     device_type: Optional[str] = "unknown"
     browser: Optional[str] = "unknown"
+
+
+class PushSubscriptionDelete(BaseModel):
+    endpoint: str
 
 
 class NotificationPreferenceResponse(BaseModel):
@@ -1402,6 +1409,7 @@ class BookingRequestUpdate(BaseModel):
     status: Optional[BookingStatus] = None
     agreed_price: Optional[float] = None
     payment_method: Optional[str] = None
+    rejection_reason: Optional[str] = None
 
 
 class ArtistInfo(BaseModel):

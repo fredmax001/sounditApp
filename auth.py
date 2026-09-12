@@ -252,3 +252,9 @@ def validate_password_strength(password: str) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password must contain at least one digit"
         )
+
+# ── Public aliases (compatibility shims) ─────────────────────────────────────
+# Modules that import these names directly can use them without aliasing.
+get_password_hash   = get_REDACTED_PLACEHOLDER_hash
+verify_password     = verify_REDACTED_PLACEHOLDER
+create_access_token = REDACTED_PLACEHOLDER

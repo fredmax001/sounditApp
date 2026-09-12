@@ -66,7 +66,7 @@ const Settings = () => {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/notifications/settings`, {
+        const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }
@@ -76,10 +76,10 @@ const Settings = () => {
           const data = await response.json();
           setSettings(prev => ({
             ...prev,
-            emailNotifications: data.email_notifications ?? prev.emailNotifications,
-            eventReminders: data.event_reminders ?? prev.eventReminders,
-            pushNotifications: data.booking_updates ?? prev.pushNotifications,
-            marketingEmails: prev.marketingEmails,
+            emailNotifications: data.email_enabled ?? prev.emailNotifications,
+            pushNotifications: data.push_enabled ?? prev.pushNotifications,
+            eventReminders: data.events ?? prev.eventReminders,
+            marketingEmails: data.marketing ?? prev.marketingEmails,
           }));
         }
       } catch (error) {
@@ -100,17 +100,17 @@ const Settings = () => {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/settings`, {
+      const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          emailNotifications: newSettings.emailNotifications,
-          pushNotifications: newSettings.pushNotifications,
-          eventReminders: newSettings.eventReminders,
-          marketingEmails: newSettings.marketingEmails,
+          email_enabled: newSettings.emailNotifications,
+          push_enabled: newSettings.pushNotifications,
+          events: newSettings.eventReminders,
+          marketing: newSettings.marketingEmails,
         })
       });
 

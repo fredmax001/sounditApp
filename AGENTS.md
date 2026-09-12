@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-08-06
+2026-09-12
 
 ---
 
@@ -18,12 +18,174 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-08-05
-- [OK] Backend imports cleanly (`python3 -m py_compile main.py api/meta_tags.py` works)
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-09-12
+- [OK] Backend imports cleanly (`python3 -m py_compile main.py api/admin.py api/notifications.py` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
 
 ---
+
+### 71. Verification Application Workflow & Admin Dashboard Isolation (2026-09-12)
+- **Problem**: 
+  - When new artists/DJs (or other roles) registered, they were immediately appearing in the Admin Verification Center and Admin Dashboard as "Pending Verification" / "Pending Action" even though they never applied for verification.
+  - The Admin Verification Center was returning all unverified users/profiles in the database as fake verification requests (`art_{id}`, `biz_{id}`, etc.).
+  - Artists were erroneously shown with yellow "Pending" badges in the admin table rather than neutral "Unverified" badges.
+- **Fixes Applied**:
+  - **Backend API (`api/admin.py`)**:
+    - Removed obsolete fake verification endpoints (`list_pending_verifications`, `approve_verification`, `reject_verification`) that fabricated verification requests from unverified users.
+    - Updated `GET /admin/verifications` to exclusively query real `VerificationRequest` records submitted by users. Added support for `status`, `type`, and `search` filtering.
+    - Enhanced `POST /admin/verifications/{request_id}/approve` and `POST /admin/verifications/{request_id}/reject` to cleanly parse integer/prefixed IDs, update `VerificationRequest` and `User` verification status, synchronize `is_verified` across `artist_profile`, `business_profile`, `organizer_profile`, and `vendor_profile`, and dispatch in-app notifications.
+    - Fixed `GET /admin/stats` (`get_dashboard_stats`) so `pending_verifications` exclusively counts `VerificationRequest(status=PENDING)`.
+    - Fixed `GET /admin/pending-actions` (`get_pending_actions`) to only surface real pending `VerificationRequest` applications and removed unapproved artist accounts from blocking admin action lists.
+  - **User Registration & Models (`api/auth.py`, `models.py`)**:
+    - Set `ArtistProfile.is_approved = True` and `is_verified = False` on new artist registration (including Google OAuth sign-ins) so newly registered DJs are active platform users who only become verified upon application or explicit admin badge assignment.
+    - Updated `ArtistProfile.is_approved` model default to `True`.
+  - **Frontend UI & Localization (`ManageArtists.tsx`, `ManageBusinesses.tsx`, `en.json`, `zh.json`, `fr.json`)**:
+    - Replaced the yellow "Pending" badge for unverified artists and businesses with a neutral "Unverified" (`unverifiedStatus`) badge.
+    - Added localized `unverifiedStatus` translations in English, Chinese, and French.
+- **Verification & Deployment**:
+  - Verified Python compilation (`python3 -m py_compile`) on all modified backend files with zero errors.
+  - Verified TypeScript compilation and frontend bundle (`npm run build`) with zero errors.
+  - Deployed release `20260912234117` to production (`72.62.254.251`) via `deploy/deploy_safe.sh`. Smoke test on port 8001 and final health check on port 8000 passed successfully.
+
+---
+
+### 70. Notification System Full Audit & Fixes (2026-09-12)
+- **Context**: Full audit of the notification system (user + admin, frontend + backend). User reported they could not clear notifications.
+- **Backend fixes (`api/notifications.py`)**:
+  - **New endpoint** `DELETE /notifications/clear-all` (optional `read_only=true`) — bulk delete for the current user. Placed BEFORE `DELETE /{notification_id}` so the path is not shadowed by the int converter.
+  - **Critical fix**: organizer broadcast (`POST /notifications/broadcast`) called `PushService.send_notification_to_user(...)` which **does not exist** — every broadcast push silently failed. Rewrote the loop to persist a `Notification` row and call the real `PushService.send_notification(notification)`.
+  - **Preference map fix**: `_is_category_enabled` matched exact type strings, but producers emit `booking_request`, `booking_update`, `ticket_approved`, `product_order`, `vendor_order_new`, `event_update`, `staff_invitation`, etc. — ~90% of types bypassed user preference muting. Now prefix-matched.
+  - `push_enabled` no longer gates in-app notification creation (it only gates push delivery).
+  - `POST /notifications/push-unsubscribe` now uses a Pydantic schema (`PushSubscriptionDelete` in `schemas.py`) instead of raw dict → proper 422 on bad payloads.
+  - `GET /notifications/` `limit` capped at 100 via Query validation; admin fallback `org_id = 1` changed to `current_user.id`; naive `datetime.utcnow()` → tz-aware; module-level logger.
+- **Backend fixes (`services/push_service.py`)**: `_build_action_url` now prefix-matches all producer types (`booking_*`, `ticket_*`, `product_order`, `vendor_order`, `table_booking`, `staff_invitation*`, `event*`, `*_update`); push action buttons keyed off `booking_request`.
+- **Backend fixes (`api/tickets.py`, `api/product_orders.py`)**: local `_create_notification` helpers now trigger push delivery (previously in-app only). `api/vendor_orders.py`: `print()` → logging.
+- **Backend fixes (`api/admin.py`)**: admin broadcast (`POST /admin/notifications/send`) now actually delivers web push (previously created rows only); stores `channels` in `data` and `GET /admin/notifications` derives the display type from it (previously everything displayed as "push"); validates `type` (push/email/both) and `target_role`; rejects `scheduled_at` with 400 instead of silently ignoring.
+- **Frontend fixes**:
+  - `app/src/lib/pushNotifications.ts`: read JWT from `auth-token` localStorage key (was `token` → `Bearer <empty>` → 401, so push subscriptions were never registered server-side); added init guard (bell is mounted twice — Navbar + MobileHeader).
+  - `app/src/pages/user/Settings.tsx`: was calling nonexistent `/notifications/settings` (404). Now uses `GET/PUT /notifications/preferences` with correct snake_case fields; fixed mapping bug (`booking_updates` → `push_enabled`).
+  - `app/src/components/NotificationBell.tsx`: added **Clear all** button (`DELETE /notifications/clear-all`) and per-item delete (`DELETE /notifications/{id}`); mark-read / mark-all-read now check `res.ok` and toast on failure (previously silent, badge reverted on next poll); settings link fixed from unregistered `/settings/notifications` to `/settings`; notification rows converted from `<button>` to `<div>` to allow nested delete button.
+  - `app/src/pages/admin/NotificationCenter.tsx`: removed dead scheduling UI (backend rejects `scheduled_at`) and the non-functional SMS option; non-OK send responses now surface backend `detail` as a toast.
+- **Cleanup**: deleted stray root script `fix_notifications.py` (a one-off patch script that overwrote `api/notifications.py` and introduced the broken `send_notification_to_user` call).
+- **Verification**: `py_compile` OK on all touched backend files; `npx tsc --noEmit` + `npm run build` pass; FastAPI TestClient smoke tests pass (login, list, clear-all route ordering, single delete, read-all, 422 on empty push-unsubscribe body, 422 on limit>100, 405 on wrong method, preferences roundtrip, admin send/history/validation).
+- **Production Deploy (2026-09-12)**: Deployed release `20260912233538` to `72.62.254.251` via `deploy/deploy_safe.sh`. Migrations idempotent (all skipped/already-exist). Smoke test on port 8001 passed; final health check passed after ~15s. Post-deploy verification: `https://sounditent.com/health` → 200 `{"status":"healthy"}`; `DELETE /api/v1/notifications/clear-all` and `GET /api/v1/notifications/preferences` return 401 (routes live, auth-gated — not 404); deployed `api/notifications.py` contains `clear-all` and no `send_notification_to_user`; deployed `pushNotifications.ts` uses `auth-token`; deployed `api/admin.py` contains `push_sent`; no new errors in `logs/app.log`.
+- **Note**: `SSH_PASS` must be passed inline (`SSH_PASS='...' bash deploy/deploy_safe.sh`); exporting it in a separate shell call gets scrubbed by the local shell environment, and `sshpass -p` works for one-off SSH checks.
+
+---
+
+### 69. Admin Notification Image Support & Media Attachment Resolution (2026-09-12)
+- **Problem**:
+  1. Administrators could not attach or send images when composing notifications in the Admin Notification Center.
+  2. Images previously showed errors / broken icons upon receipt due to relative URLs (`/static/uploads/...` or local file path strings) in email clients and push payloads, as well as missing URL normalization and error fallbacks.
+- **Fixes Applied**:
+  - **Database & Model (`models.py`, `scripts/migrate_all_missing_columns.py`)**:
+    - Added `image_url = Column(String(500), nullable=True)` to `Notification` model.
+    - Added idempotent migration for `notifications.image_url` column in `scripts/migrate_all_missing_columns.py`.
+  - **Backend Schemas & APIs (`schemas.py`, `api/admin.py`, `api/media.py`, `api/notifications.py`, `services/push_service.py`)**:
+    - Added `image_url: Optional[str] = None` to `NotificationResponse`.
+    - In `api/media.py`, updated `upload_file` to resolve the full HTTPS public URL matching the request host.
+    - In `POST /admin/notifications/send`, added image URL normalization (strips server filesystem prefixes, prepends public domain, upgrades HTTP to HTTPS), stored in `Notification.image_url` and `Notification.data["image_url"]`, and embedded banner image into HTML email broadcasts.
+    - In `GET /admin/notifications`, included normalized `image_url` in returned history.
+    - In `services/push_service.py`, normalized `img_url` to full HTTPS URL and included `"image": img_url` in Web Push payload for rich push notifications.
+    - In `api/notifications.py`, updated `create_notification` to accept and persist `image_url`.
+  - **Frontend UI & Components (`NotificationCenter.tsx`, `NotificationBell.tsx`)**:
+    - In `NotificationCenter.tsx`, added file upload dropzone with `/media/upload` integration, `resolveImageUrl()` normalization helper, loading state, preview card with remove/preview modal buttons, direct URL input fallback, and history list thumbnail previews with modal expansion.
+    - In `NotificationBell.tsx`, updated `NotificationItem` interface, implemented `resolveImageUrl()` for cross-platform URL resolution (web, mobile Capacitor), and rendered attached image banner/thumbnails in the user notification dropdown with styled containers, `loading="lazy"`, and `onError` graceful fallbacks.
+  - **Localization (`en.json`, `zh.json`, `fr.json`)**: Added all image attachment, preview, and upload translation keys.
+- **Verification & Deployment**:
+  - `python3 -m py_compile` and `npm run build` passed with zero errors.
+  - Safe versioned deploy completed to `72.62.254.251` (release `20260912232126`). Migrations ran cleanly, temporary port 8001 smoke test passed, and production service restarted healthy on port 8000.
+
+---
+
+### 68. Pre-Deployment Checklist Re-Audit — Security Fixes (2026-09-08)
+- **Context**: Re-ran the full 9-item pre-deployment checklist against actual code (not the work log). 7 items passed; 1 critical + 2 warnings found and fixed.
+- **Critical Finding (requires manual action — NOT fixed in code)**:
+  - `deploy/deploy_safe.sh` had the production root SSH password hardcoded as a default (`SSH_PASS="${SSH_PASS:-...}"`). Confirmed it is committed in git history and pushed to `origin/main` (github.com:fredmax001/sounditApp). **The server password must be rotated and git history scrubbed (BFG/git-filter-repo) — a deletion commit is not enough.**
+- **Fixes Applied**:
+  - `deploy/deploy_safe.sh`: Removed the hardcoded password default. Script now fails fast with a clear message if `SSH_PASS` is not exported in the environment. Also: (a) rsync hardened with `--partial --timeout=120`; (b) added excludes for `electron/node_modules/`, `electron/build/`, `electron/dist/` (~410 MB of desktop-app binaries that never belong on the web server — the old payload caused a stalled 30-min+ rsync); (c) final health check now polls up to 60s instead of a fixed 5s sleep (the 2026-09-08 deploy false-failed the health gate because uvicorn startup took ~18s).
+  - `main.py`: Re-gated CORS — `http://localhost`, `https://localhost`, `http://localhost:3000/5173`, `127.0.0.1` variants, and `file://` moved behind `if settings.DEBUG:`. Production base origins are now only the five sounditent domains + `capacitor://localhost` (mobile app). Note: work log #61 claimed localhost was removed, but it had returned to the static list — this DEBUG gate prevents recurrence.
+  - `api/auth_password.py`: The `print()` of the plaintext reset token when SMTP fails is now gated behind `settings.DEBUG`. In production it logs only a user-ID-scoped error (no token). Added missing `logging` import/logger.
+- **Verified Passing (unchanged, re-confirmed in code)**: password reset tokens (HMAC-hashed, 1h TTL, single-use), parameterized SQL only (no interpolation in `api/analytics.py` raw SQL), structured error handlers with request_id (no stack traces to clients), 200 indexes + composite/unique constraints + idempotent migration in deploy, Redis sliding-window rate limiting with global default + exempt static/analytics + trusted-proxy IP parsing, JSON rotating logs + Sentry hook + admin-gated monitoring endpoints, versioned releases with smoke-test-before-activation + `deploy/rollback.sh` auto-revert, ownership checks on hot paths (`/orders/{id}`, Yoopay initiation, ticket check-in, media delete).
+- **Verification**: `python3 -m py_compile main.py api/auth_password.py` OK, `bash -n deploy/deploy_safe.sh` OK, script correctly errors when `SSH_PASS` unset, static assertions confirmed CORS gating + token-print gating + password removal.
+- **Production Deploy (2026-09-08)**: Deployed release `20260908151809` to `72.62.254.251` via `deploy_safe.sh` (with `SSH_PASS` exported). First attempt stalled mid-rsync (pre-exclude ~700 MB payload); after adding electron excludes, second attempt succeeded. Script's fixed 5s health-check sleep false-failed (app startup took ~18s) — service verified healthy manually. Post-deploy verification: `https://sounditent.com/health` → HTTP 200, deployed `main.py` has DEBUG-gated CORS, deployed `api/auth_password.py` has DEBUG-gated token print, deployed `deploy_safe.sh` contains no password.
+
+---
+
+### 66. Comprehensive Booking System Fixes (2026-08-23)
+- **Problem**:
+  1. Artists could not accept/decline bookings from `/dashboard/artist/bookings`.
+  2. Multiple identical pending bookings were created from the same client (e.g. 3× SoulJamz requests).
+  3. Clients reported the booking flow was hard to complete.
+  4. The artist bookings page displayed `"2h hours"` and always showed `"Payment Pending"` even when no payment was uploaded.
+- **Root Causes**:
+  - `api/artist_dashboard.py` used `BookingStatus(new_status.upper())`, but the enum values are lowercase strings, so every status update returned `400 Invalid status`.
+  - `api/bookings.py` had no duplicate-prevention logic.
+  - `app/src/pages/ArtistDetail.tsx` sent the payment screenshot as `screenshot` and notes as `notes`, while the backend expected `payment_screenshot` and `payer_notes`, causing payment upload to fail.
+  - The `BookingRequest` model was missing columns referenced by `api/bookings.py` (`payment_screenshot`, `payment_amount`, `payer_name`, `payer_notes`, `payment_status`, `reviewed_at`, `rejection_reason`) and by the `BookingRequestResponse` schema, leading to `AttributeError` crashes on payment upload and status updates.
+  - `schemas.BookingStatus` enum did not match `models.BookingStatus` (missing `confirmed`/`completed`, used `declined` instead of `rejected`).
+- **Fixes Applied**:
+  - **Model & Migration (`models.py`, `scripts/migrate_booking_columns.py`)**: Added the missing `payment_screenshot`, `payment_amount`, `payer_name`, `payer_notes`, `payment_status`, `reviewed_at`, and `rejection_reason` columns to `BookingRequest`. Created idempotent migration script and ran it via `migrate_all_missing_columns.py`.
+  - **Backend Status Update (`api/artist_dashboard.py`)**: Changed status conversion from `.upper()` to `.lower()`, set `reviewed_at` on accept/reject, and included `payment_status`/payment QR fields in the GET `/artist/bookings` response.
+  - **Backend Duplicate Prevention (`api/bookings.py`)**: Added a 5-minute deduplication guard in `create_booking_request` that returns an existing identical pending booking instead of creating a duplicate.
+  - **Backend Enum & Filter Consistency (`api/bookings.py`, `schemas.py`)**: Aligned `schemas.BookingStatus` with `models.BookingStatus`; made status-filter queries use enum conversion.
+  - **Frontend Payment Upload (`app/src/pages/ArtistDetail.tsx`)**: Fixed FormData field names to `payment_screenshot` and `payer_notes`.
+  - **Frontend Artist Bookings UI (`app/src/pages/artist/Bookings.tsx`)**: Fixed duration display (`2h` instead of `2h hours`), added safe null handling for budget/duration/contact fields, improved error handling to show backend detail messages, and added missing `artist.bookings.*` translations in `en.json`, `zh.json`, and `fr.json`.
+- **Verification & Deployment**:
+  - `python3 -m py_compile main.py api/artist_dashboard.py api/bookings.py models.py schemas.py scripts/migrate_booking_columns.py` passed.
+  - `npm run build` and `npx tsc --noEmit` passed.
+  - Full safe versioned deploy completed to `72.62.254.251` (release `20260823222353`). Migrations ran successfully.
+  - Verified production DB now contains the new `booking_requests` columns.
+  - Confirmed `BookingStatus('accepted'.lower())` resolves correctly and `BookingStatus('accepted'.upper())` raises `ValueError` (proving the old accept/decline bug).
+  - `/health` returns `{"status":"healthy"}` and server logs show no post-deploy errors.
+
+### 67. Booking Accept/Decline Email Notifications (2026-08-23)
+- **Problem**: Clients did not receive an email when an artist accepted or declined a booking request.
+- **Fixes Applied**:
+  - **Email Template (`email_service.py`)**: Added `send_booking_status_update_email()` with branded HTML/plain-text templates for accepted and rejected bookings, including optional rejection reason.
+  - **Artist Dashboard Endpoint (`api/artist_dashboard.py`)**: After an artist accepts or rejects a booking, the endpoint now sends an in-app notification and the new status-update email to the requester. Also stores `rejection_reason` when provided.
+  - **Bookings API Endpoint (`api/bookings.py`)**: Added the same email send when the artist updates status via `/bookings/requests/{id}/status`.
+  - **Schema (`schemas.py`)**: Added `rejection_reason` to `BookingRequestUpdate`.
+  - **Frontend (`app/src/pages/artist/Bookings.tsx`)**: Decline now opens an inline textarea so the artist can optionally add a rejection reason, which is included in the email.
+  - **Translations (`en.json`, `zh.json`, `fr.json`)**: Added `confirmDecline`, `cancel`, and `rejectionReasonPlaceholder` keys.
+- **Verification & Deployment**:
+  - `python3 -m py_compile main.py api/artist_dashboard.py api/bookings.py email_service.py schemas.py` passed.
+  - `npm run build` passed.
+  - Full safe versioned deploy completed to `72.62.254.251` (release `20260823224444`).
+  - Verified deployed files contain `send_booking_status_update_email` calls in both status endpoints.
+  - `/health` returns `{"status":"healthy"}`.
+
+---
+
+### 65. Artist Bookings Page Crash Fix (2026-08-23)
+- **Problem**: Opening `/dashboard/artist/bookings` rendered the global error boundary fallback ("Something went wrong"). The page crashed at runtime.
+- **Root Cause**: The `BookingRequest` model stores `budget` and `duration_hours` as nullable columns, and the artist bookings page called `booking.budget.toLocaleString()` and rendered `booking.duration` without null checks. When a booking had a null budget or duration, React threw a `TypeError` that was caught by the app-wide error boundary.
+- **Fixes Applied**:
+  - `app/src/pages/artist/Bookings.tsx`: Added safe formatting helpers (`formatBudget`, `formatDuration`, `formatDate`) and fallback placeholders (`—`) for null/undefined budget, duration, date, city, and contact fields.
+  - `app/src/i18n/locales/{en,zh,fr}.json`: Added the missing `artist.bookings.*` translation namespace used throughout the page.
+- **Verification**: `npm run build` passed, `npx tsc --noEmit` passed, and the updated `app/dist/` was synced to production (`72.62.254.251:/var/www/soundit/current/app/dist/`). Verified `https://sounditent.com/health` returns `200 {"status":"healthy"}` and the deployed `Bookings` chunk no longer contains the unsafe `budget.toLocaleString` pattern.
+
+---
+
+### 64. Rate Limiting and Analytics Background Tracking Unblock (2026-08-23)
+- **Problem**:
+  1. Users encountered `HTTP 429 Rate limit exceeded` when attempting to log in.
+  2. The analytics client (`analytics.ts`) continuously batches and dispatches events (`/analytics/events/track` and `/analytics/track`).
+  3. Because the analytics endpoint parameters were previously defined as individual parameters without Pydantic request models, requests sent as JSON bodies caused `422 Unprocessable Entity` responses and rapid retry floods.
+  4. These telemetry requests were not exempt from the rate limit middleware, consuming the client IP's entire rate limit budget.
+  5. The login endpoint rate limit was set at a low 5/minute threshold.
+- **Fixes Applied**:
+  - **Rate Limiting Configuration (`security/rate_limiter.py`, `api/auth.py`)**:
+    - Exempted `/analytics/` and `/api/v1/analytics/` paths from the global rate limit middleware so telemetry requests never exhaust client allowances.
+    - Raised login rate limits from 5/min to 20/min, registration from 3/min to 10/min, and default API rate limit from 100/min to 200/min.
+  - **Analytics Request Handling (`api/analytics.py`)**:
+    - Added `TrackVisitPayload`, `TrackEventItem`, and `TrackEventsPayload` Pydantic models to properly parse single and batch JSON bodies for `/analytics/track` and `/analytics/events/track`.
+  - **Redis Cache Flush & Service Deployment**:
+    - Deployed fixes to production server (`72.62.254.251`), cleared throttled rate limit keys in Redis, and restarted the `soundit` service.
+- **Verification**:
+  - `python3 -m py_compile` passed on all modified backend modules.
+  - Verified `https://sounditent.com/health` returns `200 {"status":"healthy"}` and `POST /api/v1/auth/login` returns expected `401 {"error": ...}` without throttling.
 
 ### 63. Automated and Manual Ticket Sales Closing System (2026-08-15)
 - **Problem**: 
@@ -902,7 +1064,7 @@
   - Ran `init_db()` on production PostgreSQL, creating all tables.
   - Seeded 4 default community sections (General, Events, Music, Food).
   - Seeded subscription plan configs for Business, Vendor, and Artist roles.
-  - Created super_admin user: `admin@sounditent.com` / `***REMOVED***`.
+  - Created super_admin user: `admin@sounditent.com` / `«redacted — rotated»`.
 - **Verified live endpoints**
   - `GET https://sounditent.com/health` → `{"status":"healthy"}`
   - `GET https://sounditent.com/api/v1/system/status` → `{"status":"healthy","maintenance_mode":false}`
@@ -982,7 +1144,7 @@
   - Added `clubs.category` migration for local SQLite parity
 - **`scripts/create_admin.py`**
   - Fixed to work with local project structure
-  - Both `admin@soundit.com` and `admin@sounditent.com` are now `super_admin` with password `***REMOVED***`
+  - Both `admin@soundit.com` and `admin@sounditent.com` are now `super_admin` with password `«redacted — rotated»`
 - **`app/src/pages/auth/Login.tsx`**
   - Removed mandatory city selection blocking login
 - **Production deployment:**
@@ -1183,7 +1345,7 @@
 - **Dashboard chunk size**: The Vite bundle is large; consider code-splitting or manual chunks.
 - **User pages still reference `display_name`**: Several pages (`user/Dashboard.tsx`, `user/Profile.tsx`, `user/Followers.tsx`, `ArtistDetail.tsx`, `payment/Checkout.tsx`, `admin/ManageUsers.tsx`) still reference `display_name`. These haven't caused runtime crashes yet because they fall back to `first_name + last_name`, but for consistency they should be cleaned up in a future pass.
 - **Organizer Dashboard**: `app/src/pages/organizer/Dashboard.tsx` references `profile.display_name`.
-- **Admin Account Credentials**: `admin@sounditent.com` in local DB has `role = business`, not `super_admin`. The actual super_admin is `admin@soundit.com` but the documented password `***REMOVED***` does not work for that account. `scripts/create_admin.py` should be reviewed.
+- **Admin Account Credentials**: `admin@sounditent.com` in local DB has `role = business`, not `super_admin`. The actual super_admin is `admin@soundit.com` but the documented password `«redacted — rotated»` does not work for that account. `scripts/create_admin.py` should be reviewed.
 - **Missing Public Endpoints**: `/venues` (list + detail), `/upload/avatar`, `/upload/image`, `/upload/multiple`, `/media/:id`, `/tickets/purchase`, `/tickets/transfer`, `/posts/:id/comments` do not exist as specified in the API contract. Alternative endpoints cover some functionality (e.g., `/tickets/order`, `/media/upload`).
 - **Admin Financial Controls**: Payout approval/rejection, transaction listing, refund processing, and featured event management are placeholder endpoints in `api/admin.py`.
 - **Login Requires City**: `Login.tsx` blocks submission if city is not selected. This is poor UX for returning users.

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, X, Loader2, UserCheck, UserX, Settings } from 'lucide-react';
+import { Bell, Check, X, Loader2, UserCheck, UserX, Settings, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -8,11 +8,29 @@ import { pushManager } from '@/lib/pushNotifications';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
+const resolveImageUrl = (url?: string | null): string => {
+  if (!url) return '';
+  let cleanUrl = String(url).trim();
+  if (!cleanUrl) return '';
+  if (cleanUrl.startsWith('/var/www/soundit-uploads/')) {
+    cleanUrl = cleanUrl.replace('/var/www/soundit-uploads/', '/static/uploads/');
+  }
+  if (cleanUrl.startsWith('http://sounditent.com') || cleanUrl.startsWith('http://sounditent.cn')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+  }
+  if (cleanUrl.startsWith('/')) {
+    const base = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+    return `${base}${cleanUrl}`;
+  }
+  return cleanUrl;
+};
+
 interface NotificationItem {
   id: number;
   title: string;
   message: string;
   type: string;
+  image_url?: string | null;
   is_read: boolean;
   created_at: string;
   entity_type?: string;
@@ -127,13 +145,59 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
   const markAsRead = async (id: number) => {
     if (!session?.access_token) return;
     try {
-      await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+      const res = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
+      if (!res.ok) throw new Error('Failed to mark as read');
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch {
-      // silent
+      toast.error(t('notifications.markReadFailed') || 'Failed to mark notification as read');
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!session?.access_token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error('Failed to mark all as read');
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      toast.success(t('notifications.allMarkedRead') || 'All notifications marked as read');
+    } catch {
+      toast.error(t('notifications.markAllReadFailed') || 'Failed to mark all as read');
+    }
+  };
+
+  const deleteNotification = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    if (!session?.access_token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch {
+      toast.error(t('notifications.deleteFailed') || 'Failed to delete notification');
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    if (!session?.access_token || notifications.length === 0) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/clear-all`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error('Failed to clear notifications');
+      setNotifications([]);
+      toast.success(t('notifications.cleared') || 'Notifications cleared');
+    } catch {
+      toast.error(t('notifications.clearFailed') || 'Failed to clear notifications');
     }
   };
 
@@ -306,49 +370,76 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
               ))}
 
               {/* Regular Notifications */}
-              {notifications.map(notif => (
-                <button
-                  key={notif.id}
-                  onClick={() => markAsRead(notif.id)}
-                  className={`w-full text-left p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${!notif.is_read ? 'bg-white/[0.02]' : ''}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-sm">
-                      {getCategoryIcon(notif.type)}
+              {notifications.map(notif => {
+                const rawImg = notif.image_url || notif.data?.image_url;
+                const img = resolveImageUrl(rawImg);
+                return (
+                  <div
+                    key={notif.id}
+                    onClick={() => markAsRead(notif.id)}
+                    className={`w-full text-left p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer ${!notif.is_read ? 'bg-white/[0.02]' : ''}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-sm">
+                        {getCategoryIcon(notif.type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white text-sm font-medium">{notif.title}</p>
+                        <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{notif.message}</p>
+                        {img && (
+                          <div className="mt-2 overflow-hidden rounded-lg border border-white/10 bg-white/5">
+                            <img
+                              src={img}
+                              alt=""
+                              className="w-full max-h-40 object-cover"
+                              onError={(e) => {
+                                (e.currentTarget.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                              }}
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <p className="text-gray-600 text-[10px] mt-1">
+                          {new Date(notif.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 shrink-0">
+                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[#d3da0c] mt-1.5" />}
+                        <button
+                          onClick={(e) => deleteNotification(e, notif.id)}
+                          className="p-1 text-gray-600 hover:text-red-400 transition-colors"
+                          title={t('notifications.delete') || 'Delete'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-white text-sm font-medium">{notif.title}</p>
-                      <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{notif.message}</p>
-                      <p className="text-gray-600 text-[10px] mt-1">
-                        {new Date(notif.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[#d3da0c] mt-1.5 shrink-0" />}
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
 
             {/* Footer */}
             {notifications.length > 0 && (
               <div className="p-2 border-t border-white/5 flex items-center justify-between">
-                <button
-                  onClick={async () => {
-                    if (!session?.access_token) return;
-                    await fetch(`${API_BASE_URL}/notifications/read-all`, {
-                      method: 'POST',
-                      headers: { Authorization: `Bearer ${session.access_token}` },
-                    });
-                    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-                  }}
-                  className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors"
-                >
-                  {t('notifications.markAllRead') || 'Mark all as read'}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={markAllAsRead}
+                    className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+                  >
+                    {t('notifications.markAllRead') || 'Mark all as read'}
+                  </button>
+                  <button
+                    onClick={clearAllNotifications}
+                    className="px-3 py-1.5 text-xs text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    {t('notifications.clearAll') || 'Clear all'}
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     setOpen(false);
-                    window.location.href = '/settings/notifications';
+                    window.location.href = '/settings';
                   }}
                   className="p-1.5 text-gray-400 hover:text-white transition-colors"
                   title={t('notifications.settings') || 'Notification settings'}

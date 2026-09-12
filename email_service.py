@@ -759,6 +759,88 @@ def send_ticket_confirmation(
     return send_email(to_email, subject, body)
 
 
+def send_booking_status_update_email(
+    to_email: str,
+    requester_name: str,
+    artist_name: str,
+    event_name: str,
+    event_date: Optional[str],
+    event_city: Optional[str],
+    status: str,  # "accepted" or "rejected"
+    rejection_reason: Optional[str] = None
+) -> bool:
+    """Send email to requester when artist accepts or rejects a booking."""
+    status_label = status.capitalize()
+    subject = f"Your booking request for {event_name or 'an event'} was {status_label}"
+    name = requester_name or "there"
+    safe_event = event_name or "TBD"
+    safe_date = event_date or "TBD"
+    safe_city = event_city or "TBD"
+    dashboard_url = "https://sounditent.com/dashboard/user"
+
+    if status.lower() == "accepted":
+        body = f"""Hi {name},
+
+Great news! {artist_name} has accepted your booking request for "{safe_event}".
+
+Event Details:
+• Event: {safe_event}
+• Date: {safe_date}
+• City: {safe_city}
+• Artist: {artist_name}
+
+You can view and manage your booking here: {dashboard_url}
+
+— Sound It Team"""
+
+        html = _email_wrapper(
+            subject,
+            f"""<p>Hi {name},</p>
+            <p>Great news! <strong>{artist_name}</strong> has <span style="color:#22c55e; font-weight:700;">accepted</span> your booking request for <strong>{safe_event}</strong>.</p>
+            <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:16px 0;">
+                <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
+                <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
+                <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
+                <p style="margin:4px 0;"><strong>Artist:</strong> {artist_name}</p>
+            </div>
+            <a href="{dashboard_url}" class="cta">View My Booking</a>
+            <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+        )
+    else:
+        reason_html = f"<p style='color:#888;'><strong>Reason:</strong> {rejection_reason}</p>" if rejection_reason else ""
+        body = f"""Hi {name},
+
+Unfortunately, {artist_name} has declined your booking request for "{safe_event}".
+
+Event Details:
+• Event: {safe_event}
+• Date: {safe_date}
+• City: {safe_city}
+• Artist: {artist_name}
+{rejection_reason and f'• Reason: {rejection_reason}' or ''}
+
+You can submit a new request or explore other artists here: https://sounditent.com/artists
+
+— Sound It Team"""
+
+        html = _email_wrapper(
+            subject,
+            f"""<p>Hi {name},</p>
+            <p>Unfortunately, <strong>{artist_name}</strong> has <span style="color:#ef4444; font-weight:700;">declined</span> your booking request for <strong>{safe_event}</strong>.</p>
+            <div style="background:#0a0a0a; padding:16px; border-radius:12px; margin:16px 0;">
+                <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
+                <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
+                <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
+                <p style="margin:4px 0;"><strong>Artist:</strong> {artist_name}</p>
+                {reason_html}
+            </div>
+            <a href="https://sounditent.com/artists" class="cta">Find Other Artists</a>
+            <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+        )
+
+    return send_email(to_email, subject, body, html)
+
+
 def send_contact_form_email(
     name: str,
     email: str,

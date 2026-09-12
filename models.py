@@ -477,7 +477,7 @@ class ArtistProfile(Base):
     
     # Verification
     is_verified = Column(Boolean, default=False)
-    is_approved = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=True)
     
     # Featured status
     is_featured = Column(Boolean, default=False)
@@ -915,8 +915,18 @@ class BookingRequest(Base):
     agreed_price = Column(Float, nullable=True)
     payment_method = Column(String(50), nullable=True)
     
+    # Payment proof
+    payment_screenshot = Column(String(500), nullable=True)
+    payment_amount = Column(Float, nullable=True)
+    payer_name = Column(String(100), nullable=True)
+    payer_notes = Column(Text, nullable=True)
+    payment_status = Column(String(20), default="pending", nullable=True)
     payment_proof_hash = Column(String(64), nullable=True, index=True)
     payment_reference = Column(String(100), nullable=True)
+    
+    # Review / moderation
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -1702,6 +1712,7 @@ class Notification(Base):
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)
     type = Column(String(50), default="general")
+    image_url = Column(String(500), nullable=True)
     
     # Link to related entity
     entity_type = Column(String(50), nullable=True)

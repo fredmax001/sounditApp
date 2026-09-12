@@ -219,9 +219,9 @@ const BookingModal = ({
     setIsSubmitting(true);
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append('screenshot', paymentForm.screenshot);
+      formDataUpload.append('payment_screenshot', paymentForm.screenshot);
       formDataUpload.append('payer_name', paymentForm.payer_name || formData.contact_name || '');
-      if (paymentForm.notes) formDataUpload.append('notes', paymentForm.notes);
+      if (paymentForm.notes) formDataUpload.append('payer_notes', paymentForm.notes);
 
       const res = await fetch(`${API_BASE_URL}/bookings/requests/${bookingId}/upload-payment`, {
         method: 'POST',

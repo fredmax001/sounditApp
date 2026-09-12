@@ -417,6 +417,20 @@ with engine.connect() as conn:
     else:
         print("Skipped event_promoters (table does not exist)")
 
+    # 18) notifications missing columns
+    if 'notifications' in insp.get_table_names():
+        notif_cols = [c['name'] for c in insp.get_columns('notifications')]
+        for col, col_type in [
+            ('image_url', 'VARCHAR(500)'),
+        ]:
+            if col not in notif_cols:
+                conn.execute(text(f"ALTER TABLE notifications ADD COLUMN {col} {col_type}"))
+                print(f"Added notifications.{col}")
+            else:
+                print(f"Skipped notifications.{col}")
+    else:
+        print("Skipped notifications (table does not exist)")
+
     conn.commit()
 
 print("Comprehensive migration complete.")

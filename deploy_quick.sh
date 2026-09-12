@@ -3,12 +3,21 @@ set -e
 
 SERVER_USER="root"
 SERVER_HOST="72.62.254.251"
-SSH_PASS='***REMOVED***'
+
+# SSH password must be provided via the SSH_PASS environment variable.
+# Never hardcode credentials in this script (it is tracked in git).
+if [ -z "${SSH_PASS:-}" ]; then
+  echo "[ERR] SSH_PASS environment variable is not set."
+  echo "      Export it before running:  export SSH_PASS='your-password'"
+  exit 1
+fi
+export SSHPASS="$SSH_PASS"
+
 REMOTE_DIR="/var/www/soundit"
 LOCAL_DIR="/Users/djfredmax/Desktop/SOUND IT WEB APP COMPLETE"
 
-SSH="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-RSYNC="sshpass -p '$SSH_PASS' rsync -avz --delete -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'"
+SSH="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+RSYNC="sshpass -e rsync -avz --delete -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'"
 
 echo "▶ Deploying backend files..."
 eval "$RSYNC \"$LOCAL_DIR/api/\" \"$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/api/\""

@@ -345,9 +345,9 @@ const ManageBusinesses = () => {
                   <td className="p-4">
                     <div className="flex flex-col gap-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                        business.is_verified ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                        business.is_verified || business.verification_badge ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-400'
                       }`}>
-                        {business.is_verified ? t('admin.manageBusinesses.verifiedStatus') : t('admin.manageBusinesses.pendingStatus')}
+                        {business.is_verified || business.verification_badge ? (t('admin.manageBusinesses.verifiedStatus') || 'Verified') : (t('admin.manageBusinesses.unverifiedStatus') || 'Unverified')}
                       </span>
                       {business.is_approved && (
                         <span className="px-2 py-1 rounded-full text-xs font-medium w-fit bg-blue-500/20 text-blue-400">

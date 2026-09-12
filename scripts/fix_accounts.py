@@ -1,8 +1,9 @@
 """
 Fix sign-in issues for specified accounts.
 Run on the production server:
-    cd /var/www/soundit && source venv/bin/activate && python3 scripts/fix_accounts.py
+    cd /var/www/soundit && source venv/bin/activate && RESET_PASSWORD='...' python3 scripts/fix_accounts.py
 """
+import os
 import sys
 sys.path.insert(0, '/var/www/soundit')
 
@@ -19,7 +20,9 @@ ACCOUNTS = [
     {"email": "rnbnslowsessions@gmail.com", "first_name": "RNB", "last_name": "Slow", "role": "user"},
 ]
 
-RESET_PASSWORD = "***REMOVED***"
+RESET_PASSWORD = os.environ.get('RESET_PASSWORD')
+if not RESET_PASSWORD:
+    sys.exit('[ERR] RESET_PASSWORD environment variable is not set.')
 
 def fix_accounts():
     db = SessionLocal()

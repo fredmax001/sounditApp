@@ -37,8 +37,8 @@ The platform has a solid foundation with working auth, event/artist listing, tic
 ### Issue #3 — Default Admin Credentials in AGENTS.md Are Wrong
 - **Location:** `AGENTS.md`
 - **Severity:** Critical
-- **Expected:** `admin@sounditent.com` / `***REMOVED***` should be a super admin
-- **Actual:** `admin@sounditent.com` has `role = 'business'` in DB. `admin@soundit.com` is `super_admin` but the documented password `***REMOVED***` does not work for that account.
+- **Expected:** `admin@sounditent.com` / `«redacted — rotated»` should be a super admin
+- **Actual:** `admin@sounditent.com` has `role = 'business'` in DB. `admin@soundit.com` is `super_admin` but the documented password `«redacted — rotated»` does not work for that account.
 - **Suggested Fix:** Update AGENTS.md with correct admin email + password, or reset the super_admin password in `scripts/create_admin.py`.
 
 ### Issue #4 — `fetchBusinessProfile()` Overwrites Admin Role to Business

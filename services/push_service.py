@@ -48,28 +48,45 @@ class PushService:
             return False
         
         # Build payload
+        img_url = getattr(notification, "image_url", None) or (
+            notification.data.get("image_url") if notification.data and isinstance(notification.data, dict) else None
+        )
+        if img_url:
+            img_url = str(img_url).strip()
+            if img_url.startswith('/var/www/soundit-uploads/'):
+                img_url = img_url.replace('/var/www/soundit-uploads/', '/static/uploads/')
+            if img_url.startswith('/'):
+                base = (settings.BASE_URL or "https://sounditent.com").rstrip('/')
+                img_url = f"{base}{img_url}"
+            elif img_url.startswith('http://sounditent.com') or img_url.startswith('http://sounditent.cn'):
+                img_url = img_url.replace('http://', 'https://')
+
         payload = {
             "title": notification.title,
             "body": notification.message,
-            "icon": "/android-chrome-192x192.png",
-            "badge": "/android-chrome-192x192.png",
+            "icon": f"{(settings.BASE_URL or 'https://sounditent.com').rstrip('/')}/android-chrome-192x192.png",
+            "badge": f"{(settings.BASE_URL or 'https://sounditent.com').rstrip('/')}/android-chrome-192x192.png",
             "tag": str(notification.id),
             "requireInteraction": True,
             "data": {
                 "notification_id": notification.id,
                 "action_url": self._build_action_url(notification),
                 "category": notification.type or "general",
+                "image_url": img_url,
                 "payload": notification.data
             }
         }
+        if img_url:
+            payload["image"] = img_url
         
-        # Add actions based on notification type
-        if notification.type == "booking":
+        # Add actions based on notification type (prefix-matched)
+        notif_type = (notification.type or "").lower()
+        if notif_type == "booking_request":
             payload["actions"] = [
                 {"action": "accept", "title": "Accept"},
                 {"action": "decline", "title": "Decline"}
             ]
-        elif notification.type == "message":
+        elif notif_type.startswith("message"):
             payload["actions"] = [
                 {"action": "reply", "title": "Reply"},
                 {"action": "dismiss", "title": "Dismiss"}
@@ -163,33 +180,43 @@ class PushService:
         return False
     
     def _build_action_url(self, notification: Notification) -> Optional[str]:
-        """Build a deep link URL based on notification type and data."""
+        """Build a deep link URL based on notification type (prefix-matched) and data."""
         data = notification.data or {}
-        
-        if notification.type == "booking":
-            return "/dashboard/artist/bookings"
-        elif notification.type == "message":
+        ntype = (notification.type or "").lower()
+        entity_type = data.get("entity_type")
+        entity_id = data.get("entity_id")
+
+        if ntype.startswith("message"):
             sender_id = data.get("sender_id")
             if sender_id:
                 return f"/messages/{sender_id}"
             return "/messages"
-        elif notification.type == "staff_invite":
-            return "/settings/notifications"
-        elif notification.type == "ticket_order":
+        if ntype.startswith("booking"):
+            # New booking requests go to the artist dashboard; updates/replies to the client bookings view
+            if ntype == "booking_request":
+                return "/dashboard/artist/bookings"
+            return "/dashboard/bookings"
+        if ntype.startswith(("staff_invite", "staff_invitation")):
+            return "/settings"
+        if ntype.startswith("ticket_order"):
             return "/dashboard/business/tickets"
-        elif notification.type == "verification":
+        if ntype.startswith("ticket"):
+            return "/tickets"
+        if ntype.startswith(("product_order", "vendor_order")):
+            return "/orders"
+        if ntype.startswith("table_booking"):
+            return "/dashboard/business/tables"
+        if ntype.startswith("verification"):
             return "/verification"
-        elif notification.type == "subscription":
+        if ntype.startswith("subscription"):
             return "/subscriptions"
-        elif notification.type == "event":
-            event_id = data.get("event_id") or data.get("entity_id")
+        if ntype.startswith("event"):
+            event_id = data.get("event_id") or entity_id
             if event_id:
                 return f"/events/{event_id}"
             return "/events"
-        elif notification.type == "follower":
-            entity_type = data.get("entity_type")
-            entity_id = data.get("entity_id")
+        if ntype.startswith("follower") or ntype.endswith("_update"):
             if entity_type and entity_id:
                 return f"/{entity_type}s/{entity_id}"
-        
+
         return None

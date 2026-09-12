@@ -10,7 +10,9 @@ admins = [
     ('admin@sounditent.com', UserRole.SUPER_ADMIN),
     ('admin@soundit.com', UserRole.SUPER_ADMIN),
 ]
-password = '***REMOVED***'
+password = os.environ.get('ADMIN_PASSWORD')
+if not password:
+    sys.exit('[ERR] ADMIN_PASSWORD environment variable is not set. Example: ADMIN_PASSWORD=... python3 scripts/create_admin.py')
 
 db = SessionLocal()
 try:

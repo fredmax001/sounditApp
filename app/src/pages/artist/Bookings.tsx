@@ -54,6 +54,8 @@ export default function ArtistBookings() {
   const [filter, setFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [decliningId, setDecliningId] = useState<number | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string>('');
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -79,23 +81,29 @@ export default function ArtistBookings() {
     loadBookings();
   }, [loadBookings]);
 
-  const handleStatusChange = async (bookingId: number, newStatus: string) => {
+  const handleStatusChange = async (bookingId: number, newStatus: string, reason?: string) => {
     setActionLoading(bookingId);
     try {
+      const body: Record<string, string> = { status: newStatus };
+      if (reason) body.rejection_reason = reason;
+
       const res = await fetch(`${API_BASE_URL}/artist/bookings/${bookingId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify(body)
       });
 
       if (res.ok) {
         toast.success(t('artist.bookings.statusUpdated', { status: newStatus }));
+        setDecliningId(null);
+        setRejectionReason('');
         loadBookings();
       } else {
-        toast.error(t('artist.bookings.updateStatusFailed'));
+        const error = await res.json().catch(() => ({}));
+        toast.error(error.detail || t('artist.bookings.updateStatusFailed'));
       }
     } catch {
       toast.error(t('artist.bookings.updateError'));
@@ -107,6 +115,23 @@ export default function ArtistBookings() {
   const filteredBookings = filter === 'all' 
     ? bookings 
     : bookings.filter(b => b.status === filter);
+
+  const formatBudget = (budget?: number | null) => {
+    if (budget == null || Number.isNaN(budget)) return '—';
+    return `¥${budget.toLocaleString()}`;
+  };
+
+  const formatDuration = (duration?: number | null) => {
+    if (duration == null || Number.isNaN(duration)) return '—';
+    return `${duration}h`;
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString();
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -244,19 +269,19 @@ export default function ArtistBookings() {
                     <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {new Date(booking.event_date).toLocaleDateString()}
+                        {formatDate(booking.event_date)}
                       </span>
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {booking.event_city}
+                        {booking.event_city || '—'}
                       </span>
                       <span className="flex items-center gap-1">
                         <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        ¥{booking.budget.toLocaleString()}
+                        {formatBudget(booking.budget)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {booking.duration}h
+                        {formatDuration(booking.duration)}
                       </span>
                     </div>
                   </div>
@@ -278,16 +303,16 @@ export default function ArtistBookings() {
                       <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wide">{t('artist.bookings.eventDetails')}</h4>
                       <div className="space-y-2 text-sm">
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.type')}:</span> {booking.event_type}
+                          <span className="text-gray-400">{t('artist.bookings.type')}:</span> {booking.event_type || '—'}
                         </p>
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.budget')}:</span> ¥{booking.budget.toLocaleString()}
+                          <span className="text-gray-400">{t('artist.bookings.budget')}:</span> {formatBudget(booking.budget)}
                         </p>
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.duration')}:</span> {booking.duration} {t('artist.bookings.hours')}
+                          <span className="text-gray-400">{t('artist.bookings.duration')}:</span> {formatDuration(booking.duration)}
                         </p>
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.location')}:</span> {booking.event_city}
+                          <span className="text-gray-400">{t('artist.bookings.location')}:</span> {booking.event_city || '—'}
                         </p>
                         <p className="text-white">
                           <span className="text-gray-400">{t('artist.bookings.paymentStatus')}:</span>{' '}
@@ -308,11 +333,11 @@ export default function ArtistBookings() {
                       <div className="space-y-2 text-sm">
                         <p className="flex items-center gap-2 text-white">
                           <User className="w-4 h-4 text-gray-400" />
-                          {booking.contact_name}
+                          {booking.contact_name || '—'}
                         </p>
                         <p className="flex items-center gap-2 text-white">
                           <Mail className="w-4 h-4 text-gray-400" />
-                          {booking.contact_email}
+                          {booking.contact_email || '—'}
                         </p>
                         {booking.contact_phone && (
                           <p className="flex items-center gap-2 text-white">
@@ -360,31 +385,68 @@ export default function ArtistBookings() {
 
                   {/* Actions */}
                   {booking.status === 'pending' && (
-                    <div className="flex gap-2 sm:gap-3">
-                      <button
-                        onClick={() => handleStatusChange(booking.id, 'accepted')}
-                        disabled={actionLoading === booking.id}
-                        className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-green-500/50 text-white py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
-                      >
-                        {actionLoading === booking.id ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="hidden sm:inline">{t('artist.bookings.accept')}</span>
-                            <span className="sm:hidden">Accept</span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleStatusChange(booking.id, 'rejected')}
-                        disabled={actionLoading === booking.id}
-                        className="flex-1 bg-red-500/20 hover:bg-red-500/30 disabled:bg-red-500/10 text-red-400 border border-red-500/30 py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span className="hidden sm:inline">{t('artist.bookings.decline')}</span>
-                        <span className="sm:hidden">Decline</span>
-                      </button>
+                    <div className="space-y-3">
+                      {decliningId === booking.id ? (
+                        <div className="space-y-3">
+                          <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder={t('artist.bookings.rejectionReasonPlaceholder')}
+                            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-red-500/50 focus:outline-none resize-none"
+                            rows={3}
+                          />
+                          <div className="flex gap-2 sm:gap-3">
+                            <button
+                              onClick={() => handleStatusChange(booking.id, 'rejected', rejectionReason)}
+                              disabled={actionLoading === booking.id}
+                              className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
+                            >
+                              {actionLoading === booking.id ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <XCircle className="w-4 h-4" />
+                                  {t('artist.bookings.confirmDecline')}
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => { setDecliningId(null); setRejectionReason(''); }}
+                              disabled={actionLoading === booking.id}
+                              className="flex-1 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 px-3 sm:px-4 rounded-lg font-medium text-sm sm:text-base"
+                            >
+                              {t('artist.bookings.cancel')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 sm:gap-3">
+                          <button
+                            onClick={() => handleStatusChange(booking.id, 'accepted')}
+                            disabled={actionLoading === booking.id}
+                            className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-green-500/50 text-white py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
+                          >
+                            {actionLoading === booking.id ? (
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">{t('artist.bookings.accept')}</span>
+                                <span className="sm:hidden">Accept</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setDecliningId(booking.id)}
+                            disabled={actionLoading === booking.id}
+                            className="flex-1 bg-red-500/20 hover:bg-red-500/30 disabled:bg-red-500/10 text-red-400 border border-red-500/30 py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            <span className="hidden sm:inline">{t('artist.bookings.decline')}</span>
+                            <span className="sm:hidden">Decline</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 

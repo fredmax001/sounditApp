@@ -1,8 +1,14 @@
+import os
+import sys
+
 import paramiko
 
-hostname = "72.62.254.251"
-username = "root"
-password = "***REMOVED***"
+hostname = os.environ.get("SERVER_HOST", "72.62.254.251")
+username = os.environ.get("SERVER_USER", "root")
+password = os.environ.get("SSH_PASS")
+
+if not password:
+    sys.exit("[ERR] SSH_PASS environment variable is not set.")
 
 def check_logs():
     try:
