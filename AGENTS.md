@@ -41,6 +41,15 @@
 
 ---
 
+### 78. New Brand Header + Gravatar Avatar Support (2026-09-13)
+- **Gravatar root cause**: user created a Gravatar months ago but it never appeared — a repo-wide search confirmed **zero Gravatar code existed** (frontend or backend). Users without a custom upload always got the generic icon.
+- **Fix**: new `app/src/lib/avatar.ts` (note: `app/src/lib/` is gitignored by the Python `lib/` rule and untracked by convention — deploys via rsync) with an RFC-1321-verified compact MD5 implementation and `resolveAvatarUrl(user, size)`: custom `avatar_url` → Gravatar (MD5 of trimmed+lowercased email, `d=identicon`) → `/default-avatar.png`. Applied in `Navbar.tsx`, `MobileHeader.tsx` (header + drawer), `pages/user/Profile.tsx`. MD5 verified against system `md5` vectors.
+- **Header redesign**: processed the new brand logo (`SI App Logo png.PNG`, 2-color lime-on-white) into `app/public/brand-mark.png` — white → transparent, color normalized to brand lime `#d3da0c` (source is exactly 2 colors, so binary threshold is lossless). Desktop `Navbar`: black `bg-black/95` background (was transparent over hero), brand mark in a lime-tinted rounded badge + "SOUND IT" wordmark (lime "IT") + tagline, lime hairline border on scroll. `MobileHeader`: solid black (`rgba(0,0,0,0.92+)`) with lime-tinted scroll border, same brand lockup. `nav.tagline` i18n key added to en/zh/fr.
+- **Verified visually** via Playwright screenshots (desktop 1200px + mobile 390px) on local preview and production.
+- **Production Deploy (2026-09-13)**: release `20260913013003` — health 200, `https://sounditent.com/brand-mark.png` serves 200 image/png.
+
+---
+
 ### 77. Pre-Deployment Checklist Re-Audit After Tonight's Changes (2026-09-13)
 - **Context**: Re-ran the 9-item checklist against current code, focusing on everything added/changed tonight (notification system, admin broadcast log, upload scanner, analytics tz fix).
 - **Results**: 8/9 passed; **1 warning found and fixed**.
