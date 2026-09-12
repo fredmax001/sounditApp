@@ -41,6 +41,22 @@
 
 ---
 
+### 77. Pre-Deployment Checklist Re-Audit After Tonight's Changes (2026-09-13)
+- **Context**: Re-ran the 9-item checklist against current code, focusing on everything added/changed tonight (notification system, admin broadcast log, upload scanner, analytics tz fix).
+- **Results**: 8/9 passed; **1 warning found and fixed**.
+  1. **Authorization** ✅ — new endpoints verified: `DELETE /notifications/clear-all` filters by `current_user.id`; `GET /admin/notifications/log` requires `require_admin`; admin send validated. Hot-path ownership checks from #68 intact.
+  2. **Password reset** ✅ — `secrets.token_urlsafe(32)`, HMAC-SHA256 storage, 1h TTL (`timedelta(hours=1)`), single-use (cleared on reset/login), rate-limited (3/min request, 5/min confirm), generic responses (no enumeration).
+  3. **Input validation** ✅ — all new endpoints use Pydantic schemas/Query validation; admin send validates type/target_role and rejects unknown fields' effects; SQLAlchemy ORM only; upload validates MIME, extension whitelist, size, and content.
+  4. **CORS** ⚠️→✅ **FIXED** — static origin list was DEBUG-gated, but `allow_origin_regex` still admitted `https?://localhost|127.0.0.1|file://` **unconditionally** (regression vs #68's intent; localhost/file portion moved behind `if settings.DEBUG`, `capacitor://` stays always-on for the mobile app). Deployed release `20260913004440`.
+  5. **Rate limiting** ✅ — 200/min global default, login 20/min, register 10/min, reset endpoints 3-5/min, analytics exempt (telemetry can't exhaust budgets).
+  6. **Error handling** ✅ — structured handlers (HTTP/validation/catch-all) with request_id; live test: 404 returns clean JSON `{"error":{"code":"error","message":"Not found","request_id":...}}` — no stack traces. Tonight's analytics tz TypeError (would have been a per-visit 500) also eliminated at the source.
+  7. **DB indexes** ✅ — new `admin_notification_logs` has `index=True` on PK and `created_at`; 200+ existing indexes/constraints from #60 intact.
+  8. **Logging/monitoring** ✅ — JSON structured logs with request_id (seen in journal), Sentry hook, admin-gated monitoring endpoints.
+  9. **Rollback** ✅ — versioned releases with symlink flip (current: `20260913004440`), last 5 kept, `deploy/rollback.sh` available, smoke-test-before-activation in `deploy_safe.sh`.
+- **Prod config verified**: `DEBUG=False`, 5 releases retained.
+
+---
+
 ### 76. Admin Notification History Log — Email-Only Sends Invisible (2026-09-13)
 - **Problem**: Admin sent an email-type notification; it delivered (SMTP log confirmed) but never appeared in the Notification Center history sidebar, couldn't be opened, and couldn't be resent. Root cause: history was derived from per-user `Notification` rows with `type IN ('admin','system','broadcast')`, which are only created for **push/both** sends — email-only sends created zero rows, leaving no history record.
 - **Backend**: new `AdminNotificationLog` model (`models.py`, table auto-created by `create_all` on deploy — confirmed in prod). `POST /admin/notifications/send` now records EVERY send (all channel types) with channels, target_role, image_url, and delivery counts. New endpoint `GET /admin/notifications/log` returns the log (new primary source; legacy `GET /admin/notifications` kept for fallback).
