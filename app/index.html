@@ -38,37 +38,81 @@
     <meta name="twitter:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
     <meta name="twitter:image" content="https://sounditent.com/logo.png" />
 
-    <!-- ── JSON-LD Structured Data — readable by Google bots without JS ── -->
+    <!-- ── JSON-LD Structured Data — readable by Google & AI bots without JS ── -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Sound It",
-      "url": "https://sounditent.com",
-      "logo": "https://sounditent.com/logo.png",
-      "description": "Sound It is an entertainment platform for the African and international community in China. It allows users to discover events, purchase tickets, book DJs and artists, find food and product vendors, connect with local businesses, and grow entertainment networks.",
-      "applicationCategory": "EntertainmentApplication",
-      "operatingSystem": "Web, iOS, Android",
-      "featureList": [
-        "Discover entertainment events in China",
-        "Purchase tickets for events",
-        "Book DJs, artists, dancers, and photographers",
-        "Find food and product vendors",
-        "Connect with local businesses",
-        "City guides for African and international community"
-      ],
-      "publisher": {
-        "@type": "Organization",
-        "name": "Sound It Entertainment",
-        "url": "https://sounditent.com",
-        "logo": "https://sounditent.com/logo.png",
-        "contactPoint": {
-          "@type": "ContactPoint",
-          "email": "info@sounditent.com",
-          "contactType": "customer support"
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://sounditent.com/#webapp",
+          "name": "Sound It",
+          "url": "https://sounditent.com",
+          "logo": "https://sounditent.com/logo.png",
+          "description": "Sound It is an entertainment platform for the African and international community in China. It allows users to discover events, purchase tickets, book DJs and artists, find food and product vendors, connect with local businesses, and grow entertainment networks.",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "Web, iOS, Android",
+          "featureList": [
+            "Discover entertainment events in China",
+            "Purchase tickets for events",
+            "Book DJs, artists, dancers, and photographers",
+            "Find food and product vendors",
+            "Connect with local businesses",
+            "City guides for African and international community"
+          ],
+          "publisher": {
+            "@id": "https://sounditent.com/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://sounditent.com/#organization",
+          "name": "Sound It Entertainment",
+          "url": "https://sounditent.com",
+          "logo": "https://sounditent.com/logo.png",
+          "sameAs": [
+            "https://instagram.com/soundit_ent",
+            "https://twitter.com/soundit_ent",
+            "https://www.tiktok.com/@soundit_ent",
+            "https://www.youtube.com/@soundit_ent"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "support@sounditent.com",
+            "telephone": "+86-191-2131-7942",
+            "contactType": "customer support"
+          }
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://sounditent.com/#localbusiness",
+          "name": "Sound It Entertainment",
+          "image": "https://sounditent.com/logo.png",
+          "url": "https://sounditent.com",
+          "telephone": "+86-191-2131-7942",
+          "email": "support@sounditent.com",
+          "priceRange": "$$",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Shanghai",
+            "addressCountry": "CN"
+          }
         }
-      }
+      ]
     }
+    </script>
+
+    <!-- ── Google Consent Mode v2 (Default: Denied until user consent) ── -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'wait_for_update': 500
+      });
     </script>
   </head>
   <body>
