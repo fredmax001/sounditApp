@@ -2,6 +2,8 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
+import { chinaCities } from './data/constants';
+import { captureUtmParams } from './lib/utm';
 import { useAuthStore } from './store/authStore';
 
 // Layouts - Unified System
@@ -160,6 +162,9 @@ function App() {
   const profile = useAuthStore((state) => state.profile);
 
   useEffect(() => {
+    // Capture UTM tracking parameters from URL
+    captureUtmParams();
+
     // Initialize auth state
     initialize();
 

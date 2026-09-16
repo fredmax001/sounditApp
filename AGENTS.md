@@ -41,6 +41,30 @@
 
 ---
 
+### 81. Email Deliverability Filter & Bounce Prevention (2026-09-15)
+- **Problem**: Admin notifications / broadcasts triggered Mail Delivery System bounce-back emails (`Undelivered Mail Returned to Sender` from `relay.mailchannels.net` for dummy/test emails like `c@test.com` with error `Host or domain name not found`).
+- **Root Causes**:
+  - Test/dummy accounts registered during testing remained active in the database.
+  - Broadcast sender in `api/admin.py` iterated through all active user records without verifying if recipient domains were valid/deliverable.
+  - `email_service.py` lacked an email deliverability and blocked-domain check prior to attempting SMTP transmission.
+  - User registration in `schemas.py` and `api/auth.py` only validated basic regex rather than deliverable domains.
+- **Fixes Applied**:
+  - **Email Service (`email_service.py`)**:
+    - Implemented `is_deliverable_email(email)` to validate RFC syntax, strip whitespace/lowercase, verify TLDs, and reject RFC 2606/6761 reserved TLDs (`.test`, `.example`, `.invalid`, `.localhost`, `.local`, `.internal`, `.onion`), blocked test domains (`test.com`, `example.com`, `example.org`, `sample.com`, `dummy.com`, `fake.com`, `testing.com`), and disposable email providers (`mailinator.com`, `tempmail.com`, `10minutemail.com`, `guerrillamail.com`, etc.).
+    - Added deliverability guards in `_smtp_send`, `send_email`, and `send_broadcast_email` to safely skip non-deliverable addresses before touching SMTP relays.
+  - **Admin Broadcast (`api/admin.py`)**:
+    - Added `is_deliverable_email(user.email)` check to the broadcast email loop so dummy addresses are excluded from delivery attempts and bounce counters.
+  - **Schema & Registration Validation (`schemas.py`)**:
+    - Updated `UserBase.validate_email` and `UserRegistration.validate_reg_email` to validate email deliverability and reject dummy/test domains on registration and profile updates.
+  - **Database Cleanup Script (`scripts/cleanup_dummy_accounts.py`)**:
+    - Created utility to scan `users` table and flag/deactivate any accounts with undeliverable/dummy email domains.
+- **Verification & Deployment**:
+  - `python3 -m py_compile` passed on all backend modules.
+  - Unit tests covering 19 valid and invalid email test cases passed with 100% accuracy.
+  - `npm run build` compiled successfully in 7.48s.
+
+---
+
 ### 80. Admin-Editable Intro/Splash Screen (2026-09-13)
 - **Feature**: new admin section to change the app intro screen info + logo without code changes.
 - **Backend (`api/admin.py` — untracked per convention)**: `intro_screen` JSON row in `SystemSetting` (category `content`); `GET/PUT /admin/intro-screen` (`require_admin`) with fields `enabled`, `logo_url`, `title`, `tagline`; public `GET /api/v1/system/intro-screen` in `main.py` for the frontend. Defaults: enabled, empty logo (= `/logo.png`), tagline "5 years of Excellence in Entertainment".
