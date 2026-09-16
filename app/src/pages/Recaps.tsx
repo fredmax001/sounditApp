@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -293,7 +294,12 @@ export default function Recaps() {
                       <div className="w-8 h-8 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center">
                         <Camera className="w-4 h-4 text-[#d3da0c]" />
                       </div>
-                      <span className="text-sm">{selectedRecap.organizer_name}</span>
+                      <Link
+                        to={`/profiles/${selectedRecap.organizer_id}`}
+                        className="text-sm font-medium text-white hover:text-[#d3da0c] transition-colors underline-offset-2 hover:underline"
+                      >
+                        {selectedRecap.organizer_name}
+                      </Link>
                     </div>
                   )}
                   
