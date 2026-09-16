@@ -24,8 +24,11 @@ const Footer = () => {
       title: t('footer.discover.title') || 'Discover',
       links: [
         { label: t('footer.discover.events') || 'Events', path: '/events' },
-        { label: t('footer.discover.discovery') || 'Discovery', path: '/discovery' },
+        { label: t('footer.discover.artists') || 'Artists & DJs', path: '/artists' },
+        { label: t('footer.discover.vendors') || 'Vendors', path: '/vendors' },
+        { label: t('footer.discover.cityGuide') || 'City Guide', path: '/city-guide' },
         { label: t('footer.discover.food') || 'Food', path: '/food' },
+        { label: t('footer.discover.recaps') || 'Recaps', path: '/recaps' },
         { label: t('footer.discover.community') || 'Community', path: '/community' },
       ],
     },
