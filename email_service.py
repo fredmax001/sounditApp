@@ -5,6 +5,7 @@ If SMTP is not configured, emails are logged to console (dev mode).
 import base64
 import io
 import logging
+import re
 import smtplib
 import ssl
 import zipfile
@@ -18,6 +19,90 @@ from config import get_settings
 logger = logging.getLogger(__name__)
 
 
+# ─────────────────────────── Email Deliverability Filter ───────────────────────────
+
+BLOCKED_EMAIL_DOMAINS = {
+    # Test & dummy domains
+    "test.com", "example.com", "example.org", "example.net",
+    "sample.com", "dummy.com", "dummy.org", "fake.com", "fakemail.com",
+    "testing.com", "test.org", "test.net", "none.com", "null.com",
+    "invalid.com", "localhost.com",
+    # Throwaway / disposable email services
+    "mailinator.com", "tempmail.com", "10minutemail.com", "guerrillamail.com",
+    "sharklasers.com", "throwawaymail.com", "yopmail.com", "trashmail.com",
+    "getairmail.com", "dispostable.com", "temp-mail.org", "fakeinbox.com"
+}
+
+RESERVED_TLDS = {
+    "test", "example", "invalid", "localhost", "local", "internal",
+    "onion", "arpa", "dummy", "null"
+}
+
+BLOCKED_EXACT_EMAILS = {
+    "c@test.com", "test@test.com", "admin@test.com", "user@test.com",
+    "a@a.com", "me@test.com", "root@localhost"
+}
+
+EMAIL_REGEX = re.compile(
+    r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$"
+)
+
+
+def is_deliverable_email(email: Optional[str]) -> bool:
+    """
+    Validate if an email address is syntactically valid and deliverable
+    (not a dummy, reserved, test, or invalid domain).
+    """
+    if not email or not isinstance(email, str):
+        return False
+
+    email_clean = email.strip().lower()
+    if len(email_clean) < 5 or len(email_clean) > 254:
+        return False
+
+    if email_clean in BLOCKED_EXACT_EMAILS:
+        return False
+
+    if not EMAIL_REGEX.match(email_clean):
+        return False
+
+    parts = email_clean.split("@")
+    if len(parts) != 2:
+        return False
+
+    local_part, domain = parts
+
+    # Check local part constraints
+    if not local_part or local_part.startswith(".") or local_part.endswith(".") or ".." in local_part:
+        return False
+
+    # Check domain constraints
+    if not domain or "." not in domain or domain.startswith(".") or domain.endswith(".") or ".." in domain:
+        return False
+
+    # Check if domain or TLD is blocked
+    if domain in BLOCKED_EMAIL_DOMAINS:
+        return False
+
+    domain_parts = domain.split(".")
+    tld = domain_parts[-1]
+
+    # TLD must be at least 2 chars and purely alpha
+    if len(tld) < 2 or not tld.isalpha():
+        return False
+
+    if tld in RESERVED_TLDS:
+        return False
+
+    # Check if any parent domain is in blocked domains (e.g. sub.test.com)
+    for i in range(len(domain_parts) - 1):
+        sub = ".".join(domain_parts[i:])
+        if sub in BLOCKED_EMAIL_DOMAINS:
+            return False
+
+    return True
+
+
 # ─────────────────────────── Core Transport ───────────────────────────
 
 def _smtp_send(
@@ -26,11 +111,16 @@ def _smtp_send(
     body: str,
     html_body: Optional[str] = None,
     from_email: Optional[str] = None,
-    attachments: Optional[List[tuple]] = None
+    attachments: Optional[List[tuple]] = None,
+    is_marketing: bool = False
 ) -> bool:
     """Send email via SMTP SSL (Hostinger/any provider).
     attachments: list of (filename, bytes, mimetype) tuples
     """
+    if not is_deliverable_email(to_email):
+        logger.warning(f"[EMAIL SKIPPED] Non-deliverable or dummy email blocked: '{to_email}'")
+        return False
+
     settings = get_settings()
     if not settings.SMTP_USER or not settings.SMTP_PASS:
         return False
@@ -43,6 +133,15 @@ def _smtp_send(
         msg["Subject"] = subject
         msg["From"] = sender_formatted
         msg["To"] = to_email
+
+        # One-click unsubscribe headers per RFC 8058 for marketing/broadcast emails
+        if is_marketing or any(w in subject.lower() for w in ["update", "announcement", "newsletter", "broadcast", "featured", "sound it"]):
+            import urllib.parse
+            encoded_email = urllib.parse.quote(to_email)
+            unsub_url = f"https://sounditent.com/api/v1/notifications/unsubscribe?email={encoded_email}"
+            unsub_mailto = f"<mailto:support@sounditent.com?subject=unsubscribe%20{encoded_email}>"
+            msg["List-Unsubscribe"] = f"<{unsub_url}>, {unsub_mailto}"
+            msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
         # Body part
         body_part = MIMEMultipart("alternative")
@@ -95,6 +194,10 @@ def send_email(
     At least one of body or html_body must be provided.
     attachments: list of (filename, bytes, mimetype) tuples
     """
+    if not is_deliverable_email(to_email):
+        logger.warning(f"[EMAIL SKIPPED] Email address '{to_email}' is not deliverable or blocked.")
+        return False
+
     settings = get_settings()
     sender = from_email or settings.SMTP_FROM or settings.SMTP_USER or "support@sounditent.com"
 
