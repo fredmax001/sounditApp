@@ -73,6 +73,12 @@
   box-sizing: border-box;
 }
 
+/* WCAG 2.2 AA Keyboard Navigation & Focus Visibility */
+:focus-visible {
+  outline: 2px solid #d3da0c !important;
+  outline-offset: 2px !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
