@@ -7,7 +7,7 @@ set -euo pipefail
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/soundit-db}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-DB_NAME="${DB_NAME:-soundit}"
+DB_NAME="${DB_NAME:-soundit_prod}"
 DB_USER="${DB_USER:-postgres}"
 
 mkdir -p "$BACKUP_DIR"
@@ -16,8 +16,12 @@ BACKUP_FILE="$BACKUP_DIR/soundit_db_${TIMESTAMP}.sql.gz"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting PostgreSQL backup for database: $DB_NAME..."
 
-# Export compressed dump
-pg_dump -U "$DB_USER" "$DB_NAME" | gzip -9 > "$BACKUP_FILE"
+# Export compressed dump (supports peer auth with sudo -u postgres)
+if id -u postgres >/dev/null 2>&1 && [ "$(id -u)" = "0" ]; then
+    sudo -u postgres pg_dump "$DB_NAME" | gzip -9 > "$BACKUP_FILE"
+else
+    pg_dump -U "$DB_USER" "$DB_NAME" | gzip -9 > "$BACKUP_FILE"
+fi
 
 # Verify backup was created and is non-empty
 if [ -s "$BACKUP_FILE" ]; then
