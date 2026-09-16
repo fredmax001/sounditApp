@@ -135,9 +135,9 @@ class UserBase(BaseModel):
         v_str = str(v).strip()
         if not v_str:
             return None
-        import re
-        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v_str):
-            raise ValueError("Invalid email format")
+        from email_service import is_deliverable_email
+        if not is_deliverable_email(v_str):
+            raise ValueError("Please provide a valid, deliverable email address.")
         return v_str.lower()
     
     def get_preferred_city(self) -> Optional[str]:
@@ -225,15 +225,23 @@ class UserRegistration(BaseModel):
     # Bio (Artist required, others optional)
     bio: Optional[str] = Field(None, max_length=2000)
 
+    # Security & Tracking
+    turnstile_token: Optional[str] = Field(None, max_length=2048)
+    utm_source: Optional[str] = Field(None, max_length=100)
+    utm_medium: Optional[str] = Field(None, max_length=100)
+    utm_campaign: Optional[str] = Field(None, max_length=100)
+    utm_term: Optional[str] = Field(None, max_length=100)
+    utm_content: Optional[str] = Field(None, max_length=100)
+
     @field_validator('email', mode='before')
     @classmethod
     def validate_reg_email(cls, v):
         if not v:
             raise ValueError("Email is required")
         v_str = str(v).strip()
-        import re
-        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v_str):
-            raise ValueError("Invalid email format")
+        from email_service import is_deliverable_email
+        if not is_deliverable_email(v_str):
+            raise ValueError("Please provide a valid, deliverable email address.")
         return v_str.lower()
 
 
