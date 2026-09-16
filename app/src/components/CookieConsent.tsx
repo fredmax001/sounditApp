@@ -33,6 +33,24 @@ function setConsent(prefs: ConsentPreferences) {
   localStorage.setItem(STORAGE_KEY, "accepted");
 }
 
+declare global {
+  interface Window {
+    dataLayer?: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+export function updateGoogleConsentMode(analyticsGranted: boolean, marketingGranted: boolean) {
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("consent", "update", {
+      ad_storage: marketingGranted ? "granted" : "denied",
+      ad_user_data: marketingGranted ? "granted" : "denied",
+      ad_personalization: marketingGranted ? "granted" : "denied",
+      analytics_storage: analyticsGranted ? "granted" : "denied",
+    });
+  }
+}
+
 export function hasAnalyticsConsent(): boolean {
   const consent = getConsent();
   return consent?.analytics === true;
@@ -46,24 +64,41 @@ export function hasMarketingConsent(): boolean {
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [analytics, setAnalytics] = useState(true);
+  
+  // Honour Global Privacy Control (GPC) signal
+  const isGpcActive = typeof navigator !== "undefined" && (
+    (navigator as any).globalPrivacyControl === true ||
+    (navigator as any).globalPrivacyControl === "1"
+  );
+
+  const [analytics, setAnalytics] = useState(!isGpcActive);
   const [marketing, setMarketing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const consent = getConsent();
     if (!consent) {
+      // If GPC is enabled, automatically enforce strict privacy defaults
+      if (isGpcActive) {
+        setAnalytics(false);
+        setMarketing(false);
+      }
       setVisible(true);
+    } else {
+      updateGoogleConsentMode(consent.analytics, consent.marketing);
     }
-  }, []);
+  }, [isGpcActive]);
 
   const handleAcceptAll = () => {
+    const analyticsChoice = !isGpcActive;
+    const marketingChoice = !isGpcActive;
     setConsent({
       necessary: true,
-      analytics: true,
-      marketing: true,
+      analytics: analyticsChoice,
+      marketing: marketingChoice,
       timestamp: new Date().toISOString(),
     });
+    updateGoogleConsentMode(analyticsChoice, marketingChoice);
     setVisible(false);
     setShowSettings(false);
   };
@@ -75,6 +110,7 @@ export default function CookieConsent() {
       marketing,
       timestamp: new Date().toISOString(),
     });
+    updateGoogleConsentMode(analytics, marketing);
     setVisible(false);
     setShowSettings(false);
   };
@@ -86,6 +122,7 @@ export default function CookieConsent() {
       marketing: false,
       timestamp: new Date().toISOString(),
     });
+    updateGoogleConsentMode(false, false);
     setVisible(false);
     setShowSettings(false);
   };
