@@ -24,6 +24,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState('');
   const [authMethod, setAuthMethod] = useState<AuthMethod>('email');
 
@@ -237,6 +238,17 @@ const Register = () => {
                   required
                 />
               </div>
+              <label className="flex items-start gap-2.5 mt-2.5 cursor-pointer text-left">
+                <input
+                  type="checkbox"
+                  checked={smsConsent}
+                  onChange={(e) => setSmsConsent(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                />
+                <span className="text-xs text-gray-400 leading-tight">
+                  {t('auth.register.smsConsent', 'I consent to receive SMS notifications and transaction updates from Sound It. Message & data rates may apply. Reply STOP to opt out.')}
+                </span>
+              </label>
             </div>
           )}
 
