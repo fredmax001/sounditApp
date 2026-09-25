@@ -647,10 +647,15 @@ function App() {
               </AdminLayout>
             } />
 
-            {/* Legacy redirects */}
+            {/* Legacy & alias redirects */}
             <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/finance" element={<Navigate to="/admin/financial" replace />} />
             <Route path="/admin/payments" element={<Navigate to="/admin/financial" replace />} />
           </Route>
+
+          {/* Quick alias redirects */}
+          <Route path="/finance" element={<Navigate to="/admin/financial" replace />} />
+          <Route path="/financial" element={<Navigate to="/admin/financial" replace />} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFound />} />
