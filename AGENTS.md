@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-09-25
+2026-09-28
 
 ---
 
@@ -18,10 +18,37 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-09-25
-- [OK] Backend imports cleanly (`python3 -m py_compile main.py api/admin.py api/notifications.py` works)
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-09-28
+- [OK] Backend imports cleanly (`python3 -m py_compile main.py api/admin.py api/events.py api/table_reservations.py` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
+
+---
+
+### 83. Table Package Deletion & Past Event Auto-Completion (2026-09-28)
+- **Problems**:
+  1. Table packages could not be deleted from the dashboard, resulting in 500 Internal Server Errors.
+  2. Finished/past events remained displayed in the active and featured event feeds.
+- **Root Causes**:
+  - `table_orders` table in PostgreSQL was missing `payment_proof_hash` and `payment_reference` columns, crashing queries that inspected orders associated with a package.
+  - `TablePackage.orders` relationship in `models.py` lacked cascade deletion rules, and `delete_table_package` in `api/table_reservations.py` failed for organizers and admins.
+  - No background / query-time status transition mechanism existed to mark past events as `COMPLETED` and clear `is_featured = False` once `end_date` had elapsed.
+- **Fixes Applied**:
+  - **Database Migration (`scripts/migrate_all_missing_columns.py`)**: Added `payment_proof_hash` (VARCHAR(64)) and `payment_reference` (VARCHAR(100)) to `table_orders`.
+  - **ORM Model (`models.py`)**: Added `cascade="all, delete-orphan"` to `TablePackage.orders`.
+  - **Table Reservation Endpoint (`api/table_reservations.py`)**:
+    - Broadened `check_table_access` to permit admin, super_admin, and organizer roles.
+    - Updated `delete_table_package` to permit admins and event owners to delete packages, clean non-approved orders, and deactivate packages if approved customer orders exist.
+  - **Event Lifecycle & Filtering (`api/events.py`, `api/cities.py`, `api/admin.py`, `api/profiles.py`)**:
+    - Implemented `auto_complete_past_events(db)` to transition past events (`end_date < now`) to `COMPLETED` and clear `is_featured = False`.
+    - Integrated `auto_complete_past_events` into all event listing endpoints (`list_events`, `list_my_events`, `get_featured_events`, `get_upcoming_events`, `get_past_events`).
+    - Filtered out `COMPLETED` events from active searches and city guides.
+  - **Frontend (`app/src/pages/Events.tsx`, `app/src/pages/PublicProfile.tsx`)**: Filtered out past/completed events from active search listings and categorized past events under the Past tab on public profiles.
+- **Verification & Deployment**:
+  - Migrations applied on production: `payment_proof_hash` and `payment_reference` columns added.
+  - Past events (`#5`, `#9`, `#10`, `#11`) automatically transitioned to `COMPLETED` and unfeatured.
+  - Verified `https://sounditent.com/api/v1/events/featured` returns only upcoming event `#12` (BOA Festival).
+  - Deployed release `20260928160540` to production (`72.62.254.251`). Smoke test on port 8001 and final health check on port 8000 passed successfully (`200 OK`).
 
 ---
 
