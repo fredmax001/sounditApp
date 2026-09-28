@@ -39,6 +39,16 @@ export default function Events() {
 
       const now = new Date();
       const eventDate = new Date(event.start_date);
+      const eventEnd = event.end_date ? new Date(event.end_date) : eventDate;
+
+      // Exclude past or non-live events from main active listings
+      if (event.status === 'completed' || event.status === 'cancelled' || event.status === 'rejected') {
+        return false;
+      }
+      if (eventEnd < now && event.status !== 'live') {
+        return false;
+      }
+
       let matchesDate = true;
       if (dateFilter === 'today') {
         matchesDate = eventDate.toDateString() === now.toDateString();
@@ -52,7 +62,7 @@ export default function Events() {
         matchesDate = eventDate >= now && eventDate <= weekEnd;
       } else if (dateFilter === 'this_weekend') {
         const day = eventDate.getDay();
-        matchesDate = day === 0 || day === 6;
+        matchesDate = (day === 0 || day === 6) && eventEnd >= now;
       }
 
       let matchesFree = true;

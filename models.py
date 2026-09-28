@@ -2551,7 +2551,7 @@ class TablePackage(Base):
     # Relationships
     event = relationship("Event", back_populates="table_packages")
     business = relationship("User", foreign_keys=[business_id])
-    orders = relationship("TableOrder", back_populates="table_package")
+    orders = relationship("TableOrder", back_populates="table_package", cascade="all, delete-orphan")
 
 
 class TableOrderStatus(str, enum.Enum):

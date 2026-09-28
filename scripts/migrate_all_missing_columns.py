@@ -332,6 +332,8 @@ with engine.connect() as conn:
         ('ticket_code', 'VARCHAR(100)'),
         ('used_at', 'DATETIME'),
         ('used_by', 'INTEGER'),
+        ('payment_proof_hash', 'VARCHAR(64)'),
+        ('payment_reference', 'VARCHAR(100)'),
     ]:
         if col not in tbo_cols:
             conn.execute(text(f"ALTER TABLE table_orders ADD COLUMN {col} {col_type}"))

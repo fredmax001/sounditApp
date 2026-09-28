@@ -5,7 +5,7 @@
 ---
 
 ## Last Updated
-2026-09-12
+2026-09-25
 
 ---
 
@@ -18,10 +18,23 @@
 ---
 
 ## Build / Import Status
-- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-09-12
+- [OK] Frontend compiles successfully (`npm run build` passes) — last built 2026-09-25
 - [OK] Backend imports cleanly (`python3 -m py_compile main.py api/admin.py api/notifications.py` works)
 - [WARN] Redis unavailable locally (`Connection refused :6379`) — non-blocking for core features
 - [WARN] Frontend chunk size warning (>500 KB after minification) — non-blocking
+
+---
+
+### 82. Finance Route Alias & Redirect Fix (2026-09-25)
+- **Problem**: Navigating to `https://sounditent.com/finance` returned a 404 "Page Not Found" screen.
+- **Root Cause**: In `app/src/App.tsx`, the Financial Control dashboard (`<FinancialControl />`) was only registered at the path `/admin/financial`. Top-level aliases `/finance`, `/financial`, and admin shortcut `/admin/finance` were not registered.
+- **Fixes Applied**:
+  - Added redirect routes in `app/src/App.tsx` for `/finance` and `/financial` pointing to `/admin/financial`.
+  - Added route alias `/admin/finance` pointing to `/admin/financial` under the authenticated admin layout.
+  - Hardened SSH options in `deploy/deploy_safe.sh` (`-F /dev/null -i /dev/null`) and consolidated post-rsync steps into a single remote execution block to avoid SSH connection rate limits.
+- **Verification & Deployment**:
+  - `npm run build` passed cleanly.
+  - Deployed release `20260925112308` to production (`72.62.254.251`). Smoke test on port 8001 and final health check on port 8000 passed successfully (`200 OK`). Verified `https://sounditent.com/finance` responds with HTTP 200.
 
 ---
 

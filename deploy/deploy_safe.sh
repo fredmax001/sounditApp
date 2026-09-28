@@ -51,17 +51,17 @@ trap 'echo ""; echo "[ERR] Deploy failed at line $LINENO. New release $NEW_RELEA
 
 # SSH/SCP helpers that correctly handle password auth via sshpass
 remote() {
-  sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
+  sshpass -e ssh -F /dev/null -i /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
 }
 
 remote_scp() {
   # Usage: remote_scp <local> <remote>
-  sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -P "$SERVER_PORT" "$1" "$2"
+  sshpass -e scp -F /dev/null -i /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -P "$SERVER_PORT" "$1" "$2"
 }
 
 remote_rsync() {
   # Usage: remote_rsync <src> <dest>
-  local ssh_cmd="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p $SERVER_PORT"
+  local ssh_cmd="sshpass -e ssh -F /dev/null -i /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o IdentitiesOnly=yes -p $SERVER_PORT"
   local rsync_cmd=(rsync -avz --partial --timeout=120 -e "$ssh_cmd"
     --exclude='.venv/'
     --exclude='venv/'
@@ -132,6 +132,11 @@ remote_rsync \
 
 # ── Step 5: Preserve .env and uploads in shared/ ────────────
 echo "▶ [5/9] Preserving .env and uploads..."
+# ── Step 5 to 12: Remote Setup, Migration, Smoke Test & Activation ──
+echo "▶ [5/9] Configuring release, running migrations, smoke testing & activating..."
+LOG_FILE="/tmp/soundit_deploy_${TIMESTAMP}.log"
+PID_FILE="/tmp/soundit_deploy_${TIMESTAMP}.pid"
+
 remote "
   set -e
   # Seed shared/.env from current deployment if we do not have one yet
@@ -142,8 +147,6 @@ remote "
     elif [ -f '$REMOTE_DIR/.env' ]; then
       cp '$REMOTE_DIR/.env' '$SHARED_DIR/.env'
       echo '  .env copied from $REMOTE_DIR/.env to shared/.env'
-    else
-      echo '  [WARN] No existing .env found; you must create $SHARED_DIR/.env before starting the app'
     fi
   fi
 
@@ -152,123 +155,83 @@ remote "
     mkdir -p '$SHARED_DIR/uploads'
     if [ -L '$CURRENT_LINK' ] && [ -d '$CURRENT_LINK/uploads' ]; then
       cp -rL '$CURRENT_LINK/uploads/'* '$SHARED_DIR/uploads/' 2>/dev/null || true
-      echo '  uploads copied from current release to shared/uploads'
     elif [ -d '$REMOTE_DIR/uploads' ]; then
       cp -rL '$REMOTE_DIR/uploads/'* '$SHARED_DIR/uploads/' 2>/dev/null || true
-      echo '  uploads copied from $REMOTE_DIR/uploads to shared/uploads'
     fi
   fi
 
   # Symlink shared .env and uploads into the new release
   ln -sfn '$SHARED_DIR/.env' '$NEW_RELEASE/.env'
   ln -sfn '$SHARED_DIR/uploads' '$NEW_RELEASE/uploads'
-  echo '  .env and uploads symlinked into new release'
-"
+  echo '  .env and uploads symlinked'
 
-# ── Step 6: Fix permissions for the web server user ─────────
-echo "▶ [6/9] Fixing permissions..."
-remote "
-  set -e
+  # Permissions
   WEB_USER=\$(id -u nginx >/dev/null 2>&1 && echo 'nginx' || echo 'root')
   mkdir -p '$NEW_RELEASE/logs' '$NEW_RELEASE/static/uploads'
-
-  # Release files: owner (nginx/root) can read/write, group/others read-only
   chown -R \${WEB_USER}:\${WEB_USER} '$NEW_RELEASE'
   find '$NEW_RELEASE' -type d -exec chmod 755 {} \;
   find '$NEW_RELEASE' -type f -exec chmod 644 {} \;
-
-  # .env must not be world-readable
   if [ -f '$SHARED_DIR/.env' ]; then
     chown \${WEB_USER}:\${WEB_USER} '$SHARED_DIR/.env'
     chmod 600 '$SHARED_DIR/.env'
   fi
-
-  # Uploads and logs must be writable by the service user
   chown -R \${WEB_USER}:\${WEB_USER} '$SHARED_DIR/uploads' '$PERSISTENT_UPLOAD_DIR' '$NEW_RELEASE/logs' '$NEW_RELEASE/static/uploads'
   chmod -R 755 '$SHARED_DIR/uploads' '$PERSISTENT_UPLOAD_DIR' '$NEW_RELEASE/logs' '$NEW_RELEASE/static/uploads'
-"
+  echo '  permissions set'
 
-# ── Step 7: Install / refresh Python dependencies ───────────
-echo "▶ [7/9] Installing Python dependencies in shared venv..."
-remote "
-  set -e
+  # Python dependencies in shared venv
   if [ ! -f '$VENV_DIR/bin/pip' ]; then
     python3 -m venv '$VENV_DIR'
   fi
   '$VENV_DIR/bin/pip' install --upgrade pip -q
   '$VENV_DIR/bin/pip' install -r '$NEW_RELEASE/requirements.txt' -q
-"
+  echo '  python dependencies ready'
 
-# ── Step 7: Run migrations from the new release ─────────────
-echo "▶ [8/9] Running database migrations..."
-remote "
-  set -e
+  # Database migrations
   cd '$NEW_RELEASE'
-  # Add migration scripts here as the project evolves.
-  # At minimum we run the following if they exist.
   if [ -f 'scripts/migrate_all_missing_columns.py' ]; then
-    echo '  Running migrate_all_missing_columns.py...'
     '$VENV_DIR/bin/python' scripts/migrate_all_missing_columns.py
   fi
   if [ -f 'scripts/migrate_indexes.py' ]; then
-    echo '  Running migrate_indexes.py...'
     '$VENV_DIR/bin/python' scripts/migrate_indexes.py
   fi
-"
+  echo '  migrations complete'
 
-# ── Step 8: Smoke-test the new release on a temp port ───────
-echo "▶ [9/9] Smoke-testing new release on port $TEMP_PORT..."
-LOG_FILE="/tmp/soundit_deploy_${TIMESTAMP}.log"
-PID_FILE="/tmp/soundit_deploy_${TIMESTAMP}.pid"
-
-remote "
-  set -e
-  cd '$NEW_RELEASE'
+  # Smoke test on temp port
+  echo '  smoke-testing new release on port $TEMP_PORT...'
   nohup '$VENV_DIR/bin/uvicorn' main:app --host 127.0.0.1 --port $TEMP_PORT --workers 1 > '$LOG_FILE' 2>&1 &
   echo \$! > '$PID_FILE'
-"
 
-HEALTH_PASSED=false
-for i in $(seq 1 15); do
-  sleep 2
-  if remote "curl -fsS --max-time 5 http://127.0.0.1:$TEMP_PORT/health" >/dev/null 2>&1; then
-    HEALTH_PASSED=true
-    break
+  HEALTH_PASSED=false
+  for i in \$(seq 1 15); do
+    sleep 2
+    if curl -fsS --max-time 5 http://127.0.0.1:$TEMP_PORT/health >/dev/null 2>&1; then
+      HEALTH_PASSED=true
+      break
+    fi
+  done
+
+  if [ \"\$HEALTH_PASSED\" != \"true\" ]; then
+    echo '[ERR] Health check on temporary port $TEMP_PORT failed.'
+    tail -n 30 '$LOG_FILE'
+    kill \$(cat '$PID_FILE' 2>/dev/null) 2>/dev/null || true
+    rm -f '$PID_FILE' '$LOG_FILE'
+    exit 1
   fi
-done
 
-if [ "$HEALTH_PASSED" != "true" ]; then
-  echo ""
-  echo "[ERR] Health check on temporary port $TEMP_PORT failed."
-  echo "      Log tail:"
-  remote "tail -n 30 '$LOG_FILE'" || true
-  remote "kill \$(cat '$PID_FILE' 2>/dev/null) 2>/dev/null || true"
-  exit 1
-fi
+  kill \$(cat '$PID_FILE' 2>/dev/null) 2>/dev/null || true
+  rm -f '$PID_FILE' '$LOG_FILE'
+  echo '  temporary health check passed'
 
-echo "  [OK] Temporary health check passed"
-
-# Stop the temporary instance (run as root, so any log files it created are root-owned)
-remote "kill \$(cat '$PID_FILE' 2>/dev/null) 2>/dev/null || true; rm -f '$PID_FILE' '$LOG_FILE'"
-
-# Ensure log files are owned by the service user before the symlink switch
-remote "
-  set -e
-  WEB_USER=\$(id -u nginx >/dev/null 2>&1 && echo 'nginx' || echo 'root')
-  mkdir -p '$NEW_RELEASE/logs'
   touch '$NEW_RELEASE/logs/app.log' '$NEW_RELEASE/logs/audit.log'
   chown -R \${WEB_USER}:\${WEB_USER} '$NEW_RELEASE/logs'
   chmod -R 755 '$NEW_RELEASE/logs'
-"
 
-# ── Step 9: Atomically switch current symlink ───────────────
-echo "▶ Activating new release..."
-remote "ln -sfn '$NEW_RELEASE' '$CURRENT_LINK'"
+  # Activate symlink
+  ln -sfn '$NEW_RELEASE' '$CURRENT_LINK'
+  echo '  activated new release symlink'
 
-# ── Step 10: Update systemd service & Nginx config and restart ───
-echo "▶ Updating Nginx config and restarting soundit service..."
-remote "
-  set -e
+  # Update systemd & nginx
   cp '$NEW_RELEASE/deploy/sounditent.service' /etc/systemd/system/soundit.service
   cp '$NEW_RELEASE/deploy/nginx_sounditent.conf' /etc/nginx/conf.d/soundit.conf
   nginx -t
@@ -276,33 +239,27 @@ remote "
   systemctl daemon-reload
   systemctl restart soundit
   sleep 3
-"
 
-# ── Step 11: Final health check (poll — app startup can take 15-30s) ──
-echo "▶ Running final health check..."
-HEALTH_OK=""
-for i in $(seq 1 12); do
-  if remote "curl -4 -fsS --max-time 10 http://127.0.0.1:8000/health" >/dev/null 2>&1; then
-    HEALTH_OK=1
-    break
+  # Final health check
+  HEALTH_OK=''
+  for i in \$(seq 1 12); do
+    if curl -4 -fsS --max-time 10 http://127.0.0.1:8000/health >/dev/null 2>&1; then
+      HEALTH_OK=1
+      break
+    fi
+    echo '  ... waiting for app to come up'
+    sleep 5
+  done
+  if [ -z \"\$HEALTH_OK\" ]; then
+    echo '[ERR] Final health check failed. Investigate with: journalctl -u soundit -n 50'
+    exit 1
   fi
-  echo "  ... waiting for app to come up (attempt $i/12)"
-  sleep 5
-done
-if [ -z "$HEALTH_OK" ]; then
-  echo ""
-  echo "[ERR] Final health check failed. Investigate with: journalctl -u soundit -n 50"
-  exit 1
-fi
-echo "  [OK] soundit is healthy on port 8000"
+  echo '  soundit is healthy on port 8000'
 
-# ── Step 12: Prune old releases ─────────────────────────────
-echo "▶ Pruning old releases (keeping last $KEEP_RELEASES)..."
-remote "
+  # Prune old releases
   cd '$RELEASES_DIR'
   ls -1dt */ 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -rf
-  echo '  Remaining releases:'
-  ls -1dt */ 2>/dev/null || echo '  (none)'
+  echo '  pruned old releases'
 "
 
 # ── Done ────────────────────────────────────────────────────

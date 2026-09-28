@@ -71,6 +71,8 @@ interface PublicEvent {
   id: number;
   title: string;
   start_date: string;
+  end_date?: string;
+  status?: string;
   flyer_image?: string;
   address?: string;
 }
@@ -165,17 +167,24 @@ export default function PublicProfile() {
 
   // Split organizer events into Current / Upcoming / Past
   const now = new Date();
-  const upcomingEvents = events.filter((e) => new Date(e.start_date) > now);
-  const pastEvents = events.filter((e) => {
+  const upcomingEvents = events.filter((e) => {
+    if (e.status === 'completed' || e.status === 'cancelled') return false;
     const start = new Date(e.start_date);
-    // Events that started more than 6 hours ago are considered past
+    return start > now;
+  });
+  const pastEvents = events.filter((e) => {
+    if (e.status === 'completed') return true;
+    const end = e.end_date ? new Date(e.end_date) : null;
+    if (end) return end < now;
+    const start = new Date(e.start_date);
     const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     return start < sixHoursAgo;
   });
   const currentEvents = events.filter((e) => {
+    if (e.status === 'completed' || e.status === 'cancelled') return false;
     const start = new Date(e.start_date);
-    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
-    return start <= now && start >= sixHoursAgo;
+    const end = e.end_date ? new Date(e.end_date) : new Date(start.getTime() + 6 * 60 * 60 * 1000);
+    return start <= now && end >= now;
   });
 
   const displayedEvents =
