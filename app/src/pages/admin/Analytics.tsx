@@ -15,7 +15,7 @@ import {
   ChevronDown, FileSpreadsheet, FileText, Sparkles, Target,
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "/api/v1";
+const API_URL = import.meta.env.VITE_API_URL || "https://sounditent.com/api/v1";
 
 const COLORS = [
   "#d3da0c", "#22c55e", "#3b82f6", "#f59e0b", "#ef4444",
