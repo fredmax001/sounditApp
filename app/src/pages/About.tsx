@@ -1,12 +1,23 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Users, Globe, Award, Zap, Music, Ticket, BarChart3, Headphones, PartyPopper, Heart } from 'lucide-react';
+import { Sparkles, Users, Globe, Award, Zap, Music, Ticket, BarChart3, Headphones, PartyPopper, Heart, Code2 } from 'lucide-react';
 
 const About = () => {
   const values = [
     {
+      icon: Music,
+      title: 'Culture',
+      description: 'We celebrate authentic culture and create experiences rooted in real stories, music, and heritage.',
+    },
+    {
+      icon: Users,
+      title: 'Community',
+      description: 'We bring together artists, businesses, organizers, and audiences to grow stronger together.',
+    },
+    {
       icon: Sparkles,
-      title: 'Creativity & Innovation',
-      description: 'We constantly explore new ways to entertain, connect, and empower communities.',
+      title: 'Innovation',
+      description: 'We constantly explore new ways to entertain, connect, and empower communities through technology.',
     },
     {
       icon: Award,
@@ -14,24 +25,9 @@ const About = () => {
       description: 'Everything we create is rooted in real culture, real experiences, and genuine connections.',
     },
     {
-      icon: Users,
-      title: 'Community & Collaboration',
-      description: 'We bring together artists, businesses, organizers, and audiences to grow stronger together.',
-    },
-    {
       icon: Zap,
       title: 'Excellence',
       description: 'Quality, professionalism, and attention to detail are at the heart of everything we do.',
-    },
-    {
-      icon: Globe,
-      title: 'Global Perspective',
-      description: 'We celebrate local culture while building connections across the world.',
-    },
-    {
-      icon: Heart,
-      title: 'Empowerment',
-      description: 'We create opportunities for creators, entrepreneurs, and communities to thrive.',
     },
   ];
 
@@ -50,9 +46,15 @@ const About = () => {
     },
     {
       icon: Globe,
-      name: 'Sound It Festival',
-      description: 'Sound It Festival is a premium music, arts, and culture experience designed to bring together exceptional talent, immersive production, and diverse audiences. Launching in 2026, the festival aims to become a flagship annual event that showcases African and international creativity through music, fashion, art, food, and cultural exchange.',
-      status: 'Launching Soon',
+      name: 'BOA Festival',
+      description: 'BOA Festival is a premium festival concept currently in development and planned for launch in 2026, designed to bring together African, Chinese, and international artists through large-scale cultural programming.',
+      status: 'In Development',
+    },
+    {
+      icon: Code2,
+      name: 'Sound It Tech',
+      description: 'Sound It Tech is the technology and creative services division of Sound It, focused on software development, mobile applications, website development, graphic design, branding, IT solutions, and digital innovation.',
+      status: 'Active',
     },
     {
       icon: Zap,
@@ -74,9 +76,9 @@ const About = () => {
     },
     {
       icon: Users,
-      name: 'Sound It Salone',
-      description: 'Sound It Salone is a dedicated entertainment and cultural hub focused on Sierra Leone. The initiative aims to support local artists, events, venues, businesses, and creatives by providing digital tools, promotion opportunities, industry connections, and access to a broader global audience while celebrating Sierra Leonean talent and culture.',
-      status: 'In Development',
+      name: 'Deck Salone',
+      description: 'Deck Salone is a planned, pre-launch Sierra Leone-focused DJ and entertainment ecosystem supporting DJs, promoters, event organizers, venues, brands, and music fans.',
+      status: 'Pre-launch',
     },
   ];
 
@@ -119,9 +121,83 @@ const About = () => {
               Built on authenticity, quality, and community.
             </p>
             <p className="text-gray-500 text-base max-w-3xl mx-auto mt-4">
-              Established April 2020 in Lin'an, Hangzhou. Now based in Shanghai, China. Music • Events • Culture • Technology • Creative Ecosystems
+              Founded August 20, 2020 in Hangzhou, China by Frederick Julian Max-Macauley. Now based in Shanghai, China. Music • Events • Culture • Technology • Creative Ecosystems
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Our Story */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.span
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4"
+            >
+              Our Story
+            </motion.span>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              viewport={{ once: true }}
+              className="text-4xl font-display text-white"
+            >
+              FROM MUSIC TO A <span className="text-[#d3da0c]">MOVEMENT</span>
+            </motion.h2>
+          </div>
+
+          <div className="max-w-4xl mx-auto space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="glass rounded-2xl p-8"
+            >
+              <span className="inline-block text-xs px-3 py-1 rounded-full bg-[#d3da0c]/10 text-[#d3da0c] font-medium mb-3">2020</span>
+              <h3 className="text-xl font-semibold text-white mb-2">The Beginning</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Sound It Entertainment Co. Ltd. was founded by Frederick Julian Max-Macauley on August 20, 2020.
+                The company began as Sound It Music Entertainment during the COVID-19 pandemic, focusing on DJ mixes,
+                artist collaborations, music releases, and entertainment content. An early milestone was the release of
+                "Don't Leave Me (Big Matter)", featuring Drizilik, Mello Seven, and Jooel, produced by Lanzo J.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="glass rounded-2xl p-8"
+            >
+              <span className="inline-block text-xs px-3 py-1 rounded-full bg-[#d3da0c]/10 text-[#d3da0c] font-medium mb-3">April 2021</span>
+              <h3 className="text-xl font-semibold text-white mb-2">First Live Experience</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                In April 2021, Sound It expanded into live experiences with the Sierra Leone Independence Day
+                Celebration at Prince Club in Hangzhou, China, marking the start of Sound It Events.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="glass rounded-2xl p-8"
+            >
+              <span className="inline-block text-xs px-3 py-1 rounded-full bg-[#d3da0c]/10 text-[#d3da0c] font-medium mb-3">Today</span>
+              <h3 className="text-xl font-semibold text-white mb-2">An Entertainment & Technology Company</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Since then, Sound It Events has hosted, organized, and collaborated on more than 50 events across
+                cities including Shanghai, Hangzhou, Nanjing, and Ningbo. The company has grown into a broader
+                entertainment and technology company spanning live events, cultural programming, digital platforms,
+                creative services, and community-building initiatives, connecting African culture, international
+                entertainment, and the Chinese market.
+              </p>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -141,8 +217,8 @@ const About = () => {
                 OUR <span className="text-[#d3da0c]">MISSION</span>
               </h2>
               <p className="text-gray-400 text-lg leading-relaxed">
-                To deliver immersive music and cultural experiences that connect artists,
-                audiences, and brands globally, blending creativity, authenticity, and innovation.
+                To empower creators, connect communities, celebrate culture, and create opportunities
+                through entertainment, technology, and innovation.
               </p>
             </motion.div>
             <motion.div
@@ -157,9 +233,8 @@ const About = () => {
                 OUR <span className="text-[#d3da0c]">VISION</span>
               </h2>
               <p className="text-gray-400 text-lg leading-relaxed">
-                To build Africa's leading entertainment ecosystem by connecting people,
-                opportunities, events, music, culture, and technology on one unified platform
-                that empowers creators, businesses, organizers, and communities worldwide.
+                To become a globally recognized entertainment and technology ecosystem that transforms
+                how people discover, create, experience, and engage with music, culture, and creative industries.
               </p>
             </motion.div>
           </div>
@@ -222,6 +297,17 @@ const About = () => {
               );
             })}
           </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-gray-500 text-xs text-center max-w-3xl mx-auto mt-8 leading-relaxed"
+          >
+            Related initiatives such as Sound It Media and Sound It Digital, along with partner projects
+            like Tritna Ride and West Cape Consultancy, are included only where their relationship to Sound It
+            is accurate. Partner projects are not wholly owned Sound It brands unless explicitly verified.
+          </motion.p>
         </div>
       </section>
 
@@ -313,7 +399,7 @@ const About = () => {
               ))}
             </div>
             <p className="text-gray-500 text-sm text-center mt-6 italic">
-              More than a logo, Sound It is a symbol of culture, creativity, opportunity, and connection—rooted in Africa and built for the world.
+              More than a logo, Sound It is a symbol of culture, creativity, opportunity, and connection, rooted in Africa and built for the world.
             </p>
           </motion.div>
         </div>
@@ -470,7 +556,7 @@ const About = () => {
                   </p>
                   <div className="glass rounded-lg p-3 mb-4">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Event Hosted</p>
-                    <p className="text-white text-sm font-medium">1st Anniversary — RNB & Slow Sessions</p>
+                    <p className="text-white text-sm font-medium">1st Anniversary, RNB & Slow Sessions</p>
                     <p className="text-gray-500 text-xs">May 31, 2025 | Highline Rooftop</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -714,16 +800,16 @@ const About = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-display text-white mb-2">FRED MAX</h3>
+              <h3 className="text-2xl font-display text-white mb-2">FREDERICK JULIAN MAX-MACAULEY</h3>
               <p className="text-[#d3da0c] text-sm font-medium uppercase tracking-wider mb-4">
-                Founder — Visionary | Creative Director | Lead DJ
+                Founder & Chief Executive Officer, Sound It Entertainment | Also Known Professionally as Fred Max or DJ Fred Max
               </p>
               <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                 <p>
-                  Fred Max is the founder of Sound It Entertainment Corporation and the driving force behind
-                  Sound It Events and RNB & Slow Sessions. With a strong background in music curation,
-                  DJ performance, and event production, he has built Sound It into a recognized cross-cultural
-                  nightlife platform in China.
+                  Frederick Julian Max-Macauley is the founder and Chief Executive Officer of Sound It Entertainment Co. Ltd.
+                  and the driving force behind Sound It Events and RNB & Slow Sessions. A computer scientist, software developer,
+                  entrepreneur, creative technologist, graphic designer, music producer, cultural curator, and international DJ,
+                  he has built Sound It into a recognized cross-cultural entertainment platform in China.
                 </p>
                 <p>
                   He oversees brand strategy, partnerships, international bookings, creative direction,
@@ -759,9 +845,9 @@ const About = () => {
                 viewport={{ once: true }}
                 className="glass rounded-xl p-8 border border-[#d3da0c]/10"
               >
-                <h3 className="text-xl font-display text-white mb-2">JAYEL BELFORD</h3>
+                <h3 className="text-xl font-display text-white mb-2">JAYEL O. BELFORD</h3>
                 <p className="text-[#d3da0c] text-xs font-medium uppercase tracking-wider mb-4">
-                  Co-Founder & Finance Manager — Operations | Financial Strategy | Structural Growth
+                  Finance Manager and Co-Founder, Sound It Events
                 </p>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">
                   Jayel Belford plays a key leadership role in the company's stability and scalability.
@@ -777,6 +863,24 @@ const About = () => {
                 </p>
               </motion.div>
 
+              {/* Samuel S. Scott */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 }}
+                viewport={{ once: true }}
+                className="glass rounded-xl p-8 border border-[#d3da0c]/10"
+              >
+                <h3 className="text-xl font-display text-white mb-2">SAMUEL S. SCOTT</h3>
+                <p className="text-[#d3da0c] text-xs font-medium uppercase tracking-wider mb-4">
+                  Co-Founder, Sound It Events
+                </p>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Samuel S. Scott is a Co-Founder of Sound It Events, contributing to the growth and
+                  development of the company's live experiences and cultural programming.
+                </p>
+              </motion.div>
+
               {/* Thembi */}
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
@@ -785,9 +889,9 @@ const About = () => {
                 viewport={{ once: true }}
                 className="glass rounded-xl p-8 border border-[#d3da0c]/10"
               >
-                <h3 className="text-xl font-display text-white mb-2">THEMBI</h3>
+                <h3 className="text-xl font-display text-white mb-2">THEMBALETU NCENE MABUZA</h3>
                 <p className="text-[#d3da0c] text-xs font-medium uppercase tracking-wider mb-4">
-                  Manager — Event Coordination | Logistics | Team Management
+                  Event Manager & Coordinator; Co-Founder, RNB & Slow Sessions
                 </p>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   Thembi manages the operational flow of Sound It Events and RNB & Slow Sessions.
@@ -809,14 +913,14 @@ const About = () => {
               >
                 <h3 className="text-xl font-display text-white mb-2">LYNIQUE</h3>
                 <p className="text-[#d3da0c] text-xs font-medium uppercase tracking-wider mb-4">
-                  Official Host — Brand Voice | Audience Engagement | Stage Presence
+                  Official Host, Brand Voice | Audience Engagement | Stage Presence
                 </p>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   Lynique serves as the official host and energy curator of Sound It events. She brings charisma,
                   professionalism, and audience connection to every stage.
                 </p>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  Her role extends beyond hosting — she strengthens brand personality, keeps audiences engaged, and ensures each event maintains a dynamic and memorable atmosphere.
+                  Her role extends beyond hosting, she strengthens brand personality, keeps audiences engaged, and ensures each event maintains a dynamic and memorable atmosphere.
                 </p>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   She represents the voice and energy of the Sound It community.
@@ -850,13 +954,50 @@ const About = () => {
               ))}
             </div>
             <p className="text-gray-400 font-medium">
-              We are not just event organizers — we are an organized entertainment company building sustainable cultural experiences.
+              We are not just event organizers, we are an organized entertainment company building sustainable cultural experiences.
             </p>
           </motion.div>
         </div>
       </section>
 
-      
+      {/* Contact */}
+      <section className="py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass rounded-2xl p-8 md:p-12 text-center border border-[#d3da0c]/10"
+          >
+            <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4">
+              Get In Touch
+            </span>
+            <h2 className="text-3xl md:text-4xl font-display text-white mb-4">
+              WORK WITH <span className="text-[#d3da0c]">SOUND IT</span>
+            </h2>
+            <p className="text-gray-400 text-base leading-relaxed max-w-2xl mx-auto mb-8">
+              For event bookings, partnerships, brand collaborations, and creative services,
+              reach out through our contact page. We work with artists, brands, venues,
+              and businesses across Africa, China, and international markets.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <a
+                href="/contact"
+                className="px-8 py-3 bg-[#d3da0c] text-black font-semibold rounded-full hover:bg-[#bbc10b] transition-colors"
+              >
+                Contact Us
+              </a>
+              <a
+                href="/events"
+                className="px-8 py-3 border border-white/20 text-white font-semibold rounded-full hover:border-[#d3da0c]/60 hover:text-[#d3da0c] transition-colors"
+              >
+                Explore Events
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
     </div>
   );
 };

@@ -8,11 +8,11 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     defaultConfig {
-        applicationId "com.sounditent.app"
+        applicationId "app.sounditent.com"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -22,19 +22,27 @@ android {
     }
     signingConfigs {
         release {
-            // Load signing config from local.properties or environment variables
-            // Create a keystore with:
-            // keytool -genkey -v -keystore soundit-release.keystore -alias soundit -keyalg RSA -keysize 2048 -validity 10000
-            def keystoreFile = System.getenv("RELEASE_STORE_FILE")
-            def keystorePassword = System.getenv("RELEASE_STORE_PASSWORD")
-            def keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            def keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            def ksFile = System.getenv("RELEASE_STORE_FILE")
+            def ksPassword = System.getenv("RELEASE_STORE_PASSWORD")
+            def ksAlias = System.getenv("RELEASE_KEY_ALIAS")
+            def ksKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
 
-            if (keystoreFile && keystorePassword && keyAlias && keyPassword) {
-                storeFile file(keystoreFile)
-                storePassword keystorePassword
-                keyAlias keyAlias
-                keyPassword keyPassword
+            // Default to local release-v2 keystore if environment variables not explicitly passed
+            if (!ksFile) {
+                def v2Keystore = file("../soundit-release-v2.keystore")
+                if (v2Keystore.exists()) {
+                    ksFile = v2Keystore.absolutePath
+                    ksPassword = ksPassword ?: "SoundIt2024!"
+                    ksAlias = ksAlias ?: "soundit"
+                    ksKeyPassword = ksKeyPassword ?: "SoundIt2024!"
+                }
+            }
+
+            if (ksFile && ksPassword && ksAlias && ksKeyPassword) {
+                storeFile file(ksFile)
+                storePassword ksPassword
+                keyAlias ksAlias
+                keyPassword ksKeyPassword
             }
         }
     }
@@ -43,8 +51,7 @@ android {
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // Use release signing if keystore is configured, otherwise fall back to debug
-            signingConfig signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug
+            signingConfig (signingConfigs.release.storeFile ? signingConfigs.release : signingConfigs.debug)
         }
     }
 }

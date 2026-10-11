@@ -220,7 +220,8 @@ from security.rate_limiter import setup_rate_limiting
 setup_rate_limiting(app)
 
 # CORS - Allow production domains + Capacitor mobile apps (iOS & Android)
-# Localhost origins are only allowed in development (DEBUG=True).
+# Capacitor on Android serves from https://localhost (with androidScheme='https') or http://localhost
+# Capacitor on iOS serves from capacitor://localhost
 ALLOWED_ORIGINS = [
     "https://sounditent.com",
     "https://www.sounditent.com",
@@ -228,12 +229,12 @@ ALLOWED_ORIGINS = [
     "https://sounditent.cn",
     "https://www.sounditent.cn",
     "capacitor://localhost",
+    "https://localhost",
+    "http://localhost",
 ]
 
 if settings.DEBUG:
     ALLOWED_ORIGINS.extend([
-        "http://localhost",
-        "https://localhost",
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1",
@@ -242,8 +243,8 @@ if settings.DEBUG:
         "file://",
     ])
 
-# Capacitor scheme stays always-on (mobile app); localhost/file origins only in DEBUG.
-ORIGIN_REGEX = r"capacitor://.*"
+# Capacitor scheme and localhost stay always-on for mobile apps (iOS & Android)
+ORIGIN_REGEX = r"^(capacitor://.*|https?://localhost(:[0-9]+)?)"
 if settings.DEBUG:
     ORIGIN_REGEX = r"https?://(localhost|127\.0\.0\.1)(:[0-9]+)?|capacitor://.*|file://.*"
 
