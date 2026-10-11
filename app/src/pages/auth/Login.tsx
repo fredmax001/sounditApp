@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Phone, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
-import { GoogleLogin } from '@react-oauth/google';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 import { API_BASE_URL } from '@/config/api';
 
 type AuthMethod = 'email' | 'phone';
@@ -172,12 +172,12 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+  const handleGoogleSuccess = async (token: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: credentialResponse.credential }),
+        body: JSON.stringify({ token }),
       });
 
       const data = await response.json();
@@ -212,8 +212,14 @@ const Login = () => {
     }
   };
 
-  const handleGoogleError = () => {
-    toast.error(t('auth.login.googleLoginFailed'));
+  const handleGoogleError = (error?: unknown) => {
+    console.error('Google login failed:', error);
+    const errorMsg = error instanceof Error ? error.message : typeof error === 'string' ? error : (error as any)?.message || '';
+    if (errorMsg) {
+      toast.error(`${t('auth.login.googleLoginFailed')}: ${errorMsg}`);
+    } else {
+      toast.error(t('auth.login.googleLoginFailed'));
+    }
   };
 
   return (
@@ -338,13 +344,11 @@ const Login = () => {
 
       {/* Google Login */}
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          useOneTap
-          theme="filled_black"
-          shape="pill"
+        <GoogleAuthButton
           text="signin_with"
+          buttonLabel={t('auth.login.googleSignIn')}
+          onToken={handleGoogleSuccess}
+          onError={handleGoogleError}
         />
       </div>
 

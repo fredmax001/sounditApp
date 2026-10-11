@@ -5,7 +5,7 @@ import { Eye, EyeOff, Phone, Lock, User as UserIcon, Loader2, Check, MapPin, Mai
 import { useAuthStore } from '@/store/authStore';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
-import { GoogleLogin } from '@react-oauth/google';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 import { API_BASE_URL } from '@/config/api';
 
 type Role = 'user' | 'business' | 'artist_dj' | 'vendor';
@@ -90,6 +90,42 @@ const Register = () => {
       navigate('/');
     } catch (error: unknown) {
       toast.error((error as Error).message || t('auth.register.registrationFailed'));
+    }
+  };
+
+  const handleGoogleSuccess = async (token: string) => {
+    try {
+      const normalizedRole = selectedRole === 'artist_dj' ? 'artist' : (selectedRole || 'user');
+      const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, role: normalizedRole }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.detail || t('auth.register.googleSignUpFailed'));
+        return;
+      }
+
+      localStorage.setItem('auth-token', data.access_token);
+      useAuthStore.setState({
+        session: {
+          access_token: data.access_token,
+          token_type: 'bearer',
+          expires_in: 3600 * 24,
+          refresh_token: '',
+          user: data.user,
+        },
+        user: data.user,
+        profile: data.user,
+        isAuthenticated: true,
+      });
+      toast.success(t('auth.register.accountCreated'));
+      navigate(data.redirect_url || '/');
+    } catch (error) {
+      toast.error(t('auth.register.googleSignUpFailed'));
+      console.error(error);
     }
   };
 
@@ -364,53 +400,15 @@ const Register = () => {
         </div>
 
         <div className="flex justify-center mb-6">
-          <GoogleLogin
-            onSuccess={async (credentialResponse) => {
-              try {
-                // Normalize role the same way as email registration
-                // Default to 'user' if no role selected
-                const normalizedRole = selectedRole === 'artist_dj' ? 'artist' : (selectedRole || 'user');
-                const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    token: credentialResponse.credential,
-                    role: normalizedRole.toUpperCase()
-                  }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                  localStorage.setItem('auth-token', data.access_token);
-                  // Update Zustand store immediately so auth state is consistent
-                  useAuthStore.setState({
-                    session: {
-                      access_token: data.access_token,
-                      token_type: 'bearer',
-                      expires_in: 3600 * 24,
-                      refresh_token: '',
-                      user: data.user,
-                    },
-                    user: data.user,
-                    profile: data.user,
-                    isAuthenticated: true,
-                  });
-                  toast.success(t('auth.register.accountCreated'));
-                  navigate(data.redirect_url || '/');
-                } else {
-                  toast.error(data.detail || t('auth.register.googleSignUpFailed'));
-                }
-              } catch (error) {
-                toast.error('Google sign up error');
-                console.error(error);
-              }
-            }}
-            onError={() => toast.error(t('auth.register.googleSignUpFailed'))}
-            useOneTap
-            theme="filled_black"
-            shape="pill"
+          <GoogleAuthButton
             text="signup_with"
+            buttonLabel={t('auth.register.googleSignUp')}
+            onToken={handleGoogleSuccess}
+            onError={(error?: unknown) => {
+              console.error('Google sign-up error:', error);
+              const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+              toast.error(msg ? `${t('auth.register.googleSignUpFailed')}: ${msg}` : t('auth.register.googleSignUpFailed'));
+            }}
           />
         </div>
       </>
