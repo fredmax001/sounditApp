@@ -3,7 +3,9 @@ import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com';
 let nativeGoogleInitialization: Promise<void> | undefined;
 
 const initializeNativeGoogle = () => {
@@ -66,7 +68,6 @@ const GoogleAuthButton = ({ text, buttonLabel, onToken, onError }: GoogleAuthBut
       const { result } = await SocialLogin.login({
         provider: 'google',
         options: {
-          scopes: ['email', 'profile'],
           filterByAuthorizedAccounts: false,
         },
       });
