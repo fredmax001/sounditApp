@@ -1,5 +1,5 @@
 """
-Vendor Analytics Service — Compute sales, orders, and customer metrics for vendors.
+Vendor Analytics Service, Compute sales, orders, and customer metrics for vendors.
 """
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional

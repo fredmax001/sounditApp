@@ -1,5 +1,5 @@
 /**
- * MobileFilterPills — Date + category quick-filter pills for mobile
+ * MobileFilterPills - Date + category quick-filter pills for mobile
  * Matches the Eventix "Today / Tomorrow / This week" style
  */
 import { motion } from 'framer-motion';

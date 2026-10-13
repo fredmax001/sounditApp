@@ -104,9 +104,9 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
     }
   };
 
-  const publicWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA** — your Sound It Assistant.\n\nI can help you discover events, find DJs, buy tickets, and answer platform questions. Try the quick actions below or ask me anything.`;
+  const publicWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA**, your Sound It Assistant.\n\nI can help you discover events, find DJs, buy tickets, and answer platform questions. Try the quick actions below or ask me anything.`;
 
-  const dashboardWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA** — your dashboard assistant.\n\nI can speed up your workflow: upload a flyer to create an event draft, or upload a menu to generate product drafts. Everything stays as a draft until you review and publish.`;
+  const dashboardWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA**, your dashboard assistant.\n\nI can speed up your workflow: upload a flyer to create an event draft, or upload a menu to generate product drafts. Everything stays as a draft until you review and publish.`;
 
   const welcomeMessage = isDashboard ? dashboardWelcome : publicWelcome;
 

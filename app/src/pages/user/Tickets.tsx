@@ -73,6 +73,20 @@ const Tickets = () => {
     fetchProductOrders();
   }, [fetchUserTickets]);
 
+  // Refresh when the buyer returns to this tab (e.g. organizer approved while away)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUserTickets();
+        fetchTicketOrders();
+        fetchProductOrders();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fetchTicketOrders = async () => {
     const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
     if (!token) return;
@@ -270,7 +284,7 @@ const Tickets = () => {
       case 'expired':
         return { text: t('user.tickets.statusExpired'), class: 'bg-red-500/20 text-red-500' };
       case 'pending':
-        return { text: 'Pending', class: 'bg-yellow-500/20 text-yellow-500' };
+        return { text: t('user.tickets.statusPendingApproval') || 'Pending Approval', class: 'bg-amber-500/20 text-amber-400' };
       case 'rejected':
         return { text: 'Rejected', class: 'bg-red-500/20 text-red-500' };
       case 'cancelled':
@@ -284,18 +298,18 @@ const Tickets = () => {
   const isProductOrder = (item: any): item is ProductOrder => 'order_code' in item;
 
   return (
-    <div className="min-h-screen pt-20 pb-24">
-      <section className="relative py-16 bg-[#111111]">
+    <div className="min-h-screen pb-24">
+      <section className="relative py-8 bg-[#111111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4">
+            <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-2">
               {t('user.tickets.myCollection')}
             </span>
-            <h1 className="text-4xl md:text-6xl font-display text-white mb-6">
+            <h1 className="text-3xl md:text-5xl font-display text-white">
               {t('user.tickets.my')}{' '}
               <span className="text-[#d3da0c]">{t('user.tickets.tickets')}</span>
             </h1>
@@ -303,7 +317,7 @@ const Tickets = () => {
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {!isAuthenticated && (
             <motion.div
@@ -412,8 +426,8 @@ const Tickets = () => {
                       </div>
 
                       <div className="flex-1 p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
+                        <div className="flex items-start justify-between mb-4 gap-4">
+                          <div className="min-w-0 flex-1">
                             <h3 className="text-xl font-semibold text-white mb-1">
                               {productOrder
                                 ? productOrder.product?.name || t('user.tickets.event')
@@ -425,7 +439,7 @@ const Tickets = () => {
                               {statusDisplay.text}
                             </span>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <p className="text-[#d3da0c] font-bold">
                               {productOrder
                                 ? (productOrder.order_qr_code ? 'QR Order' : 'Product Order')
@@ -433,7 +447,7 @@ const Tickets = () => {
                                   ? (ticketOrder.ticket_code ? `QR Ticket${ticketOrder.quantity && ticketOrder.quantity > 1 ? ` x${ticketOrder.quantity}` : ''}` : 'Manual Order')
                                   : (regularTicket!.ticket_tier?.name || t('user.tickets.standard'))}
                             </p>
-                            <p className="text-gray-500 text-sm">
+                            <p className="text-gray-500 text-xs sm:text-sm font-mono whitespace-nowrap">
                               {productOrder ? productOrder.order_code : ticketOrder ? ticketOrder.ticket_code : regularTicket!.ticket_number}
                             </p>
                           </div>

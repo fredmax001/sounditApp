@@ -528,7 +528,7 @@ const AdminDashboard = () => {
     <div className="space-y-4">
       {/* Bento Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4">
-        {/* Featured — Revenue */}
+        {/* Featured - Revenue */}
         <div className="col-span-2 lg:col-span-4 lg:row-span-2">
           <FeaturedStatCard title={t('admin.dashboard.totalRevenue')} value={`¥${stats.totalRevenue.toLocaleString()}`} icon={BarChart3} loading={isLoading} subtitle="Total Revenue" />
         </div>
@@ -566,7 +566,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Activity & Pending — 2-col */}
+      {/* Activity & Pending - 2-col */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Recent Activity */}
         <div className="bg-[#111111] border border-white/[0.07] rounded-2xl p-5">

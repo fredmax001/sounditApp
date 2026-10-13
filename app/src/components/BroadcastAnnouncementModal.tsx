@@ -127,13 +127,13 @@ export default function BroadcastAnnouncementModal({
   // Preset templates for quick filling
   const applyPreset = (type: 'venue' | 'time' | 'notice') => {
     if (type === 'venue') {
-      setTitle(t('organizer.broadcast.presetVenueTitle', { event: activeEventTitle }) || `Venue Location Update — ${activeEventTitle}`);
+      setTitle(t('organizer.broadcast.presetVenueTitle', { event: activeEventTitle }) || `Venue Location Update, ${activeEventTitle}`);
       setMessage(t('organizer.broadcast.presetVenueMessage', 'Dear Attendees,\n\nPlease note that the venue location for our upcoming event has been updated.\n\nNew Venue: [Insert New Venue Name & Address]\nDate & Time: [Confirm Date/Time]\n\nWe look forward to seeing you there!') || '');
     } else if (type === 'time') {
-      setTitle(t('organizer.broadcast.presetTimeTitle', { event: activeEventTitle }) || `Schedule Update — ${activeEventTitle}`);
+      setTitle(t('organizer.broadcast.presetTimeTitle', { event: activeEventTitle }) || `Schedule Update, ${activeEventTitle}`);
       setMessage(t('organizer.broadcast.presetTimeMessage', 'Dear Attendees,\n\nPlease note an important schedule update for our event.\n\nNew Doors Open Time: [Insert Time]\nMain Performance: [Insert Time]\n\nPlease adjust your arrival plans accordingly.') || '');
     } else if (type === 'notice') {
-      setTitle(t('organizer.broadcast.presetNoticeTitle', { event: activeEventTitle }) || `Important Notice — ${activeEventTitle}`);
+      setTitle(t('organizer.broadcast.presetNoticeTitle', { event: activeEventTitle }) || `Important Notice, ${activeEventTitle}`);
       setMessage(t('organizer.broadcast.presetNoticeMessage', 'Dear Guests,\n\nWe have an important announcement regarding our upcoming experience.\n\n[Insert Announcement Details]\n\nThank you for your support!') || '');
     }
   };

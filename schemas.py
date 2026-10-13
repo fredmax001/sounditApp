@@ -84,6 +84,14 @@ class UserRole(str, Enum):
     ORGANIZER = "organizer"
 
 
+class SignupRole(str, Enum):
+    """Roles that may be requested through public account registration."""
+    USER = "user"
+    BUSINESS = "business"
+    ARTIST = "artist"
+    VENDOR = "vendor"
+
+
 class RequestStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -199,7 +207,8 @@ class UserRegistration(BaseModel):
     first_name: str = Field(..., max_length=100)
     last_name: str = Field(..., max_length=100)
     phone: Optional[str] = Field(None, max_length=30)
-    role: UserRole
+    # Public signup must never permit privileged admin roles.
+    role: SignupRole
     
     # Optional fields
     city: Optional[City] = None
@@ -739,6 +748,8 @@ class EventResponse(EventBase):
     qr_code: Optional[str] = None
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
+    wechat_pay_url: Optional[str] = None
+    alipay_pay_url: Optional[str] = None
     ticket_price: Optional[float] = None
     payment_instructions: Optional[str] = None
     event_type: Optional[str] = None

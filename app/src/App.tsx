@@ -13,7 +13,7 @@ import ResponsiveLayout from './layouts/ResponsiveLayout';
 import AdminLayout from './pages/admin/AdminLayout';
 import HomeRedirect from './components/HomeRedirect';
 
-// Public Pages (eager — most visited)
+// Public Pages (eager - most visited)
 import Home from './pages/Home';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
@@ -27,12 +27,13 @@ import Food from './pages/Food';
 import Community from './pages/Community';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Download from './pages/Download';
 import Scan from './pages/Scan';
 import NotFound from './pages/NotFound';
 import OnSiteTools from './pages/OnSiteTools';
 import CheckedInGuests from './pages/CheckedInGuests';
 
-// Auth Pages (eager — entry points)
+// Auth Pages (eager - entry points)
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -46,12 +47,14 @@ import GlobalAudioPlayer from './components/ui/GlobalAudioPlayer';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import AndroidAppPrompt from './components/AndroidAppPrompt';
 import CookieConsent from './components/CookieConsent';
 
 // ── Lazy-loaded pages (code-split by route) ──
 
 // Legal Pages
 const Press = lazy(() => import('./pages/Press'));
+const BeatzOfAfrikaRecap = lazy(() => import('./pages/BeatzOfAfrikaRecap'));
 const Careers = lazy(() => import('./pages/Careers'));
 const Help = lazy(() => import('./pages/Help'));
 const Terms = lazy(() => import('./pages/Terms'));
@@ -181,7 +184,7 @@ function App() {
           setMaintenanceMode(!!(data && data.maintenance_mode));
         })
         .catch(() => {
-          // Silent fail — don't block app if status endpoint is unreachable
+          // Silent fail - don't block app if status endpoint is unreachable
         });
     };
 
@@ -287,8 +290,10 @@ function App() {
             <Route path="/food" element={<Food />} />
             <Route path="/community" element={<Community />} />
             <Route path="/about" element={<About />} />
+            <Route path="/download" element={<Download />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/press" element={<Suspense fallback={<PageLoader />}><Press /></Suspense>} />
+            <Route path="/news/beatz-of-afrika-2026-shanghai-recap" element={<Suspense fallback={<PageLoader />}><BeatzOfAfrikaRecap /></Suspense>} />
             <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
             <Route path="/help" element={<Suspense fallback={<PageLoader />}><Help /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<PageLoader />}><Terms /></Suspense>} />
@@ -661,6 +666,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       <PWAInstallPrompt />
+      <AndroidAppPrompt />
       <CookieConsent />
     </Router>
     </ErrorBoundary>

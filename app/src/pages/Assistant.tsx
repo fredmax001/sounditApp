@@ -22,7 +22,7 @@ export default function AssistantPage() {
         <p className="text-gray-400 mb-8">
           SIA is your AI assistant for discovering events, buying tickets, finding DJs, and answering platform questions.
           {isAuthenticated
-            ? ' The assistant panel is open — start chatting below.'
+            ? ' The assistant panel is open, start chatting below.'
             : ' Log in to access all AI features.'}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">

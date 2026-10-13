@@ -306,7 +306,7 @@ const ManageBusinesses = () => {
             className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
-        {/* Type filter removed — backend no longer returns business_type */}
+        {/* Type filter removed - backend no longer returns business_type */}
       </div>
 
       {/* Businesses Table */}

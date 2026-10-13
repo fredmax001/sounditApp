@@ -20,7 +20,7 @@ interface IntroSettings {
 const LoadingScreen = ({ settings }: { settings?: IntroSettings | null }) => {
   const [progress, setProgress] = useState(0);
 
-  const logoSrc = settings?.logo_url || '/logo.png';
+  const logoSrc = settings?.logo_url || '/logo-platform.png';
   const tagline = settings?.tagline || '5 years of Excellence in Entertainment';
   const title = settings?.title || '';
 
@@ -100,7 +100,7 @@ const LoadingScreen = ({ settings }: { settings?: IntroSettings | null }) => {
                 <img 
                   src={logoSrc} 
                   alt=""
-                  className="w-64 h-auto opacity-50"
+                  className="max-w-64 max-h-64 w-auto h-auto opacity-50 object-contain"
                   style={{ filter: 'brightness(1.5)' }}
                 />
               </div>
@@ -109,7 +109,7 @@ const LoadingScreen = ({ settings }: { settings?: IntroSettings | null }) => {
               <motion.img 
                 src={logoSrc}
                 alt="Sound It"
-                className="relative w-64 h-auto"
+                className="relative max-w-64 max-h-64 w-auto h-auto object-contain"
                 animate={{
                   filter: [
                     'drop-shadow(0 0 20px rgba(211, 218, 12, 0.5))',

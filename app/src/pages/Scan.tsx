@@ -102,7 +102,7 @@ const ScanPage = () => {
           handleScan(decodedText);
         },
         () => {
-          // No QR found in frame — ignore
+          // No QR found in frame - ignore
         }
       );
 
@@ -391,7 +391,7 @@ const ScanPage = () => {
                       <option value="" className="bg-[#111111]">{t('scan.allEvents') || 'All Events'}</option>
                       {staffEvents.map(event => (
                         <option key={event.id} value={event.id} className="bg-[#111111]">
-                          {event.title} — {event.city || ''}
+                          {event.title}, {event.city || ''}
                         </option>
                       ))}
                     </select>

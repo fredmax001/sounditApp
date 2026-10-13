@@ -591,7 +591,7 @@ const Staff = () => {
                       </button>
                     </div>
                     {selectedUser && (
-                      <p className="text-xs text-gray-500 mt-1">{t('business.staff.existingUserSelected') || 'Existing user — password not required'}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('business.staff.existingUserSelected') || 'Existing user, password not required'}</p>
                     )}
                   </div>
                 </div>

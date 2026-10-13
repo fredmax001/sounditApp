@@ -1,5 +1,5 @@
 /**
- * Mobile Bottom Navigation — Eventix-inspired 5-tab dock
+ * Mobile Bottom Navigation - Eventix-inspired 5-tab dock
  * Clean flat bar: Home | Discover | Ticket | Saved | Profile
  * Dashboard roles retain their own nav sets.
  */
@@ -106,7 +106,7 @@ const MobileBottomNav = () => {
       ];
     }
 
-    // Regular users — Eventix-style: Home | Discover | Tickets | Saved | Profile
+    // Regular users - Eventix-style: Home | Discover | Tickets | Saved | Profile
     return [
       { path: '/', label: t('nav.home') || 'Home', icon: Home },
       { path: '/discovery', label: t('nav.discovery') || 'Discover', icon: Compass },
@@ -183,7 +183,7 @@ const MobileBottomNav = () => {
     );
   }
 
-  /* ── Regular users — Eventix-style flat bottom bar ── */
+  /* ── Regular users - Eventix-style flat bottom bar ── */
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50">
@@ -234,7 +234,7 @@ const MobileBottomNav = () => {
                   />
                 </motion.div>
 
-                {/* Label — always visible */}
+                {/* Label - always visible */}
                 <span
                   className={`text-[10px] font-medium mt-1 transition-colors duration-150 ${
                     active ? 'text-[#d3da0c]' : 'text-white/35'

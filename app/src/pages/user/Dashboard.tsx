@@ -56,6 +56,8 @@ const UserDashboard = () => {
 
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [ticketOrders, setTicketOrders] = useState<Array<{ status: string }>>([]);
+  const [followedArtists, setFollowedArtists] = useState(0);
 
   const [uploadModalBooking, setUploadModalBooking] = useState<BookingRequest | null>(null);
   const [uploadScreenshot, setUploadScreenshot] = useState<File | null>(null);
@@ -72,7 +74,7 @@ const UserDashboard = () => {
 
     setLoadingSaved(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/favorites/events`, {
+      const response = await fetch(`${API_BASE_URL}/events/saved`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -123,8 +125,27 @@ const UserDashboard = () => {
       fetchUserTickets();
       fetchSavedEvents();
       fetchBookings();
+
+      const token = session.access_token;
+      fetch(`${API_BASE_URL}/tickets/my-orders`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : { orders: [] })
+        .then(data => setTicketOrders(data.orders || []))
+        .catch(() => setTicketOrders([]));
+
+      fetch(`${API_BASE_URL}/social/following`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : { artists: [] })
+        .then(data => setFollowedArtists((data.artists || []).length))
+        .catch(() => setFollowedArtists(0));
     }
   }, [session, fetchUserTickets, fetchSavedEvents, fetchBookings]);
+
+  const validTicketOrders = ticketOrders.filter(o => o.status !== 'rejected' && o.status !== 'cancelled');
+  const ticketCount = tickets.length + validTicketOrders.length;
+  const savedCount = savedEvents.length + followedArtists;
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -318,23 +339,22 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      <div className="flex overflow-x-auto w-full gap-2 mb-6 bg-[#111111] p-1.5 rounded-2xl border border-white/5 shadow-2xl hide-scrollbar snap-tab-bar">
+      <div className="flex w-full gap-1 lg:gap-2 mb-6 bg-[#111111] p-1.5 rounded-2xl border border-white/5 shadow-2xl">
         {[
           { id: 'explore', label: t('user.dashboard.exploreHub'), icon: Compass },
           { id: 'tickets', label: t('user.dashboard.myTickets'), icon: Ticket },
           { id: 'bookings', label: 'My Bookings', icon: Calendar },
-          { id: 'saved', label: t('user.dashboard.savedEvents'), icon: Heart },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 rounded-lg text-xs font-semibold lg:px-6 lg:py-3 lg:rounded-xl lg:text-sm lg:font-bold transition-all capitalize flex items-center gap-3 whitespace-nowrap ${activeTab === tab.id
+            className={`flex-1 min-w-0 justify-center px-1 sm:px-3 lg:px-6 py-2.5 lg:py-3 rounded-lg lg:rounded-xl text-[11px] sm:text-xs lg:text-sm font-semibold lg:font-bold transition-all capitalize flex items-center gap-1 lg:gap-3 whitespace-nowrap ${activeTab === tab.id
               ? 'bg-[#d3da0c] text-black shadow-[0_0_25px_rgba(211, 218, 12,0.2)]'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
           >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <tab.icon className="hidden sm:block w-4 h-4 shrink-0" />
+            <span className="truncate">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -399,19 +419,19 @@ const UserDashboard = () => {
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="text-base font-semibold text-white lg:text-xl">{t('user.dashboard.quickActions')}</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-2 lg:gap-4">
+                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
                     <Link to="/events">
                       <motion.div
                         whileHover={{ scale: 1.02 }}
                         className="bg-white/5 border border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 group hover:border-[#d3da0c]/30 transition-all cursor-pointer"
                       >
-                        <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-[#d3da0c]/20 flex items-center justify-center">
-                            <Calendar className="w-10 h-10 text-[#d3da0c]" />
+                        <div className="flex items-center gap-4">
+                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-[#d3da0c]/20 flex items-center justify-center shrink-0">
+                            <Calendar className="w-5 h-5 lg:w-10 lg:h-10 text-[#d3da0c]" />
                           </div>
-                          <div>
-                            <h4 className="text-white font-semibold text-sm lg:text-lg mb-1">{t('user.dashboard.browseEvents')}</h4>
-                            <p className="text-gray-400 text-xs lg:text-sm font-semibold uppercase tracking-widest mt-1">{t('user.dashboard.findUpcomingParties')}</p>
+                          <div className="min-w-0">
+                            <h4 className="text-white font-semibold text-sm lg:text-lg whitespace-nowrap">{t('user.dashboard.browseEvents')}</h4>
+                            <p className="text-gray-400 text-[11px] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findUpcomingParties')}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -421,13 +441,13 @@ const UserDashboard = () => {
                         whileHover={{ scale: 1.02 }}
                         className="bg-white/5 border border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 group hover:border-purple-500/30 transition-all cursor-pointer"
                       >
-                        <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-purple-500/20 flex items-center justify-center">
-                            <Disc className="w-10 h-10 text-purple-500" />
+                        <div className="flex items-center gap-4">
+                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-purple-500/20 flex items-center justify-center shrink-0">
+                            <Disc className="w-5 h-5 lg:w-10 lg:h-10 text-purple-500" />
                           </div>
-                          <div>
-                            <h4 className="text-white font-semibold text-sm lg:text-lg mb-1">{t('user.dashboard.discoverArtists')}</h4>
-                            <p className="text-gray-400 text-xs lg:text-sm font-semibold uppercase tracking-widest mt-1">{t('user.dashboard.findYourFavoriteDjs')}</p>
+                          <div className="min-w-0">
+                            <h4 className="text-white font-semibold text-sm lg:text-lg whitespace-nowrap">{t('user.dashboard.discoverArtists')}</h4>
+                            <p className="text-gray-400 text-[11px] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findYourFavoriteDjs')}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -446,9 +466,9 @@ const UserDashboard = () => {
                       <div className="text-gray-500 text-center py-8">
                         <Heart className="w-10 h-10 mx-auto mb-3 opacity-30" />
                         <p className="text-sm mb-2">{t('user.dashboard.noSavedEvents')}</p>
-                        <button onClick={() => setActiveTab('saved')} className="text-[#d3da0c] text-xs hover:underline">
+                        <Link to="/events" className="text-[#d3da0c] text-xs hover:underline">
                           {t('user.dashboard.browseEventsToSave')}
-                        </button>
+                        </Link>
                       </div>
                     ) : (
                       savedEvents.slice(0, 3).map((item: SavedEvent, idx: number) => (
@@ -468,9 +488,11 @@ const UserDashboard = () => {
                         </Link>
                       ))
                     )}
-                    <button onClick={() => setActiveTab('saved')} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 mt-4 transition-all">
-                      {t('user.dashboard.viewAllSaved')}
-                    </button>
+                    <Link to="/favorites">
+                      <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 mt-4 transition-all">
+                        {t('user.dashboard.viewAllSaved')}
+                      </button>
+                    </Link>
                   </div>
                 </section>
 
@@ -479,11 +501,11 @@ const UserDashboard = () => {
                   <h3 className="relative z-10 text-base font-semibold text-white lg:text-xl mb-4">{t('user.dashboard.yourStats')}</h3>
                   <div className="grid grid-cols-2 gap-4 relative z-10">
                     <div className="bg-white/5 rounded-2xl p-4">
-                      <p className="text-xl font-bold text-[#d3da0c] lg:text-3xl">{tickets.length}</p>
+                      <p className="text-xl font-bold text-[#d3da0c] lg:text-3xl">{ticketCount}</p>
                       <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">{t('user.dashboard.ticketsLabel')}</p>
                     </div>
                     <div className="bg-white/5 rounded-2xl p-4">
-                      <p className="text-3xl font-bold text-[#FF2D8F]">{savedEvents.length}</p>
+                      <p className="text-3xl font-bold text-[#FF2D8F]">{savedCount}</p>
                       <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">{t('user.dashboard.savedLabel')}</p>
                     </div>
                   </div>
@@ -622,80 +644,6 @@ const UserDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'saved' && (
-            <div className="space-y-10">
-              <div className="text-center mb-10">
-                <h2 className="text-xl lg:text-3xl font-bold text-white mb-3 tracking-tight">{t('user.dashboard.yourSaved')} <span className="text-[#d3da0c]">{t('user.dashboard.events')}</span></h2>
-                <p className="text-gray-400 font-medium">{t('user.dashboard.eventsInterestedIn')}</p>
-              </div>
-
-              {loadingSaved ? (
-                <div className="text-center py-20 text-gray-500">{t('user.dashboard.loadingSavedEvents')}</div>
-              ) : savedEvents.length === 0 ? (
-                <div className="text-center py-20">
-                  <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-base font-semibold text-white lg:text-lg mb-2">{t('user.dashboard.noSavedEvents')}</h3>
-                  <p className="text-gray-400 mb-6">{t('user.dashboard.browseAndSaveEvents')}</p>
-                  <Link to="/events">
-                    <button className="px-8 py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-all">
-                      {t('user.dashboard.browseEvents')}
-                    </button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
-                  {savedEvents.map((item: SavedEvent, idx: number) => (
-                    <motion.div
-                      key={item.event_id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden group hover:border-[#d3da0c]/30 transition-all"
-                    >
-                      <div className="relative h-28 lg:h-40 overflow-hidden">
-                        {item.events?.flyer_image ? (
-                          <img
-                            src={item.events.flyer_image as string}
-                            alt={(item.events.title as string) || t('user.dashboard.event')}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#111111] to-[#1a1a1a] flex items-center justify-center">
-                            <Calendar className="w-24 h-24 text-gray-600" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
-                      </div>
-                      <div className="p-3 space-y-4 lg:p-4">
-                        <div>
-                          <h3 className="text-white font-bold text-xl mb-2">{(item.events?.title as string) || t('user.dashboard.event')}</h3>
-                          <div className="flex items-center gap-2 text-gray-400 text-sm">
-                            <Calendar className="w-4 h-4" />
-                            <span>{item.events?.start_date ? new Date(item.events.start_date as string).toLocaleDateString() : t('user.dashboard.tba')}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
-                            <MapPin className="w-4 h-4" />
-                            <span>{(item.events?.city as string) || t('user.dashboard.tba')}</span>
-                          </div>
-                        </div>
-                        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                          <span className="text-[#d3da0c] font-bold text-lg">
-                            {item.events?.ticket_tiers?.[0]?.price ? `¥${item.events.ticket_tiers[0].price}` : t('user.dashboard.free')}
-                          </span>
-                          <Link to={`/events/${item.events?.id}`}>
-                            <button className="px-6 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-all text-sm flex items-center gap-2">
-                              {t('user.dashboard.details')}
-                              <ArrowRight className="w-4 h-4" />
-                            </button>
-                          </Link>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </motion.div>
       </AnimatePresence>
 

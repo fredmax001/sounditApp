@@ -26,8 +26,8 @@ axios.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401) {
-      // Token expired or invalid — clear auth and redirect to login.
-      // BUT: don't redirect if this is a login/register attempt itself —
+      // Token expired or invalid - clear auth and redirect to login.
+      // BUT: don't redirect if this is a login/register attempt itself -
       // a 401 there means wrong credentials, not an expired session.
       const requestUrl = error?.config?.url || '';
       const isAuthEndpoint = requestUrl.includes('/auth/login') ||

@@ -258,12 +258,12 @@ export default function OnSiteTools() {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4 text-center">
             <Ticket className="w-6 h-6 text-[#d3da0c] mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">—</p>
+            <p className="text-2xl font-bold text-white">, </p>
             <p className="text-gray-500 text-xs">Tickets Scanned</p>
           </div>
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4 text-center">
             <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">—</p>
+            <p className="text-2xl font-bold text-white">, </p>
             <p className="text-gray-500 text-xs">Checked In</p>
           </div>
         </div>

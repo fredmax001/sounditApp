@@ -31,7 +31,7 @@ def main():
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
     print(f"✅ Icon saved to: {dest}")
-    print("\nNext step — generate all icon formats:")
+    print("\nNext step, generate all icon formats:")
     print("  cd electron && npm run build:icons")
 
 if __name__ == "__main__":

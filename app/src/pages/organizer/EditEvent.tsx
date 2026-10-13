@@ -156,6 +156,7 @@ const EditEvent = () => {
   const [alipayQrPreview, setAlipayQrPreview] = useState('');
   const [paymentInstructions, setPaymentInstructions] = useState('');
   const [selectedDjs, setSelectedDjs] = useState<number[]>([]);
+  const [djSearch, setDjSearch] = useState('');
   const [artists, setArtists] = useState<{ id: number; name?: string; stage_name?: string }[]>([]);
 
   // Load event data
@@ -989,39 +990,55 @@ const EditEvent = () => {
 
                 <div>
                   <Label>DJ Line-up</Label>
-                  <select
-                    multiple
-                    value={selectedDjs.map(String)}
-                    onChange={(e) => {
-                      const options = Array.from(e.target.selectedOptions);
-                      const ids = options.map(o => Number(o.value));
-                      setSelectedDjs(ids);
-                    }}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors"
-                    size={Math.min(artists.length, 5)}
-                  >
-                    {artists.map(artist => (
-                      <option key={artist.id} value={artist.id} className="bg-[#111111]">
-                        {artist.stage_name || artist.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-gray-500 text-xs mt-1">Hold Ctrl/Cmd to select multiple DJs</p>
+                  {artists.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No DJs on the platform yet.</p>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={djSearch}
+                        onChange={(e) => setDjSearch(e.target.value)}
+                        placeholder="Search DJs..."
+                        className="w-full px-4 py-2 mb-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none transition-colors"
+                      />
+                      <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+                        {artists
+                          .filter(a => {
+                            const q = djSearch.trim().toLowerCase();
+                            if (!q) return true;
+                            return (a.stage_name || a.name || '').toLowerCase().includes(q);
+                          })
+                          .map(artist => {
+                            const isSelected = selectedDjs.includes(artist.id);
+                            return (
+                              <button
+                                key={artist.id}
+                                type="button"
+                                onClick={() =>
+                                  setSelectedDjs(prev =>
+                                    isSelected ? prev.filter(id => id !== artist.id) : [...prev, artist.id]
+                                  )
+                                }
+                                className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
+                                  isSelected
+                                    ? 'bg-[#d3da0c] text-black font-medium'
+                                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3.5 h-3.5" />}
+                                {artist.stage_name || artist.name}
+                              </button>
+                            );
+                          })}
+                      </div>
+                      <p className="text-gray-500 text-xs mt-1.5">
+                        {selectedDjs.length > 0
+                          ? `${selectedDjs.length} DJ${selectedDjs.length > 1 ? 's' : ''} selected. Tap to add or remove.`
+                          : 'Tap to select DJs for the line-up.'}
+                      </p>
+                    </>
+                  )}
                 </div>
-
-                {selectedDjs.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDjs.map(djId => {
-                      const artist = artists.find(a => a.id === djId);
-                      return artist ? (
-                        <span key={djId} className="px-3 py-1 bg-[#d3da0c]/20 text-[#d3da0c] rounded-lg text-sm flex items-center gap-2">
-                          {artist.stage_name || artist.name}
-                          <button onClick={() => setSelectedDjs(prev => prev.filter(id => id !== djId))} className="hover:text-white">×</button>
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                )}
               </div>
             </SectionCard>
 

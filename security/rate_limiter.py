@@ -324,7 +324,7 @@ class RateLimiter:
 # Predefined rate limits for different endpoint types
 RATE_LIMITS = {
     "auth": {
-        "login": "20/minute",        # was 5 — too tight with multi-worker in-memory fallback
+        "login": "20/minute",        # was 5 - too tight with multi-worker in-memory fallback
         "register": "10/minute",     # was 3
         "otp_send": "5/minute",
         "otp_verify": "20/minute",
@@ -340,7 +340,7 @@ RATE_LIMITS = {
         "purchase": "10/minute",
     },
     "api": {
-        "default": "200/minute",     # was 100 — lifted for normal browsing
+        "default": "200/minute",     # was 100 - lifted for normal browsing
         "upload": "10/minute",
         "search": "60/minute",
     }

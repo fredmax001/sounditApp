@@ -1,5 +1,5 @@
 """
-Menu Import Service — Extract product items from images, PDFs, and text
+Menu Import Service, Extract product items from images, PDFs, and text
 for vendor bulk product creation.
 """
 import re
@@ -54,7 +54,7 @@ PRICE_PATTERNS = [
 ]
 
 # Separators between name and price
-SEPARATOR_PATTERN = r"[-—–−\s·•|]+"
+SEPARATOR_PATTERN = r"[-, –−\s·•|]+"
 
 # Category keywords
 CATEGORY_KEYWORDS = {

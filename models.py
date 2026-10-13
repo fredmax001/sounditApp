@@ -282,7 +282,7 @@ class User(Base):
     conversations = relationship("Conversation", primaryjoin="or_(User.id==Conversation.participant_1_id, User.id==Conversation.participant_2_id)")
     sent_messages = relationship("Message", primaryjoin="User.id==Message.sender_id")
     
-    # SIA — Sound It Assistant
+    # SIA - Sound It Assistant
     assistant_sessions = relationship("AssistantSession", back_populates="user", cascade="all, delete-orphan")
     assistant_drafts = relationship("AssistantDraft", back_populates="user", cascade="all, delete-orphan")
     assistant_unanswered = relationship("AssistantUnansweredQuestion", back_populates="user", cascade="all, delete-orphan")
@@ -492,6 +492,9 @@ class ArtistProfile(Base):
     # Payment QR codes for bookings
     wechat_qr_url = Column(String(500), nullable=True)
     alipay_qr_url = Column(String(500), nullable=True)
+    # Decoded QR content (payment URLs) for mobile deep-linking
+    wechat_pay_url = Column(String(1000), nullable=True)
+    alipay_pay_url = Column(String(1000), nullable=True)
     payment_instructions = Column(Text, nullable=True)
     
     # Timestamps
@@ -744,6 +747,9 @@ class Product(Base):
     # Payment QR codes for manual checkout
     wechat_qr_url = Column(String(500), nullable=True)
     alipay_qr_url = Column(String(500), nullable=True)
+    # Decoded QR content (payment URLs) for mobile deep-linking
+    wechat_pay_url = Column(String(1000), nullable=True)
+    alipay_pay_url = Column(String(1000), nullable=True)
     payment_instructions = Column(Text, nullable=True)
     
     status = Column(String(20), default="active")
@@ -775,6 +781,10 @@ class VendorPaymentSettings(Base):
     # Alipay
     alipay_qr_url = Column(String(500), nullable=True)
     alipay_display_name = Column(String(100), nullable=True)
+
+    # Decoded QR content (payment URLs) for mobile deep-linking
+    wechat_pay_url = Column(String(1000), nullable=True)
+    alipay_pay_url = Column(String(1000), nullable=True)
     
     # Preferred method
     preferred_method = Column(Enum(VendorPaymentMethod), default=VendorPaymentMethod.BOTH)
@@ -1245,6 +1255,9 @@ class Event(Base):
     # Payment QR codes for manual ticketing
     wechat_qr_url = Column(String(500), nullable=True)
     alipay_qr_url = Column(String(500), nullable=True)
+    # Decoded QR content (payment URLs) for mobile deep-linking - filled by utils/qr_decoder
+    wechat_pay_url = Column(String(1000), nullable=True)
+    alipay_pay_url = Column(String(1000), nullable=True)
     ticket_price = Column(Float, nullable=True)
     payment_instructions = Column(Text, nullable=True)
     
@@ -1731,7 +1744,7 @@ class Notification(Base):
 
 
 class AdminNotificationLog(Base):
-    """History of admin-sent broadcasts (push/email/both) — independent of per-user notification rows."""
+    """History of admin-sent broadcasts (push/email/both), independent of per-user notification rows."""
     __tablename__ = "admin_notification_logs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -2374,7 +2387,7 @@ class TicketOrder(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Payment proof
-    payment_screenshot = Column(String(500), nullable=False)
+    payment_screenshot = Column(String(500), nullable=True)  # Nullable: buyer-confirmed orders may lack a screenshot
     payment_amount = Column(Float, nullable=False)
     payment_date = Column(Date, nullable=True)
     payment_reference = Column(String(100), nullable=True)
@@ -2382,6 +2395,10 @@ class TicketOrder(Base):
     payer_name = Column(String(100), nullable=True)
     payer_notes = Column(Text, nullable=True)
     screenshot_uploaded_at = Column(DateTime(timezone=True), nullable=True)
+    # One-tap "I completed the payment" confirmation from the mobile buyer
+    # (returning from Alipay/WeChat via deep-link). Triggers an instant
+    # organizer notification so approval can happen in seconds.
+    buyer_confirmed_at = Column(DateTime(timezone=True), nullable=True, index=True)
     
     # Guest order info (for organizer/staff-created tickets)
     guest_name = Column(String(150), nullable=True)
@@ -2869,7 +2886,7 @@ class PromoterPayout(Base):
 
 
 # ============================================================================
-# SIA — Sound It Assistant
+# SIA - Sound It Assistant
 # ============================================================================
 
 class AssistantSession(Base):

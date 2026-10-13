@@ -40,6 +40,7 @@ export default function Subscriptions() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [paymentModal, setPaymentModal] = useState<{ open: boolean; planType: string | null; details: PaymentDetails | null }>({
     open: false,
@@ -65,6 +66,7 @@ export default function Subscriptions() {
 
   const fetchData = async () => {
     try {
+      setLoadError(false);
       const [plansRes, statusRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/subscriptions/plans?role=${role}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -76,6 +78,7 @@ export default function Subscriptions() {
       setPlans(plansRes.data.plans);
       setStatus(statusRes.data);
     } catch {
+      setLoadError(true);
       toast.error(t('subscriptions.failedToLoadData'));
     } finally {
       setLoading(false);
@@ -167,16 +170,40 @@ export default function Subscriptions() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] py-12 px-4">
+    <div className="min-h-screen bg-[#0A0A0A] px-4 pt-24 pb-12 lg:py-12">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             {t('subscriptions.title')} <span className="text-[#d3da0c]">{t('subscriptions.titleHighlight')}</span>
           </h1>
           <p className="text-white/60">{t('subscriptions.subtitle')}</p>
         </div>
 
-        {status?.has_subscription && (
+        {loadError ? (
+          <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10">
+            <p className="text-white font-semibold mb-6">{t('subscriptions.failedToLoadData')}</p>
+            <button
+              onClick={() => { setLoading(true); fetchData(); }}
+              className="px-8 py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-all"
+            >
+              {t('common.retry')}
+            </button>
+          </div>
+        ) : plans.length === 0 ? (
+          <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10">
+            <Crown className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">{t('subscriptions.noSubscriptions')}</h3>
+            <p className="text-white/60 mb-6">{t('subscriptions.noSubscriptionsDescription')}</p>
+            <button
+              onClick={() => { setLoading(true); fetchData(); }}
+              className="px-8 py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-all"
+            >
+              {t('subscriptions.viewPlans')}
+            </button>
+          </div>
+        ) : (
+          <>
+            {status?.has_subscription && (
           <div className="mb-8 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
             <p className="text-white">
               {t('subscriptions.activePlan')} <span className="text-[#d3da0c] capitalize">{status.subscription.plan_type}</span>
@@ -232,6 +259,8 @@ export default function Subscriptions() {
             </motion.div>
           ))}
         </div>
+        </>
+        )}
       </div>
 
       {/* Payment Modal */}

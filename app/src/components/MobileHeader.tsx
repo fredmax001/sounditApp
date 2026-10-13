@@ -1,5 +1,5 @@
 /**
- * Mobile Header — Eventix-inspired compact top bar
+ * Mobile Header - Eventix-inspired compact top bar
  * Left: Logo | Center: Date + Location pill | Right: Notifications + Avatar
  */
 import { Link, useNavigate } from 'react-router-dom';
@@ -124,9 +124,9 @@ const MobileHeader = () => {
           {/* Left: Logo */}
           <Link to="/" className="flex items-center flex-shrink-0">
             <motion.img
-              src="/logo.png"
+              src="/logo-platform.png"
               alt="SOUND IT"
-              className="h-6 w-auto object-contain"
+              className="h-10 w-auto object-contain"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}

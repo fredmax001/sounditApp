@@ -15,7 +15,7 @@ import {
   BarChart3, Sparkles
 } from 'lucide-react';
 
-// Grouped sidebar menu structure — each item has a permission key
+// Grouped sidebar menu structure - each item has a permission key
 const menuGroups = [
   {
     label: 'Core',

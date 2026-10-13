@@ -9,7 +9,9 @@ import './i18n'
 import App from './App.tsx'
 import { pushManager } from './lib/pushNotifications'
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ""
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '247782235504-v65bs2rl21kt1ovb3vrglskndf276li9.apps.googleusercontent.com'
 
 function CapacitorInit() {
   useEffect(() => {

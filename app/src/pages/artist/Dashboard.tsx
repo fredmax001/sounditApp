@@ -665,7 +665,7 @@ const ArtistDashboard = () => {
 
       {/* ── Tab Bar ── */}
       <div className="px-4 pt-4 lg:px-10 lg:pt-5">
-        {/* Horizontally scrollable on mobile — full labels always shown */}
+        {/* Horizontally scrollable on mobile - full labels always shown */}
         <div className="flex gap-1.5 overflow-x-auto bg-[#111111] p-1.5 rounded-xl border border-white/[0.06] hide-scrollbar">
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -697,7 +697,7 @@ const ArtistDashboard = () => {
             <div className="grid gap-5">
               {/* ── Bento Stats ── */}
               <div className="grid grid-cols-2 gap-3">
-                {/* Featured — Earnings: full width on mobile, 2-col on lg */}
+                {/* Featured - Earnings: full width on mobile, 2-col on lg */}
                 <div className="col-span-2">
                   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     className="bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-4 flex items-center gap-4 hover:border-[#d3da0c]/35 transition-all lg:p-5">
@@ -1088,7 +1088,7 @@ const ArtistDashboard = () => {
                 <h2 className="text-lg font-bold text-white mb-1 lg:text-2xl">{t('artist.dashboard.bookingRequests')}</h2>
                 <p className="text-gray-500 text-sm font-medium">{t('artist.dashboard.manageBookingRequests')}</p>
               </div>
-              {/* Filter — horizontally scrollable on mobile */}
+              {/* Filter - horizontally scrollable on mobile */}
               <div className="overflow-x-auto hide-scrollbar -mx-1 px-1">
                 <div className="flex gap-1.5 bg-white/[0.04] p-1 rounded-xl border border-white/[0.07] w-fit min-w-full">
                   {(['all', 'pending', 'accepted', 'rejected', 'completed'] as const).map((filter) => (
@@ -1220,7 +1220,7 @@ const ArtistDashboard = () => {
                 <h2 className="text-lg font-bold text-white mb-1 lg:text-2xl">{t('artist.dashboard.availabilityTitle') || 'My Availability'}</h2>
                 <p className="text-gray-500 text-sm font-medium">{t('artist.dashboard.availabilitySubtitle') || 'Click a date to set your availability status.'}</p>
               </div>
-              {/* Legend — compact row */}
+              {/* Legend - compact row */}
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500" />

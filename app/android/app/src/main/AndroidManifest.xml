@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,16 +32,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link for events -->
+            <!-- Deep links for sounditent.com -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="sounditent.com" android:pathPattern="/events/.*" />
-                <data android:scheme="https" android:host="sounditent.com" android:pathPattern="/profiles/.*" />
-                <data android:scheme="https" android:host="sounditent.com" android:pathPattern="/artists/.*" />
-                <data android:scheme="https" android:host="sounditent.com" android:pathPattern="/vendors/.*" />
-                <data android:scheme="https" android:host="sounditent.com" android:pathPattern="/city-guide" />
+                <data android:scheme="https" />
+                <data android:host="sounditent.com" />
+                <data android:pathPattern="/events/.*" />
+                <data android:pathPattern="/profiles/.*" />
+                <data android:pathPattern="/artists/.*" />
+                <data android:pathPattern="/vendors/.*" />
+                <data android:pathPattern="/city-guide" />
             </intent-filter>
 
             <!-- App link scheme for direct app opening -->
@@ -51,11 +63,4 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
     </application>
-
-    <!-- Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>

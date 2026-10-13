@@ -22,14 +22,14 @@ def migrate_sqlite():
     tables = inspector.get_table_names()
     
     if "admin_roles" in tables:
-        print("[SQLite] admin_roles table already exists — skipping creation")
+        print("[SQLite] admin_roles table already exists, skipping creation")
     else:
         print("[SQLite] Creating admin_roles table...")
         AdminRole.__table__.create(engine)
         print("[SQLite] admin_roles table created")
     
     if "admin_role_id" in [c["name"] for c in inspector.get_columns("users")]:
-        print("[SQLite] users.admin_role_id already exists — skipping")
+        print("[SQLite] users.admin_role_id already exists, skipping")
     else:
         print("[SQLite] Adding admin_role_id column to users...")
         with engine.connect() as conn:
@@ -50,7 +50,7 @@ def migrate_postgresql():
     """PostgreSQL migration using raw SQL for safety"""
     db_url = os.getenv("DATABASE_URL", "")
     if not db_url:
-        print("[PostgreSQL] DATABASE_URL not set — skipping PostgreSQL migration")
+        print("[PostgreSQL] DATABASE_URL not set, skipping PostgreSQL migration")
         return
     
     pg_engine = create_engine(db_url)
@@ -58,7 +58,7 @@ def migrate_postgresql():
     tables = inspector.get_table_names()
     
     if "admin_roles" in tables:
-        print("[PostgreSQL] admin_roles table already exists — skipping creation")
+        print("[PostgreSQL] admin_roles table already exists, skipping creation")
     else:
         print("[PostgreSQL] Creating admin_roles table...")
         with pg_engine.connect() as conn:
@@ -78,7 +78,7 @@ def migrate_postgresql():
         print("[PostgreSQL] admin_roles table created")
     
     if "admin_role_id" in [c["name"] for c in inspector.get_columns("users")]:
-        print("[PostgreSQL] users.admin_role_id already exists — skipping")
+        print("[PostgreSQL] users.admin_role_id already exists, skipping")
     else:
         print("[PostgreSQL] Adding admin_role_id column to users...")
         with pg_engine.connect() as conn:

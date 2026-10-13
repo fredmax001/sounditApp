@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ── Primary identity — must match OAuth consent screen app name exactly ── -->
+    <!-- ── Primary identity, must match OAuth consent screen app name exactly ── -->
     <title>Sound It - Entertainment Platform in China</title>
     <meta name="application-name" content="Sound It" />
     <meta name="description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
@@ -38,7 +38,7 @@
     <meta name="twitter:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
     <meta name="twitter:image" content="https://sounditent.com/logo.png" />
 
-    <!-- ── JSON-LD Structured Data — readable by Google & AI bots without JS ── -->
+    <!-- ── JSON-LD Structured Data, readable by Google & AI bots without JS ── -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -136,7 +136,7 @@
     </script>
 
     <!-- ═══════════════════════════════════════════════════════════════════════
-         Static pre-rendered content — visible to Google OAuth reviewers and
+         Static pre-rendered content, visible to Google OAuth reviewers and
          search engine bots BEFORE JavaScript loads. React replaces this once
          the app mounts. Keep this in sync with what the app actually does.
     ═══════════════════════════════════════════════════════════════════════ -->
@@ -242,7 +242,7 @@
     <noscript>
       <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#0a0a0a;color:#e5e5e5;min-height:100vh;">
         <img src="/logo.png" alt="Sound It" style="height:48px;margin-bottom:24px;" />
-        <h1 style="color:#d3da0c;">Sound It — Entertainment Platform</h1>
+        <h1 style="color:#d3da0c;">Sound It, Entertainment Platform</h1>
         <p>Sound It is an entertainment platform for the African and international community in China. Please enable JavaScript to use the full platform.</p>
         <ul>
           <li>Discover events in China</li>
@@ -255,7 +255,7 @@
     </noscript>
 
     <script>
-      // Show "Open in Browser" button if WeChat browser is detected — BUT allow
+      // Show "Open in Browser" button if WeChat browser is detected - BUT allow
       // all content, ticket, and app routes to load normally in WeChat.
       (function() {
         var ua = navigator.userAgent.toLowerCase();
@@ -264,7 +264,7 @@
         var path = window.location.pathname;
         var isAppPage = /^\/(events|artists|vendors|profiles|marketplace|city-guide|food|recaps|community|tickets|ticket|checkout|login|register|user|payment|on-site-tools|validate|scan)\b/.test(path) || path === '/';
 
-        // On content & app pages, let the SPA load normally — do NOT show interstitial
+        // On content & app pages, let the SPA load normally - do NOT show interstitial
         if (isAppPage) return;
 
         var btn = document.getElementById('wechat-open-btn');
@@ -277,4 +277,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

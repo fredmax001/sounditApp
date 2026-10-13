@@ -467,7 +467,7 @@ export default function BusinessPromoters() {
             <div ref={qrRef} className="bg-white p-4 rounded-xl flex items-center justify-center">
               <QRCodeSVG value={`${WEB_ORIGIN}/events/${showQrModal.eventId}?ref=${showQrModal.code}`} size={200} />
             </div>
-            <p className="text-gray-400 text-xs text-center mt-3">{showQrModal.name || 'Promoter'} — {showQrModal.code}</p>
+            <p className="text-gray-400 text-xs text-center mt-3">{showQrModal.name || 'Promoter'}, {showQrModal.code}</p>
             <button
               onClick={() => downloadQr(showQrModal.code, showQrModal.name)}
               className="w-full mt-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] flex items-center justify-center gap-2"
@@ -508,7 +508,7 @@ export default function BusinessPromoters() {
                     onChange={(e) => setSelectedEventId(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   >
-                    <option value="" className="bg-[#111111]">— {t('business.promoters.chooseEvent') || 'Choose an event'} —</option>
+                    <option value="" className="bg-[#111111]">, {t('business.promoters.chooseEvent') || 'Choose an event'}, </option>
                     {events.map(({ event }) => (
                       <option key={event.id} value={event.id} className="bg-[#111111]">
                         {event.title}

@@ -1,5 +1,5 @@
 /**
- * MobileEventCard — Cinematic full-bleed card for mobile home/discover
+ * MobileEventCard - Cinematic full-bleed card for mobile home/discover
  * Inspired by Eventix design: large image, gradient overlay, bold text
  */
 import { useState } from 'react';

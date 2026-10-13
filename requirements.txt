@@ -39,3 +39,6 @@ pywebpush==2.0.0
 
 # SIA — Sound It Assistant (optional LLM enhancement)
 openai==1.35.0
+
+# QR decoding for payment deep-links (WeChat/Alipay)
+opencv-python-headless==4.10.0.84

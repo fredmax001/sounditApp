@@ -117,19 +117,19 @@ export default function ArtistBookings() {
     : bookings.filter(b => b.status === filter);
 
   const formatBudget = (budget?: number | null) => {
-    if (budget == null || Number.isNaN(budget)) return '—';
+    if (budget == null || Number.isNaN(budget)) return ', ';
     return `¥${budget.toLocaleString()}`;
   };
 
   const formatDuration = (duration?: number | null) => {
-    if (duration == null || Number.isNaN(duration)) return '—';
+    if (duration == null || Number.isNaN(duration)) return ', ';
     return `${duration}h`;
   };
 
   const formatDate = (dateString?: string | null) => {
-    if (!dateString) return '—';
+    if (!dateString) return ', ';
     const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return ', ';
     return date.toLocaleDateString();
   };
 
@@ -273,7 +273,7 @@ export default function ArtistBookings() {
                       </span>
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {booking.event_city || '—'}
+                        {booking.event_city || ', '}
                       </span>
                       <span className="flex items-center gap-1">
                         <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -303,7 +303,7 @@ export default function ArtistBookings() {
                       <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wide">{t('artist.bookings.eventDetails')}</h4>
                       <div className="space-y-2 text-sm">
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.type')}:</span> {booking.event_type || '—'}
+                          <span className="text-gray-400">{t('artist.bookings.type')}:</span> {booking.event_type || ', '}
                         </p>
                         <p className="text-white">
                           <span className="text-gray-400">{t('artist.bookings.budget')}:</span> {formatBudget(booking.budget)}
@@ -312,7 +312,7 @@ export default function ArtistBookings() {
                           <span className="text-gray-400">{t('artist.bookings.duration')}:</span> {formatDuration(booking.duration)}
                         </p>
                         <p className="text-white">
-                          <span className="text-gray-400">{t('artist.bookings.location')}:</span> {booking.event_city || '—'}
+                          <span className="text-gray-400">{t('artist.bookings.location')}:</span> {booking.event_city || ', '}
                         </p>
                         <p className="text-white">
                           <span className="text-gray-400">{t('artist.bookings.paymentStatus')}:</span>{' '}
@@ -333,11 +333,11 @@ export default function ArtistBookings() {
                       <div className="space-y-2 text-sm">
                         <p className="flex items-center gap-2 text-white">
                           <User className="w-4 h-4 text-gray-400" />
-                          {booking.contact_name || '—'}
+                          {booking.contact_name || ', '}
                         </p>
                         <p className="flex items-center gap-2 text-white">
                           <Mail className="w-4 h-4 text-gray-400" />
-                          {booking.contact_email || '—'}
+                          {booking.contact_email || ', '}
                         </p>
                         {booking.contact_phone && (
                           <p className="flex items-center gap-2 text-white">

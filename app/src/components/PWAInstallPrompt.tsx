@@ -113,7 +113,7 @@ export default function PWAInstallPrompt() {
       // or just dismiss and they know what to do
       handleDismiss();
     } else {
-      // Not in Safari — they should open in Safari
+      // Not in Safari - they should open in Safari
       // We already show the warning, so just dismiss
       handleDismiss();
     }

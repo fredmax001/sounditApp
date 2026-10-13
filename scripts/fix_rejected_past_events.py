@@ -60,7 +60,7 @@ def main():
     # Auto-approve when running non-interactively (no TTY)
     auto_approve = not sys.stdin.isatty()
     if auto_approve:
-        print("\nRunning non-interactively — auto-approving...")
+        print("\nRunning non-interactively, auto-approving...")
     else:
         confirm = input("\nRe-approve all of them? (yes/no): ").strip().lower()
         if confirm not in ("yes", "y"):

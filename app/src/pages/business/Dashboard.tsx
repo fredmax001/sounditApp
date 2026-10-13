@@ -327,7 +327,7 @@ const BusinessDashboard = () => {
       <div className="px-4 py-5 lg:px-10 lg:py-8 space-y-6">
         {/* Bento Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-12 gap-3">
-          {/* Featured — Revenue */}
+          {/* Featured - Revenue */}
           <div className="col-span-2 lg:col-span-4">
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

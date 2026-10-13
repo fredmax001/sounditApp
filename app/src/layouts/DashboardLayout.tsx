@@ -259,7 +259,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     );
   }
 
-  // If no profile after loading, session may have expired — redirect to login
+  // If no profile after loading, session may have expired - redirect to login
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-6">
@@ -295,7 +295,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="p-4 border-b border-white/5">
           <Link to="/" className="inline-block max-w-full">
             <img
-              src="/logo.png"
+              src="/logo-platform.png"
               alt="Sound It"
               className="h-12 w-auto max-w-full"
             />

@@ -1,5 +1,5 @@
 /**
- * MobileListRow — Compact thumbnail + text row for "Popular" / list sections
+ * MobileListRow - Compact thumbnail + text row for "Popular" / list sections
  * Inspired by Eventix Popular section design
  */
 import { Link } from 'react-router-dom';

@@ -113,7 +113,7 @@ const Navbar = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               <img
-                src="/logo.png"
+                src="/logo-web.png"
                 alt="SOUND IT"
                 className="h-8 lg:h-10 w-auto object-contain"
               />

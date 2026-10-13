@@ -36,6 +36,7 @@ const Footer = () => {
       title: t('footer.company.title') || 'Company',
       links: [
         { label: t('footer.company.aboutUs') || 'About Us', path: '/about' },
+        { label: t('footer.company.getApp') || 'Get the App', path: '/download' },
         { label: t('footer.company.careers') || 'Careers', path: '/careers' },
         { label: t('footer.company.press') || 'Press', path: '/press' },
         { label: t('footer.company.contact') || 'Contact', path: '/contact' },
@@ -68,7 +69,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="col-span-12 lg:col-span-4">
             <Link to="/" className="inline-block mb-5">
-              <img src="/logo.png" alt="SOUND IT" className="h-9 w-auto object-contain" />
+              <img src="/logo-web.png" alt="SOUND IT" className="h-9 w-auto object-contain" />
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
               {t('footer.tagline') || 'Your gateway to the best nightlife, events, and culture in China.'}

@@ -23,7 +23,7 @@ def _send_sms_safe(
     fallback_message: str = None
 ) -> dict:
     """
-    Send SMS safely — never raises, always returns a result dict.
+    Send SMS safely, never raises, always returns a result dict.
     Tries direct Alibaba SMS first, then marketplace fallback.
     """
     if not phone_number:
@@ -76,7 +76,7 @@ def _send_sms_safe(
 def _send_raw_sms_marketplace(phone_number: str, message: str) -> dict:
     """
     Attempt to send raw text SMS via Alibaba marketplace (no template needed).
-    Not all marketplace products support this — falls back gracefully.
+    Not all marketplace products support this, falls back gracefully.
     """
     import requests
     app_code = settings.ALIBABA_APP_CODE
@@ -175,7 +175,7 @@ def send_sms_order_cancelled(
 
     fallback = (
         f"【SoundIt】Your ticket order for {(event_title or 'the event')[:20]} "
-        f"was cancelled — payment was not confirmed in time. You can place a new order."
+        f"was cancelled, payment was not confirmed in time. You can place a new order."
     )
 
     return _send_sms_safe(phone_number, template_code, template_param, fallback)

@@ -106,7 +106,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Pages that have their own full header — hide the MobileLayout nav bar
+  // Pages that have their own full header - hide the MobileLayout nav bar
   const hideHeader = location.pathname === '/dashboard/artist';
 
   const role = (profile?.role_type || profile?.role || '').toLowerCase();
@@ -128,7 +128,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     if (path === '/dashboard/business/payouts') return t('upgrade.payouts') || 'Payouts';
     if (path === '/dashboard/business/community') return t('upgrade.communityPosts') || 'Community';
     if (path === '/dashboard/business/tables') return t('upgrade.tableReservations') || 'Tables';
-    if (path === '/dashboard/business/recaps') return t('organizer.recaps') || 'Recaps';
+    if (path === '/dashboard/business/recaps') return t('artist.recaps.title') || 'Recaps';
     if (path.startsWith('/dashboard/business/events/') && path.endsWith('/edit')) return t('business.dashboard.editEvent') || 'Edit Event';
     if (path.startsWith('/dashboard/business/events/') && path.endsWith('/promoters')) return t('nav.promoters') || 'Promoters';
     if (path === '/dashboard/artist') return t('nav.dashboard') || 'Dashboard';
@@ -136,7 +136,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     if (path === '/dashboard/artist/performances') return t('artist.performances.title') || 'Gigs';
     if (path === '/dashboard/artist/analytics') return t('upgrade.analytics') || 'Analytics';
     if (path === '/dashboard/artist/community') return t('upgrade.fanFeed') || 'Fan Feed';
-    if (path === '/dashboard/artist/recaps') return t('artist.recaps') || 'Recaps';
+    if (path === '/dashboard/artist/recaps') return t('artist.recaps.title') || 'Recaps';
     if (path === '/dashboard/vendor') return t('nav.dashboard') || 'Dashboard';
     if (path === '/dashboard/vendor/products') return t('vendor.myProducts') || 'Products';
     if (path === '/dashboard/vendor/orders') return t('vendor.orders.navLabel') || 'Orders';
@@ -189,7 +189,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       return [
         { path: '/dashboard/artist/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
         { path: '/dashboard/artist/community', label: t('upgrade.fanFeed') || 'Fan Feed', icon: MessageSquare, locked: true, feature: 'fan_feed' },
-        { path: '/dashboard/artist/recaps', label: t('artist.recaps') || 'Recaps', icon: Video },
+        { path: '/dashboard/artist/recaps', label: t('artist.recaps.title') || 'Recaps', icon: Video },
         { path: '/subscriptions', label: t('nav.subscriptions') || 'Subscription', icon: Crown },
         { path: '/tickets', label: t('nav.myTickets') || 'My Tickets', icon: Ticket },
       ];
@@ -255,7 +255,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
-      {/* App Header — hidden on pages with their own header (e.g. Artist Dashboard) */}
+      {/* App Header - hidden on pages with their own header (e.g. Artist Dashboard) */}
       {!hideHeader && (
         <motion.header
           initial={{ y: 0 }}

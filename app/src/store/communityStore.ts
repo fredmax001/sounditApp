@@ -215,7 +215,7 @@ export const useCommunityStore = create<CommunityState>()(
                     });
                 } catch (error) {
                     console.error('Failed to fetch posts:', error);
-                    // Silent fail — UI shows empty state instead of alarming toast in production
+                    // Silent fail - UI shows empty state instead of alarming toast in production
                 } finally {
                     set({ isLoading: false });
                 }
@@ -256,7 +256,7 @@ export const useCommunityStore = create<CommunityState>()(
                     });
                 } catch (error) {
                     console.error('Failed to fetch section posts:', error);
-                    // Silent fail — UI shows empty state instead of alarming toast in production
+                    // Silent fail - UI shows empty state instead of alarming toast in production
                 } finally {
                     set({ isLoading: false });
                 }

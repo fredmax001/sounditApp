@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Broadcast Test Script — Send a test broadcast email via the Sound It API.
+Broadcast Test Script, Send a test broadcast email via the Sound It API.
 Run this on the production server where SMTP is configured.
 
 Usage:
@@ -92,7 +92,7 @@ def main():
     args = parser.parse_args()
     
     print("=" * 50)
-    print("Sound It — Broadcast Email Test")
+    print("Sound It, Broadcast Email Test")
     print("=" * 50)
     print(f"Target email: {args.email}")
     

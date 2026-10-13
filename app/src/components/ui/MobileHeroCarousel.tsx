@@ -1,5 +1,5 @@
 /**
- * MobileHeroCarousel — Full-width swipeable hero event cards
+ * MobileHeroCarousel - Full-width swipeable hero event cards
  * Auto-advancing with pagination dots, inspired by Eventix recommended section
  */
 import { useState, useEffect, useCallback, useRef } from 'react';

@@ -45,7 +45,7 @@ export default function MessageModal({ recipientId, recipientName, isOpen, onClo
           const convData = await createRes.json();
           conversationId = convData.id;
         } else if (createRes.status === 400) {
-          // Conversation may already exist — fetch and find it
+          // Conversation may already exist - fetch and find it
           const listRes = await fetch(`${API_BASE_URL}/messages/conversations`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           });

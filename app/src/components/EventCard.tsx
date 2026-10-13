@@ -70,7 +70,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
     minute: '2-digit'
   });
 
-  // Trending variant — tall cinematic card
+  // Trending variant - tall cinematic card
   if (isTrending) {
     return (
       <Link to={`/events/${event.id}`}>

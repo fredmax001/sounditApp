@@ -348,7 +348,7 @@ def cleanup_old_data(db: Session, days: int = 90) -> dict:
     """
     Clean up stale data from the database.
     Removes expired tokens, old notifications, and aged-out audit logs.
-    Safe to call from a scheduled task — all operations are idempotent.
+    Safe to call from a scheduled task, all operations are idempotent.
     """
     from datetime import datetime, timedelta, timezone
     from sqlalchemy import text

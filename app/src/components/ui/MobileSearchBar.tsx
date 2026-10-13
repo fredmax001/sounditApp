@@ -1,5 +1,5 @@
 /**
- * MobileSearchBar — Standalone mobile search input
+ * MobileSearchBar - Standalone mobile search input
  * Full-width with search icon and clear button
  */
 import { useState, useRef } from 'react';

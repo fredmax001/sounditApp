@@ -53,9 +53,39 @@
     "discovery": "Découverte",
     "menu": "Menu",
     "promoters": "Promoters",
-    "message": "Messages"
+    "message": "Messages",
+    "selectCity": "Sélectionner une ville"
   },
   "home": {
+    "brand": {
+      "heroBadge": "Sound It Entertainment",
+      "heroTagline": "Là où la culture rencontre l'innovation.",
+      "heroDescription": "Fondée en 2020, Sound It Entertainment connecte la culture africaine, le divertissement international et le marché chinois à travers la musique, les événements live, la technologie et la création.",
+      "exploreEvents": "Explorer les événements",
+      "learnAboutUs": "Découvrir qui nous sommes",
+      "enterApp": "Entrer dans l'app Sound it",
+      "whoKicker": "Qui sommes-nous",
+      "whoTitle": "Divertissement, technologie et culture, réunis en un seul écosystème.",
+      "whoText": "Sound It Entertainment Co. Ltd. a commencé sous le nom de Sound It Music Entertainment pendant la pandémie de COVID-19, avec des mix DJ, des collaborations artistiques, des sorties musicales et du contenu de divertissement. Elle s'est ensuite développée dans les événements live, la programmation culturelle, la technologie, les services créatifs et les initiatives communautaires, avec plus de 50 événements organisés à Shanghai, Hangzhou, Nanjing et Ningbo.",
+      "whoLink": "Lire notre histoire",
+      "whatKicker": "Ce que nous faisons",
+      "whatTitle": "Une entreprise, de nombreuses façons de créer",
+      "collabsKicker": "Collaborations internationales",
+      "collabsTitle": "Des artistes internationaux, un impact culturel",
+      "collabsText": "Sound It a collaboré avec des artistes, des DJ, des influenceurs et des personnalités du divertissement en Afrique, en Chine et sur les marchés internationaux.",
+      "collabsNames": "DJ Neptune, DJ Kaywise, DJ Akio, Eva Modika, Master Wen, DJ Melzi, Crayon, et plus",
+      "collabsLink": "Voir toutes les collaborations",
+      "joinKicker": "Rejoindre et participer",
+      "joinTitle": "Il y a une place pour vous chez Sound It",
+      "ecoKicker": "L'écosystème Sound It",
+      "ecoTitle": "Une marque, de nombreuses plateformes",
+      "ecoLink": "Explorer l'écosystème complet",
+      "statusActive": "Actif",
+      "statusDevelopment": "En développement",
+      "statusPlanned": "Planifié",
+      "statusPrelaunch": "Pré-lancement",
+      "statusPartner": "Projet partenaire"
+    },
     "hero": {
       "badge": "Pour les Étrangers en Chine",
       "badgeLoggedIn": "Bon retour! Exploration de {{city}}",
@@ -114,50 +144,299 @@
     "title": "Découvrir les Artistes",
     "subtitle": "Suis tes DJs et artistes préférés. Découvre de nouveaux talents et reste à jour sur leurs prochains shows.",
     "searchPlaceholder": "Recherche des artistes ou genres...",
-    "noArtistsFound": "No artists found"
+    "noArtistsFound": "No artists found",
+    "followed": "Suivi",
+    "unfollowed": "Désabonné",
+    "followFailed": "Échec de la mise à jour du suivi",
+    "loginToFollow": "Connectez-vous pour suivre les artistes"
   },
   "artist": {
+    "dashboard": {
+      "bookingUpdated": "Booking {{status}}",
+      "notAuthenticated": "Not authenticated",
+      "profileUpdated": "Profile updated successfully!",
+      "saveProfileFailed": "Failed to save profile changes",
+      "invalidImage": "Please select a valid image file",
+      "imageTooLarge": "Image size must be less than 5MB",
+      "avatarUpdated": "Avatar updated successfully!",
+      "avatarUploadFailed": "Failed to upload avatar",
+      "defaultArtistName": "Sound It Artist",
+      "verified": "Vérifié",
+      "applyForVerification": "Demander la vérification",
+      "verificationApplied": "Demande de vérification soumise",
+      "verificationApplyFailed": "Échec de la soumission de la demande",
+      "tab": {
+        "overview": "Overview",
+        "profile": "Profile Mgmt",
+        "bookings": "Bookings",
+        "music": "Music & Media",
+        "availability": "Disponibilité"
+      },
+      "pleaseLogIn": "Please Log In",
+      "logInDescription": "You need to be logged in to access your artist dashboard.",
+      "accountStatus": "Account Status",
+      "activePartner": "Active Partner",
+      "stat": {
+        "followers": "Followers",
+        "avgRating": "Avg Rating",
+        "totalGigs": "Total Gigs",
+        "earnings": "Earnings"
+      },
+      "upcomingPerformances": "Upcoming Performances",
+      "manageAll": "Manage All",
+      "hoursSet": "{{hours}}H Set",
+      "status": {
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "declined": "Declined",
+        "actionLocked": "Action Locked"
+      },
+      "noConfirmedGigs": "No confirmed gigs yet",
+      "checkBookings": "Check booking requests",
+      "quickActions": "Quick Actions",
+      "updateProfile": "Update Profile",
+      "updateProfileDesc": "Edit your artist bio and info",
+      "manageMusicLinks": "Manage Music Links",
+      "manageMusicLinksDesc": "Add your streaming platform URLs",
+      "editProfileTitle": "Edit Your Artist Profile",
+      "editProfileSubtitle": "Your profile is your digital business card for organizers.",
+      "label": {
+        "stageName": "Stage Name *",
+        "artistType": "Artist Type",
+        "genres": "Genres (Comma separated)",
+        "biography": "Biography",
+        "instagram": "Instagram URL",
+        "twitter": "Twitter URL",
+        "wechat": "WeChat Handle",
+        "phone": "Phone Number",
+        "spotifyUrl": "Spotify URL",
+        "appleMusicUrl": "Apple Music URL",
+        "soundcloudUrl": "SoundCloud URL",
+        "hearthisUrl": "HearThis.at URL",
+        "alipayQr": "Alipay QR Code",
+        "paymentInstructions": "Payment Instructions",
+        "wechatQr": "WeChat QR Code",
+        "youtubeUrl": "URL YouTube",
+        "audiomackUrl": "URL Audiomack"
+      },
+      "placeholder": {
+        "stageName": "Your artist name",
+        "genres": "e.g. Afrobeat, Amapiano, Hip-Hop",
+        "bio": "Tell organizers about your style and experience...",
+        "instagram": "https://instagram.com/yourname",
+        "twitter": "https://twitter.com/yourname",
+        "wechat": "Your WeChat ID",
+        "phone": "+86 138 0000 0000",
+        "spotify": "https://open.spotify.com/artist/...",
+        "appleMusic": "https://music.apple.com/artist/...",
+        "soundcloud": "https://soundcloud.com/yourname",
+        "hearthis": "https://hearthis.at/yourname",
+        "paymentInstructions": "e.g. Please include your name in the transfer note",
+        "youtube": "https://youtube.com/channel/...",
+        "audiomack": "https://audiomack.com/artist/..."
+      },
+      "artistType": {
+        "artist": "Artiste",
+        "dj": "DJ",
+        "mc": "MC",
+        "dancer": "Danseur",
+        "photographer": "Photographe"
+      },
+      "djMixTitle": "Mix DJ",
+      "djMixSubtitle": "Télécharge ton meilleur mix (max 10 min, 10 Mo)",
+      "uploadMix": "Télécharger le Mix",
+      "replaceMix": "Remplacer le Mix",
+      "mixUploaded": "Mix DJ téléchargé avec succès",
+      "mixUploadFailed": "Échec du téléchargement du mix DJ",
+      "mixTooLarge": "Le mix doit faire moins de 10 Mo",
+      "mixRequirements": "Accepté : MP3, M4A, WAV. Max 10 min, 10 Mo.",
+      "danceVideoTitle": "Vidéo de Danse",
+      "danceVideoSubtitle": "Télécharge ta vidéo de performance (max 3 min, 30 Mo)",
+      "uploadVideo": "Télécharger la Vidéo",
+      "replaceVideo": "Remplacer la Vidéo",
+      "videoUploaded": "Vidéo de danse téléchargée avec succès",
+      "videoUploadFailed": "Échec du téléchargement de la vidéo de danse",
+      "videoTooLarge": "La vidéo doit faire moins de 30 Mo",
+      "videoRequirements": "Accepté : MP4, MOV, WebM. Max 3 min, 30 Mo.",
+      "musicLinksTitle": "Liens Musicaux",
+      "musicLinksSubtitle": "Ajoute des liens vers tes morceaux sur les plateformes de streaming",
+      "addMusicLink": "Ajouter un Lien Musical",
+      "linkPlatform": "Plateforme",
+      "linkTitle": "Titre du Morceau",
+      "linkUrl": "URL",
+      "uploading": "Téléchargement...",
+      "charCount": "{{count}} / 500 characters",
+      "maxCharReached": "Maximum character count reached (500 characters)",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "musicTitle": "Music & Media",
+      "musicSubtitle": "Connect your streaming platforms and share your music with organizers.",
+      "yourMusicLinks": "Your Music Links",
+      "connectedPlatforms": "Your Connected Platforms",
+      "saveMusicLinks": "Save Music Links",
+      "bookingRequestsTitle": "Booking Requests",
+      "bookingRequestsSubtitle": "Manage and respond to event organizer invitations.",
+      "filter": {
+        "all": "all",
+        "pending": "pending",
+        "accepted": "accepted",
+        "rejected": "rejected",
+        "completed": "completed"
+      },
+      "noBookings": "No bookings yet",
+      "noBookingsFilter": "No {{filter}} bookings",
+      "noBookingsDescription": "Build your profile and share your artist link to start receiving booking requests.",
+      "noBookingsFilterDescription": "You don't have any {{filter}} bookings at the moment.",
+      "proposedFee": "Proposed Fee",
+      "rejectInvitation": "Reject Invitation",
+      "acceptGig": "Accept GIG",
+      "organizer": "Organizer",
+      "eventOrganizer": "Event Organizer",
+      "social": {
+        "instagram": "Instagram",
+        "twitter": "Twitter",
+        "phone": "Phone",
+        "wechatTitle": "WeChat: {{handle}}"
+      },
+      "newArtist": "New Artist",
+      "music": "Music",
+      "paymentSetupFailed": "Failed to save payment setup",
+      "paymentSetupSaved": "Payment setup saved successfully",
+      "paymentSetupSubtitle": "Upload your QR codes so organizers can pay you directly",
+      "paymentSetupTitle": "Payment Setup",
+      "remove": "Remove",
+      "savePaymentSetup": "Save Payment Setup",
+      "uploadQr": "Upload QR",
+      "bookingRequests": "Booking Requests",
+      "manageBookingRequests": "Manage and respond to event organizer invitations.",
+      "availabilityTitle": "Ma disponibilité",
+      "availabilitySubtitle": "Cliquez sur une date pour définir votre disponibilité.",
+      "unavailable": "Indisponible",
+      "selectedDate": "Date sélectionnée",
+      "availabilitySaved": "Disponibilité mise à jour",
+      "availabilitySaveFailed": "Échec de la mise à jour de la disponibilité",
+      "availabilityCleared": "Disponibilité effacée",
+      "availabilityClearFailed": "Échec de l'effacement de la disponibilité"
+    },
     "bookings": {
       "title": "Réservations",
-      "subtitle": "Gérez les demandes de réservation des organisateurs",
+      "subtitle": "Gérez vos demandes de concerts",
       "filter": {
-        "all": "Toutes",
+        "all": "Tous",
         "pending": "En attente",
-        "accepted": "Acceptée",
-        "completed": "Terminée",
-        "rejected": "Refusée"
+        "accepted": "Accepté",
+        "completed": "Terminé",
+        "rejected": "Refusé"
       },
       "stat": {
         "total": "Total",
         "pending": "En attente",
-        "accepted": "Acceptée",
-        "completed": "Terminée"
+        "accepted": "Accepté",
+        "completed": "Terminé"
       },
-      "noBookings": "Aucune réservation",
-      "noBookingsDescription": "Les demandes de réservation des organisateurs apparaîtront ici.",
+      "noBookings": "Aucune réservation pour le moment",
+      "noBookingsDescription": "Les demandes de réservation des organisateurs d'événements apparaîtront ici.",
+      "loadFailed": "Échec du chargement des réservations",
+      "loadError": "Erreur lors du chargement des réservations",
+      "statusUpdated": "Statut mis à jour : {{status}}",
+      "updateStatusFailed": "Échec de la mise à jour du statut",
+      "updateError": "Erreur lors de la mise à jour du statut",
+      "paymentPending": "Paiement en attente",
       "eventDetails": "Détails de l'événement",
       "type": "Type",
       "budget": "Budget",
       "duration": "Durée",
       "hours": "heures",
       "location": "Lieu",
-      "paymentStatus": "Statut de paiement",
-      "contactInfo": "Coordonnées",
+      "paymentStatus": "Statut du paiement",
+      "contactInfo": "Informations de contact",
       "messageFromOrganizer": "Message de l'organisateur",
       "paymentScreenshot": "Capture d'écran du paiement",
-      "paymentPending": "En attente",
-      "awaitingPayment": "En attente du paiement de l'organisateur",
+      "awaitingPayment": "En attente de confirmation du paiement",
       "accept": "Accepter",
       "decline": "Refuser",
-      "confirmDecline": "Confirmer le refus",
+      "markCompleted": "Marquer comme terminé",
       "cancel": "Annuler",
-      "rejectionReasonPlaceholder": "Optionnel : indiquez au client pourquoi vous refusez (sera inclus dans l'email)",
-      "markCompleted": "Marquer comme terminée",
-      "loadFailed": "Échec du chargement des réservations",
-      "loadError": "Erreur lors du chargement des réservations",
-      "updateStatusFailed": "Échec de la mise à jour du statut",
-      "updateError": "Erreur lors de la mise à jour du statut",
-      "statusUpdated": "Statut de la réservation mis à jour : {{status}}"
+      "confirmDecline": "Refuser cette réservation ?",
+      "rejectionReasonPlaceholder": "Motif du refus (facultatif)"
+    },
+    "performances": {
+      "title": "Performances",
+      "subtitle": "Vos concerts à venir et passés",
+      "totalPerformances": "Total des performances",
+      "completed": "Terminées",
+      "totalEarnings": "Gains totaux",
+      "upcomingGigs": "Concerts à venir",
+      "noUpcoming": "Aucun concert à venir",
+      "pastPerformances": "Performances passées",
+      "noCompleted": "Aucune performance terminée",
+      "hoursSet": "Set de {{hours}}h",
+      "fallbackEvent": "Événement",
+      "fallbackVenue": "Lieu",
+      "loadError": "Échec du chargement des performances"
+    },
+    "analytics": {
+      "loadError": "Failed to load analytics",
+      "title": "Analytics",
+      "subtitle": "Track your performance metrics",
+      "refresh": "Refresh",
+      "followers": "Followers",
+      "totalGigs": "Total Gigs",
+      "earnings": "Earnings",
+      "rating": "Rating",
+      "monthlyOverview": "Monthly Overview",
+      "month": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun"
+      },
+      "recentBookings": "Recent Bookings",
+      "noBookings": "No bookings yet",
+      "genrePerformance": "Genre Performance",
+      "gigCount": "{{count}} gigs",
+      "genre": {
+        "afrobeat": "Afrobeat",
+        "amapiano": "Amapiano",
+        "hipHop": "Hip-Hop"
+      }
+    },
+    "recaps": {
+      "title": "Rétrospectives",
+      "subtitle": "Partagez des photos et vidéos de vos performances",
+      "uploadRecap": "Télécharger une rétrospective",
+      "uploadFirstRecap": "Téléchargez votre première rétrospective",
+      "modalTitle": "Télécharger une rétrospective",
+      "eventLabel": "Événement",
+      "eventPlaceholder": "Sélectionnez un événement",
+      "typeLabel": "Type",
+      "type": {
+        "image": "Image",
+        "video": "Vidéo"
+      },
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Saisissez un titre",
+      "images": "Images",
+      "videos": "Vidéos",
+      "dropzone": "Glissez-déposez des fichiers ici, ou cliquez pour sélectionner",
+      "maxFileSize": "Taille maximale : 50 Mo",
+      "uploadSuccess": "Rétrospective téléchargée avec succès",
+      "uploadFailed": "Échec du téléchargement",
+      "uploadError": "Erreur de téléchargement",
+      "deleteSuccess": "Rétrospective supprimée",
+      "deleteFailed": "Échec de la suppression de la rétrospective",
+      "deleteConfirm": "Supprimer cette rétrospective ?",
+      "noRecaps": "Aucune rétrospective pour le moment",
+      "noRecapsDescription": "Téléchargez des photos et vidéos de vos événements pour créer votre portfolio",
+      "totalRecaps": "Total des rétrospectives",
+      "totalViews": "Total des vues",
+      "viewCount": "{{count}} vues"
+    },
+    "community": {
+      "title": "Communauté",
+      "subtitle": "Connectez-vous avec vos fans"
     }
   },
   "food": {
@@ -237,7 +516,10 @@
     "firstName": "Prénom",
     "lastName": "Nom",
     "actions": "Actions",
-    "none": "Aucun"
+    "none": "Aucun",
+    "openOriginal": "Ouvrir l'original",
+    "preview": "Aperçu",
+    "remove": "Retirer"
   },
   "auth": {
     "login": {
@@ -258,6 +540,7 @@
       "loginSuccessful": "Login successful!",
       "googleLoginFailed": "Google login failed",
       "googleLoginError": "Google login error",
+      "googleSignIn": "Continuer avec Google",
       "cityLabel": "Select Your City in China",
       "cityPlaceholder": "Choose a city...",
       "cityHint": "We'll show you events and venues in your city",
@@ -347,12 +630,14 @@
       "verifyAndContinue": "Verify & Continue",
       "goBackEdit": "Go back to edit information",
       "orSignUpWith": "Or sign up with",
+      "googleSignUp": "S’inscrire avec Google",
       "googleSignUpFailed": "Google sign up failed",
       "googleSignUpError": "Google sign up error",
       "alreadyHaveAccount": "Already have an account?",
       "signInLink": "Sign in",
       "email": "Email",
-      "phone": "Phone"
+      "phone": "Phone",
+      "smsConsent": "J'accepte de recevoir des notifications SMS"
     },
     "email": "Email",
     "password": "Mot de passe",
@@ -455,7 +740,10 @@
       "backToSignUp": "Back to Sign Up",
       "infoLine1": "For security, verification codes expire in 10 minutes.",
       "infoLine2": "Check your spam folder if you don't see the email."
-    }
+    },
+    "goToLogin": "Aller à la connexion",
+    "pleaseLoginAgain": "Veuillez vous reconnecter",
+    "sessionExpired": "Votre session a expiré"
   },
   "settings": {
     "title": "Paramètres",
@@ -481,7 +769,8 @@
     "deleteAccount": "Supprimer le Compte",
     "deleteAccountDesc": "Supprime définitivement ton compte et toutes tes données",
     "saveSettings": "Enregistrer les Paramètres",
-    "settingsSaved": "Paramètres enregistrés avec succès"
+    "settingsSaved": "Paramètres enregistrés avec succès",
+    "city": "Ville"
   },
   "footer": {
     "tagline": "La plateforme ultime pour les étrangers en Chine à la découverte d'événements Afrobeats, de cuisine africaine et de connexions avec des DJ. Votre chez-vous loin de chez vous.",
@@ -491,9 +780,12 @@
       "aboutUs": "À propos",
       "careers": "Carrières",
       "press": "Presse",
-      "contact": "Contact"
+      "contact": "Contact",
+      "getApp": "Obtenir l'application"
     },
-    "legal": "Mentions Légales",
+    "legal": {
+      "title": "Mentions légales"
+    },
     "copyright": "Sound It. Fait pour les étrangers en Chine.",
     "discover": {
       "title": "Découvrir",
@@ -502,7 +794,9 @@
       "cityGuide": "Guide de la ville",
       "community": "Communauté",
       "food": "Gastronomie",
-      "discovery": "Découverte"
+      "discovery": "Découverte",
+      "recaps": "Rétrospectives",
+      "vendors": "Vendeurs"
     },
     "support": {
       "title": "Support",
@@ -641,7 +935,9 @@
       "pay": "Payer",
       "fillRequired": "Veuillez remplir tous les champs obligatoires",
       "guestOrderCreated": "Billet invité créé. Veuillez effectuer le paiement pour confirmer.",
-      "guestOrderFailed": "Échec de la création du billet invité"
+      "guestOrderFailed": "Échec de la création du billet invité",
+      "buyerConfirmed": "Confirmé",
+      "buyerConfirmedHint": "L'acheteur a confirmé le paiement dans l'application, vérifiez dans Alipay/WeChat puis approuvez"
     },
     "profile": {
       "businessProfileUpdated": "Business profile updated",
@@ -720,7 +1016,8 @@
       "accountDetailsPlaceholder": "Enter bank account number / Alipay ID / WeChat ID",
       "cancel": "Cancel",
       "submitting": "Submitting...",
-      "submitRequest": "Submit Request"
+      "submitRequest": "Submit Request",
+      "loadError": "Échec du chargement des paiements"
     },
     "staff": {
       "pleaseEnterEmail": "Please enter an email address",
@@ -783,7 +1080,9 @@
       "invitationAccepted": "Invitation acceptée",
       "invitationRejected": "Invitation refusée",
       "failedToAccept": "Échec de l'acceptation",
-      "failedToReject": "Échec du refus"
+      "failedToReject": "Échec du refus",
+      "saveStaff": "Enregistrer le personnel",
+      "saving": "Enregistrement..."
     },
     "tableReservations": {
       "failedToLoadData": "Failed to load data",
@@ -910,253 +1209,6 @@
       "copyCode": "Copier le code",
       "copyLink": "Copier le lien",
       "showQr": "Afficher le QR"
-    }
-  },
-  "artist": {
-    "dashboard": {
-      "bookingUpdated": "Booking {{status}}",
-      "notAuthenticated": "Not authenticated",
-      "profileUpdated": "Profile updated successfully!",
-      "saveProfileFailed": "Failed to save profile changes",
-      "invalidImage": "Please select a valid image file",
-      "imageTooLarge": "Image size must be less than 5MB",
-      "avatarUpdated": "Avatar updated successfully!",
-      "avatarUploadFailed": "Failed to upload avatar",
-      "defaultArtistName": "Sound It Artist",
-      "verified": "Vérifié",
-      "applyForVerification": "Demander la vérification",
-      "verificationApplied": "Demande de vérification soumise",
-      "verificationApplyFailed": "Échec de la soumission de la demande",
-      "tab": {
-        "overview": "Overview",
-        "profile": "Profile Mgmt",
-        "bookings": "Bookings",
-        "music": "Music & Media"
-      },
-      "pleaseLogIn": "Please Log In",
-      "logInDescription": "You need to be logged in to access your artist dashboard.",
-      "accountStatus": "Account Status",
-      "activePartner": "Active Partner",
-      "stat": {
-        "followers": "Followers",
-        "avgRating": "Avg Rating",
-        "totalGigs": "Total Gigs",
-        "earnings": "Earnings"
-      },
-      "upcomingPerformances": "Upcoming Performances",
-      "manageAll": "Manage All",
-      "hoursSet": "{{hours}}H Set",
-      "status": {
-        "confirmed": "Confirmed",
-        "completed": "Completed",
-        "declined": "Declined",
-        "actionLocked": "Action Locked"
-      },
-      "noConfirmedGigs": "No confirmed gigs yet",
-      "checkBookings": "Check booking requests",
-      "quickActions": "Quick Actions",
-      "updateProfile": "Update Profile",
-      "updateProfileDesc": "Edit your artist bio and info",
-      "manageMusicLinks": "Manage Music Links",
-      "manageMusicLinksDesc": "Add your streaming platform URLs",
-      "editProfileTitle": "Edit Your Artist Profile",
-      "editProfileSubtitle": "Your profile is your digital business card for organizers.",
-      "label": {
-        "stageName": "Stage Name *",
-        "artistType": "Artist Type",
-        "genres": "Genres (Comma separated)",
-        "biography": "Biography",
-        "instagram": "Instagram URL",
-        "twitter": "Twitter URL",
-        "wechat": "WeChat Handle",
-        "phone": "Phone Number",
-        "spotifyUrl": "Spotify URL",
-        "appleMusicUrl": "Apple Music URL",
-        "soundcloudUrl": "SoundCloud URL",
-        "hearthisUrl": "HearThis.at URL",
-        "alipayQr": "Alipay QR Code",
-        "paymentInstructions": "Payment Instructions",
-        "wechatQr": "WeChat QR Code",
-        "youtubeUrl": "URL YouTube",
-        "audiomackUrl": "URL Audiomack"
-      },
-      "placeholder": {
-        "stageName": "Your artist name",
-        "genres": "e.g. Afrobeat, Amapiano, Hip-Hop",
-        "bio": "Tell organizers about your style and experience...",
-        "instagram": "https://instagram.com/yourname",
-        "twitter": "https://twitter.com/yourname",
-        "wechat": "Your WeChat ID",
-        "phone": "+86 138 0000 0000",
-        "spotify": "https://open.spotify.com/artist/...",
-        "appleMusic": "https://music.apple.com/artist/...",
-        "soundcloud": "https://soundcloud.com/yourname",
-        "hearthis": "https://hearthis.at/yourname",
-        "paymentInstructions": "e.g. Please include your name in the transfer note",
-        "youtube": "https://youtube.com/channel/...",
-        "audiomack": "https://audiomack.com/artist/..."
-      },
-      "artistType": {
-        "artist": "Artiste",
-        "dj": "DJ",
-        "mc": "MC",
-        "dancer": "Danseur",
-        "photographer": "Photographe"
-      },
-      "djMixTitle": "Mix DJ",
-      "djMixSubtitle": "Télécharge ton meilleur mix (max 10 min, 10 Mo)",
-      "uploadMix": "Télécharger le Mix",
-      "replaceMix": "Remplacer le Mix",
-      "mixUploaded": "Mix DJ téléchargé avec succès",
-      "mixUploadFailed": "Échec du téléchargement du mix DJ",
-      "mixTooLarge": "Le mix doit faire moins de 10 Mo",
-      "mixRequirements": "Accepté : MP3, M4A, WAV. Max 10 min, 10 Mo.",
-      "danceVideoTitle": "Vidéo de Danse",
-      "danceVideoSubtitle": "Télécharge ta vidéo de performance (max 3 min, 30 Mo)",
-      "uploadVideo": "Télécharger la Vidéo",
-      "replaceVideo": "Remplacer la Vidéo",
-      "videoUploaded": "Vidéo de danse téléchargée avec succès",
-      "videoUploadFailed": "Échec du téléchargement de la vidéo de danse",
-      "videoTooLarge": "La vidéo doit faire moins de 30 Mo",
-      "videoRequirements": "Accepté : MP4, MOV, WebM. Max 3 min, 30 Mo.",
-      "musicLinksTitle": "Liens Musicaux",
-      "musicLinksSubtitle": "Ajoute des liens vers tes morceaux sur les plateformes de streaming",
-      "addMusicLink": "Ajouter un Lien Musical",
-      "linkPlatform": "Plateforme",
-      "linkTitle": "Titre du Morceau",
-      "linkUrl": "URL",
-      "uploading": "Téléchargement...",
-      "charCount": "{{count}} / 500 characters",
-      "maxCharReached": "Maximum character count reached (500 characters)",
-      "saving": "Saving...",
-      "saveChanges": "Save Changes",
-      "musicTitle": "Music & Media",
-      "musicSubtitle": "Connect your streaming platforms and share your music with organizers.",
-      "yourMusicLinks": "Your Music Links",
-      "connectedPlatforms": "Your Connected Platforms",
-      "saveMusicLinks": "Save Music Links",
-      "bookingRequestsTitle": "Booking Requests",
-      "bookingRequestsSubtitle": "Manage and respond to event organizer invitations.",
-      "filter": {
-        "all": "all",
-        "pending": "pending",
-        "accepted": "accepted",
-        "rejected": "rejected",
-        "completed": "completed"
-      },
-      "noBookings": "No bookings yet",
-      "noBookingsFilter": "No {{filter}} bookings",
-      "noBookingsDescription": "Build your profile and share your artist link to start receiving booking requests.",
-      "noBookingsFilterDescription": "You don't have any {{filter}} bookings at the moment.",
-      "proposedFee": "Proposed Fee",
-      "rejectInvitation": "Reject Invitation",
-      "acceptGig": "Accept GIG",
-      "organizer": "Organizer",
-      "eventOrganizer": "Event Organizer",
-      "social": {
-        "instagram": "Instagram",
-        "twitter": "Twitter",
-        "phone": "Phone",
-        "wechatTitle": "WeChat: {{handle}}"
-      },
-      "newArtist": "New Artist",
-      "music": "Music",
-      "paymentSetupFailed": "Failed to save payment setup",
-      "paymentSetupSaved": "Payment setup saved successfully",
-      "paymentSetupSubtitle": "Upload your QR codes so organizers can pay you directly",
-      "paymentSetupTitle": "Payment Setup",
-      "remove": "Remove",
-      "savePaymentSetup": "Save Payment Setup",
-      "uploadQr": "Upload QR",
-      "bookingRequests": "Booking Requests",
-      "manageBookingRequests": "Manage and respond to event organizer invitations."
-    },
-    "bookings": {
-      "title": "Réservations",
-      "subtitle": "Gérez vos demandes de concerts",
-      "filter": {
-        "all": "Tous",
-        "pending": "En attente",
-        "accepted": "Accepté",
-        "completed": "Terminé",
-        "rejected": "Refusé"
-      },
-      "stat": {
-        "total": "Total",
-        "pending": "En attente",
-        "accepted": "Accepté",
-        "completed": "Terminé"
-      },
-      "noBookings": "Aucune réservation pour le moment",
-      "noBookingsDescription": "Les demandes de réservation des organisateurs d'événements apparaîtront ici.",
-      "loadFailed": "Échec du chargement des réservations",
-      "loadError": "Erreur lors du chargement des réservations",
-      "statusUpdated": "Statut mis à jour : {{status}}",
-      "updateStatusFailed": "Échec de la mise à jour du statut",
-      "updateError": "Erreur lors de la mise à jour du statut",
-      "paymentPending": "Paiement en attente",
-      "eventDetails": "Détails de l'événement",
-      "type": "Type",
-      "budget": "Budget",
-      "duration": "Durée",
-      "hours": "heures",
-      "location": "Lieu",
-      "paymentStatus": "Statut du paiement",
-      "contactInfo": "Informations de contact",
-      "messageFromOrganizer": "Message de l'organisateur",
-      "paymentScreenshot": "Capture d'écran du paiement",
-      "awaitingPayment": "En attente de confirmation du paiement",
-      "accept": "Accepter",
-      "decline": "Refuser",
-      "markCompleted": "Marquer comme terminé"
-    },
-    "performances": {
-      "title": "Performances",
-      "subtitle": "Vos concerts à venir et passés",
-      "totalPerformances": "Total des performances",
-      "completed": "Terminées",
-      "totalEarnings": "Gains totaux",
-      "upcomingGigs": "Concerts à venir",
-      "noUpcoming": "Aucun concert à venir",
-      "pastPerformances": "Performances passées",
-      "noCompleted": "Aucune performance terminée",
-      "hoursSet": "Set de {{hours}}h",
-      "fallbackEvent": "Événement",
-      "fallbackVenue": "Lieu",
-      "loadError": "Échec du chargement des performances"
-    },
-    "analytics": {
-      "loadError": "Failed to load analytics",
-      "title": "Analytics",
-      "subtitle": "Track your performance metrics",
-      "refresh": "Refresh",
-      "followers": "Followers",
-      "totalGigs": "Total Gigs",
-      "earnings": "Earnings",
-      "rating": "Rating",
-      "monthlyOverview": "Monthly Overview",
-      "month": {
-        "jan": "Jan",
-        "feb": "Feb",
-        "mar": "Mar",
-        "apr": "Apr",
-        "may": "May",
-        "jun": "Jun"
-      },
-      "recentBookings": "Recent Bookings",
-      "noBookings": "No bookings yet",
-      "genrePerformance": "Genre Performance",
-      "gigCount": "{{count}} gigs",
-      "genre": {
-        "afrobeat": "Afrobeat",
-        "amapiano": "Amapiano",
-        "hipHop": "Hip-Hop"
-      }
-    },
-    "recaps": "Retrospectives",
-    "community": {
-      "title": "Communauté",
-      "subtitle": "Connectez-vous avec vos fans"
     }
   },
   "organizer": {
@@ -1340,7 +1392,8 @@
       "enablePromotersDescription": "Permettez aux promoteurs de partager votre événement et de gagner des commissions",
       "commissionRate": "Taux de commission (%)",
       "discountPercent": "Réduction parrainage (%)",
-      "maxDiscountAmount": "Montant max de réduction"
+      "maxDiscountAmount": "Montant max de réduction",
+      "ticketPriceLabel": "Prix du billet"
     },
     "eventPromoters": {
       "title": "Gestion des Promoteurs",
@@ -1395,7 +1448,9 @@
       "loadError": "Échec du chargement des promoteurs",
       "selectEvent": "Sélectionner un événement",
       "optional": "Optionnel",
-      "scanQrToShare": "Scannez ou téléchargez ce QR code pour partager le lien"
+      "scanQrToShare": "Scannez ou téléchargez ce QR code pour partager le lien",
+      "promoterName": "Nom du promoteur",
+      "promoterNamePlaceholder": "Saisissez le nom du promoteur"
     },
     "manageEvents": {
       "loadErrorToast": "Failed to load events",
@@ -1554,6 +1609,44 @@
       "saveChanges": "Save Changes",
       "createRecapButton": "Create Recap",
       "back": "Back"
+    },
+    "broadcast": {
+      "modalTitle": "Annonce de diffusion",
+      "modalSubtitleEvent": "Notifier les détenteurs de billets et abonnés pour {{event}}",
+      "modalSubtitleGeneral": "Notifiez vos participants et abonnés par e-mail et via l'app",
+      "targetAudienceLabel": "Public cible",
+      "targetAttendees": "Détenteurs de billets",
+      "targetFollowers": "Abonnés au profil",
+      "targetBoth": "Détenteurs et abonnés",
+      "calculatingRecipients": "Estimation des destinataires...",
+      "estimatedRecipients": "Destinataires estimés : {{count}} utilisateurs",
+      "quickPresetsLabel": "Préréglages rapides",
+      "presetVenueBtn": "Changement de lieu",
+      "presetTimeBtn": "Mise à jour de l'horaire",
+      "presetNoticeBtn": "Avis général",
+      "titleLabel": "Titre / objet de l'annonce",
+      "titlePlaceholder": "Ex. : mise à jour du lieu de la tournée",
+      "messageLabel": "Contenu du message",
+      "messagePlaceholder": "Écrivez votre message ici... Incluez tous les détails importants comme la nouvelle adresse, les dates ou les consignes d'entrée.",
+      "channelsLabel": "Canaux de diffusion",
+      "channelEmail": "Diffusion par e-mail",
+      "channelInApp": "Dans l'app et notifications push",
+      "sendingBtn": "Envoi de la diffusion...",
+      "sendBtn": "Envoyer la diffusion",
+      "presetVenueTitle": "Mise à jour du lieu, {{event}}",
+      "presetVenueMessage": "Chers participants,\n\nVeuillez noter que le lieu de notre prochain événement a été mis à jour.\n\nNouveau lieu : [Insérez le nom et l'adresse du nouveau lieu]\nDate et heure : [Confirmez la date et l'heure]\n\nAu plaisir de vous y voir !",
+      "presetTimeTitle": "Mise à jour de l'horaire, {{event}}",
+      "presetTimeMessage": "Chers participants,\n\nVeuillez noter une mise à jour importante de l'horaire de notre événement.\n\nNouvelle ouverture des portes : [Insérez l'heure]\nPerformance principale : [Insérez l'heure]\n\nVeuillez ajuster votre arrivée en conséquence.",
+      "presetNoticeTitle": "Avis important, {{event}}",
+      "presetNoticeMessage": "Chers invités,\n\nNous avons une annonce importante concernant notre prochaine expérience.\n\n[Insérez les détails de l'annonce]\n\nMerci de votre soutien !",
+      "errorMissingTitle": "Veuillez saisir un titre d'annonce",
+      "errorMissingMessage": "Veuillez saisir le contenu du message",
+      "errorMissingChannel": "Veuillez sélectionner au moins un canal de diffusion (e-mail ou application)",
+      "errorSelectEvent": "Veuillez sélectionner un événement",
+      "selectEventLabel": "Sélectionner un événement",
+      "selectEventPrompt": "Sélectionnez un événement",
+      "successToast": "Diffusion envoyée avec succès à {{count}} destinataires !",
+      "failedToast": "Échec de l'envoi de la diffusion"
     }
   },
   "vendor": {
@@ -1714,7 +1807,9 @@
       "apply": "Postuler",
       "noEventsAvailable": "Aucun événement disponible pour candidature de stand.",
       "boothAppliedSuccess": "Candidature de stand soumise !",
-      "boothApplyError": "Échec de la candidature de stand"
+      "boothApplyError": "Échec de la candidature de stand",
+      "approved": "Approuvé",
+      "pendingApproval": "En attente de validation"
     },
     "products": {
       "title": "My Products",
@@ -2021,7 +2116,12 @@
       "browseAndBook": "Browse events and book your first ticket!",
       "pastEventsAppearHere": "Your past events will appear here",
       "browseEvents": "Browse Events",
-      "noQrAvailable": "No QR available"
+      "noQrAvailable": "No QR available",
+      "statusPendingApproval": "En attente d'approbation",
+      "approved": "Approuvé",
+      "pending": "En attente",
+      "rejected": "Rejeté",
+      "ticket": "Billet"
     },
     "favorites": {
       "failedToLoadFavorites": "Failed to load favorites",
@@ -2071,7 +2171,9 @@
       "noFollowingYet": "No following yet",
       "whenPeopleFollowYou": "When people follow you, they'll appear here. Share your profile to grow your network!",
       "explorePlatform": "Explore the platform to find and follow your favorite DJs, artists, and event organizers.",
-      "findPeople": "Find People"
+      "findPeople": "Find People",
+      "follower": "Abonné",
+      "unfollowed": "Désabonné"
     }
   },
   "admin": {
@@ -2322,7 +2424,8 @@
       "title": "review Events",
       "organizedByLabel": "Organized by",
       "featureOnHomepageTitle": "Feature on Homepage",
-      "unknown": "N/A"
+      "unknown": "N/A",
+      "featuredCount": "En vedette"
     },
     "cmsContent": {
       "actions": "Actions",
@@ -2442,7 +2545,10 @@
       "subtitle": "Manage and review",
       "failedToUpdateStatus": "Failed to update status",
       "adPaused": "ad paused",
-      "allPositions": "All Positions"
+      "allPositions": "All Positions",
+      "positionArtists": "Page Artistes",
+      "positionHomepageHero": "Héros de la page d'accueil",
+      "positionHomepageSidebar": "Barre latérale de l'accueil"
     },
     "adminSubscriptions": {
       "failedToLoadSubscriptions": "Failed to load subscriptions",
@@ -2503,7 +2609,10 @@
       "cityNameLabel": "City Name",
       "platformOverrides": "Platform Overrides",
       "addNewCity": "Add New City",
-      "failedToResetCache": "Failed to reset cache"
+      "failedToResetCache": "Failed to reset cache",
+      "cityAdded": "Ville ajoutée",
+      "cityRemoved": "Ville supprimée",
+      "confirmRemoveCity": "Supprimer cette ville ?"
     },
     "manageBookings": {
       "statusCompleted": "Completed",
@@ -2695,7 +2804,9 @@
       "approveForReleaseTitle": "Approve for Release",
       "failedToRejectPayout": "Failed to reject payout",
       "awaitingActionLabel": "Awaiting Action",
-      "entityEventHeader": "Event"
+      "entityEventHeader": "Event",
+      "commissionLabel": "Commission",
+      "netLabel": "Net"
     },
     "withdrawalRequests": {
       "withdrawalApproved": "Withdrawal approved",
@@ -2801,7 +2912,8 @@
       "entityType.event": "Événement",
       "entityType.vendor": "Fournisseur",
       "documentsCount": "{{count}} documents",
-      "documentsCount_one": "{{count}} document"
+      "documentsCount_one": "{{count}} document",
+      "issuedAgo": "Délivré il y a {{time}}"
     },
     "apiIntegrations": {
       "failedToUpdateIntegration": "Failed to update integration",
@@ -2939,7 +3051,9 @@
       "title": "reports Moderation",
       "failedToLoadReports": "Failed to load reports",
       "failedToDismissReport": "Failed to dismiss report",
-      "allStatus": "All Status"
+      "allStatus": "All Status",
+      "reportOfType": "Signalement de type {{type}}",
+      "reportedBy": "Signalé par"
     },
     "securityLogs": {
       "last30Days": "Last 30 Days",
@@ -2965,7 +3079,10 @@
       "action.update": "update",
       "last24Hours": "Last 24 Hours",
       "title": "security Logs",
-      "allActions": "all Actions"
+      "allActions": "all Actions",
+      "noLogs": "Aucun journal de sécurité trouvé",
+      "noLogsHint": "Les événements de sécurité apparaîtront ici",
+      "unknownUser": "Utilisateur inconnu"
     },
     "manageRecaps": {
       "published": "Published",
@@ -3023,7 +3140,7 @@
       "details": "Détails de la notification",
       "resend": "Renvoyer",
       "tapToView": "Cliquez pour voir les détails",
-      "loadedForResend": "Chargé dans le formulaire — vérifiez puis cliquez sur Envoyer",
+      "loadedForResend": "Chargé dans le formulaire, vérifiez puis cliquez sur Envoyer",
       "recipients": "Destinataires",
       "inAppDelivered": "Notifications in-app livrées",
       "pushDelivered": "Push livrées",
@@ -3082,6 +3199,28 @@
       "hint": "Hint",
       "title": "simple Test",
       "description": "Description"
+    },
+    "introScreen": {
+      "title": "Écran d'introduction",
+      "subtitle": "Configurez l'écran d'introduction affiché aux nouveaux visiteurs",
+      "enabled": "Activé",
+      "enabledHint": "Afficher l'écran d'introduction aux nouveaux visiteurs",
+      "logo": "Logo",
+      "uploadLogo": "Télécharger le logo",
+      "logoUploaded": "Logo téléchargé",
+      "logoUrlPlaceholder": "ou collez une URL de logo",
+      "onlyImages": "Seuls les fichiers image sont autorisés",
+      "imageTooLarge": "L'image est trop grande (max 5 Mo)",
+      "preview": "Aperçu",
+      "previewHint": "Voici à quoi ressemblera l'écran d'introduction",
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Saisissez le titre d'introduction",
+      "taglineLabel": "Slogan",
+      "taglinePlaceholder": "Saisissez le slogan",
+      "saved": "Paramètres de l'écran d'introduction enregistrés",
+      "saveFailed": "Échec de l'enregistrement des paramètres",
+      "uploadFailed": "Échec du téléchargement du logo",
+      "failedToLoad": "Échec du chargement des paramètres d'introduction"
     }
   },
   "about": {
@@ -3343,7 +3482,7 @@
     "whyItMattersTitle": "POURQUOI CELA COMPTE POUR LES",
     "whyItMattersHighlight": "MARQUES",
     "whyItMattersSubtitle": "Derrière chaque événement Sound It, il y a :",
-    "whyItMattersClosing": "Nous ne sommes pas de simples organisateurs d'événements — nous sommes une entreprise de divertissement organisée qui construit des expériences culturelles durables.",
+    "whyItMattersClosing": "Nous ne sommes pas de simples organisateurs d'événements, nous sommes une entreprise de divertissement organisée qui construit des expériences culturelles durables.",
     "collaborators": [],
     "strategicValueItems": [
       "Réservations internationales éprouvées",
@@ -3779,7 +3918,7 @@
       "purposeTitle": "1. Objet",
       "purposeContent": "<p>Le centre d'aide est conçu pour fournir aux utilisateurs des conseils accessibles concernant l'utilisation des services Sound It, y compris la découverte d'événements, la billetterie, la gestion des comptes et la participation à la plateforme en tant qu'organisateur, artiste ou vendeur.</p><p><strong>Cette ressource est de nature informative et ne constitue pas un conseil juridique, financier ou contractuel.</strong></p>",
       "categoriesTitle": "2. Catégories du centre d'aide",
-      "categoriesContent": "<p>Les utilisateurs peuvent accéder au contenu d'assistance organisé selon les catégories suivantes :</p><ul><li><strong>Tout</strong> — Vue consolidée de tous les articles d'aide et ressources disponibles</li><li><strong>Premiers pas</strong> — Couvre les procédures d'intégration, y compris l'inscription au compte, la configuration du profil et la navigation générale sur la plateforme</li><li><strong>Billets et paiements</strong> — Inclut des conseils sur l'achat de billets, les modes de paiement acceptés, le traitement des transactions, les confirmations et les politiques de remboursement générales. Sound It facilite les transactions mais n'est pas nécessairement le marchand dans tous les cas. Les litiges de paiement peuvent nécessiter une résolution auprès de fournisseurs de paiement tiers ou des organisateurs d'événements</li><li><strong>Compte</strong> — Fournit une assistance pour l'accès au compte, la mise à jour du profil, la gestion des identifiants et les pratiques de sécurité</li><li><strong>Organisateurs</strong> — Inclut des instructions et des bonnes pratiques pour la création, la gestion, la promotion d'événements et l'engagement du public. Les organisateurs sont seuls responsables de l'exactitude des détails de l'événement, de la tarification, de la conformité aux lois applicables et de l'exécution des services annoncés</li><li><strong>Artistes</strong> — Fournit des conseils pour les profils d'artistes, les réservations et les outils promotionnels disponibles sur la plateforme</li><li><strong>Vendeurs</strong> — Inclut des conseils d'intégration et opérationnels pour les fournisseurs de services interagissant avec les organisateurs d'événements via la plateforme</li></ul>",
+      "categoriesContent": "<p>Les utilisateurs peuvent accéder au contenu d'assistance organisé selon les catégories suivantes :</p><ul><li><strong>Tout</strong>, Vue consolidée de tous les articles d'aide et ressources disponibles</li><li><strong>Premiers pas</strong>, Couvre les procédures d'intégration, y compris l'inscription au compte, la configuration du profil et la navigation générale sur la plateforme</li><li><strong>Billets et paiements</strong>, Inclut des conseils sur l'achat de billets, les modes de paiement acceptés, le traitement des transactions, les confirmations et les politiques de remboursement générales. Sound It facilite les transactions mais n'est pas nécessairement le marchand dans tous les cas. Les litiges de paiement peuvent nécessiter une résolution auprès de fournisseurs de paiement tiers ou des organisateurs d'événements</li><li><strong>Compte</strong>, Fournit une assistance pour l'accès au compte, la mise à jour du profil, la gestion des identifiants et les pratiques de sécurité</li><li><strong>Organisateurs</strong>, Inclut des instructions et des bonnes pratiques pour la création, la gestion, la promotion d'événements et l'engagement du public. Les organisateurs sont seuls responsables de l'exactitude des détails de l'événement, de la tarification, de la conformité aux lois applicables et de l'exécution des services annoncés</li><li><strong>Artistes</strong>, Fournit des conseils pour les profils d'artistes, les réservations et les outils promotionnels disponibles sur la plateforme</li><li><strong>Vendeurs</strong>, Inclut des conseils d'intégration et opérationnels pour les fournisseurs de services interagissant avec les organisateurs d'événements via la plateforme</li></ul>",
       "supportTitle": "3. Services de support",
       "supportContent": "<p><strong>Disponibilité</strong></p><p>Sound It fournit un support client sur la base de meilleurs efforts. Le délai de réponse standard est de 24 à 48 heures, week-ends et jours fériés publics exclus, sauf indication contraire.</p><p><strong>Champ d'application du support</strong></p><p>Les services de support incluent :</p><ul><li>Assistance technique</li><li>Orientation générale sur la plateforme</li><li>Signalement de problèmes</li></ul><p>Les services de support n'incluent pas :</p><ul><li>Résolution de litiges juridiques</li><li>Intervention directe dans les conflits organisateur-utilisateur</li><li>Décisions de remboursement financier en dehors de la politique de la plateforme</li></ul>",
       "contactTitle": "4. Coordonnées",
@@ -3867,7 +4006,7 @@
     "introTitle": "1. Introduction",
     "introContent": "<p>Sound It (« nous ») s'engage à protéger vos informations personnelles conformément aux lois et réglementations applicables de la République populaire de Chine, y compris la Loi sur la protection des informations personnelles (PIPL), la Loi sur la cybersécurité et la Loi sur la sécurité des données.</p><p>Cette politique de confidentialité explique comment nous collectons, utilisons, stockons, partageons et protégeons vos informations personnelles lorsque vous utilisez notre plateforme.</p>",
     "collectTitle": "2. Informations personnelles que nous collectons",
-    "collectContent": "<p>Nous collectons uniquement les informations nécessaires à la fourniture de nos services :</p><ul><li><strong>Informations de base</strong> — Nom ou nom d'utilisateur, numéro de téléphone, adresse e-mail, ID WeChat (si fourni)</li><li><strong>Informations de compte</strong> — Identifiants de connexion, détails du profil, préférences et activité</li><li><strong>Informations de transaction</strong> — Achats de billets, confirmations de paiement, données relatives à la facturation</li><li><strong>Informations sur l'appareil et la technologie</strong> — Adresse IP, type d'appareil, journaux système et données d'utilisation</li></ul>",
+    "collectContent": "<p>Nous collectons uniquement les informations nécessaires à la fourniture de nos services :</p><ul><li><strong>Informations de base</strong>, Nom ou nom d'utilisateur, numéro de téléphone, adresse e-mail, ID WeChat (si fourni)</li><li><strong>Informations de compte</strong>, Identifiants de connexion, détails du profil, préférences et activité</li><li><strong>Informations de transaction</strong>, Achats de billets, confirmations de paiement, données relatives à la facturation</li><li><strong>Informations sur l'appareil et la technologie</strong>, Adresse IP, type d'appareil, journaux système et données d'utilisation</li></ul>",
     "useTitle": "3. Finalité du traitement",
     "useContent": "<p>Nous traitons vos informations personnelles aux fins suivantes :</p><ul><li>Fournir et exploiter les services de la plateforme</li><li>Traiter les transactions et les achats de billets</li><li>Gérer les comptes utilisateurs</li><li>Communiquer les mises à jour, les notifications et l'assistance</li><li>Améliorer les fonctionnalités de la plateforme et l'expérience utilisateur</li><li>Assurer la sécurité de la plateforme et prévenir la fraude</li></ul>",
     "legalTitle": "4. Fondement juridique du traitement",
@@ -3875,7 +4014,7 @@
     "storageTitle": "5. Stockage des données et localisation",
     "storageContent": "<p>Vos informations personnelles seront stockées sur le territoire de la République populaire de Chine.</p><p>Lorsqu'un transfert transfrontalier de données est nécessaire, nous :</p><ul><li>Obtiendrons votre consentement distinct</li><li>Mènerons des évaluations de sécurité lorsque requis</li><li>Assurerons la conformité avec les réglementations applicables</li></ul>",
     "shareTitle": "6. Partage des données",
-    "shareContent": "<p>Nous ne vendons pas vos informations personnelles.</p><p>Nous pouvons partager des données avec :</p><ul><li><strong>Prestataires de services</strong> — Fournisseurs de services de paiement, fournisseurs d'hébergement cloud, partenaires de support technique</li><li><strong>Organisateurs d'événements</strong> — Les informations des utilisateurs pertinentes pour l'achat de billets peuvent être partagées avec les organisateurs d'événements à des fins de gestion d'événement</li><li><strong>Autorités légales</strong> — Lorsque la loi ou les autorités réglementaires l'exigent</li></ul>",
+    "shareContent": "<p>Nous ne vendons pas vos informations personnelles.</p><p>Nous pouvons partager des données avec :</p><ul><li><strong>Prestataires de services</strong>, Fournisseurs de services de paiement, fournisseurs d'hébergement cloud, partenaires de support technique</li><li><strong>Organisateurs d'événements</strong>, Les informations des utilisateurs pertinentes pour l'achat de billets peuvent être partagées avec les organisateurs d'événements à des fins de gestion d'événement</li><li><strong>Autorités légales</strong>, Lorsque la loi ou les autorités réglementaires l'exigent</li></ul>",
     "sensitiveTitle": "7. Informations personnelles sensibles",
     "sensitiveContent": "<p>Nous pouvons traiter des informations personnelles sensibles (telles que les données relatives au paiement) uniquement lorsque cela est nécessaire et avec des mesures de protection renforcées. Les utilisateurs seront informés et leur consentement sera obtenu lorsque requis.</p>",
     "retentionTitle": "8. Conservation des données",
@@ -3988,10 +4127,16 @@
     "scanAnother": "Scanner un autre",
     "selectEvent": "Sélectionner un Événement",
     "allEvents": "Tous les Événements",
-    "wrongEventWarning": "Ce billet est pour un autre événement"
+    "wrongEventWarning": "Ce billet est pour un autre événement",
+    "authRequired": "Le scanner nécessite une connexion",
+    "retryCamera": "Réessayer la caméra",
+    "ticketNumber": "Numéro du billet",
+    "tier": "Catégorie",
+    "unknownEvent": "Événement inconnu",
+    "unknownUser": "Utilisateur inconnu"
   },
   "subscriptions": {
-    "title": "Subscriptions",
+    "title": "Abonnements",
     "subtitle": "Manage your subscriptions and billing",
     "currentPlan": "Current Plan",
     "upgradePlan": "Upgrade Plan",
@@ -4024,7 +4169,7 @@
     "failedToLoadData": "Failed To Load Data",
     "daysRemaining": "Days Remaining",
     "activePlan": "Active Plan",
-    "titleHighlight": "Title Highlight",
+    "titleHighlight": "et facturation",
     "subscriptionCreated": "Subscription Created",
     "perMonth": "Per Month",
     "oneTime": "Paiement unique",
@@ -4194,7 +4339,8 @@
       "paymentNotConfirmed": "Payment Not Confirmed",
       "paymentCreated": "Payment Created",
       "paymentQrCodeAlt": "Payment QR Code Alt",
-      "stepPayment": "Step Payment"
+      "stepPayment": "Step Payment",
+      "uploadScreenshotAndName": "Téléchargez votre capture d'écran de paiement pour confirmer votre commande"
     },
     "success": {
       "title": "Payment Successful!",
@@ -4324,7 +4470,32 @@
     "continueBrowsing": "Continuer la navigation",
     "referralCode": "Code de parrainage",
     "enterReferralCode": "Entrez le code de parrainage",
-    "orderSuccessTitle": "Commande soumise"
+    "orderSuccessTitle": "Commande soumise",
+    "payReturnTitle": "Avez-vous terminé le paiement ?",
+    "payReturnBody": "Si vous avez fini de payer dans l'application, confirmez ci-dessous et l'organisateur est informé instantanément.",
+    "payReturnYes": "Oui, j'ai terminé le paiement",
+    "payReturnNo": "Pas encore",
+    "awaitingApprovalTitle": "En attente de l'approbation de l'organisateur",
+    "awaitingApprovalBody": "Votre confirmation de paiement a été envoyée à l'organisateur. Votre billet apparaîtra ici dès qu'il sera approuvé, généralement en moins d'une minute.",
+    "paymentReported": "Paiement signalé, organisateur informé",
+    "screenshotOptionalHint": "Optionnel, votre confirmation de paiement a déjà été envoyée à l'organisateur.",
+    "amountToPay": "Montant",
+    "orderPendingApproval": "Votre paiement a été signalé à l'organisateur. Le billet sera approuvé dès qu'il le verra - suivez le statut à tout moment dans Mes billets.",
+    "enterYourName": "Votre nom",
+    "eventEnded": "Événement terminé",
+    "eventEndedDesc": "Cet événement est déjà terminé",
+    "salesClosed": "Ventes de billets closes",
+    "salesClosedDesc": "Les ventes de billets pour cet événement sont closes",
+    "loginToSave": "Connectez-vous pour enregistrer cet événement",
+    "saveError": "Échec de l'enregistrement de l'événement",
+    "ticketPrice": "Prix du billet",
+    "tickets": "Billets",
+    "uploadPaymentScreenshot": "Téléchargez une capture d'écran du paiement",
+    "resumeTitle": "Paiement inachevé",
+    "resumeBody": "Vous payiez cet événement. Si vous avez déjà terminé le paiement dans WeChat ou Alipay, confirmez ci-dessous — vous pouvez aussi joindre votre capture d'écran.",
+    "resumeYes": "Oui, j'ai terminé le paiement",
+    "resumeShowQr": "Afficher à nouveau le QR de paiement",
+    "resumeCancel": "Annuler"
   },
   "contact": {
     "facebook": "Facebook",
@@ -4615,9 +4786,9 @@
     "roleTitle": "1. Rôle de la plateforme",
     "roleContent": "<p>Sound It fournit une plateforme numérique qui permet aux organisateurs de créer et promouvoir des événements, vendre des billets et interagir avec les utilisateurs.</p><p>Sound It agit uniquement en tant que fournisseur de services technologiques et n'organise, n'héberge ni ne contrôle les événements, sauf indication explicite.</p>",
     "responsibilitiesTitle": "2. Responsabilités de l'organisateur",
-    "responsibilitiesContent": "<p>Vous acceptez d'être seul responsable de :</p><ul><li><strong>Exactitude de l'événement</strong> — Fournir des informations véridiques, exactes et complètes sur l'événement ; indiquer clairement les détails (date, heure, lieu, tarification, restrictions)</li><li><strong>Réalisation de l'événement</strong> — Veiller à ce que l'événement se déroule comme annoncé ; gérer le personnel, la logistique et la sécurité</li><li><strong>Conformité légale</strong> — Respecter toutes les lois et réglementations applicables en Chine et dans les juridictions concernées ; obtenir les licences, permis et autorisations nécessaires</li></ul>",
+    "responsibilitiesContent": "<p>Vous acceptez d'être seul responsable de :</p><ul><li><strong>Exactitude de l'événement</strong>, Fournir des informations véridiques, exactes et complètes sur l'événement ; indiquer clairement les détails (date, heure, lieu, tarification, restrictions)</li><li><strong>Réalisation de l'événement</strong>, Veiller à ce que l'événement se déroule comme annoncé ; gérer le personnel, la logistique et la sécurité</li><li><strong>Conformité légale</strong>, Respecter toutes les lois et réglementations applicables en Chine et dans les juridictions concernées ; obtenir les licences, permis et autorisations nécessaires</li></ul>",
     "ticketingTitle": "3. Billetterie et ventes",
-    "ticketingContent": "<ul><li><strong>Tarification</strong> — Les organisateurs ont le contrôle total des prix des billets</li><li><strong>Exécution des billets</strong> — Les organisateurs doivent honorer tous les billets valides vendus via la plateforme</li><li><strong>Gestion de la capacité</strong> — Les organisateurs doivent veiller à ce que les ventes de billets ne dépassent pas la capacité du lieu</li></ul>",
+    "ticketingContent": "<ul><li><strong>Tarification</strong>, Les organisateurs ont le contrôle total des prix des billets</li><li><strong>Exécution des billets</strong>, Les organisateurs doivent honorer tous les billets valides vendus via la plateforme</li><li><strong>Gestion de la capacité</strong>, Les organisateurs doivent veiller à ce que les ventes de billets ne dépassent pas la capacité du lieu</li></ul>",
     "paymentsTitle": "4. Paiements",
     "paymentsContent": "<p><strong>Modes de paiement</strong></p><p>Les paiements peuvent être traités via :</p><ul><li>Les systèmes intégrés à la plateforme</li><li>Des fournisseurs tiers (par ex. Alipay, WeChat Pay)</li><li>Les modes de paiement gérés par l'organisateur (abonnement Premium)</li></ul><p><strong>Règlement</strong></p><p>Les fonds peuvent être retenus temporairement pour des raisons de contrôle des risques. Les délais de règlement peuvent varier en fonction de l'évaluation des risques.</p>",
     "refundsTitle": "5. Remboursements et annulations",
@@ -4695,11 +4866,19 @@
     "pushEnabled": "Notifications push activées !",
     "pushDenied": "Veuillez activer les notifications dans les paramètres du navigateur.",
     "markAllRead": "Tout marquer comme lu",
-    "settings": "Paramètres de notification"
+    "settings": "Paramètres de notification",
+    "allMarkedRead": "Toutes les notifications marquées comme lues",
+    "clearAll": "Tout effacer",
+    "clearFailed": "Échec de l'effacement des notifications",
+    "cleared": "Notifications effacées",
+    "delete": "Supprimer",
+    "deleteFailed": "Échec de la suppression de la notification",
+    "markAllReadFailed": "Échec du marquage comme lu",
+    "markReadFailed": "Échec du marquage comme lu"
   },
   "sia": {
     "title": "Assistant Sound It",
-    "welcome": "Je suis SIA — votre assistant Sound It. Je peux vous aider à découvrir des événements, acheter des billets, créer des brouillons d'événements à partir d'affiches et importer des produits à partir de menus.",
+    "welcome": "Je suis SIA, votre assistant Sound It. Je peux vous aider à découvrir des événements, acheter des billets, créer des brouillons d'événements à partir d'affiches et importer des produits à partir de menus.",
     "send": "Envoyer",
     "placeholder": "Demandez à SIA...",
     "uploadFlyer": "Uploader une affiche",
@@ -4717,5 +4896,49 @@
     "missingFields": "Champs manquants",
     "eventDraft": "Brouillon d'événement",
     "productDraft": "Brouillon de produit"
+  },
+  "download": {
+    "title": "Obtenez l'application Sound It",
+    "subtitle": "Événements, billets et vie nocturne dans votre poche.",
+    "android": {
+      "title": "Application Android",
+      "version": "Version {{v}} ({{size}} Mo)",
+      "step1": "Appuyez sur le bouton de téléchargement ci-dessous pour obtenir le fichier APK.",
+      "step2": "Si demandé, autorisez votre navigateur à installer des applications inconnues.",
+      "step3": "Ouvrez le fichier téléchargé et appuyez sur Installer.",
+      "step4": "Connectez-vous avec votre compte Sound It et c'est parti.",
+      "button": "Télécharger pour Android"
+    },
+    "ios": {
+      "title": "iPhone et iPad (application web)",
+      "hint": "Installez Sound It comme application web sur votre écran d'accueil. Sans App Store.",
+      "step1": "Ouvrez sounditent.com dans Safari.",
+      "step2": "Appuyez sur le bouton Partager en bas de l'écran.",
+      "step3": "Faites défiler et appuyez sur « Sur l'écran d'accueil ».",
+      "step4": "Appuyez sur Ajouter. L'icône Sound It est maintenant sur votre écran d'accueil."
+    },
+    "help": "Besoin d'aide pour l'installation ? Contactez support@sounditent.com"
+  },
+  "androidPrompt": {
+    "title": "Obtenez l'application Android Sound It",
+    "subtitle": "Une expérience plus rapide avec notifications push et paiement instantané.",
+    "download": "Télécharger l'application (APK)",
+    "maybeLater": "Plus tard",
+    "close": "Fermer"
+  },
+  "reviews": {
+    "title": "Avis",
+    "reviews": "Avis",
+    "noReviews": "Aucun avis pour le moment",
+    "beFirst": "Soyez le premier à laisser un avis",
+    "writeReview": "Écrire un avis",
+    "yourRating": "Votre note",
+    "rate": "Noter",
+    "yourReview": "Votre avis",
+    "placeholder": "Partagez votre expérience...",
+    "submit": "Envoyer",
+    "submitting": "Envoi en cours...",
+    "cancel": "Annuler",
+    "verified": "Vérifié"
   }
 }

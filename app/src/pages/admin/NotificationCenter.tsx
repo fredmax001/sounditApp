@@ -67,7 +67,7 @@ const NotificationCenter = () => {
   const loadHistory = async () => {
     let loaded = false;
     try {
-      // Dedicated log endpoint — covers ALL channel types (incl. email-only sends)
+      // Dedicated log endpoint - covers ALL channel types (incl. email-only sends)
       const res = await fetch(`${API_BASE_URL}/admin/notifications/log`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
@@ -105,7 +105,7 @@ const NotificationCenter = () => {
       image_url: item.image_url || '',
     });
     setViewing(null);
-    toast.success(t('admin.notificationCenter.loadedForResend') || 'Loaded into the compose form — review and press Send Now');
+    toast.success(t('admin.notificationCenter.loadedForResend') || 'Loaded into the compose form, review and press Send Now');
   };
 
   const handleImageUpload = async (file: File) => {

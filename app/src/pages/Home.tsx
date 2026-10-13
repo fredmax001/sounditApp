@@ -17,6 +17,17 @@ import {
   Camera,
   Handshake,
   Mic2,
+  ExternalLink,
+  Rocket,
+  Globe,
+  Code,
+  Palette,
+  PartyPopper,
+  Radio,
+  Sparkles,
+  Headphones,
+  Disc3,
+  Store,
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
@@ -158,6 +169,14 @@ const Home = () => {
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
+  // Hero background slideshow
+  const HERO_SLIDES = ['/hero-slide-1.jpg', '/hero-slide-2.jpg', '/hero-slide-3.jpg', '/hero-slide-4.jpg'];
+  const [heroSlide, setHeroSlide] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(t);
+  }, []);
+
   const quickChips = [
     { icon: Calendar, label: 'Events', path: '/events' },
     { icon: Music, label: 'Talent', path: '/artists' },
@@ -174,6 +193,53 @@ const Home = () => {
     { icon: Camera, title: 'Hire Photographers', path: '/artists', color: '#00E5FF' },
     { icon: Star, title: 'Discover Dancers', path: '/artists', color: '#C8A000' },
   ];
+
+  const whatWeDo = [
+    { icon: PartyPopper, title: 'Live Events & Festivals', description: 'Curated parties, cultural showcases, nightlife experiences, and premium festival concepts.' },
+    { icon: Music, title: 'Music & Cultural Experiences', description: 'Signature event series like RNB & Slow Sessions that celebrate timeless music and culture.' },
+    { icon: Mic2, title: 'Artist & DJ Collaborations', description: 'Bookings and collaborations with artists and DJs across Africa, China, and international markets.' },
+    { icon: Code, title: 'Technology & Digital Platforms', description: 'The Sound it platform, mobile apps, and digital tools for the entertainment industry.' },
+    { icon: Palette, title: 'Creative Services', description: 'Graphic design, branding, and creative production through Sound It Tech.' },
+    { icon: Users, title: 'Community & Cultural Initiatives', description: 'Community-focused events and programs that connect and celebrate culture.' },
+    { icon: Globe, title: 'Brand Partnerships & International Collaborations', description: 'Partnerships with brands, venues, and international entertainment personalities.' },
+  ];
+
+  const ecosystemItems = [
+    { icon: PartyPopper, name: 'Sound It Events', description: 'Live experiences: parties, showcases, nightlife, and community events.', status: 'active' },
+    { icon: Music, name: 'RNB & Slow Sessions', description: 'Signature R&B and soul event series with curated musical storytelling.', status: 'active' },
+    { icon: Radio, name: 'Sound It Platform', description: 'Digital ecosystem for events, artists, vendors, businesses, and fans.', status: 'active' },
+    { icon: Code, name: 'Sound It Tech', description: 'Software, mobile apps, design, branding, and IT solutions.', status: 'active' },
+    { icon: Sparkles, name: 'BOA Festival', description: 'Premium festival concept bringing together African, Chinese, and international artists.', status: 'development' },
+    { icon: Rocket, name: 'Deck Salone', description: 'Sierra Leone-focused DJ and entertainment ecosystem.', status: 'prelaunch' },
+    { icon: Headphones, name: 'Sound It DJ', description: 'DJ platform for music organization, mixes, and performance preparation.', status: 'planned' },
+    { icon: Disc3, name: 'Sound It Muzik', description: 'Music streaming, distribution, and artist-support platform.', status: 'planned' },
+  ];
+
+  const joinItems = [
+    { icon: Heart, title: 'Join Sound it', description: 'Create a free account and become part of the community.', action: 'Join Now', path: '/register' },
+    { icon: Mic2, title: 'Become an Artist', description: 'Showcase your talent, get booked, and grow your audience.', action: 'Get Started', path: '/register' },
+    { icon: Calendar, title: 'Become an Organizer', description: 'Host events, sell tickets, and manage your events with our tools.', action: 'Get Started', path: '/register' },
+    { icon: Store, title: 'Join as a Vendor', description: 'Sell products and services to the Sound It community.', action: 'Get Started', path: '/register' },
+    { icon: Handshake, title: 'Partner With Us', description: 'Collaborate with Sound It Events and our brands.', action: 'Contact Us', path: '/contact' },
+    { icon: Code, title: 'Work With Sound It Tech', description: 'Software, apps, design, and IT solutions for your business.', action: 'Contact Us', path: '/contact' },
+    { icon: Ticket, title: 'Attend an Event', description: 'Discover upcoming events and get your tickets.', action: 'Explore Events', path: '/events' },
+  ];
+
+  const statusLabels: Record<string, string> = {
+    active: t('home.brand.statusActive') || 'Active',
+    development: t('home.brand.statusDevelopment') || 'In Development',
+    planned: t('home.brand.statusPlanned') || 'Planned',
+    prelaunch: t('home.brand.statusPrelaunch') || 'Pre-launch',
+    partner: t('home.brand.statusPartner') || 'Partner Project',
+  };
+
+  const statusStyles: Record<string, string> = {
+    active: 'bg-[#d3da0c]/10 text-[#d3da0c]',
+    development: 'bg-purple-500/10 text-purple-400',
+    prelaunch: 'bg-blue-500/10 text-blue-400',
+    planned: 'bg-white/5 text-gray-400',
+    partner: 'bg-blue-500/10 text-blue-400',
+  };
 
   const stats = [
     { value: `${(platformStats.total_events || 0).toLocaleString()}+`, label: t('home.stats.events') || 'Events', icon: Calendar },
@@ -222,6 +288,34 @@ const Home = () => {
 
       {/* ==================== MOBILE HOME (hidden on desktop) ==================== */}
       <section className="md:hidden pt-16 pb-2">
+        {/* Brand intro */}
+        <div className="px-4 mb-4">
+          <div className="relative rounded-2xl overflow-hidden p-5" style={{ background: 'linear-gradient(135deg, #141400 0%, #0A0A0A 55%, #14000C 100%)' }}>
+            <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 25% 30%, rgba(211,218,12,0.14) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(255,45,143,0.1) 0%, transparent 55%)' }} />
+            <div className="relative z-10">
+              <span className="inline-block text-[#d3da0c] text-[10px] font-medium tracking-wider uppercase mb-1.5">
+                {t('home.brand.heroBadge')}
+              </span>
+              <h1 className="text-white font-display font-bold text-2xl leading-tight mb-1">
+                Sound It <span className="hero-gradient-text">Entertainment</span>
+              </h1>
+              <p className="text-[#d3da0c] text-xs font-medium mb-2">{t('home.brand.heroTagline')}</p>
+              <p className="text-gray-400 text-xs leading-relaxed mb-3.5">{t('home.brand.heroDescription')}</p>
+              <div className="flex flex-wrap gap-2">
+                <Link to="/events" className="px-4 py-2 bg-[#d3da0c] text-black text-xs font-bold rounded-full active:scale-95 transition-transform">
+                  {t('home.brand.exploreEvents')}
+                </Link>
+                <Link to="/about" className="px-4 py-2 bg-white/10 border border-white/20 text-white text-xs font-semibold rounded-full active:scale-95 transition-transform">
+                  {t('home.brand.learnAboutUs')}
+                </Link>
+                <a href="https://app.sounditent.com" className="inline-flex items-center gap-1 px-4 py-2 border border-white/20 text-white text-xs font-semibold rounded-full active:scale-95 transition-transform">
+                  {t('home.brand.enterApp')} <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Search bar */}
         <div className="px-4 mb-4">
           <div className="flex items-center gap-2.5 h-11 px-3.5 bg-[#1A1A1A] border border-white/8 rounded-2xl">
@@ -249,7 +343,7 @@ const Home = () => {
           />
         </div>
 
-        {/* Recommended — Hero Carousel */}
+        {/* Recommended - Hero Carousel */}
         {!isLoading && featuredEvents.length > 0 && (
           <div className="mb-6">
             <MobileSectionHeader
@@ -268,7 +362,7 @@ const Home = () => {
           </div>
         )}
 
-        {/* Popular Events — horizontal scroll cards */}
+        {/* Popular Events - horizontal scroll cards */}
         {!isLoading && featuredEvents.length > 0 && (
           <div className="mb-6">
             <MobileSectionHeader
@@ -397,24 +491,38 @@ const Home = () => {
       <div className="hidden md:block">
         {/* ==================== HERO SECTION ==================== */}
         <section ref={heroRef} className="relative h-screen overflow-hidden">
-        {/* Background Image with Ken Burns + Parallax — sharp, no blur */}
-        <motion.div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            y: heroY,
-            backgroundImage: "url('/hero-event.jpg')",
-            scale: 1.15,
-          }}
-          animate={{
-            scale: [1.15, 1.25, 1.15],
-            x: [0, -8, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
+        {/* Background Slideshow with Ken Burns + Parallax - sharp, no blur */}
+        {HERO_SLIDES.map((src, i) => (
+          <motion.div
+            key={src}
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              y: heroY,
+              backgroundImage: `url('${src}')`,
+            }}
+            initial={false}
+            animate={{
+              opacity: heroSlide === i ? 1 : 0,
+              scale: heroSlide === i ? [1.15, 1.25, 1.15] : 1.15,
+              x: heroSlide === i ? [0, -8, 0] : 0,
+            }}
+            transition={{
+              opacity: { duration: 1.4, ease: 'easeInOut' },
+              scale: { duration: 25, repeat: Infinity, ease: 'easeInOut' },
+              x: { duration: 25, repeat: Infinity, ease: 'easeInOut' },
+            }}
+          />
+        ))}
+
+        {/* Slide indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2 pointer-events-none">
+          {HERO_SLIDES.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full transition-all duration-500 ${heroSlide === i ? 'w-8 bg-[#d3da0c]' : 'w-3 bg-white/40'}`}
+            />
+          ))}
+        </div>
 
         {/* Black overlay for readability */}
         <div className="absolute inset-0 bg-black/40" />
@@ -427,7 +535,7 @@ const Home = () => {
           }}
         />
 
-        {/* Light sweep overlay — gives a subtle "video" feel */}
+        {/* Light sweep overlay - gives a subtle "video" feel */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
           <div
             className="absolute top-0 left-0 h-full w-1/3 animate-light-sweep"
@@ -461,24 +569,33 @@ const Home = () => {
                 <Zap className="w-4 h-4" />
               </motion.span>
               <span>
-                {user ? `Welcome back! Exploring ${userCity}` : t('home.hero.badge')}
+                {user ? `Welcome back! Exploring ${userCity}` : t('home.brand.heroBadge')}
               </span>
             </motion.div>
 
-            {/* Headline — Split animation */}
+            {/* Headline - Brand introduction for first-time visitors */}
             <div className="mb-5">
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                aria-label="Sound It — Entertainment Platform"
+                aria-label="Sound It Entertainment"
                 className="text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.95] tracking-tight hero-headline"
               >
-                <span className="block font-bold hero-gradient-text mt-1" aria-hidden="true">Sound It</span>
+                <span className="block font-bold">Sound It</span>
+                <span className="block font-bold hero-gradient-text mt-1" aria-hidden="true">Entertainment</span>
               </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65, duration: 0.6 }}
+                className="text-[#d3da0c] text-lg md:text-xl font-display mt-3"
+              >
+                {t('home.brand.heroTagline')}
+              </motion.p>
               <p className="sr-only">
-                Sound It is an entertainment platform for the African and international community in China.
-                Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses.
+                Sound It Entertainment is an entertainment and technology company connecting African culture,
+                international entertainment, and the Chinese market through music, events, technology, and creative collaboration.
               </p>
             </div>
 
@@ -489,7 +606,7 @@ const Home = () => {
               transition={{ delay: 0.7, duration: 0.6 }}
               className="text-gray-300/80 text-lg mb-6 max-w-md leading-relaxed"
             >
-              Sound It is an entertainment platform for the African and international community in China. Use it to discover events, buy tickets, book DJs and artists, find vendors, connect with businesses, and grow your entertainment network.
+              {t('home.brand.heroDescription')}
             </motion.p>
 
             {/* CTAs */}
@@ -503,15 +620,22 @@ const Home = () => {
                 to="/events"
                 className="glass-button-primary text-base group w-full sm:w-auto"
               >
-                <span className="relative z-10">Explore Events</span>
+                <span className="relative z-10">{t('home.brand.exploreEvents')}</span>
                 <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                to="/city-guide"
+                to="/about"
                 className="glass-button-secondary text-base w-full sm:w-auto"
               >
-                <span className="relative z-10">City Guide</span>
+                <span className="relative z-10">{t('home.brand.learnAboutUs')}</span>
               </Link>
+              <a
+                href="https://app.sounditent.com"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white text-base font-semibold hover:border-[#d3da0c]/60 hover:text-[#d3da0c] transition-colors w-full sm:w-auto"
+              >
+                <span>{t('home.brand.enterApp')}</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </motion.div>
 
             {/* Quick Chips */}
@@ -537,7 +661,7 @@ const Home = () => {
             </motion.div>
           </div>
 
-          {/* Weather Widget — right side on desktop */}
+          {/* Weather Widget - right side on desktop */}
           <WeatherWidget city={selectedCity || 'Shanghai'} />
         </div>
         </motion.div>
@@ -548,7 +672,7 @@ const Home = () => {
         <AdBanner position="homepage_hero" />
       </section>
 
-      {/* ==================== PLATFORM INTRO ==================== */}
+      {/* ==================== WHO WE ARE (company introduction) ==================== */}
       <section className="py-10 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00E5FF]/[0.03] to-transparent pointer-events-none" />
         <div className="px-5 relative">
@@ -561,15 +685,63 @@ const Home = () => {
             className="max-w-4xl"
           >
             <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-2">
-              What is Sound It?
+              {t('home.brand.whoKicker')}
             </span>
             <h2 className="text-2xl md:text-4xl font-display text-white mb-4">
-              Built for entertainment, community, and business growth.
+              {t('home.brand.whoTitle')}
             </h2>
             <p className="text-gray-300/85 text-sm md:text-lg leading-relaxed max-w-3xl">
-              Sound It is a digital entertainment platform built for the African and international community in China. It helps users discover events, connect with entertainers, book talent, promote businesses, sell tickets, and build meaningful connections within the entertainment industry.
+              {t('home.brand.whoText')}
             </p>
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-1.5 mt-4 text-[#d3da0c] text-sm font-medium hover:gap-2.5 transition-all"
+            >
+              {t('home.brand.whoLink')} <ArrowRight className="w-4 h-4" />
+            </Link>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ==================== WHAT WE DO ==================== */}
+      <section className="py-8 relative">
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="mb-5"
+          >
+            <span className="inline-block text-[#00E5FF] text-xs font-medium tracking-wider uppercase mb-1">
+              {t('home.brand.whatKicker')}
+            </span>
+            <h2 className="text-xl font-bold text-white">{t('home.brand.whatTitle')}</h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {whatWeDo.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.title}
+                  custom={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                  className="glass-card-premium p-4 min-h-[150px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#00E5FF]/10 flex items-center justify-center mb-3">
+                    <Icon className="w-5 h-5 text-[#00E5FF]" />
+                  </div>
+                  <h3 className="text-white font-semibold text-sm mb-1.5">{item.title}</h3>
+                  <p className="text-gray-400 text-xs leading-relaxed">{item.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -628,6 +800,65 @@ const Home = () => {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* ==================== FEATURED ECOSYSTEM ==================== */}
+      <section className="py-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FF2D8F]/[0.03] to-transparent pointer-events-none" />
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="flex items-end justify-between mb-5"
+          >
+            <div>
+              <span className="inline-block text-[#FF2D8F] text-xs font-medium tracking-wider uppercase mb-1">
+                {t('home.brand.ecoKicker')}
+              </span>
+              <h2 className="text-xl font-bold text-white">{t('home.brand.ecoTitle')}</h2>
+            </div>
+            <Link to="/about" className="hidden sm:flex items-center gap-1 text-[#FF2D8F] text-sm font-medium">
+              {t('home.brand.ecoLink')} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+            {ecosystemItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.name}
+                  custom={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                  className="glass-card-premium p-4 flex flex-col justify-between min-h-[150px]"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-[#d3da0c]" />
+                    </div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusStyles[item.status] || statusStyles.planned}`}>
+                      {statusLabels[item.status] || item.status}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold text-sm mb-1">{item.name}</h3>
+                    <p className="text-gray-400 text-xs leading-relaxed">{item.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <Link to="/about" className="sm:hidden flex items-center justify-center gap-1 mt-4 text-[#FF2D8F] text-sm font-medium">
+            {t('home.brand.ecoLink')} <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
@@ -765,6 +996,95 @@ const Home = () => {
                 No featured DJs in {userCity}
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== INTERNATIONAL COLLABORATIONS ==================== */}
+      <section className="py-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00E5FF]/[0.03] to-transparent pointer-events-none" />
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="glass-card-premium p-6 md:p-8"
+          >
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="flex-1">
+                <span className="inline-block text-[#00E5FF] text-xs font-medium tracking-wider uppercase mb-2">
+                  {t('home.brand.collabsKicker')}
+                </span>
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-3">{t('home.brand.collabsTitle')}</h2>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                  {t('home.brand.collabsText')}
+                </p>
+                <p className="text-gray-300 text-xs md:text-sm font-medium">
+                  {t('home.brand.collabsNames')}
+                </p>
+              </div>
+              <Link
+                to="/about"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white text-sm font-semibold hover:border-[#00E5FF]/60 hover:text-[#00E5FF] transition-colors shrink-0"
+              >
+                {t('home.brand.collabsLink')} <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ==================== JOIN & PARTICIPATE ==================== */}
+      <section className="py-8 relative">
+        <div className="px-5 relative">
+          <motion.div
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={sectionVariants}
+            className="mb-5 text-center"
+          >
+            <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-1">
+              {t('home.brand.joinKicker')}
+            </span>
+            <h2 className="text-xl md:text-2xl font-bold text-white">{t('home.brand.joinTitle')}</h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {joinItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.title}
+                  custom={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={sectionVariants}
+                >
+                  <Link
+                    to={item.path}
+                    className="group glass-card-premium p-4 flex flex-col justify-between min-h-[150px] active:scale-[0.98] transition-transform"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#FF2D8F]/10 flex items-center justify-center mb-3">
+                      <Icon className="w-5 h-5 text-[#FF2D8F]" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold text-sm mb-1 group-hover:text-[#d3da0c] transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-gray-400 text-xs leading-relaxed mb-2.5">{item.description}</p>
+                      <span className="inline-flex items-center gap-1 text-[#d3da0c] text-xs font-medium">
+                        {item.action} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

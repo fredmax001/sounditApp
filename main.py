@@ -430,7 +430,28 @@ def serve_admin_dashboard():
 
 
 from api.meta_tags import get_dynamic_meta_html
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+
+@app.get("/download/android")
+@app.get("/api/v1/download/android")
+def download_android_apk():
+    apk_candidates = [
+        "static/downloads/SoundIt-Android-release-v1.2.apk",
+        "/var/www/soundit/current/static/downloads/SoundIt-Android-release-v1.2.apk",
+        "SoundIt-Android-release-v1.2.apk",
+    ]
+    for apk_path in apk_candidates:
+        if os.path.exists(apk_path) and os.path.isfile(apk_path):
+            return FileResponse(
+                apk_path,
+                media_type="application/vnd.android.package-archive",
+                filename="SoundIt-Android-release-v1.2.apk",
+                headers={
+                    "Content-Disposition": 'attachment; filename="SoundIt-Android-release-v1.2.apk"',
+                    "Cache-Control": "no-cache",
+                }
+            )
+    return RedirectResponse(url="/static/downloads/SoundIt-Android-release-v1.2.apk")
 
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")

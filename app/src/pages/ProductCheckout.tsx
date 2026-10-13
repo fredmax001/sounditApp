@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Upload, CreditCard, Loader2, MapPin, User, Phone, MessageSquare, Check, Store } from 'lucide-react';
+import { ArrowLeft, Upload, CreditCard, Loader2, MapPin, User, Phone, MessageSquare, Check, Store, Smartphone } from 'lucide-react';
 import { useVendorMarketplaceStore } from '@/store/vendorMarketplaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -13,6 +13,8 @@ interface VendorPaymentSettings {
     wechat_display_name?: string;
     alipay_qr_url?: string;
     alipay_display_name?: string;
+    wechat_pay_url?: string;
+    alipay_pay_url?: string;
     preferred_method?: string;
 }
 
@@ -168,6 +170,10 @@ export default function ProductCheckout() {
     const qrUrl = paymentMethod === 'wechat_pay'
         ? vendorSettings?.wechat_qr_url
         : vendorSettings?.alipay_qr_url;
+    const payUrl = paymentMethod === 'wechat_pay'
+        ? vendorSettings?.wechat_pay_url
+        : vendorSettings?.alipay_pay_url;
+    const isWechatWebview = /micromessenger/i.test(navigator.userAgent);
     const preferredOnlyWechat = vendorSettings?.preferred_method === 'WECHAT_ONLY';
     const preferredOnlyAlipay = vendorSettings?.preferred_method === 'ALIPAY_ONLY';
 
@@ -311,6 +317,52 @@ export default function ProductCheckout() {
                                 {paymentMethod === 'alipay' && vendorSettings?.alipay_display_name && (
                                     <p className="text-blue-400 text-xs mb-1">{vendorSettings.alipay_display_name}</p>
                                 )}
+
+                                {/* Deep-link straight into the payment app */}
+                                {payUrl && paymentMethod === 'alipay' && (() => {
+                                    const scheme = `alipayqr://platformapi/startapp?saId=10000007&qrcode=${encodeURIComponent(payUrl)}`;
+                                    const webFallback = `https://render.alipay.com/p/s/i?scheme=${encodeURIComponent(scheme)}`;
+                                    return (
+                                        <div className="space-y-2 mt-2">
+                                            <a
+                                                href={scheme}
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-[#1677FF] text-white rounded-xl hover:bg-[#0e63d8] transition-colors text-sm font-semibold"
+                                            >
+                                                <Smartphone className="w-4 h-4" />
+                                                Open Alipay to Pay ¥{total.toFixed(2)}
+                                            </a>
+                                            <a
+                                                href={webFallback}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full flex items-center justify-center gap-2 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors text-xs"
+                                            >
+                                                Alipay not opening? Tap here
+                                            </a>
+                                        </div>
+                                    );
+                                })()}
+                                {payUrl && paymentMethod === 'wechat_pay' && (
+                                    isWechatWebview ? (
+                                        <div className="bg-[#07C160]/10 border border-[#07C160]/30 rounded-xl p-3 mt-2">
+                                            <p className="text-[#07C160] text-xs font-medium">长按上方二维码识别付款</p>
+                                            <p className="text-gray-400 text-xs mt-0.5">Long-press the QR code, then tap "识别图中二维码" to pay</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2 mt-2">
+                                            <a
+                                                href="weixin://"
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-[#07C160] text-white rounded-xl hover:bg-[#06a854] transition-colors text-sm font-semibold"
+                                            >
+                                                <Smartphone className="w-4 h-4" />
+                                                Open WeChat to Pay
+                                            </a>
+                                            <p className="text-gray-500 text-xs leading-relaxed">
+                                                Or screenshot the QR, open WeChat → + → Scan → album icon, and select the screenshot to pay.
+                                            </p>
+                                        </div>
+                                    )
+                                )}
                             </>
                         ) : (
                             <>
@@ -371,7 +423,7 @@ export default function ProductCheckout() {
                     ) : (
                         <>
                             <Check className="w-5 h-5" />
-                            Place Order — ¥{total.toFixed(2)}
+                            Place Order, ¥{total.toFixed(2)}
                         </>
                     )}
                 </button>

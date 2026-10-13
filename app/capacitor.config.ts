@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.sounditent.app',
+  appId: 'app.sounditent.com',
   appName: 'Sound It',
   webDir: 'dist',
   bundledWebRuntime: false,

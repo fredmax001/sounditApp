@@ -290,7 +290,7 @@ export default function MenuImportModal({ isOpen, onClose, onConfirm, token }: M
                                         {item.confidence < 0.8 && (
                                             <div className="flex items-center gap-1 text-amber-400 text-xs">
                                                 <AlertCircle className="w-3 h-3" />
-                                                <span>Low confidence — please verify</span>
+                                                <span>Low confidence, please verify</span>
                                             </div>
                                         )}
                                     </div>

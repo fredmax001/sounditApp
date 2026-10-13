@@ -42,7 +42,7 @@ def migrate():
             # Check for duplicate updated_at columns (SQLite only)
             if engine.dialect.name == 'sqlite':
                 # SQLite doesn't support DROP COLUMN easily, just log it
-                print("⚠️ SQLite detected — if duplicate updated_at exists, recreate table manually")
+                print("⚠️ SQLite detected, if duplicate updated_at exists, recreate table manually")
             else:
                 # PostgreSQL
                 result = conn.execute(text("""
@@ -50,7 +50,7 @@ def migrate():
                     WHERE table_name = 'staff_members' AND column_name = 'updated_at'
                 """)).scalar()
                 if result and result > 1:
-                    print(f"⚠️ Found {result} updated_at columns — fixing...")
+                    print(f"⚠️ Found {result} updated_at columns, fixing...")
                     # PostgreSQL fix: drop one duplicate
                     conn.execute(text("""
                         ALTER TABLE staff_members DROP COLUMN IF EXISTS updated_at;

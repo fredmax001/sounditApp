@@ -88,6 +88,8 @@ soundit-backend-*.tar.gz
 # Mobile/Web specific
 .next
 out/
+app/android/*.keystore
+app/android/*.jks
 
 # Test artifacts
 .playwright-mcp/
@@ -97,3 +99,4 @@ out/
 
 # APIs (excluded per user request)
 api/
+*.tsbuildinfo

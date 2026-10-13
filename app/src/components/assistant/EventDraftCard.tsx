@@ -112,7 +112,7 @@ export default function EventDraftCard({ draft, onUpdated }: EventDraftCardProps
             </div>
           ) : (
             <span>
-              {event.start_date || '—'} {event.start_time ? `at ${event.start_time}` : ''}
+              {event.start_date || ', '} {event.start_time ? `at ${event.start_time}` : ''}
             </span>
           )}
         </div>
@@ -127,7 +127,7 @@ export default function EventDraftCard({ draft, onUpdated }: EventDraftCardProps
               placeholder="Venue"
             />
           ) : (
-            <span>{event.venue || '—'}</span>
+            <span>{event.venue || ', '}</span>
           )}
         </div>
 
@@ -142,7 +142,7 @@ export default function EventDraftCard({ draft, onUpdated }: EventDraftCardProps
               placeholder="Price"
             />
           ) : (
-            <span>{event.ticket_price !== undefined ? `¥${event.ticket_price}` : '—'}</span>
+            <span>{event.ticket_price !== undefined ? `¥${event.ticket_price}` : ', '}</span>
           )}
         </div>
 

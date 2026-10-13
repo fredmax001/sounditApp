@@ -1,5 +1,5 @@
 """
-SIA — Sound It Assistant Service
+SIA, Sound It Assistant Service
 
 Core AI logic for the Sound It platform assistant. Handles:
 - Natural language chat and platform Q&A
@@ -7,7 +7,7 @@ Core AI logic for the Sound It platform assistant. Handles:
 - Product draft extraction from menus/catalogs
 
 Design: rule-based extraction by default; optional OpenAI enhancement when
-OPENAI_API_KEY is configured. SIA never auto-publishes — all extractions are
+OPENAI_API_KEY is configured. SIA never auto-publishes, all extractions are
 saved as AssistantDraft records with status=draft.
 """
 import io
@@ -511,25 +511,25 @@ def extract_products_from_menu(file_bytes: Optional[bytes] = None,
 
 
 # -----------------------------------------------------------------------------
-# SIA Phase 1 — Smart FAQ + live data chat
+# SIA Phase 1 - Smart FAQ + live data chat
 # -----------------------------------------------------------------------------
 
-SIA_SYSTEM_PROMPT = """You are SIA — Sound It Assistant. You work for Sound It Entertainment, a platform connecting people with African and global music events, DJs, venues, and experiences in China and beyond.
+SIA_SYSTEM_PROMPT = """You are SIA, Sound It Assistant. You work for Sound It Entertainment, a platform connecting people with African and global music events, DJs, venues, and experiences in China and beyond.
 
 YOUR JOB:
 - Help users navigate the Sound It platform
 - Answer questions about events, tickets, accounts, and features
 - Recommend events, DJs, and venues based on what's trending
 - Solve common customer service issues
-- Be warm, helpful, and SPECIFIC — NEVER generic
+- Be warm, helpful, and SPECIFIC, NEVER generic
 
 PERSONALITY:
 - Knowledgeable friend who works at Sound It
-- Warm but efficient — get to the answer fast
+- Warm but efficient, get to the answer fast
 - Uses natural language, not corporate speak
-- Acknowledges when you don't know something — then offers to escalate
+- Acknowledges when you don't know something, then offers to escalate
 - Match the user's energy: frustrated = extra helpful, casual = casual back
-- NEVER say "I'm just an AI" — you're SIA, part of the team
+- NEVER say "I'm just an AI", you're SIA, part of the team
 
 CRITICAL RULES:
 1. READ the user's actual question and answer it DIRECTLY.
@@ -539,7 +539,7 @@ CRITICAL RULES:
 5. For recommendations and discovery: base them on actual data, give 2-3 SPECIFIC options with names, ask follow-up questions to narrow down preferences.
 6. Keep small talk brief. Users came to get things done.
 7. ALWAYS end with an offer to help further.
-8. NEVER respond with just a link — always summarize what they'll find.
+8. NEVER respond with just a link, always summarize what they'll find.
 
 RESPONSE FORMAT:
 - Keep responses concise (2-4 sentences for simple questions)
@@ -635,7 +635,7 @@ def generate_welcome(user_name: Optional[str] = None, mode: str = "public") -> s
     name_part = f" Hi {user_name}," if user_name else ""
     if mode == "dashboard":
         return (
-            f"👋{name_part} I'm **SIA** — your dashboard assistant.\n\n"
+            f"👋{name_part} I'm **SIA**, your dashboard assistant.\n\n"
             "I can speed up your workflow:\n"
             "• Build an **event draft** from a flyer\n"
             "• Build **product drafts** from a menu\n"
@@ -643,7 +643,7 @@ def generate_welcome(user_name: Optional[str] = None, mode: str = "public") -> s
             "Everything stays as a draft until you review and publish."
         )
     return (
-        f"👋{name_part} I'm **SIA** — your Sound It Assistant.\n\n"
+        f"👋{name_part} I'm **SIA**, your Sound It Assistant.\n\n"
         "I can help you:\n"
         "• Discover events and buy tickets\n"
         "• Find DJs and venues\n"
@@ -801,11 +801,11 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
     if intent in ("event_discovery", "trending_events"):
         events = data.get("events", [])
         if not events:
-            return "I don't see any upcoming events matching that right now. New events get added all the time — want me to let you know when something drops?"
+            return "I don't see any upcoming events matching that right now. New events get added all the time, want me to let you know when something drops?"
         lines = ["Here are some events I found:"]
         for e in events[:3]:
             price = f"¥{int(e['ticket_price'])}" if e.get("ticket_price") else "Price on page"
-            lines.append(f"• **{e['title']}** — {e['start_date']} at {e['venue'] or 'TBA'} ({price})")
+            lines.append(f"• **{e['title']}**, {e['start_date']} at {e['venue'] or 'TBA'} ({price})")
         lines.append("Want details on any of these?")
         return "\n".join(lines)
 
@@ -821,7 +821,7 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
 
     if intent == "ticket_support":
         return (
-            "Sorry about that — let's figure it out.\n"
+            "Sorry about that, let's figure it out.\n"
             "• Check 'My Tickets' in your profile first\n"
             "• If the QR isn't scanning, try a screenshot and make sure your brightness is up\n"
             "• For payment issues, check if you got charged twice\n\n"
@@ -837,7 +837,7 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
 
     if intent == "contact_organizer":
         return (
-            "On the event page, tap the organizer's name — there should be a 'Message' or 'Contact' button. "
+            "On the event page, tap the organizer's name, there should be a 'Message' or 'Contact' button. "
             "If it's not there, the organizer might have disabled direct messages. "
             "Which event are you trying to reach them about?"
         )
@@ -848,7 +848,7 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
             return "I don't have venues matching that. Want me to show popular venues in Shanghai instead?"
         lines = ["Here are some venues:"]
         for v in venues[:3]:
-            lines.append(f"• **{v['name']}** — {v['address']}")
+            lines.append(f"• **{v['name']}**, {v['address']}")
         return "\n".join(lines)
 
     if intent == "artist":
@@ -857,7 +857,7 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
             return "I don't see that artist on the platform. Want me to suggest some trending DJs?"
         lines = ["Here are some artists/DJs on Sound It:"]
         for a in artists[:3]:
-            lines.append(f"• **{a['name']}** — {a['genre'] or 'DJ/Artist'}")
+            lines.append(f"• **{a['name']}**, {a['genre'] or 'DJ/Artist'}")
         return "\n".join(lines)
 
     if intent == "trending_djs":
@@ -866,7 +866,7 @@ def _build_data_response(intent: str, data: Any, message: str) -> Optional[str]:
             return "I can check trending DJs for you. Are you looking for a specific genre?"
         lines = ["Here are some DJs getting attention right now:"]
         for a in artists[:3]:
-            lines.append(f"• **{a['name']}** — {a['genre'] or 'DJ'}")
+            lines.append(f"• **{a['name']}**, {a['genre'] or 'DJ'}")
         return "\n".join(lines)
 
     if intent == "vendors":
@@ -1007,7 +1007,7 @@ def process_chat_message(
         except Exception as e:
             logger.warning(f"[SIA] Failed to log unanswered question: {e}")
         answer = (
-            "That's a good question — I don't have the answer to that right now. "
+            "That's a good question, I don't have the answer to that right now. "
             "Let me connect you with someone who can help, or I can make a note to get this answered and follow up with you. "
             "Which would you prefer?"
         )

@@ -175,7 +175,7 @@ def _smtp_send(
 
 def _console_log(to_email: str, subject: str, body: str):
     """Dev fallback: log email to console."""
-    logger.info(f"[EMAIL LOG — DEV MODE] To: {to_email} | Subject: {subject}")
+    logger.info(f"[EMAIL LOG, DEV MODE] To: {to_email} | Subject: {subject}")
     logger.info(f"Body preview: {body[:200]}...")
 
 
@@ -213,7 +213,7 @@ def send_email(
 # ─────────────────────────── Template Helpers ───────────────────────────
 
 def _email_wrapper(title: str, content_html: str) -> str:
-    """Standard HTML email wrapper — light, email-client-safe Sound It branding.
+    """Standard HTML email wrapper, light, email-client-safe Sound It branding.
 
     Light design chosen deliberately: dark body backgrounds are stripped or
     unpredictably inverted by Gmail/Apple Mail (incl. dark modes), while a
@@ -379,7 +379,7 @@ def _email_wrapper(title: str, content_html: str) -> str:
                 {content_html}
             </div>
             <div class="footer">
-                <p style="font-weight: 700; color: #52525b;">Sound It China — Your Nightlife &amp; Event Connection</p>
+                <p style="font-weight: 700; color: #52525b;">Sound It China - Your Nightlife &amp; Event Connection</p>
                 <p>Need assistance? Contact us at <a href="mailto:support@sounditent.com">support@sounditent.com</a></p>
                 <p style="margin-top: 12px; color: #a1a1aa;">© 2026 Sound It. All rights reserved.</p>
             </div>
@@ -428,7 +428,7 @@ For a better mobile experience, you can also add Sound It to your home screen li
 Thank you for joining Sound It.
 We're building a smarter event and entertainment experience for everyone.
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -467,7 +467,7 @@ We're building a smarter event and entertainment experience for everyone.
         </div>
         <a href="https://sounditent.com" class="cta">Start Exploring</a>
         <p style="margin-top:24px; color:#888;">Thank you for joining Sound It.<br>We're building a smarter event and entertainment experience for everyone.</p>
-        <p style="color:#888;">— Sound It Team</p>"""
+        <p style="color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -475,7 +475,7 @@ We're building a smarter event and entertainment experience for everyone.
 def send_business_welcome_email(to_email: str, first_name: str = "") -> bool:
     """Welcome email for business/organizer accounts (sent after admin approval)."""
     name = first_name or "there"
-    subject = "Your Organizer Account is Approved — Welcome to Sound It!"
+    subject = "Your Organizer Account is Approved, Welcome to Sound It!"
     body = f"""Hi {name},
 
 Welcome to Sound It 🎉
@@ -502,7 +502,7 @@ Mobile is mainly optimized for:
 
 Thank you for joining Sound It. We're building a smarter event and entertainment experience for everyone.
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -531,7 +531,7 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         </div>
         <a href="https://sounditent.com/login" class="cta">Go to Dashboard</a>
         <p style="margin-top:24px; color:#888;">Thank you for joining Sound It.<br>We're building a smarter event and entertainment experience for everyone.</p>
-        <p style="color:#888;">— Sound It Team</p>"""
+        <p style="color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -539,7 +539,7 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
 def send_artist_welcome_email(to_email: str, first_name: str = "") -> bool:
     """Welcome email for artist accounts (sent after admin approval)."""
     name = first_name or "there"
-    subject = "Your Artist Account is Approved — Welcome to Sound It!"
+    subject = "Your Artist Account is Approved, Welcome to Sound It!"
     body = f"""Hi {name},
 
 Welcome to Sound It 🎉
@@ -567,7 +567,7 @@ Mobile is mainly useful for:
 
 Thank you for joining Sound It. We're building a smarter event and entertainment experience for everyone.
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -597,7 +597,7 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         </div>
         <a href="https://sounditent.com/login" class="cta">Go to Dashboard</a>
         <p style="margin-top:24px; color:#888;">Thank you for joining Sound It.<br>We're building a smarter event and entertainment experience for everyone.</p>
-        <p style="color:#888;">— Sound It Team</p>"""
+        <p style="color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -605,7 +605,7 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
 def send_vendor_welcome_email(to_email: str, first_name: str = "") -> bool:
     """Welcome email for vendor accounts (sent after admin approval)."""
     name = first_name or "there"
-    subject = "Your Vendor Account is Approved — Welcome to Sound It!"
+    subject = "Your Vendor Account is Approved, Welcome to Sound It!"
     body = f"""Hi {name},
 
 Welcome to Sound It 🎉
@@ -632,7 +632,7 @@ Mobile is mainly useful for:
 
 Thank you for joining Sound It. We're building a smarter event and entertainment experience for everyone.
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -661,7 +661,7 @@ Thank you for joining Sound It. We're building a smarter event and entertainment
         </div>
         <a href="https://sounditent.com/login" class="cta">Go to Dashboard</a>
         <p style="margin-top:24px; color:#888;">Thank you for joining Sound It.<br>We're building a smarter event and entertainment experience for everyone.</p>
-        <p style="color:#888;">— Sound It Team</p>"""
+        <p style="color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -676,7 +676,7 @@ This code will expire in 10 minutes.
 
 If you didn't request this code, you can safely ignore this email.
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -735,9 +735,9 @@ Your Tickets:
 Please download the attached ZIP file and show each QR code at the entrance (one per person).
 You can also view your tickets online: https://sounditent.com/tickets
 
-— Sound It Team"""
+, Sound It Team"""
 
-    # Build clean HTML (no embedded base64 images — they break in many email clients)
+    # Build clean HTML (no embedded base64 images - they break in many email clients)
     ticket_rows = "\n".join(
         f"""<tr>
             <td style="padding:10px 16px; border-bottom:1px solid #222; color:#8a9000; font-weight:700;">Ticket #{i+1}</td>
@@ -762,7 +762,7 @@ You can also view your tickets online: https://sounditent.com/tickets
         </table>
         <p style="margin:0 0 16px;">📎 <strong>Download the attached ZIP file</strong> for your QR codes. Show each QR at the entrance (one per person).</p>
         <a href="https://sounditent.com/tickets" class="cta">View My Tickets</a>
-        <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+        <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
     )
 
     # Build ZIP attachment with all QR codes
@@ -806,7 +806,7 @@ You can now:
 
 Log in to get started: https://sounditent.com/login
 
-— Sound It Team"""
+, Sound It Team"""
 
     html = _email_wrapper(
         subject,
@@ -814,7 +814,7 @@ Log in to get started: https://sounditent.com/login
         <p>Congratulations! Your <strong>{type_label}</strong> account on Sound It China has been approved.</p>
         <p>You can now create and manage events, access your dashboard, and connect with your audience.</p>
         <a href="https://sounditent.com/login" class="cta">Go to Dashboard</a>
-        <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+        <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -840,7 +840,7 @@ Unfortunately, your application could not be approved at this time.{reason_text}
 
 If you have any questions, please contact our support team.
 
-— Sound It Team"""
+, Sound It Team"""
 
     reason_html = f"<p><strong>Reason:</strong> {reason}</p>" if reason else ""
     html = _email_wrapper(
@@ -850,7 +850,7 @@ If you have any questions, please contact our support team.
         <p>Unfortunately, your application could not be approved at this time.</p>
         {reason_html}
         <p>If you have any questions, please contact our support team.</p>
-        <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+        <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
     )
     return send_email(to_email, subject, body, html)
 
@@ -901,7 +901,7 @@ Event Details:
 
 You can view and manage your booking here: {dashboard_url}
 
-— Sound It Team"""
+, Sound It Team"""
 
         html = _email_wrapper(
             subject,
@@ -914,7 +914,7 @@ You can view and manage your booking here: {dashboard_url}
                 <p style="margin:4px 0;"><strong>Artist:</strong> {artist_name}</p>
             </div>
             <a href="{dashboard_url}" class="cta">View My Booking</a>
-            <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+            <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
         )
     else:
         reason_html = f"<p style='color:#888;'><strong>Reason:</strong> {rejection_reason}</p>" if rejection_reason else ""
@@ -931,7 +931,7 @@ Event Details:
 
 You can submit a new request or explore other artists here: https://sounditent.com/artists
 
-— Sound It Team"""
+, Sound It Team"""
 
         html = _email_wrapper(
             subject,
@@ -945,7 +945,7 @@ You can submit a new request or explore other artists here: https://sounditent.c
                 {reason_html}
             </div>
             <a href="https://sounditent.com/artists" class="cta">Find Other Artists</a>
-            <p style="margin-top:24px; color:#888;">— Sound It Team</p>"""
+            <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
         )
 
     return send_email(to_email, subject, body, html)
@@ -976,7 +976,7 @@ def send_password_reset_email(
         f"{reset_url}\n\n"
         f"This link will expire in 1 hour.\n\n"
         f"If you didn't request this, you can safely ignore this email.\n\n"
-        f"— Sound It Team"
+        f", Sound It Team"
     )
     html = _email_wrapper(
         subject,
@@ -996,7 +996,7 @@ def send_password_changed_confirmation(to_email: str) -> bool:
         "Hello,\n\n"
         "Your password was successfully changed.\n\n"
         "If you didn't make this change, please contact support immediately.\n\n"
-        "— Sound It Team"
+        ", Sound It Team"
     )
     return send_email(to_email, subject, body)
 
@@ -1020,7 +1020,7 @@ def send_broadcast_email(
 
 def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
     """Send a modern test email to demonstrate the upgraded Sound It template."""
-    subject = "🎉 Welcome to Sound It — Modern Design Upgrade"
+    subject = "🎉 Welcome to Sound It, Modern Design Upgrade"
     body = (
         "Hi Fred Max,\n\n"
         "This is a test email demonstrating the new Sound It email template.\n\n"
@@ -1028,7 +1028,7 @@ def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
         "• Black header bar with the new lime drum brand mark\n"
         "• Light, client-safe layout that renders consistently in Gmail/Apple Mail (incl. dark modes)\n"
         "• Favicon and Apple Touch Icon integrated for email client avatar resolution\n\n"
-        "— Sound It Team"
+        ", Sound It Team"
     )
     html = _email_wrapper(
         subject,
@@ -1054,7 +1054,7 @@ def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
             <ul style="margin: 0; padding-left: 20px; color: #52525b; font-size: 14px; line-height: 1.8;">
                 <li><strong style="color:#18181b;">Black Header with New Brand Mark:</strong> The new Sound It drum logo sits on a black bar so the lime mark stays vivid in every client.</li>
                 <li><strong style="color:#18181b;">Email Avatar &amp; Favicon:</strong> Formatted sender name <code style="color:#8a9000; background:#f4f4f5; padding:2px 6px; border-radius:4px;">Sound It &lt;support@sounditent.com&gt;</code> and embedded Apple Touch Icon / Favicon tags.</li>
-                <li><strong style="color:#18181b;">Light, Client-Safe Design:</strong> White card on a light gray canvas renders consistently in Gmail, Apple Mail, Outlook, and their dark modes — no more unpredictable color inverting.</li>
+                <li><strong style="color:#18181b;">Light, Client-Safe Design:</strong> White card on a light gray canvas renders consistently in Gmail, Apple Mail, Outlook, and their dark modes - no more unpredictable color inverting.</li>
             </ul>
         </div>
 
@@ -1080,9 +1080,9 @@ def send_organizer_announcement_email(
 
     subject = f"📢 {announcement_title}"
     if event_title:
-        subject += f" — {event_title}"
+        subject += f", {event_title}"
 
-    plain_body = f"Announcement from {organizer_name}:\n\n{announcement_title}\n\n{announcement_body}\n\n— Sound It Platform"
+    plain_body = f"Announcement from {organizer_name}:\n\n{announcement_title}\n\n{announcement_body}\n\n, Sound It Platform"
     
     event_url = f"https://sounditent.com/events/{event_id}" if event_id else "https://sounditent.com"
 
@@ -1136,7 +1136,7 @@ Access your dashboard here:
 
 If you have any questions, please contact your administrator.
 
-— Sound It Platform Team
+, Sound It Platform Team
 """
 
     html_content = f"""

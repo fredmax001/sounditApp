@@ -406,7 +406,7 @@ export const useAuthStore = create<AuthState>()(
 
                 return;
               } else {
-                // Token invalid — fully log out
+                // Token invalid - fully log out
                 await get().logout();
               }
             } catch (error) {
@@ -415,7 +415,7 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
-          // No valid token or auth failed — run geolocation for anonymous users
+          // No valid token or auth failed - run geolocation for anonymous users
           const { selectedCity } = get();
           if (!selectedCity) {
             get().detectCityByLocation();
@@ -453,7 +453,7 @@ export const useAuthStore = create<AuthState>()(
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             try {
-              // Re-check state inside callback — auth may have completed while geolocation was pending
+              // Re-check state inside callback - auth may have completed while geolocation was pending
               const { selectedCity: currentCity, isAuthenticated: nowAuth } = get();
               if (currentCity) return;
               if (nowAuth) return;
@@ -693,15 +693,15 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Send OTP via backend API (SMS or Email) — DISABLED
+      // Send OTP via backend API (SMS or Email) - DISABLED
       sendOTP: async (_identifier: string) => {
-        // OTP flow disabled — registration and login use direct password only
+        // OTP flow disabled - registration and login use direct password only
         return { success: true, message: 'OTP not required' };
       },
 
-      // Verify OTP via backend API — DISABLED
+      // Verify OTP via backend API - DISABLED
       verifyOTP: async (_identifier: string, _code: string) => {
-        // OTP flow disabled — registration and login use direct password only
+        // OTP flow disabled - registration and login use direct password only
         return true;
       },
 
@@ -1118,7 +1118,7 @@ export const useAuthStore = create<AuthState>()(
               });
             }
           } else {
-            // Refresh failed — log out
+            // Refresh failed - log out
             await get().logout();
           }
         } catch (error) {

@@ -1,5 +1,5 @@
 /**
- * MobileSectionHeader — Consistent section header with label, title, and "See all" link
+ * MobileSectionHeader - Consistent section header with label, title, and "See all" link
  */
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';

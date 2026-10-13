@@ -28,6 +28,8 @@ interface TicketOrder {
   payment_amount: number;
   payer_name: string;
   payment_screenshot: string;
+  buyer_confirmed?: boolean;
+  buyer_confirmed_at?: string | null;
   status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'used';
   ticket_code?: string;
   ticket_qr?: string;
@@ -456,13 +458,21 @@ const TicketOrdersPage = () => {
                   transition={{ delay: idx * 0.02 }}
                   className="px-4 py-3"
                 >
-                  {/* Desktop Row — single straight line, compact */}
+                  {/* Desktop Row - single straight line, compact */}
                   <div className="hidden lg:grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-2">
                       <p className="text-white text-xs font-medium truncate flex items-center gap-1">
                         {order.payer_name || order.user?.name || '-'}
                         {order.is_guest_order && (
                           <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase">Guest</span>
+                        )}
+                        {order.buyer_confirmed && (
+                          <span
+                            className="px-1.5 py-0.5 rounded bg-[#d3da0c]/15 text-[#d3da0c] text-[9px] font-bold uppercase"
+                            title={t('business.ticketOrders.buyerConfirmedHint') || 'Buyer confirmed payment in the app'}
+                          >
+                            {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
+                          </span>
                         )}
                       </p>
                     </div>
@@ -554,6 +564,11 @@ const TicketOrdersPage = () => {
                           {order.payer_name || order.user?.name || '-'}
                           {order.is_guest_order && (
                             <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase">Guest</span>
+                          )}
+                          {order.buyer_confirmed && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/15 text-[#d3da0c] text-[10px] font-bold uppercase">
+                              {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
+                            </span>
                           )}
                         </p>
                         <p className="text-gray-400 text-sm">{order.user?.email || '-'}</p>
@@ -697,7 +712,7 @@ const TicketOrdersPage = () => {
         </div>
       )}
 
-      {/* Individual Tickets Modal — for organizer check-in scanning */}
+      {/* Individual Tickets Modal - for organizer check-in scanning */}
       {selectedOrderTickets && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"

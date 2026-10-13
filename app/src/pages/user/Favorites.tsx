@@ -131,18 +131,18 @@ const Favorites = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-24">
-      <section className="relative py-16 bg-[#111111]">
+    <div className="min-h-screen pb-24">
+      <section className="relative py-8 bg-[#111111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4">
+            <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-2">
               {t('user.favorites.saved')}
             </span>
-            <h1 className="text-4xl md:text-6xl font-display text-white mb-6">
+            <h1 className="text-3xl md:text-5xl font-display text-white">
               {t('user.favorites.my')}{' '}
               <span className="text-[#d3da0c]">{t('user.favorites.favorites')}</span>
             </h1>
@@ -150,7 +150,7 @@ const Favorites = () => {
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-4 mb-8">
             <button
@@ -240,8 +240,8 @@ const Favorites = () => {
                 </div>
               ) : (
                 <div className="text-center py-24">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#111111] flex items-center justify-center">
-                    <Heart className="w-10 h-10 text-gray-500" />
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#111111] border border-white/10 flex items-center justify-center">
+                    <Heart className="w-10 h-10 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">{t('user.favorites.noFavoriteEventsYet')}</h3>
                   <p className="text-gray-400 mb-6">{t('user.favorites.startExploringEvents')}</p>
@@ -330,8 +330,8 @@ const Favorites = () => {
                 </div>
               ) : (
                 <div className="text-center py-24">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#111111] flex items-center justify-center">
-                    <Users className="w-10 h-10 text-gray-500" />
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#111111] border border-white/10 flex items-center justify-center">
+                    <Users className="w-10 h-10 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">{t('user.favorites.noFavoriteArtistsYet')}</h3>
                   <p className="text-gray-400 mb-6">{t('user.favorites.discoverAndFollow')}</p>

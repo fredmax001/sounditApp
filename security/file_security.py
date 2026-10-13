@@ -55,7 +55,7 @@ class FileSecurityScanner:
     Multi-layer file upload security scanner.
     """
     
-    # Allowed MIME types for images (SVG intentionally excluded — XSS risk)
+    # Allowed MIME types for images (SVG intentionally excluded - XSS risk)
     ALLOWED_IMAGE_TYPES = {
         'image/jpeg',
         'image/png',

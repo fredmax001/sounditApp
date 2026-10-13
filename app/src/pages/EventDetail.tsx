@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle, Smartphone } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -39,6 +39,39 @@ export default function EventDetail() {
   const [referralCode, setReferralCode] = useState('');
   const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
+  // One-tap payment confirmation flow (buyer returns from Alipay/WeChat app)
+  const [buyerConfirmed, setBuyerConfirmed] = useState(false);
+  const [payReturnPrompt, setPayReturnPrompt] = useState(false);
+  const [resumePrompt, setResumePrompt] = useState(false);
+  const leftForPaymentAt = useRef<number | null>(null);
+
+  // Persist a lightweight payment session so a buyer whose browser tab was
+  // killed while paying in WeChat/Alipay can resume instead of starting over.
+  // Mobile-only (including the native app and PWA) — desktop keeps the
+  // plain scan-and-upload flow.
+  const isMobilePaymentEnv = () =>
+    window.innerWidth < 768 || (window as any).Capacitor?.isNativePlatform?.() === true;
+  const PENDING_PAY_KEY = 'soundit_pending_payment';
+  const clearPendingPayment = () => { try { localStorage.removeItem(PENDING_PAY_KEY); } catch { /* ignore */ } };
+  const restorePendingPayment = () => {
+    try {
+      const s = JSON.parse(localStorage.getItem(PENDING_PAY_KEY) || 'null');
+      if (s) {
+        if (s.tier_id) setSelectedTierId(String(s.tier_id));
+        if (s.quantity) setQuantity(s.quantity);
+      }
+    } catch { /* ignore */ }
+  };
+
+  // Prefill payer name from the logged-in profile so the order form only
+  // needs a screenshot and an optional note.
+  useEffect(() => {
+    if (!showOrderModal) return;
+    if (payerName) return;
+    const p = profile as any;
+    const fullName = [p?.first_name, p?.last_name].filter(Boolean).join(' ').trim();
+    setPayerName(fullName || p?.email || p?.username || '');
+  }, [showOrderModal]);
   const [eventVendors, setEventVendors] = useState<Array<{
     id: number;
     vendor_id: number;
@@ -109,6 +142,52 @@ export default function EventDetail() {
       Analytics.trackEvent("event_view", "engagement", { event_id: id });
     }
   }, [id, fetchEventById]);
+
+  // Save the payment session whenever the QR screen is shown (mobile only)
+  useEffect(() => {
+    if (!showQrModal || !currentEvent || !isMobilePaymentEnv()) return;
+    try {
+      localStorage.setItem(PENDING_PAY_KEY, JSON.stringify({
+        event_id: currentEvent.id,
+        tier_id: selectedTierId,
+        quantity,
+        started_at: Date.now(),
+      }));
+    } catch { /* storage full/blocked — non-fatal */ }
+  }, [showQrModal, currentEvent, selectedTierId, quantity]);
+
+  // On load, offer to resume an unfinished payment (e.g. the browser tab was
+  // discarded while the buyer was in the WeChat/Alipay app). Mobile only.
+  useEffect(() => {
+    if (!currentEvent?.id || !isMobilePaymentEnv()) return;
+    try {
+      const raw = localStorage.getItem(PENDING_PAY_KEY);
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      if (String(session.event_id) !== String(currentEvent.id)) return;
+      if (Date.now() - (session.started_at || 0) > 24 * 3600 * 1000) {
+        clearPendingPayment();
+        return;
+      }
+      setResumePrompt(true);
+    } catch { clearPendingPayment(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEvent?.id]);
+
+  // Detect the buyer returning from the Alipay/WeChat app after a deep-link
+  // payment, and prompt a one-tap confirmation.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState !== 'visible' || !leftForPaymentAt.current) return;
+      const awayMs = Date.now() - leftForPaymentAt.current;
+      leftForPaymentAt.current = null;
+      if (awayMs > 2500 && !buyerConfirmed && !showSuccessModal && isMobilePaymentEnv()) {
+        setPayReturnPrompt(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [buyerConfirmed, showSuccessModal]);
 
   // Update meta tags for sharing (WeChat, social)
   useEffect(() => {
@@ -210,7 +289,11 @@ export default function EventDetail() {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!screenshot || !payerName.trim()) {
+    if (!payerName.trim()) {
+      toast.error(t('eventDetail.pleaseUploadScreenshotAndName'));
+      return;
+    }
+    if (!screenshot && !buyerConfirmed) {
       toast.error(t('eventDetail.pleaseUploadScreenshotAndName'));
       return;
     }
@@ -236,6 +319,7 @@ export default function EventDetail() {
     formData.append('payment_reference', paymentReference.trim());
     if (payerNotes) formData.append('payer_notes', payerNotes);
     if (referralCode.trim()) formData.append('referral_code', referralCode.trim().toUpperCase());
+    formData.append('buyer_confirmed', buyerConfirmed ? 'true' : 'false');
 
     try {
       const res = await fetch(`${API_BASE_URL}/tickets/order`, {
@@ -248,11 +332,15 @@ export default function EventDetail() {
         if (data.status === 'rejected') {
           toast.error(data.message || t('eventDetail.orderFailed'));
         } else {
-          toast.success(data.auto_approved ? t('eventDetail.orderAutoApproved') : t('eventDetail.orderSubmitted'));
+          toast.success(buyerConfirmed
+            ? (t('eventDetail.paymentReported') || 'Payment reported, organizer notified')
+            : (data.auto_approved ? t('eventDetail.orderAutoApproved') : t('eventDetail.orderSubmitted')));
         }
         setRecentOrder({ status: data.status || 'pending', ticket_qr: undefined, ticket_code: undefined });
         setShowOrderModal(false);
         setShowSuccessModal(true);
+        setBuyerConfirmed(false);
+        clearPendingPayment();
         Analytics.trackEvent("ticket_purchased", "conversion", { event_id: id, amount: unitPrice * quantity });
       } else {
         toast.error(data.detail || t('eventDetail.orderFailed'));
@@ -788,7 +876,7 @@ export default function EventDetail() {
       {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">{t('eventDetail.scanToPay')}</h3>
               <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
@@ -805,8 +893,11 @@ export default function EventDetail() {
               amount={(currentEvent.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent.ticket_price ?? 0) * quantity}
               wechatQrUrl={currentEvent.wechat_qr_url}
               alipayQrUrl={currentEvent.alipay_qr_url}
+              wechatPayUrl={(currentEvent as any).wechat_pay_url}
+              alipayPayUrl={(currentEvent as any).alipay_pay_url}
               paymentInstructions={currentEvent.payment_instructions}
               hideYoopay={!!currentEvent.wechat_qr_url || !!currentEvent.alipay_qr_url}
+              onDeepLinkTap={() => { leftForPaymentAt.current = Date.now(); }}
             />
             <button
               onClick={() => { setShowQrModal(false); setShowOrderModal(true); }}
@@ -814,6 +905,91 @@ export default function EventDetail() {
             >
               {t('eventDetail.iHavePaid')}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pay-return prompt - buyer came back from Alipay/WeChat */}
+      {payReturnPrompt && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+            <div className="w-16 h-16 bg-[#d3da0c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Smartphone className="w-8 h-8 text-[#d3da0c]" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.payReturnTitle') || 'Did you complete the payment?'}</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              {t('eventDetail.payReturnBody') || 'If you finished paying in the app, confirm below and the organizer is notified instantly.'}
+            </p>
+            <div className="p-3 bg-white/5 rounded-xl mb-4">
+              <span className="text-white/60 text-sm">{t('eventDetail.amountToPay') || 'Amount'}</span>
+              <p className="text-xl font-bold text-[#d3da0c]">
+                ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setBuyerConfirmed(true);
+                  setPayReturnPrompt(false);
+                  setShowQrModal(false);
+                  setShowOrderModal(true);
+                }}
+                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+              >
+                {t('eventDetail.payReturnYes') || 'Yes, I Completed the Payment'}
+              </button>
+              <button
+                onClick={() => setPayReturnPrompt(false)}
+                className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
+              >
+                {t('eventDetail.payReturnNo') || 'Not Yet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resume unfinished payment — browser tab was discarded while paying */}
+      {resumePrompt && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+            <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-amber-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.resumeTitle') || 'Unfinished Payment'}</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              {t('eventDetail.resumeBody') || 'You were paying for this event. If you already completed the payment in WeChat or Alipay, confirm below — you can also attach your payment screenshot.'}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  restorePendingPayment();
+                  setBuyerConfirmed(true);
+                  setResumePrompt(false);
+                  clearPendingPayment();
+                  setShowOrderModal(true);
+                }}
+                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+              >
+                {t('eventDetail.resumeYes') || 'Yes, I Completed the Payment'}
+              </button>
+              <button
+                onClick={() => {
+                  restorePendingPayment();
+                  setResumePrompt(false);
+                  setShowQrModal(true);
+                }}
+                className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
+              >
+                {t('eventDetail.resumeShowQr') || 'Show Payment QR Again'}
+              </button>
+              <button
+                onClick={() => { setResumePrompt(false); clearPendingPayment(); }}
+                className="w-full text-gray-500 py-2 text-sm hover:text-gray-300 transition-colors"
+              >
+                {t('eventDetail.resumeCancel') || 'Cancel'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -827,30 +1003,40 @@ export default function EventDetail() {
               <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
             </div>
             <form onSubmit={handleOrderSubmit} className="space-y-4">
-              <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.yourName')} *</label>
-                <input
-                  type="text"
-                  value={payerName}
-                  onChange={(e) => setPayerName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
-                  placeholder={t('eventDetail.enterYourName')}
-                  required
-                />
+              {/* Compact summary line: quantity + total */}
+              <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                <span className="text-white/60 text-sm">
+                  {quantity} {quantity === 1 ? t('eventDetail.ticket') : t('eventDetail.tickets')}
+                </span>
+                <span className="text-[#d3da0c] font-bold">
+                  ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
+                </span>
               </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')}</label>
-                <div className="flex items-center gap-3">
-                  <div className="px-4 py-2 rounded-lg bg-white/5 text-white font-medium">
-                    {quantity} {quantity === 1 ? t('eventDetail.ticket') : t('eventDetail.tickets')}
-                  </div>
-                  <span className="text-[#d3da0c] font-bold">
-                    ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
-                  </span>
+
+              {/* Name only needed when we could not resolve it from the profile */}
+              {!profile && (
+                <div>
+                  <label className="text-white/60 text-sm block mb-2">{t('eventDetail.yourName')} *</label>
+                  <input
+                    type="text"
+                    value={payerName}
+                    onChange={(e) => setPayerName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                    placeholder={t('eventDetail.enterYourName') || 'Your name'}
+                    required
+                  />
                 </div>
-              </div>
+              )}
+
               <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.paymentScreenshot')} *</label>
+                <label className="text-white/60 text-sm block mb-2">
+                  {t('eventDetail.paymentScreenshot')}{buyerConfirmed ? '' : ' *'}
+                </label>
+                {buyerConfirmed && (
+                  <p className="text-[#d3da0c]/80 text-xs mb-2">
+                    {t('eventDetail.screenshotOptionalHint') || 'Optional, your payment confirmation was already sent to the organizer.'}
+                  </p>
+                )}
                 <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#d3da0c]/50 transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-8 h-8 text-white/50 mb-2" />
@@ -861,36 +1047,11 @@ export default function EventDetail() {
                     accept="image/*"
                     onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
                     className="hidden"
-                    required
+                    required={!buyerConfirmed}
                   />
                 </label>
               </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">
-                  {t('eventDetail.paymentReference')} 
-                  <span className="ml-1 text-[#d3da0c] font-medium">(Optional - We will try to auto-detect)</span>
-                </label>
-                <input
-                  type="text"
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
-                  placeholder={t('eventDetail.enterPaymentReference')}
-                />
-              </div>
-              <div>
-                <label className="text-white/60 text-sm block mb-2">
-                  {t('eventDetail.referralCode') || 'Referral Code'}
-                  <span className="ml-1 text-purple-400 font-medium">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
-                  placeholder={t('eventDetail.enterReferralCode') || 'Enter referral code'}
-                />
-              </div>
+
               <div>
                 <label className="text-white/60 text-sm block mb-2">{t('eventDetail.notesOptional')}</label>
                 <textarea
@@ -946,8 +1107,20 @@ export default function EventDetail() {
             <p className="text-gray-400 text-sm mb-6">
               {recentOrder?.status === 'approved' || recentOrder?.status === 'used'
                 ? t('eventDetail.orderAutoApproved')
-                : t('eventDetail.orderSubmitted')}
+                : recentOrder?.status === 'pending'
+                  ? (t('eventDetail.orderPendingApproval') || 'Your payment was reported to the organizer. The ticket will be approved when they see it, follow the status anytime in My Tickets.')
+                  : t('eventDetail.orderSubmitted')}
             </p>
+            {recentOrder?.ticket_qr && (
+              <div className="mb-6">
+                <div className="bg-white rounded-xl p-3 inline-block">
+                  <img src={recentOrder.ticket_qr} alt="Ticket QR" className="w-48 h-48 object-contain" />
+                </div>
+                {recentOrder.ticket_code && (
+                  <p className="text-white/70 text-xs mt-2 font-mono">{recentOrder.ticket_code}</p>
+                )}
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setShowSuccessModal(false); navigate('/tickets'); }}
@@ -966,7 +1139,7 @@ export default function EventDetail() {
         </div>
       )}
 
-      {/* Auth Modal — Login / Register inline */}
+      {/* Auth Modal - Login / Register inline */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90vh] overflow-y-auto">

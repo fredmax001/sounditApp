@@ -52,9 +52,39 @@
     "discovery": "发现",
     "menu": "菜单",
     "promoters": "Promoters",
-    "message": "消息"
+    "message": "消息",
+    "selectCity": "选择城市"
   },
   "home": {
+    "brand": {
+      "heroBadge": "Sound It Entertainment",
+      "heroTagline": "文化与创新交汇之处。",
+      "heroDescription": "Sound It Entertainment 成立于 2020 年，通过音乐、现场活动、科技与创意合作，连接非洲文化、国际娱乐与中国市场。",
+      "exploreEvents": "探索活动",
+      "learnAboutUs": "了解我们",
+      "enterApp": "进入 Sound it 应用",
+      "whoKicker": "我们是谁",
+      "whoTitle": "娱乐、科技与文化，构建为一个生态系统。",
+      "whoText": "Sound It Entertainment Co. Ltd. 始于新冠疫情期间的 Sound It Music Entertainment，最初专注于 DJ 混音、艺人合作、音乐发行与娱乐内容。此后逐步发展为涵盖现场活动、文化节目、科技、创意服务与社区共建的娱乐公司，已在上海、杭州、南京、宁波等城市举办超过 50 场活动。",
+      "whoLink": "阅读完整故事",
+      "whatKicker": "我们的业务",
+      "whatTitle": "一家公司，多种创造方式",
+      "collabsKicker": "国际合作",
+      "collabsTitle": "国际艺人，文化影响",
+      "collabsText": "Sound It 已与来自非洲、中国及国际市场的艺人、DJ、网红和娱乐界人士展开合作。",
+      "collabsNames": "DJ Neptune、DJ Kaywise、DJ Akio、Eva Modika、Master Wen、DJ Melzi、Crayon 等",
+      "collabsLink": "查看全部合作",
+      "joinKicker": "加入与参与",
+      "joinTitle": "Sound It 有属于你的位置",
+      "ecoKicker": "Sound It 生态系统",
+      "ecoTitle": "一个品牌，多个平台",
+      "ecoLink": "探索完整生态系统",
+      "statusActive": "运营中",
+      "statusDevelopment": "开发中",
+      "statusPlanned": "规划中",
+      "statusPrelaunch": "预发布",
+      "statusPartner": "合作项目"
+    },
     "hero": {
       "badge": "为在华外国人服务",
       "badgeLoggedIn": "欢迎回来！正在探索{{city}}",
@@ -113,12 +143,183 @@
     "title": "发现艺人",
     "subtitle": "关注你最喜欢的 DJ 和表演者。发现新人才，及时了解他们的 upcoming 演出。",
     "searchPlaceholder": "搜索艺人或类型...",
-    "noArtistsFound": "No artists found"
+    "noArtistsFound": "No artists found",
+    "followed": "已关注",
+    "unfollowed": "已取消关注",
+    "followFailed": "更新关注状态失败",
+    "loginToFollow": "请登录后关注艺人"
   },
   "artist": {
+    "dashboard": {
+      "bookingUpdated": "Booking {{status}}",
+      "notAuthenticated": "Not authenticated",
+      "profileUpdated": "Profile updated successfully!",
+      "saveProfileFailed": "Failed to save profile changes",
+      "invalidImage": "Please select a valid image file",
+      "imageTooLarge": "Image size must be less than 5MB",
+      "avatarUpdated": "Avatar updated successfully!",
+      "avatarUploadFailed": "Failed to upload avatar",
+      "defaultArtistName": "Sound It Artist",
+      "verified": "已认证",
+      "applyForVerification": "申请认证",
+      "verificationApplied": "认证申请已提交",
+      "verificationApplyFailed": "提交认证申请失败",
+      "tab": {
+        "overview": "Overview",
+        "profile": "Profile Mgmt",
+        "bookings": "Bookings",
+        "music": "Music & Media",
+        "availability": "可预约时间"
+      },
+      "pleaseLogIn": "Please Log In",
+      "logInDescription": "You need to be logged in to access your artist dashboard.",
+      "accountStatus": "Account Status",
+      "activePartner": "Active Partner",
+      "stat": {
+        "followers": "Followers",
+        "avgRating": "Avg Rating",
+        "totalGigs": "Total Gigs",
+        "earnings": "Earnings"
+      },
+      "upcomingPerformances": "Upcoming Performances",
+      "manageAll": "Manage All",
+      "hoursSet": "{{hours}}H Set",
+      "status": {
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "declined": "Declined",
+        "actionLocked": "Action Locked"
+      },
+      "noConfirmedGigs": "No confirmed gigs yet",
+      "checkBookings": "Check booking requests",
+      "quickActions": "Quick Actions",
+      "updateProfile": "Update Profile",
+      "updateProfileDesc": "Edit your artist bio and info",
+      "manageMusicLinks": "Manage Music Links",
+      "manageMusicLinksDesc": "Add your streaming platform URLs",
+      "editProfileTitle": "Edit Your Artist Profile",
+      "editProfileSubtitle": "Your profile is your digital business card for organizers.",
+      "label": {
+        "stageName": "Stage Name *",
+        "artistType": "Artist Type",
+        "genres": "Genres (Comma separated)",
+        "biography": "Biography",
+        "instagram": "Instagram URL",
+        "twitter": "Twitter URL",
+        "wechat": "WeChat Handle",
+        "phone": "Phone Number",
+        "spotifyUrl": "Spotify URL",
+        "appleMusicUrl": "Apple Music URL",
+        "soundcloudUrl": "SoundCloud URL",
+        "hearthisUrl": "HearThis.at URL",
+        "alipayQr": "Alipay QR Code",
+        "paymentInstructions": "Payment Instructions",
+        "wechatQr": "WeChat QR Code",
+        "youtubeUrl": "YouTube 链接",
+        "audiomackUrl": "Audiomack 链接"
+      },
+      "placeholder": {
+        "stageName": "Your artist name",
+        "genres": "e.g. Afrobeat, Amapiano, Hip-Hop",
+        "bio": "Tell organizers about your style and experience...",
+        "instagram": "https://instagram.com/yourname",
+        "twitter": "https://twitter.com/yourname",
+        "wechat": "Your WeChat ID",
+        "phone": "+86 138 0000 0000",
+        "spotify": "https://open.spotify.com/artist/...",
+        "appleMusic": "https://music.apple.com/artist/...",
+        "soundcloud": "https://soundcloud.com/yourname",
+        "hearthis": "https://hearthis.at/yourname",
+        "paymentInstructions": "e.g. Please include your name in the transfer note",
+        "youtube": "https://youtube.com/channel/...",
+        "audiomack": "https://audiomack.com/artist/..."
+      },
+      "artistType": {
+        "artist": "艺人",
+        "dj": "DJ",
+        "mc": "MC",
+        "dancer": "舞者",
+        "photographer": "摄影师"
+      },
+      "djMixTitle": "DJ混音",
+      "djMixSubtitle": "上传你的最佳混音（最长10分钟，10MB）",
+      "uploadMix": "上传混音",
+      "replaceMix": "替换混音",
+      "mixUploaded": "DJ混音上传成功",
+      "mixUploadFailed": "DJ混音上传失败",
+      "mixTooLarge": "混音文件必须小于10MB",
+      "mixRequirements": "接受格式：MP3、M4A、WAV。最长10分钟，10MB。",
+      "danceVideoTitle": "舞蹈视频",
+      "danceVideoSubtitle": "上传你的表演视频（最长3分钟，30MB）",
+      "uploadVideo": "上传视频",
+      "replaceVideo": "替换视频",
+      "videoUploaded": "舞蹈视频上传成功",
+      "videoUploadFailed": "舞蹈视频上传失败",
+      "videoTooLarge": "视频必须小于30MB",
+      "videoRequirements": "接受格式：MP4、MOV、WebM。最长3分钟，30MB。",
+      "musicLinksTitle": "音乐链接",
+      "musicLinksSubtitle": "添加你在流媒体平台上的歌曲链接",
+      "addMusicLink": "添加音乐链接",
+      "linkPlatform": "平台",
+      "linkTitle": "歌曲名称",
+      "linkUrl": "链接",
+      "uploading": "上传中...",
+      "charCount": "{{count}} / 500 characters",
+      "maxCharReached": "Maximum character count reached (500 characters)",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "musicTitle": "Music & Media",
+      "musicSubtitle": "Connect your streaming platforms and share your music with organizers.",
+      "yourMusicLinks": "Your Music Links",
+      "connectedPlatforms": "Your Connected Platforms",
+      "saveMusicLinks": "Save Music Links",
+      "bookingRequestsTitle": "Booking Requests",
+      "bookingRequestsSubtitle": "Manage and respond to event organizer invitations.",
+      "filter": {
+        "all": "all",
+        "pending": "pending",
+        "accepted": "accepted",
+        "rejected": "rejected",
+        "completed": "completed"
+      },
+      "noBookings": "No bookings yet",
+      "noBookingsFilter": "No {{filter}} bookings",
+      "noBookingsDescription": "Build your profile and share your artist link to start receiving booking requests.",
+      "noBookingsFilterDescription": "You don't have any {{filter}} bookings at the moment.",
+      "proposedFee": "Proposed Fee",
+      "rejectInvitation": "Reject Invitation",
+      "acceptGig": "Accept GIG",
+      "organizer": "Organizer",
+      "eventOrganizer": "Event Organizer",
+      "social": {
+        "instagram": "Instagram",
+        "twitter": "Twitter",
+        "phone": "Phone",
+        "wechatTitle": "WeChat: {{handle}}"
+      },
+      "newArtist": "New Artist",
+      "music": "Music",
+      "paymentSetupFailed": "Failed to save payment setup",
+      "paymentSetupSaved": "Payment setup saved successfully",
+      "paymentSetupSubtitle": "Upload your QR codes so organizers can pay you directly",
+      "paymentSetupTitle": "Payment Setup",
+      "remove": "Remove",
+      "savePaymentSetup": "Save Payment Setup",
+      "uploadQr": "Upload QR",
+      "bookingRequests": "Booking Requests",
+      "manageBookingRequests": "Manage and respond to event organizer invitations.",
+      "availabilityTitle": "我的可预约时间",
+      "availabilitySubtitle": "点击日期设置你的可预约状态。",
+      "unavailable": "不可用",
+      "selectedDate": "所选日期",
+      "availabilitySaved": "可预约状态已更新",
+      "availabilitySaveFailed": "更新可预约状态失败",
+      "availabilityCleared": "可预约状态已清除",
+      "availabilityClearFailed": "清除可预约状态失败"
+    },
     "bookings": {
       "title": "预订",
-      "subtitle": "管理活动组织者的预订请求",
+      "subtitle": "管理演出邀请",
       "filter": {
         "all": "全部",
         "pending": "待处理",
@@ -133,30 +334,108 @@
         "completed": "已完成"
       },
       "noBookings": "暂无预订",
-      "noBookingsDescription": "当组织者请求预订您时，请求将显示在这里。",
+      "noBookingsDescription": "活动组织者的预订请求将显示在这里。",
+      "loadFailed": "加载预订失败",
+      "loadError": "加载预订时出错",
+      "statusUpdated": "状态已更新为 {{status}}",
+      "updateStatusFailed": "更新状态失败",
+      "updateError": "更新状态时出错",
+      "paymentPending": "待付款",
       "eventDetails": "活动详情",
       "type": "类型",
       "budget": "预算",
       "duration": "时长",
       "hours": "小时",
       "location": "地点",
-      "paymentStatus": "支付状态",
+      "paymentStatus": "付款状态",
       "contactInfo": "联系信息",
-      "messageFromOrganizer": "来自组织者的消息",
+      "messageFromOrganizer": "组织者留言",
       "paymentScreenshot": "付款截图",
-      "paymentPending": "待处理",
-      "awaitingPayment": "等待组织者付款",
+      "awaitingPayment": "等待付款确认",
       "accept": "接受",
       "decline": "拒绝",
-      "confirmDecline": "确认拒绝",
-      "cancel": "取消",
-      "rejectionReasonPlaceholder": "可选：告诉客户您拒绝的原因（将包含在邮件中）",
       "markCompleted": "标记为已完成",
-      "loadFailed": "加载预订失败",
-      "loadError": "加载预订时出错",
-      "updateStatusFailed": "更新预订状态失败",
-      "updateError": "更新预订状态时出错",
-      "statusUpdated": "预订状态已更新为 {{status}}"
+      "cancel": "取消",
+      "confirmDecline": "确定拒绝此预订吗？",
+      "rejectionReasonPlaceholder": "拒绝原因（可选）"
+    },
+    "performances": {
+      "title": "演出",
+      "subtitle": "您的 upcoming 和 past 演出",
+      "totalPerformances": "总演出数",
+      "completed": "已完成",
+      "totalEarnings": "总收入",
+      "upcomingGigs": "即将到来的演出",
+      "noUpcoming": "暂无即将上演的演出",
+      "pastPerformances": "过往演出",
+      "noCompleted": "暂无已完成的演出",
+      "hoursSet": "{{hours}}小时演出",
+      "fallbackEvent": "活动",
+      "fallbackVenue": "场地",
+      "loadError": "加载演出失败"
+    },
+    "analytics": {
+      "loadError": "Failed to load analytics",
+      "title": "Analytics",
+      "subtitle": "Track your performance metrics",
+      "refresh": "Refresh",
+      "followers": "Followers",
+      "totalGigs": "Total Gigs",
+      "earnings": "Earnings",
+      "rating": "Rating",
+      "monthlyOverview": "Monthly Overview",
+      "month": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun"
+      },
+      "recentBookings": "Recent Bookings",
+      "noBookings": "No bookings yet",
+      "genrePerformance": "Genre Performance",
+      "gigCount": "{{count}} gigs",
+      "genre": {
+        "afrobeat": "Afrobeat",
+        "amapiano": "Amapiano",
+        "hipHop": "Hip-Hop"
+      }
+    },
+    "recaps": {
+      "title": "活动回顾",
+      "subtitle": "分享你演出的照片和视频",
+      "uploadRecap": "上传回顾",
+      "uploadFirstRecap": "上传你的第一条回顾",
+      "modalTitle": "上传回顾",
+      "eventLabel": "活动",
+      "eventPlaceholder": "选择活动",
+      "typeLabel": "类型",
+      "type": {
+        "image": "图片",
+        "video": "视频"
+      },
+      "titleLabel": "标题",
+      "titlePlaceholder": "输入标题",
+      "images": "图片",
+      "videos": "视频",
+      "dropzone": "将文件拖放到此处，或点击选择",
+      "maxFileSize": "最大文件大小：50 MB",
+      "uploadSuccess": "回顾上传成功",
+      "uploadFailed": "上传失败",
+      "uploadError": "上传出错",
+      "deleteSuccess": "回顾已删除",
+      "deleteFailed": "删除回顾失败",
+      "deleteConfirm": "确定删除此回顾吗？",
+      "noRecaps": "暂无回顾",
+      "noRecapsDescription": "上传活动照片和视频，建立你的作品集",
+      "totalRecaps": "回顾总数",
+      "totalViews": "总浏览量",
+      "viewCount": "{{count}} 次浏览"
+    },
+    "community": {
+      "title": "社区",
+      "subtitle": "与粉丝互动"
     }
   },
   "food": {
@@ -236,7 +515,10 @@
     "firstName": "名字",
     "lastName": "姓氏",
     "actions": "操作",
-    "none": "无"
+    "none": "无",
+    "openOriginal": "查看原图",
+    "preview": "预览",
+    "remove": "移除"
   },
   "auth": {
     "login": {
@@ -257,6 +539,7 @@
       "loginSuccessful": "Login successful!",
       "googleLoginFailed": "Google login failed",
       "googleLoginError": "Google login error",
+      "googleSignIn": "使用 Google 继续",
       "cityLabel": "Select Your City in China",
       "cityPlaceholder": "Choose a city...",
       "cityHint": "We'll show you events and venues in your city",
@@ -346,12 +629,14 @@
       "verifyAndContinue": "Verify & Continue",
       "goBackEdit": "Go back to edit information",
       "orSignUpWith": "Or sign up with",
+      "googleSignUp": "使用 Google 注册",
       "googleSignUpFailed": "Google sign up failed",
       "googleSignUpError": "Google sign up error",
       "alreadyHaveAccount": "Already have an account?",
       "signInLink": "Sign in",
       "email": "Email",
-      "phone": "Phone"
+      "phone": "Phone",
+      "smsConsent": "我同意接收短信通知"
     },
     "email": "电子邮箱",
     "password": "密码",
@@ -454,7 +739,10 @@
       "backToSignUp": "Back to Sign Up",
       "infoLine1": "For security, verification codes expire in 10 minutes.",
       "infoLine2": "Check your spam folder if you don't see the email."
-    }
+    },
+    "goToLogin": "前往登录",
+    "pleaseLoginAgain": "请重新登录",
+    "sessionExpired": "您的会话已过期"
   },
   "settings": {
     "title": "设置",
@@ -480,7 +768,8 @@
     "deleteAccount": "删除账户",
     "deleteAccountDesc": "永久删除你的账户和所有数据",
     "saveSettings": "保存设置",
-    "settingsSaved": "设置保存成功"
+    "settingsSaved": "设置保存成功",
+    "city": "城市"
   },
   "footer": {
     "tagline": "为在华外国人打造的最佳平台，发现Afrobeats活动、非洲美食，并与DJ建立联系。你在异乡的家。",
@@ -490,9 +779,12 @@
       "aboutUs": "关于我们",
       "careers": "招贤纳士",
       "press": "媒体",
-      "contact": "联系我们"
+      "contact": "联系我们",
+      "getApp": "下载应用"
     },
-    "legal": "法律",
+    "legal": {
+      "title": "法律信息"
+    },
     "copyright": "Sound It. 为在华外国人而制。",
     "discover": {
       "title": "发现",
@@ -501,7 +793,9 @@
       "cityGuide": "城市指南",
       "community": "社区",
       "food": "美食",
-      "discovery": "发现"
+      "discovery": "发现",
+      "recaps": "活动回顾",
+      "vendors": "商家"
     },
     "support": {
       "title": "支持",
@@ -640,7 +934,9 @@
       "pay": "支付",
       "fillRequired": "请填写所有必填项",
       "guestOrderCreated": "客人门票已创建，请完成支付以确认。",
-      "guestOrderFailed": "创建客人门票失败"
+      "guestOrderFailed": "创建客人门票失败",
+      "buyerConfirmed": "已确认付款",
+      "buyerConfirmedHint": "买家已在应用中确认付款，请在支付宝/微信中核实后批准"
     },
     "profile": {
       "businessProfileUpdated": "Business profile updated",
@@ -719,7 +1015,8 @@
       "accountDetailsPlaceholder": "Enter bank account number / Alipay ID / WeChat ID",
       "cancel": "Cancel",
       "submitting": "Submitting...",
-      "submitRequest": "Submit Request"
+      "submitRequest": "Submit Request",
+      "loadError": "加载提现记录失败"
     },
     "staff": {
       "pleaseEnterEmail": "Please enter an email address",
@@ -782,7 +1079,9 @@
       "invitationAccepted": "邀请已接受",
       "invitationRejected": "邀请已拒绝",
       "failedToAccept": "接受邀请失败",
-      "failedToReject": "拒绝邀请失败"
+      "failedToReject": "拒绝邀请失败",
+      "saveStaff": "保存员工",
+      "saving": "保存中..."
     },
     "tableReservations": {
       "failedToLoadData": "Failed to load data",
@@ -909,253 +1208,6 @@
       "copyCode": "复制推荐码",
       "copyLink": "复制链接",
       "showQr": "显示二维码"
-    }
-  },
-  "artist": {
-    "dashboard": {
-      "bookingUpdated": "Booking {{status}}",
-      "notAuthenticated": "Not authenticated",
-      "profileUpdated": "Profile updated successfully!",
-      "saveProfileFailed": "Failed to save profile changes",
-      "invalidImage": "Please select a valid image file",
-      "imageTooLarge": "Image size must be less than 5MB",
-      "avatarUpdated": "Avatar updated successfully!",
-      "avatarUploadFailed": "Failed to upload avatar",
-      "defaultArtistName": "Sound It Artist",
-      "verified": "已认证",
-      "applyForVerification": "申请认证",
-      "verificationApplied": "认证申请已提交",
-      "verificationApplyFailed": "提交认证申请失败",
-      "tab": {
-        "overview": "Overview",
-        "profile": "Profile Mgmt",
-        "bookings": "Bookings",
-        "music": "Music & Media"
-      },
-      "pleaseLogIn": "Please Log In",
-      "logInDescription": "You need to be logged in to access your artist dashboard.",
-      "accountStatus": "Account Status",
-      "activePartner": "Active Partner",
-      "stat": {
-        "followers": "Followers",
-        "avgRating": "Avg Rating",
-        "totalGigs": "Total Gigs",
-        "earnings": "Earnings"
-      },
-      "upcomingPerformances": "Upcoming Performances",
-      "manageAll": "Manage All",
-      "hoursSet": "{{hours}}H Set",
-      "status": {
-        "confirmed": "Confirmed",
-        "completed": "Completed",
-        "declined": "Declined",
-        "actionLocked": "Action Locked"
-      },
-      "noConfirmedGigs": "No confirmed gigs yet",
-      "checkBookings": "Check booking requests",
-      "quickActions": "Quick Actions",
-      "updateProfile": "Update Profile",
-      "updateProfileDesc": "Edit your artist bio and info",
-      "manageMusicLinks": "Manage Music Links",
-      "manageMusicLinksDesc": "Add your streaming platform URLs",
-      "editProfileTitle": "Edit Your Artist Profile",
-      "editProfileSubtitle": "Your profile is your digital business card for organizers.",
-      "label": {
-        "stageName": "Stage Name *",
-        "artistType": "Artist Type",
-        "genres": "Genres (Comma separated)",
-        "biography": "Biography",
-        "instagram": "Instagram URL",
-        "twitter": "Twitter URL",
-        "wechat": "WeChat Handle",
-        "phone": "Phone Number",
-        "spotifyUrl": "Spotify URL",
-        "appleMusicUrl": "Apple Music URL",
-        "soundcloudUrl": "SoundCloud URL",
-        "hearthisUrl": "HearThis.at URL",
-        "alipayQr": "Alipay QR Code",
-        "paymentInstructions": "Payment Instructions",
-        "wechatQr": "WeChat QR Code",
-        "youtubeUrl": "YouTube 链接",
-        "audiomackUrl": "Audiomack 链接"
-      },
-      "placeholder": {
-        "stageName": "Your artist name",
-        "genres": "e.g. Afrobeat, Amapiano, Hip-Hop",
-        "bio": "Tell organizers about your style and experience...",
-        "instagram": "https://instagram.com/yourname",
-        "twitter": "https://twitter.com/yourname",
-        "wechat": "Your WeChat ID",
-        "phone": "+86 138 0000 0000",
-        "spotify": "https://open.spotify.com/artist/...",
-        "appleMusic": "https://music.apple.com/artist/...",
-        "soundcloud": "https://soundcloud.com/yourname",
-        "hearthis": "https://hearthis.at/yourname",
-        "paymentInstructions": "e.g. Please include your name in the transfer note",
-        "youtube": "https://youtube.com/channel/...",
-        "audiomack": "https://audiomack.com/artist/..."
-      },
-      "artistType": {
-        "artist": "艺人",
-        "dj": "DJ",
-        "mc": "MC",
-        "dancer": "舞者",
-        "photographer": "摄影师"
-      },
-      "djMixTitle": "DJ混音",
-      "djMixSubtitle": "上传你的最佳混音（最长10分钟，10MB）",
-      "uploadMix": "上传混音",
-      "replaceMix": "替换混音",
-      "mixUploaded": "DJ混音上传成功",
-      "mixUploadFailed": "DJ混音上传失败",
-      "mixTooLarge": "混音文件必须小于10MB",
-      "mixRequirements": "接受格式：MP3、M4A、WAV。最长10分钟，10MB。",
-      "danceVideoTitle": "舞蹈视频",
-      "danceVideoSubtitle": "上传你的表演视频（最长3分钟，30MB）",
-      "uploadVideo": "上传视频",
-      "replaceVideo": "替换视频",
-      "videoUploaded": "舞蹈视频上传成功",
-      "videoUploadFailed": "舞蹈视频上传失败",
-      "videoTooLarge": "视频必须小于30MB",
-      "videoRequirements": "接受格式：MP4、MOV、WebM。最长3分钟，30MB。",
-      "musicLinksTitle": "音乐链接",
-      "musicLinksSubtitle": "添加你在流媒体平台上的歌曲链接",
-      "addMusicLink": "添加音乐链接",
-      "linkPlatform": "平台",
-      "linkTitle": "歌曲名称",
-      "linkUrl": "链接",
-      "uploading": "上传中...",
-      "charCount": "{{count}} / 500 characters",
-      "maxCharReached": "Maximum character count reached (500 characters)",
-      "saving": "Saving...",
-      "saveChanges": "Save Changes",
-      "musicTitle": "Music & Media",
-      "musicSubtitle": "Connect your streaming platforms and share your music with organizers.",
-      "yourMusicLinks": "Your Music Links",
-      "connectedPlatforms": "Your Connected Platforms",
-      "saveMusicLinks": "Save Music Links",
-      "bookingRequestsTitle": "Booking Requests",
-      "bookingRequestsSubtitle": "Manage and respond to event organizer invitations.",
-      "filter": {
-        "all": "all",
-        "pending": "pending",
-        "accepted": "accepted",
-        "rejected": "rejected",
-        "completed": "completed"
-      },
-      "noBookings": "No bookings yet",
-      "noBookingsFilter": "No {{filter}} bookings",
-      "noBookingsDescription": "Build your profile and share your artist link to start receiving booking requests.",
-      "noBookingsFilterDescription": "You don't have any {{filter}} bookings at the moment.",
-      "proposedFee": "Proposed Fee",
-      "rejectInvitation": "Reject Invitation",
-      "acceptGig": "Accept GIG",
-      "organizer": "Organizer",
-      "eventOrganizer": "Event Organizer",
-      "social": {
-        "instagram": "Instagram",
-        "twitter": "Twitter",
-        "phone": "Phone",
-        "wechatTitle": "WeChat: {{handle}}"
-      },
-      "newArtist": "New Artist",
-      "music": "Music",
-      "paymentSetupFailed": "Failed to save payment setup",
-      "paymentSetupSaved": "Payment setup saved successfully",
-      "paymentSetupSubtitle": "Upload your QR codes so organizers can pay you directly",
-      "paymentSetupTitle": "Payment Setup",
-      "remove": "Remove",
-      "savePaymentSetup": "Save Payment Setup",
-      "uploadQr": "Upload QR",
-      "bookingRequests": "Booking Requests",
-      "manageBookingRequests": "Manage and respond to event organizer invitations."
-    },
-    "bookings": {
-      "title": "预订",
-      "subtitle": "管理演出邀请",
-      "filter": {
-        "all": "全部",
-        "pending": "待处理",
-        "accepted": "已接受",
-        "completed": "已完成",
-        "rejected": "已拒绝"
-      },
-      "stat": {
-        "total": "总计",
-        "pending": "待处理",
-        "accepted": "已接受",
-        "completed": "已完成"
-      },
-      "noBookings": "暂无预订",
-      "noBookingsDescription": "活动组织者的预订请求将显示在这里。",
-      "loadFailed": "加载预订失败",
-      "loadError": "加载预订时出错",
-      "statusUpdated": "状态已更新为 {{status}}",
-      "updateStatusFailed": "更新状态失败",
-      "updateError": "更新状态时出错",
-      "paymentPending": "待付款",
-      "eventDetails": "活动详情",
-      "type": "类型",
-      "budget": "预算",
-      "duration": "时长",
-      "hours": "小时",
-      "location": "地点",
-      "paymentStatus": "付款状态",
-      "contactInfo": "联系信息",
-      "messageFromOrganizer": "组织者留言",
-      "paymentScreenshot": "付款截图",
-      "awaitingPayment": "等待付款确认",
-      "accept": "接受",
-      "decline": "拒绝",
-      "markCompleted": "标记为已完成"
-    },
-    "performances": {
-      "title": "演出",
-      "subtitle": "您的 upcoming 和 past 演出",
-      "totalPerformances": "总演出数",
-      "completed": "已完成",
-      "totalEarnings": "总收入",
-      "upcomingGigs": "即将到来的演出",
-      "noUpcoming": "暂无即将上演的演出",
-      "pastPerformances": "过往演出",
-      "noCompleted": "暂无已完成的演出",
-      "hoursSet": "{{hours}}小时演出",
-      "fallbackEvent": "活动",
-      "fallbackVenue": "场地",
-      "loadError": "加载演出失败"
-    },
-    "analytics": {
-      "loadError": "Failed to load analytics",
-      "title": "Analytics",
-      "subtitle": "Track your performance metrics",
-      "refresh": "Refresh",
-      "followers": "Followers",
-      "totalGigs": "Total Gigs",
-      "earnings": "Earnings",
-      "rating": "Rating",
-      "monthlyOverview": "Monthly Overview",
-      "month": {
-        "jan": "Jan",
-        "feb": "Feb",
-        "mar": "Mar",
-        "apr": "Apr",
-        "may": "May",
-        "jun": "Jun"
-      },
-      "recentBookings": "Recent Bookings",
-      "noBookings": "No bookings yet",
-      "genrePerformance": "Genre Performance",
-      "gigCount": "{{count}} gigs",
-      "genre": {
-        "afrobeat": "Afrobeat",
-        "amapiano": "Amapiano",
-        "hipHop": "Hip-Hop"
-      }
-    },
-    "recaps": "回顾",
-    "community": {
-      "title": "社区",
-      "subtitle": "与粉丝互动"
     }
   },
   "organizer": {
@@ -1339,7 +1391,8 @@
       "enablePromotersDescription": "允许推广员分享您的活动并赚取佣金",
       "commissionRate": "佣金比例 (%)",
       "discountPercent": "推荐折扣 (%)",
-      "maxDiscountAmount": "最高折扣金额"
+      "maxDiscountAmount": "最高折扣金额",
+      "ticketPriceLabel": "票价"
     },
     "eventPromoters": {
       "title": "推广员管理",
@@ -1394,7 +1447,9 @@
       "loadError": "加载推广员失败",
       "selectEvent": "选择活动",
       "optional": "可选",
-      "scanQrToShare": "扫描或下载此二维码以分享推荐链接"
+      "scanQrToShare": "扫描或下载此二维码以分享推荐链接",
+      "promoterName": "推广员姓名",
+      "promoterNamePlaceholder": "输入推广员姓名"
     },
     "manageEvents": {
       "loadErrorToast": "Failed to load events",
@@ -1553,6 +1608,44 @@
       "saveChanges": "Save Changes",
       "createRecapButton": "Create Recap",
       "back": "Back"
+    },
+    "broadcast": {
+      "modalTitle": "广播公告",
+      "modalSubtitleEvent": "向 {{event}} 的持票人和关注者发送通知",
+      "modalSubtitleGeneral": "通过邮件和应用向参与者和关注者发送通知",
+      "targetAudienceLabel": "目标受众",
+      "targetAttendees": "持票人",
+      "targetFollowers": "主页关注者",
+      "targetBoth": "持票人和关注者",
+      "calculatingRecipients": "正在估算接收人数...",
+      "estimatedRecipients": "预计接收人数：{{count}} 人",
+      "quickPresetsLabel": "快捷预设",
+      "presetVenueBtn": "场地变更",
+      "presetTimeBtn": "时间更新",
+      "presetNoticeBtn": "一般通知",
+      "titleLabel": "公告标题 / 主题",
+      "titlePlaceholder": "例如：巡演场地位置更新",
+      "messageLabel": "消息内容",
+      "messagePlaceholder": "在此输入消息内容...请包含所有重要信息，如新地址、日期或入场须知。",
+      "channelsLabel": "发送渠道",
+      "channelEmail": "邮件广播",
+      "channelInApp": "应用内与推送通知",
+      "sendingBtn": "正在发送广播...",
+      "sendBtn": "发送广播",
+      "presetVenueTitle": "场地位置更新，{{event}}",
+      "presetVenueMessage": "亲爱的参与者：\n\n请注意，我们即将举行的活动场地位置已更新。\n\n新场地：[填写新场地名称和地址]\n日期和时间：[确认日期/时间]\n\n期待与您相见！",
+      "presetTimeTitle": "时间安排更新，{{event}}",
+      "presetTimeMessage": "亲爱的参与者：\n\n请注意，我们的活动时间有重要更新。\n\n新的入场时间：[填写时间]\n主要演出：[填写时间]\n\n请相应调整您的到达安排。",
+      "presetNoticeTitle": "重要通知，{{event}}",
+      "presetNoticeMessage": "亲爱的朋友们：\n\n关于我们即将举行的活动，有一项重要公告。\n\n[填写公告详情]\n\n感谢您的支持！",
+      "errorMissingTitle": "请输入公告标题",
+      "errorMissingMessage": "请输入消息内容",
+      "errorMissingChannel": "请至少选择一个发送渠道（邮件或应用内）",
+      "errorSelectEvent": "请选择活动",
+      "selectEventLabel": "选择活动",
+      "selectEventPrompt": "选择活动",
+      "successToast": "广播已成功发送给 {{count}} 位接收者！",
+      "failedToast": "广播发送失败"
     }
   },
   "vendor": {
@@ -1713,7 +1806,9 @@
       "apply": "申请",
       "noEventsAvailable": "没有可申请摊位的活动。",
       "boothAppliedSuccess": "摊位申请已提交！",
-      "boothApplyError": "申请摊位失败"
+      "boothApplyError": "申请摊位失败",
+      "approved": "已通过",
+      "pendingApproval": "待审核"
     },
     "products": {
       "title": "My Products",
@@ -2020,7 +2115,12 @@
       "browseAndBook": "Browse events and book your first ticket!",
       "pastEventsAppearHere": "Your past events will appear here",
       "browseEvents": "Browse Events",
-      "noQrAvailable": "No QR available"
+      "noQrAvailable": "No QR available",
+      "statusPendingApproval": "待批准",
+      "approved": "已批准",
+      "pending": "待批准",
+      "rejected": "已拒绝",
+      "ticket": "门票"
     },
     "favorites": {
       "failedToLoadFavorites": "Failed to load favorites",
@@ -2070,7 +2170,9 @@
       "noFollowingYet": "No following yet",
       "whenPeopleFollowYou": "When people follow you, they'll appear here. Share your profile to grow your network!",
       "explorePlatform": "Explore the platform to find and follow your favorite DJs, artists, and event organizers.",
-      "findPeople": "Find People"
+      "findPeople": "Find People",
+      "follower": "粉丝",
+      "unfollowed": "已取消关注"
     }
   },
   "admin": {
@@ -2321,7 +2423,8 @@
       "title": "review Events",
       "organizedByLabel": "Organized by",
       "featureOnHomepageTitle": "Feature on Homepage",
-      "unknown": "N/A"
+      "unknown": "N/A",
+      "featuredCount": "精选"
     },
     "cmsContent": {
       "actions": "Actions",
@@ -2441,7 +2544,10 @@
       "subtitle": "Manage and review",
       "failedToUpdateStatus": "Failed to update status",
       "adPaused": "ad paused",
-      "allPositions": "All Positions"
+      "allPositions": "All Positions",
+      "positionArtists": "艺人页面",
+      "positionHomepageHero": "首页顶部横幅",
+      "positionHomepageSidebar": "首页侧边栏"
     },
     "adminSubscriptions": {
       "failedToLoadSubscriptions": "Failed to load subscriptions",
@@ -2502,7 +2608,10 @@
       "cityNameLabel": "City Name",
       "platformOverrides": "Platform Overrides",
       "addNewCity": "Add New City",
-      "failedToResetCache": "Failed to reset cache"
+      "failedToResetCache": "Failed to reset cache",
+      "cityAdded": "城市已添加",
+      "cityRemoved": "城市已删除",
+      "confirmRemoveCity": "确定删除该城市吗？"
     },
     "manageBookings": {
       "statusCompleted": "Completed",
@@ -2694,7 +2803,9 @@
       "approveForReleaseTitle": "Approve for Release",
       "failedToRejectPayout": "Failed to reject payout",
       "awaitingActionLabel": "Awaiting Action",
-      "entityEventHeader": "Event"
+      "entityEventHeader": "Event",
+      "commissionLabel": "佣金",
+      "netLabel": "净额"
     },
     "withdrawalRequests": {
       "withdrawalApproved": "Withdrawal approved",
@@ -2797,7 +2908,8 @@
       "entityType.business": "商家",
       "entityType.event": "活动",
       "entityType.vendor": "供应商",
-      "documentsCount": "{{count}} 份文件"
+      "documentsCount": "{{count}} 份文件",
+      "issuedAgo": "签发于 {{time}} 前"
     },
     "apiIntegrations": {
       "failedToUpdateIntegration": "Failed to update integration",
@@ -2935,7 +3047,9 @@
       "title": "reports Moderation",
       "failedToLoadReports": "Failed to load reports",
       "failedToDismissReport": "Failed to dismiss report",
-      "allStatus": "All Status"
+      "allStatus": "All Status",
+      "reportOfType": "类型为 {{type}} 的举报",
+      "reportedBy": "举报者"
     },
     "securityLogs": {
       "last30Days": "Last 30 Days",
@@ -2961,7 +3075,10 @@
       "action.update": "update",
       "last24Hours": "Last 24 Hours",
       "title": "security Logs",
-      "allActions": "all Actions"
+      "allActions": "all Actions",
+      "noLogs": "未找到安全日志",
+      "noLogsHint": "安全事件将显示在这里",
+      "unknownUser": "未知用户"
     },
     "manageRecaps": {
       "published": "Published",
@@ -3019,7 +3136,7 @@
       "details": "通知详情",
       "resend": "重新发送",
       "tapToView": "点击查看详情",
-      "loadedForResend": "已载入编辑区——确认后点击“立即发送”",
+      "loadedForResend": "已载入编辑区，确认后点击“立即发送”",
       "recipients": "收件人数",
       "inAppDelivered": "站内通知送达",
       "pushDelivered": "推送送达",
@@ -3078,6 +3195,28 @@
       "hint": "Hint",
       "title": "simple Test",
       "description": "Description"
+    },
+    "introScreen": {
+      "title": "启动页",
+      "subtitle": "配置首次访问者看到的启动页",
+      "enabled": "已启用",
+      "enabledHint": "向首次访问者显示启动页",
+      "logo": "标志",
+      "uploadLogo": "上传标志",
+      "logoUploaded": "标志已上传",
+      "logoUrlPlaceholder": "或粘贴标志链接",
+      "onlyImages": "只允许图片文件",
+      "imageTooLarge": "图片过大（最大 5 MB）",
+      "preview": "预览",
+      "previewHint": "这是启动页的预览效果",
+      "titleLabel": "标题",
+      "titlePlaceholder": "输入启动页标题",
+      "taglineLabel": "标语",
+      "taglinePlaceholder": "输入标语",
+      "saved": "启动页设置已保存",
+      "saveFailed": "保存设置失败",
+      "uploadFailed": "上传标志失败",
+      "failedToLoad": "加载启动页设置失败"
     }
   },
   "about": {
@@ -3339,7 +3478,7 @@
     "whyItMattersTitle": "这对品牌的",
     "whyItMattersHighlight": "意义",
     "whyItMattersSubtitle": "每一场 Sound It 活动的背后都有：",
-    "whyItMattersClosing": "我们不仅仅是活动策划者 —— 我们是一家有组织、有远见的娱乐公司，致力于构建可持续的文化体验。",
+    "whyItMattersClosing": "我们不仅仅是活动策划者，我们是一家有组织、有远见的娱乐公司，致力于构建可持续的文化体验。",
     "collaborators": [],
     "strategicValueItems": [
       "已验证的国际艺人预订",
@@ -3774,7 +3913,7 @@
       "purposeTitle": "1. 目的",
       "purposeContent": "<p>帮助中心旨在为用户提供关于使用 Sound It 服务的便捷指导，包括活动发现、票务、账户管理以及以主办方、艺人或 vendor 身份参与平台。</p><p><strong>本资源仅供信息参考，不构成法律、财务或合同建议。</strong></p>",
       "categoriesTitle": "2. 帮助中心分类",
-      "categoriesContent": "<p>用户可按以下分类获取支持内容：</p><ul><li><strong>全部</strong> — 所有帮助文章和资源的综合视图</li><li><strong>新手上路</strong> — 涵盖 onboarding 流程，包括账户注册、资料设置和平台通用导航</li><li><strong>票务与支付</strong> — 包括购票指导、接受的支付方式、交易处理、确认信息和一般退款政策。Sound It 促成交易，但在某些情况下可能并非商户。支付争议可能需要与第三方支付服务提供商或活动主办方解决</li><li><strong>账户</strong> — 提供账户访问、资料更新、凭证管理和安全实践方面的协助</li><li><strong>主办方</strong> — 包括活动创建、管理、推广和受众互动的说明与最佳实践。主办方须对活动详情、定价、适用法律法规合规性以及所宣传服务的履行负全部责任</li><li><strong>艺人</strong> — 提供艺人资料、预订和平台可用推广工具的指导</li><li><strong>vendor</strong> — 包括通过平台与活动主办方互动的服务提供商的入驻和运营指导</li></ul>",
+      "categoriesContent": "<p>用户可按以下分类获取支持内容：</p><ul><li><strong>全部</strong>，所有帮助文章和资源的综合视图</li><li><strong>新手上路</strong>，涵盖 onboarding 流程，包括账户注册、资料设置和平台通用导航</li><li><strong>票务与支付</strong>，包括购票指导、接受的支付方式、交易处理、确认信息和一般退款政策。Sound It 促成交易，但在某些情况下可能并非商户。支付争议可能需要与第三方支付服务提供商或活动主办方解决</li><li><strong>账户</strong>，提供账户访问、资料更新、凭证管理和安全实践方面的协助</li><li><strong>主办方</strong>，包括活动创建、管理、推广和受众互动的说明与最佳实践。主办方须对活动详情、定价、适用法律法规合规性以及所宣传服务的履行负全部责任</li><li><strong>艺人</strong>，提供艺人资料、预订和平台可用推广工具的指导</li><li><strong>vendor</strong>，包括通过平台与活动主办方互动的服务提供商的入驻和运营指导</li></ul>",
       "supportTitle": "3. 支持服务",
       "supportContent": "<p><strong>可用性</strong></p><p>Sound It 在合理努力的基础上提供客户支持。标准回复时间为24至48小时，周末和法定节假日除外，另有说明的除外。</p><p><strong>支持范围</strong></p><p>支持服务包括：</p><ul><li>技术协助</li><li>通用平台指导</li><li>问题报告</li></ul><p>支持服务不包括：</p><ul><li>法律争议解决</li><li>直接介入主办方与用户之间的冲突</li><li>平台政策之外的财务赔偿决定</li></ul>",
       "contactTitle": "4. 联系信息",
@@ -3862,7 +4001,7 @@
     "introTitle": "1. 引言",
     "introContent": "<p>Sound It（“我们”）致力于根据中华人民共和国相关法律法规（包括《个人信息保护法》（PIPL）、《网络安全法》和《数据安全法》）保护您的个人信息。</p><p>本隐私政策解释我们在您使用平台时如何收集、使用、存储、共享和保护您的个人信息。</p>",
     "collectTitle": "2. 我们收集的个人信息",
-    "collectContent": "<p>我们仅收集提供服务所必需的信息：</p><ul><li><strong>基本信息</strong> — 姓名或用户名、电话号码、电子邮件地址、微信ID（如提供）</li><li><strong>账户信息</strong> — 登录凭证、个人资料详情、偏好设置和活动记录</li><li><strong>交易信息</strong> — 门票购买、支付确认、账单相关数据</li><li><strong>设备及技术信息</strong> — IP地址、设备类型、系统日志和使用数据</li></ul>",
+    "collectContent": "<p>我们仅收集提供服务所必需的信息：</p><ul><li><strong>基本信息</strong>，姓名或用户名、电话号码、电子邮件地址、微信ID（如提供）</li><li><strong>账户信息</strong>，登录凭证、个人资料详情、偏好设置和活动记录</li><li><strong>交易信息</strong>，门票购买、支付确认、账单相关数据</li><li><strong>设备及技术信息</strong>，IP地址、设备类型、系统日志和使用数据</li></ul>",
     "useTitle": "3. 处理目的",
     "useContent": "<p>我们为以下目的处理您的个人信息：</p><ul><li>提供和运营平台服务</li><li>处理交易和购票</li><li>管理用户账户</li><li>传达更新、通知和支持信息</li><li>改进平台功能和用户体验</li><li>确保平台安全并防止欺诈</li></ul>",
     "legalTitle": "4. 处理的法律依据",
@@ -3870,7 +4009,7 @@
     "storageTitle": "5. 数据存储与本地化",
     "storageContent": "<p>您的个人信息将存储在中华人民共和国境内。</p><p>如确需进行跨境数据传输，我们将：</p><ul><li>取得您的单独同意</li><li>按要求开展安全评估</li><li>确保符合适用法规</li></ul>",
     "shareTitle": "6. 数据共享",
-    "shareContent": "<p>我们不会出售您的个人信息。</p><p>我们可能与以下方共享数据：</p><ul><li><strong>服务提供商</strong> — 支付服务提供商、云托管提供商、技术支持合作伙伴</li><li><strong>活动主办方</strong> — 与购票相关的用户信息可能会与活动主办方共享，用于活动管理目的</li><li><strong>执法机关</strong> — 在法律或监管机构要求时</li></ul>",
+    "shareContent": "<p>我们不会出售您的个人信息。</p><p>我们可能与以下方共享数据：</p><ul><li><strong>服务提供商</strong>，支付服务提供商、云托管提供商、技术支持合作伙伴</li><li><strong>活动主办方</strong>，与购票相关的用户信息可能会与活动主办方共享，用于活动管理目的</li><li><strong>执法机关</strong>，在法律或监管机构要求时</li></ul>",
     "sensitiveTitle": "7. 敏感个人信息",
     "sensitiveContent": "<p>我们仅在必要时处理敏感个人信息（如支付相关数据），并采取强化保护措施。如需处理，我们将告知用户并取得同意。</p>",
     "retentionTitle": "8. 数据保留期限",
@@ -3983,10 +4122,16 @@
     "scanAnother": "扫描下一个",
     "selectEvent": "选择活动",
     "allEvents": "全部活动",
-    "wrongEventWarning": "此门票属于其他活动"
+    "wrongEventWarning": "此门票属于其他活动",
+    "authRequired": "扫码功能需要登录",
+    "retryCamera": "重试摄像头",
+    "ticketNumber": "门票编号",
+    "tier": "票档",
+    "unknownEvent": "未知活动",
+    "unknownUser": "未知用户"
   },
   "subscriptions": {
-    "title": "Subscriptions",
+    "title": "订阅",
     "subtitle": "Manage your subscriptions and billing",
     "currentPlan": "Current Plan",
     "upgradePlan": "Upgrade Plan",
@@ -4019,7 +4164,7 @@
     "failedToLoadData": "Failed To Load Data",
     "daysRemaining": "Days Remaining",
     "activePlan": "Active Plan",
-    "titleHighlight": "Title Highlight",
+    "titleHighlight": "与账单",
     "subscriptionCreated": "Subscription Created",
     "perMonth": "Per Month",
     "oneTime": "一次性",
@@ -4189,7 +4334,8 @@
       "paymentNotConfirmed": "Payment Not Confirmed",
       "paymentCreated": "Payment Created",
       "paymentQrCodeAlt": "Payment QR Code Alt",
-      "stepPayment": "Step Payment"
+      "stepPayment": "Step Payment",
+      "uploadScreenshotAndName": "上传付款截图以确认你的订单"
     },
     "success": {
       "title": "Payment Successful!",
@@ -4319,7 +4465,32 @@
     "continueBrowsing": "继续浏览",
     "referralCode": "推荐码",
     "enterReferralCode": "输入推荐码",
-    "orderSuccessTitle": "订单已提交"
+    "orderSuccessTitle": "订单已提交",
+    "payReturnTitle": "您已完成付款吗？",
+    "payReturnBody": "如果您已在支付应用内完成付款，请在下方确认，主办方将立即收到通知。",
+    "payReturnYes": "是的，我已完成付款",
+    "payReturnNo": "还没有",
+    "awaitingApprovalTitle": "等待主办方确认",
+    "awaitingApprovalBody": "您的付款确认已发送给主办方。门票获批后将立即显示在此处，通常不到一分钟。",
+    "paymentReported": "付款已上报，已通知主办方",
+    "screenshotOptionalHint": "可选，您的付款确认已发送给主办方。",
+    "amountToPay": "金额",
+    "orderPendingApproval": "您的付款已上报给主办方。主办方看到后将批准门票，您可以随时在“我的票券”中查看状态。",
+    "enterYourName": "您的姓名",
+    "eventEnded": "活动已结束",
+    "eventEndedDesc": "该活动已结束",
+    "salesClosed": "售票已截止",
+    "salesClosedDesc": "该活动的售票已截止",
+    "loginToSave": "登录后可收藏此活动",
+    "saveError": "收藏活动失败",
+    "ticketPrice": "票价",
+    "tickets": "门票",
+    "uploadPaymentScreenshot": "上传付款截图",
+    "resumeTitle": "未完成的付款",
+    "resumeBody": "您之前正在为本活动付款。如果您已在微信或支付宝中完成付款，请在下方确认——也可以附上付款截图。",
+    "resumeYes": "是的，我已完成付款",
+    "resumeShowQr": "重新显示付款二维码",
+    "resumeCancel": "取消"
   },
   "contact": {
     "facebook": "Facebook",
@@ -4610,9 +4781,9 @@
     "roleTitle": "1. 平台角色",
     "roleContent": "<p>Sound It 提供数字化平台，使主办方能够创建和推广活动、销售门票并与用户互动。</p><p>Sound It 仅作为技术服务提供商，不组织、主办或控制活动，除非另有明确说明。</p>",
     "responsibilitiesTitle": "2. 主办方责任",
-    "responsibilitiesContent": "<p>您同意对以下事项负全部责任：</p><ul><li><strong>活动准确性</strong> — 提供真实、准确、完整的活动信息；明确说明活动详情（日期、时间、场地、价格、限制条件）</li><li><strong>活动交付</strong> — 确保活动按宣传内容执行；管理人员、物流和安全</li><li><strong>法律合规</strong> — 遵守中国及相关司法管辖区的所有适用法律法规；取得必要的许可证、执照和批准</li></ul>",
+    "responsibilitiesContent": "<p>您同意对以下事项负全部责任：</p><ul><li><strong>活动准确性</strong>，提供真实、准确、完整的活动信息；明确说明活动详情（日期、时间、场地、价格、限制条件）</li><li><strong>活动交付</strong>，确保活动按宣传内容执行；管理人员、物流和安全</li><li><strong>法律合规</strong>，遵守中国及相关司法管辖区的所有适用法律法规；取得必要的许可证、执照和批准</li></ul>",
     "ticketingTitle": "3. 票务与销售",
-    "ticketingContent": "<ul><li><strong>定价</strong> — 主办方对门票定价拥有完全控制权</li><li><strong>门票履行</strong> — 主办方必须兑现通过平台销售的所有有效门票</li><li><strong>容量管理</strong> — 主办方必须确保门票销售不超过场地容量</li></ul>",
+    "ticketingContent": "<ul><li><strong>定价</strong>，主办方对门票定价拥有完全控制权</li><li><strong>门票履行</strong>，主办方必须兑现通过平台销售的所有有效门票</li><li><strong>容量管理</strong>，主办方必须确保门票销售不超过场地容量</li></ul>",
     "paymentsTitle": "4. 支付",
     "paymentsContent": "<p><strong>支付方式</strong></p><p>支付可通过以下方式处理：</p><ul><li>平台集成系统</li><li>第三方服务提供商（如支付宝、微信支付）</li><li>主办方管理的支付方式（高级订阅）</li></ul><p><strong>结算</strong></p><p>资金可能会因风险控制而暂时保留。结算时间可能因风险评估而有所不同。</p>",
     "refundsTitle": "5. 退款与取消",
@@ -4690,11 +4861,19 @@
     "pushEnabled": "推送通知已启用！",
     "pushDenied": "请在浏览器设置中启用通知。",
     "markAllRead": "全部标记为已读",
-    "settings": "通知设置"
+    "settings": "通知设置",
+    "allMarkedRead": "所有通知已标记为已读",
+    "clearAll": "全部清除",
+    "clearFailed": "清除通知失败",
+    "cleared": "通知已清除",
+    "delete": "删除",
+    "deleteFailed": "删除通知失败",
+    "markAllReadFailed": "全部标记已读失败",
+    "markReadFailed": "标记已读失败"
   },
   "sia": {
     "title": "Sound It 智能助手",
-    "welcome": "我是 SIA —— 您的 Sound It 智能助手。我可以帮您发现活动、购票、从海报创建活动草稿，以及从菜单导入商品草稿。",
+    "welcome": "我是 SIA，您的 Sound It 智能助手。我可以帮您发现活动、购票、从海报创建活动草稿，以及从菜单导入商品草稿。",
     "send": "发送",
     "placeholder": "向 SIA 提问...",
     "uploadFlyer": "上传海报",
@@ -4712,5 +4891,49 @@
     "missingFields": "缺少字段",
     "eventDraft": "活动草稿",
     "productDraft": "商品草稿"
+  },
+  "download": {
+    "title": "下载 Sound It 应用",
+    "subtitle": "活动、门票和夜生活，尽在口袋中。",
+    "android": {
+      "title": "安卓应用",
+      "version": "版本 {{v}} ({{size}} MB)",
+      "step1": "点击下方下载按钮获取 APK 文件。",
+      "step2": "如果系统提示，请允许浏览器安装未知来源应用。",
+      "step3": "打开下载的文件，点击安装。",
+      "step4": "使用你的 Sound It 账户登录即可开始使用。",
+      "button": "下载安卓版"
+    },
+    "ios": {
+      "title": "iPhone 和 iPad（网页应用）",
+      "hint": "将 Sound It 安装为主屏幕网页应用，无需 App Store。",
+      "step1": "在 Safari 中打开 sounditent.com。",
+      "step2": "点击屏幕底部的分享按钮。",
+      "step3": "向下滑动，点击「添加到主屏幕」。",
+      "step4": "点击添加，Sound It 图标就会出现在你的主屏幕上。"
+    },
+    "help": "安装遇到问题？请联系 support@sounditent.com"
+  },
+  "androidPrompt": {
+    "title": "下载 Sound It 安卓应用",
+    "subtitle": "更快的体验，支持推送通知和一键购票。",
+    "download": "下载应用 (APK)",
+    "maybeLater": "稍后再说",
+    "close": "关闭"
+  },
+  "reviews": {
+    "title": "评价",
+    "reviews": "评价",
+    "noReviews": "暂无评价",
+    "beFirst": "成为第一个写评价的人",
+    "writeReview": "写评价",
+    "yourRating": "你的评分",
+    "rate": "评分",
+    "yourReview": "你的评价",
+    "placeholder": "分享你的体验...",
+    "submit": "提交",
+    "submitting": "提交中...",
+    "cancel": "取消",
+    "verified": "已认证"
   }
 }

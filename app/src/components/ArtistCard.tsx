@@ -23,7 +23,7 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
   const displayGenre = artist.genre || (artist.genres && artist.genres[0]) || 'Music';
   const isFeatured = variant === 'featured';
 
-  // Featured variant — circular avatar with ring for horizontal scroll
+  // Featured variant - circular avatar with ring for horizontal scroll
   if (isFeatured) {
     return (
       <Link to={`/artists/${artist.id}`}>
@@ -62,7 +62,7 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
     );
   }
 
-  // Default variant — square card
+  // Default variant - square card
   return (
     <Link to={`/artists/${artist.id}`}>
       <motion.div

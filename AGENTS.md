@@ -25,6 +25,44 @@
 
 ---
 
+### 85. Owner's Manual Logo & PWA Icon Update (2026-10-13)
+- **What changed (owner edits, reviewed and deployed by agent)**:
+  - New flat emblem asset `app/public/logo-platform.png` (409×881, yellow djembe on black, no glow) — used as the default splash logo in `LoadingScreen.tsx` (with `max-w-64 max-h-64 object-contain` so the tall image sizes correctly; Tailwind 3.4 generates these classes, verified in dist CSS), the `MobileHeader.tsx` logo (h-6 → h-10), and the `DashboardLayout.tsx` sidebar logo.
+  - New PWA/home-screen icons: `android-chrome-192x192.png`, `android-chrome-512x512.png`, `apple-touch-icon.png`.
+  - `service-worker.js`: cache bumped `soundit-v3` → `soundit-v4` and `/logo-platform.png` added to the precache list.
+- **Verification**: `npm run build` passes; deployed `app/dist/` to production; index.html + logo-platform.png MD5s match server; `/health` OK; all five assets return HTTP 200 on sounditent.com.
+- Note: favicon files (favicon-16/32, favicon-source) untouched; the wordmark `/logo.png` is still used by Navbar/Navigation/Footer/AuthLayout/About/Download and OG fallback.
+
+### 86. Web Layout Logo — Elegant Wordmark (2026-10-13)
+- **Change**: Owner supplied `SIE-.png` (elegant serif "SOUND IT" wordmark with emblem as the O, 1080×1080 transparent). Cropped to content (568×210) and saved as `app/public/logo-web.png`. Swapped into the web layout chrome: `Navbar.tsx` (h-8 lg:h-10), `Navigation.tsx` (h-10 lg:h-12), `Footer.tsx` (h-9), `AuthLayout.tsx` (h-12 md:h-20). Mobile header and dashboard sidebar keep the owner's `logo-platform.png` emblem; `/logo.png` blocky wordmark remains on About/Download pages and OG fallback.
+- **Verification**: build passes; deployed; index.html + logo-web.png MD5s match server; `/health` OK; `logo-web.png` HTTP 200.
+- **Follow-up**: Owner supplied bolder variant `SIE 2.png` (filled SOUND + handwritten "it", 1080×1080 transparent) — cropped to 752×269 and overwrote `app/public/logo-web.png` (same references, no code changes). Redeployed; MD5 verified.
+
+### 87. Home Hero 4-Image Slideshow (2026-10-13)
+- **Change**: Owner supplied 4 Beatz of Afrika event photos (2738×1825 each). Resized to 1920×1280 q80 (~400 KB each) as `app/public/hero-slide-{1..4}.jpg`. `Home.tsx` desktop hero: replaced the single `/hero-event.jpg` Ken Burns background with a crossfading 4-slide slideshow (6 s per slide, 1.4 s opacity crossfade, Ken Burns scale/x loop on the active slide, parallax `heroY` preserved on all slides) plus a small slide-indicator pill row at the hero bottom. Mobile hero (`MobileHeroCarousel`) unchanged — it shows live event flyers.
+- **Verification**: build passes; deployed; index.html + hero-slide-1.jpg MD5s match server; `/health` OK; all 4 slides HTTP 200.
+
+### 84. Platform Logo Rebrand — REVERTED SAME DAY (2026-10-13)
+- **Status**: FULLY REVERTED at owner request ("reverse it to its original"). Everything below was undone and production restored to the pre-request state.
+- What was done then reverted: new `logo-emblem.png` asset (tried transparency-keyed, then raw PNG), `LoadingScreen.tsx` rewrite (spinning emblem + native-only muted video intro from converted `intro-mobile.mp4`), `/logo.png` → emblem swap in ~11 components with ~2× size increases, `App.tsx` 5600 ms native splash timer, `api/admin.py` empty tagline default.
+- **Post-revert verification**: original `LoadingScreen.tsx` (orbs, wordmark, "5 years of Excellence in Entertainment" tagline, progress bar) restored; all components back to `/logo.png` with original sizes; `App.tsx` timer back to 2000 ms; `api/admin.py` tagline default restored; `logo-emblem.png` + `intro-mobile.mp4` deleted locally and on the server (404 live). index.html MD5 matches local build; `/health` OK; `GET /api/v1/system/intro-screen` returns the original tagline. Favicon/app icon were never touched.
+- **Untouched by revert**: all earlier payment work (QR deep-links, buyer confirmation, pending-approval, resume prompt) remains deployed and working.
+
+<details><summary>Original entry (for reference)</summary>
+
+### 84. Platform Logo Rebrand — Emblem Loading Spinner (2026-10-13)
+- **Problem**: The loading/splash screen showed the full "SOUND IT / 5 YEARS OF EXCELLENCE IN ENTERTAINMENT" wordmark with a long progress display. The owner wants the plain djembe emblem (supplied PNG) as the loading spinner (spinning in 3D at different angles, short load) and as the platform logo across the app and web. Favicon and app icon must NOT change.
+- **Fixes Applied**:
+  - **New asset `app/public/logo-emblem.png`**: yellow-keyed transparency extracted from the supplied black-background PNG (soft alpha edges, 512×762, ~510 KB). Original wordmark `/logo.png` kept for OG share-card fallback only.
+  - **`app/src/components/LoadingScreen.tsx`**: rewritten — emblem spins continuously with 3D `rotateY` + subtle `rotateX` tilt, soft radial glow, slim progress bar only. Removed orbs, grid, corner decorations, and the default "5 years of Excellence in Entertainment" tagline (admin-configured title/tagline still supported if set).
+  - **Platform logo swap** `/logo.png` → `/logo-emblem.png` in: `Navbar.tsx`, `MobileHeader.tsx`, `Navigation.tsx`, `Footer.tsx`, `AuthLayout.tsx` (also removed the hardcoded "5 YEARS OF EXCELLENCE" subtitle), `DashboardLayout.tsx`, `About.tsx`, `Download.tsx`, `UniversalShareModal.tsx` (poster fallbacks + watermark), `admin/IntroScreen.tsx` preview.
+  - **Backend default (`api/admin.py`)**: `INTRO_SCREEN_DEFAULTS["tagline"]` changed to `""`.
+- **Verification**: `npm run build` passes. Deployed `app/dist/` + `api/admin.py` to production (`72.62.254.251`, active release via `current` symlink), restarted `soundit.service`, `GET /health` → `{"status":"healthy"}`. `GET /api/v1/system/intro-screen` returns `{"enabled":true,"logo_url":"","title":"","tagline":""}` (no stale DB override — `system_settings` has no `intro_screen` row). index.html MD5 matches local build; `/logo-emblem.png` served HTTP 200.
+- **Not changed**: favicon, apple-touch-icon, Android app icon, native Capacitor splash, OG meta fallback image (still wordmark — better for wide share cards).
+- **Follow-up (same day)**: Owner rejected the transparency-keyed logo (glow halo) — `logo-emblem.png` is now the RAW supplied PNG (black background kept, 512×768). Owner also supplied a 5.29 s HEVC MOV intro: converted to muted H.264 `app/public/intro-mobile.mp4` (810×1440, no audio). `LoadingScreen.tsx`: on Capacitor native only (`window.Capacitor.isNativePlatform()`), shows the full-screen muted autoplay video intro, then falls through to the emblem spinner; web keeps the spinner only. `App.tsx`: splash minimum 5600 ms on native vs 2000 ms web. Logo sizes roughly doubled everywhere with header heights bumped to match (Navbar/MobileHeader/Navigation bar h-20 lg:h-24, logos h-14 lg:h-16; MobileHeader logo h-14; Footer h-20; AuthLayout h-24 md:h-32; Dashboard sidebar h-20; Download h-28; About max-w-xs; share-poster watermark h-7). Redeployed, hashes verified, `/health` OK, both assets HTTP 200.
+
+</details>
+
 ### 83. Table Package Deletion & Past Event Auto-Completion (2026-09-28)
 - **Problems**:
   1. Table packages could not be deleted from the dashboard, resulting in 500 Internal Server Errors.

@@ -41,7 +41,7 @@ export default function CheckedInGuests() {
         // Map to our format
         const mapped: CheckedInGuest[] = (data.tickets || []).map((t: any) => ({
           id: String(t.id),
-          ticket_number: t.ticket_number || t.code || '—',
+          ticket_number: t.ticket_number || t.code || ', ',
           user_name: t.user_name || t.holder_name || 'Guest',
           tier_name: t.tier_name || t.tier || 'General',
           checked_in_at: t.checked_in_at,

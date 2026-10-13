@@ -1,5 +1,5 @@
 """
-Push Notification Service — Web Push delivery using pywebpush
+Push Notification Service, Web Push delivery using pywebpush
 """
 import json
 import logging

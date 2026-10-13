@@ -387,7 +387,7 @@ const ManageUsers = () => {
                                                 {cities.find(c => c.id === user.preferred_city)?.name || user.preferred_city.charAt(0).toUpperCase() + user.preferred_city.slice(1)}
                                             </span>
                                         ) : (
-                                            <span className="text-gray-600 text-xs">—</span>
+                                            <span className="text-gray-600 text-xs">, </span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-400">

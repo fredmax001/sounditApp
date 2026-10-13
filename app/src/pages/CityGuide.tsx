@@ -280,7 +280,7 @@ const CityGuide = () => {
     const infoWindow = infoWindowRef.current;
     if (!map || !infoWindow) return;
 
-    // Only map events, venues, and food — NOT artists/vendors/businesses
+    // Only map events, venues, and food - NOT artists/vendors/businesses
     const mappable =
       activeTab === 'all'
         ? guideItems.filter((i) => MAPPABLE_TYPES.has(i.type))

@@ -131,7 +131,7 @@ const SystemSettings = () => {
             } else {
                 const ratesErr = ratesRes.ok ? '' : await ratesRes.text().catch(() => 'Commission save failed');
                 const flagsErr = flagsRes.ok ? '' : await flagsRes.text().catch(() => 'Flags save failed');
-                toast.error(t('admin.systemSettings.failedToSaveSomeSettings') + (ratesErr || flagsErr ? ` — ${ratesErr || flagsErr}` : ''));
+                toast.error(t('admin.systemSettings.failedToSaveSomeSettings') + (ratesErr || flagsErr ? `, ${ratesErr || flagsErr}` : ''));
             }
         } catch {
             toast.error(t('admin.systemSettings.networkError'));

@@ -210,7 +210,7 @@ export default function Marketplace() {
                 )}
             </div>
 
-            {/* Global Cart Drawer — shows for whichever vendor was last interacted with */}
+            {/* Global Cart Drawer - shows for whichever vendor was last interacted with */}
             {selectedVendorId && (
                 <VendorCart
                     vendorId={selectedVendorId}
