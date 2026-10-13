@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.sounditent.com",
+      "sha256_cert_fingerprints": [
+        "EE:6C:69:D9:7A:F0:D7:02:49:0E:2B:DB:56:BF:88:48:8B:FF:23:81:B1:CD:B8:B3:E7:96:8A:11:5A:19:06:8B",
+        "20:D7:74:A7:4B:3C:1D:0F:46:C4:E2:C0:AA:E7:A5:2A:28:5D:82:B4:F1:24:37:08:78:0B:27:FE:39:2B:C0:F5"
+      ]
+    }
+  }
+]
