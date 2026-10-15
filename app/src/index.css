@@ -1107,3 +1107,31 @@ input, textarea, select, button {
     animation: none !important;
   }
 }
+
+/* ── Print (E-Receipt "Download PDF") ── */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print-area,
+  #receipt-print-area * {
+    visibility: visible;
+  }
+  #receipt-print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: #ffffff !important;
+    border: none !important;
+  }
+  #receipt-print-area * {
+    color: #000000 !important;
+    border-color: #dddddd !important;
+  }
+  #receipt-print-area img {
+    filter: none !important;
+  }
+}

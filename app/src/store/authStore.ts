@@ -203,7 +203,7 @@ export interface AuthState {
   permissions: string[];
   initialize: () => Promise<void>;
   fetchCities: () => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<Profile | undefined>;
+  loginWithEmail: (email: string, password: string, preloadedLoginData?: unknown) => Promise<Profile | undefined>;
   registerWithEmail: (data: RegisterData) => Promise<void>;
   sendOTP: (phone: string) => Promise<{ success: boolean; message: string }>;
   verifyOTP: (phone: string, code: string) => Promise<boolean>;
@@ -480,17 +480,28 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Email + Password Login
-      loginWithEmail: async (email: string, password: string) => {
+      loginWithEmail: async (email: string, password: string, preloadedLoginData?: unknown) => {
         set({ isLoading: true });
         const cleanEmail = (email || '').trim().toLowerCase();
 
         try {
-          const response = await fetchWithErrorHandling(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            body: JSON.stringify({ email: cleanEmail, password }),
-          });
+          let data: any;
+          if (preloadedLoginData) {
+            // Reuse a login payload already obtained elsewhere (e.g. 2FA/PIN verification)
+            data = preloadedLoginData;
+          } else {
+            const response = await fetchWithErrorHandling(`${API_BASE_URL}/auth/login`, {
+              method: 'POST',
+              body: JSON.stringify({ email: cleanEmail, password }),
+            });
+            data = await response.json();
+          }
 
-          const data = await response.json();
+          if (data && data.requires_2fa) {
+            const err = new Error('2FA_REQUIRED') as Error & { twoFactorToken?: string };
+            err.twoFactorToken = data.two_factor_token;
+            throw err;
+          }
 
           // Map Backend User response to Frontend state
           const backendUser = data.user;

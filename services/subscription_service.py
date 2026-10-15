@@ -14,6 +14,15 @@ from models import (
 from subscription_config import get_plan_price, get_plan_features
 
 
+def _aware(dt):
+    """SQLite drops tzinfo on datetime read — normalize to UTC-aware."""
+    if dt is None:
+        return None
+    if getattr(dt, 'tzinfo', None) is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 class SubscriptionService:
     @staticmethod
     def get_active_subscription(db: Session, user_id: int):
@@ -96,7 +105,8 @@ class SubscriptionService:
             "role": active_sub.role.value,
             "start_date": active_sub.start_date,
             "end_date": active_sub.end_date,
-            "days_remaining": (active_sub.end_date - datetime.now(timezone.utc)).days,
+            # SQLite drops tzinfo on read — normalize before arithmetic
+            "days_remaining": (_aware(active_sub.end_date) - datetime.now(timezone.utc)).days,
             "features": features,
             "can_access_features": True,
             "is_trial": getattr(active_sub, 'is_trial', False),
@@ -210,8 +220,22 @@ class SubscriptionService:
     @staticmethod
     def create_subscription(db: Session, user_id: int, plan_type: SubscriptionPlan,
                            role: UserRole, payment_method: str = None):
-        price = get_plan_price(role.value, plan_type.value)
-        
+        # Prefer the admin-configured DB price; fall back to the hardcoded matrix
+        price = None
+        try:
+            from models import SubscriptionPlanConfig
+            cfg = db.query(SubscriptionPlanConfig).filter(
+                SubscriptionPlanConfig.role == role,
+                SubscriptionPlanConfig.plan_type == plan_type,
+                SubscriptionPlanConfig.is_active == True
+            ).first()
+            if cfg:
+                price = cfg.price
+        except Exception:
+            price = None
+        if price is None:
+            price = get_plan_price(role.value, plan_type.value)
+
         subscription = Subscription(
             user_id=user_id,
             role=role,
@@ -238,6 +262,11 @@ class SubscriptionService:
         
         if subscription.status != SubscriptionStatus.PENDING:
             raise ValueError("Subscription is not pending")
+
+        # Require proof of payment before activation (unless free/trial)
+        if not subscription.is_trial and (subscription.price or 0) > 0:
+            if not subscription.payment_proof_hash and not subscription.payment_screenshot and not subscription.payment_reference:
+                raise ValueError("Cannot approve: no payment proof (screenshot or reference) on this subscription")
         
         now = datetime.now(timezone.utc)
         

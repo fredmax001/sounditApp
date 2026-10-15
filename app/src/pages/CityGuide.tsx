@@ -14,6 +14,7 @@ import {
   Store,
   Building2,
   Star,
+  MessageCircle,
   Heart,
   Map as MapIcon,
   ChevronDown,
@@ -26,6 +27,7 @@ import { useCityGuideStore } from '@/store/cityGuideStore';
 import type { GuideItem } from '@/store/cityGuideStore';
 import { openDirections } from '@/lib/directions';
 import DiscoveryResultCard from '@/components/ui/DiscoveryResultCard';
+import DiscoveryFeed from '@/components/DiscoveryFeed';
 
 type GMap = {
   setCenter: (center: { lat: number; lng: number }) => void;
@@ -413,7 +415,13 @@ const CityGuide = () => {
           </div>
 
           {/* Type Tabs - horizontal scroll on mobile */}
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
+          <div
+            className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar"
+            style={{
+              maskImage: 'linear-gradient(to right, black 82%, transparent)',
+              WebkitMaskImage: 'linear-gradient(to right, black 82%, transparent)',
+            }}
+          >
             {TAB_CONFIG.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.key;
@@ -435,6 +443,11 @@ const CityGuide = () => {
           </div>
         </div>
       </section>
+
+      {/* New discovery feed: Pick For You + Top sections */}
+      <div className="pt-4">
+        <DiscoveryFeed />
+      </div>
 
       {/* Featured Section */}
       {activeTab === 'all' && featuredItems.length > 0 && (
@@ -509,6 +522,12 @@ const CityGuide = () => {
             <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-3">
               {displayItems.map((item, index) => {
                 if (item.type === 'artist' || item.type === 'vendor' || item.type === 'business') {
+                  const meta = item.meta || {};
+                  const subtitle = item.type === 'artist'
+                    ? (Number(meta.followers_count) > 0 ? t('discovery.followersCount', { count: meta.followers_count }) || `${meta.followers_count} followers` : undefined)
+                    : item.type === 'business'
+                      ? (Number(meta.events_count) > 0 ? t('discovery.eventsCount', { count: meta.events_count }) || `${meta.events_count} events` : undefined)
+                      : (Number(meta.rating) > 0 ? t('discovery.ratingLabel', { rating: meta.rating }) || `★ ${meta.rating}` : undefined);
                   const dummyUser = {
                     id: Number(item.user_id || item.id),
                     user_id: item.user_id ? Number(item.user_id) : undefined,
@@ -524,7 +543,7 @@ const CityGuide = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(index * 0.02, 0.3) }}
                     >
-                      <DiscoveryResultCard user={dummyUser as any} />
+                      <DiscoveryResultCard user={dummyUser as any} subtitle={subtitle} />
                     </motion.div>
                   );
                 }
@@ -621,6 +640,16 @@ const CityGuide = () => {
           </div>
         </div>
       </section>
+      {/* Floating community chat */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={() => navigate('/community')}
+        aria-label={t('discovery.communityChat', 'Community Chat')}
+        className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-[#d3da0c] text-black flex items-center justify-center shadow-lg shadow-[#d3da0c]/30 hover:bg-[#bbc10b] active:scale-90 transition-all"
+      >
+        <MessageCircle className="w-7 h-7" />
+      </motion.button>
     </div>
   );
 };

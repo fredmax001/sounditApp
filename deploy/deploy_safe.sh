@@ -51,19 +51,21 @@ trap 'echo ""; echo "[ERR] Deploy failed at line $LINENO. New release $NEW_RELEA
 
 # SSH/SCP helpers that correctly handle password auth via sshpass
 remote() {
-  sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
+  sshpass -e ssh -F /dev/null -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "$@"
 }
 
 remote_scp() {
   # Usage: remote_scp <local> <remote>
-  sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -P "$SERVER_PORT" "$1" "$2"
+  sshpass -e scp -F /dev/null -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -P "$SERVER_PORT" "$1" "$2"
 }
 
 remote_rsync() {
   # Usage: remote_rsync <src> <dest>
-  local ssh_cmd="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -p $SERVER_PORT"
+  local ssh_cmd="sshpass -e ssh -F /dev/null -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -p $SERVER_PORT"
   local rsync_cmd=(rsync -avz --partial --timeout=120 -e "$ssh_cmd"
     --exclude='.venv/'
+    --exclude='.venv-ui/'
+    --exclude='.venv-1/'
     --exclude='venv/'
     --exclude='.git/'
     --exclude='.DS_Store'

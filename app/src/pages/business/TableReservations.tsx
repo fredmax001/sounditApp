@@ -5,11 +5,13 @@ import {
   Plus, Edit2, Trash2, Wine, Users, Ticket,
   Loader2, X, Check, Package,
   ChevronDown, ChevronUp, Eye, Clock,
-  ImageIcon
+  ImageIcon,
+  Martini,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
+import DrinkMenuManager from '@/components/business/DrinkMenuManager';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
@@ -55,12 +57,24 @@ interface TableOrder {
   contact_name: string;
   contact_phone: string;
   guest_count: number;
+  guest_names?: string[];
   payment_amount: number;
   payment_screenshot: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'used' | 'cancelled';
   special_requests: string;
   created_at: string;
   ticket_code?: string;
+  ticket_price_snapshot?: number | null;
+  allocation_amount?: number | null;
+  drink_allowance?: number | null;
+  allowance_used?: number | null;
+  drink_selections?: Array<{ name: string; qty: number; unit_price: number; mixers?: { name: string; qty: number }[]; line_total: number }>;
+  buyer_confirmed_at?: string | null;
+  upgrade_request?: { name: string; qty: number; price_snapshot: number; estimated_extra: number; notes?: string; payment_preference?: string } | null;
+  upgrade_status?: 'none' | 'pending' | 'approved' | 'declined';
+  upgrade_final_price?: number | null;
+  upgrade_payment_status?: string | null;
+  tickets?: Array<{ id: number; ticket_number: string; is_used?: boolean }>;
   ticket_qr?: string;
 }
 
@@ -70,7 +84,10 @@ export default function BusinessTableReservations() {
   const { session } = useAuthStore();
   const token = session?.access_token;
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'packages' | 'orders'>('packages');
+  const [activeTab, setActiveTab] = useState<'packages' | 'orders' | 'drinks'>('packages');
+  const [drinksEventId, setDrinksEventId] = useState<number | null>(null);
+  const [allocationPct, setAllocationPct] = useState<string>('');
+  const [savingAlloc, setSavingAlloc] = useState(false);
   const [packages, setPackages] = useState<TablePackage[]>([]);
   const [orders, setOrders] = useState<TableOrder[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -112,8 +129,52 @@ export default function BusinessTableReservations() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(res.data || []);
+      if (res.data?.length && !drinksEventId) {
+        setDrinksEventId(res.data[0].id);
+      }
     } catch (error) {
       // silent fail
+    }
+  };
+
+  // Load the selected event's current allocation % when the drinks tab event changes
+  useEffect(() => {
+    if (!drinksEventId || !token) return;
+    axios.get(`${API_BASE_URL}/events/${drinksEventId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setAllocationPct(res.data?.table_allocation_percent != null ? String(res.data.table_allocation_percent) : ''))
+      .catch(() => setAllocationPct(''));
+  }, [drinksEventId, token]);
+
+  const saveAllocation = async () => {
+    if (!drinksEventId) return;
+    setSavingAlloc(true);
+    try {
+      await axios.put(`${API_BASE_URL}/events/${drinksEventId}`,
+        { table_allocation_percent: allocationPct === '' ? null : parseFloat(allocationPct) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      toast.success(t('tables.allocSaved', 'Table allocation saved'));
+    } catch {
+      toast.error(t('kit.editProfile.saveFailed'));
+    } finally {
+      setSavingAlloc(false);
+    }
+  };
+
+  const resolveUpgrade = async (orderId: number, action: 'approve' | 'decline') => {
+    setProcessingOrder(orderId);
+    try {
+      const finalPrice = parseFloat((document.getElementById(`final-${orderId}`) as HTMLInputElement)?.value || '');
+      const paymentStatus = (document.getElementById(`payst-${orderId}`) as HTMLSelectElement)?.value || 'pending';
+      await axios.post(`${API_BASE_URL}/tables/business/orders/${orderId}/upgrade/${action}`,
+        action === 'approve' ? { final_price: isNaN(finalPrice) ? undefined : finalPrice, payment_status: paymentStatus } : {},
+        { headers: { Authorization: `Bearer ${token}` } });
+      toast.success(action === 'approve' ? t('tables.upgradeApproved', 'Upgrade approved') : t('tables.upgradeDeclined', 'Upgrade declined'));
+      fetchData();
+    } catch (error) {
+      const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(msg || t('business.tableReservations.failedToLoadData'));
+    } finally {
+      setProcessingOrder(null);
     }
   };
 
@@ -125,7 +186,7 @@ export default function BusinessTableReservations() {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPackages(res.data);
-      } else {
+      } else if (activeTab === 'orders') {
         const res = await axios.get(`${API_BASE_URL}/tables/business/orders`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -362,6 +423,17 @@ export default function BusinessTableReservations() {
                 {t('business.tableReservations.packagesTab')}
               </button>
               <button
+                onClick={() => setActiveTab('drinks')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'drinks' 
+                    ? 'bg-[#d3da0c] text-black' 
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Martini className="w-4 h-4 inline mr-2" />
+                {t('tables.drinksTab', 'Drinks')}
+              </button>
+              <button
                 onClick={() => setActiveTab('orders')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === 'orders' 
@@ -391,7 +463,28 @@ export default function BusinessTableReservations() {
         </div>
 
         {/* Content */}
-        {activeTab === 'packages' ? (
+        {activeTab === 'drinks' ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3 bg-[#141414] border border-white/10 rounded-2xl p-4">
+              {events.length > 1 && (
+                <select value={drinksEventId ?? ''} onChange={e => setDrinksEventId(Number(e.target.value))}
+                  className="bg-[#0A0A0A] border border-white/10 text-white text-sm rounded-xl px-3 py-2.5">
+                  {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
+                </select>
+              )}
+              <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+                <label className="text-white/60 text-xs whitespace-nowrap">{t('tables.tableAllocationPct', 'Table allocation (% of one ticket price, once per table)')}</label>
+                <input type="number" min={0} max={100} value={allocationPct} onChange={e => setAllocationPct(e.target.value)}
+                  className="w-20 bg-[#0A0A0A] border border-white/10 text-white text-sm rounded-xl px-3 py-2.5" />
+                <button onClick={saveAllocation} disabled={savingAlloc}
+                  className="h-9 px-4 rounded-lg bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] transition-colors disabled:opacity-50">
+                  {savingAlloc ? t('kit.common.save') : t('kit.common.save')}
+                </button>
+              </div>
+            </div>
+            <DrinkMenuManager eventId={drinksEventId} />
+          </div>
+        ) : activeTab === 'packages' ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {packages.map((pkg) => (
               <motion.div
@@ -561,6 +654,78 @@ export default function BusinessTableReservations() {
                           <div className="bg-white/5 rounded-xl p-4">
                             <p className="text-white/60 text-sm mb-1">{t('business.tableReservations.specialRequests')}</p>
                             <p className="text-white">{order.special_requests}</p>
+                          </div>
+                        )}
+
+                        {/* Financial breakdown + drink selections (spec §10) */}
+                        {order.drink_allowance != null && (
+                          <div className="bg-white/5 rounded-xl p-4 space-y-1.5 text-sm">
+                            <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.breakdown', 'Financial breakdown')}</p>
+                            <div className="flex justify-between"><span className="text-white/60">{t('tables.packagePrice', 'Package price')}</span><span className="text-white">¥{order.payment_amount}</span></div>
+                            <div className="flex justify-between"><span className="text-white/60">{t('tables.ticketsDeduction', 'Included tickets')}</span><span className="text-white/80">−¥{((order.ticket_price_snapshot || 0) * order.guest_count).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-white/60">{t('tables.tableAllocation', 'Table allocation')}</span><span className="text-white/80">−¥{(order.allocation_amount || 0).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-[#d3da0c]">{t('tables.drinkAllowance', 'Drink allowance')}</span><span className="text-[#d3da0c] font-bold">¥{(order.drink_allowance || 0).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-white/60">{t('tables.allowanceUsed', 'Selected drinks')}</span><span className="text-white/80">−¥{(order.allowance_used || 0).toLocaleString()}</span></div>
+                            {(order.drink_selections?.length || 0) > 0 && (
+                              <div className="pt-2 mt-1 border-t border-white/10 space-y-1">
+                                {order.drink_selections!.map((d, idx) => (
+                                  <div key={idx} className="flex justify-between text-xs">
+                                    <span className="text-gray-400">{d.name} ×{d.qty}{(d.mixers?.length || 0) > 0 ? ` · ${d.mixers!.map(m => `${m.name}×${m.qty}`).join(', ')}` : ''}</span>
+                                    <span className="text-white">¥{d.line_total.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Upgrade request workflow (spec §7) */}
+                        {order.upgrade_request && order.upgrade_status && order.upgrade_status !== 'none' && (
+                          <div className={`rounded-xl p-4 border ${order.upgrade_status === 'approved' ? 'bg-[#d3da0c]/10 border-[#d3da0c]/30' : order.upgrade_status === 'declined' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+                            <p className={`text-sm font-semibold mb-2 ${order.upgrade_status === 'approved' ? 'text-[#d3da0c]' : order.upgrade_status === 'declined' ? 'text-red-400' : 'text-amber-400'}`}>
+                              {order.upgrade_status === 'approved' ? t('tables.upgradeApproved', 'Upgrade approved')
+                                : order.upgrade_status === 'declined' ? t('tables.upgradeDeclined', 'Upgrade declined')
+                                : t('tables.upgradePending', 'Upgrade requested — pending confirmation')}
+                              : {order.upgrade_request.name} ×{order.upgrade_request.qty}
+                            </p>
+                            <p className="text-white/70 text-xs mb-1">{t('tables.estExtra', 'est. extra')} ¥{order.upgrade_request.estimated_extra}
+                              {order.upgrade_status === 'approved' && <> · {t('tables.extraPayment', 'Extra payment')}: ¥{order.upgrade_final_price} ({order.upgrade_payment_status})</>}</p>
+                            {order.upgrade_request.notes && <p className="text-white/50 text-xs mb-3">{order.upgrade_request.notes}</p>}
+                            {order.upgrade_status === 'pending' && (
+                              <div className="flex flex-wrap gap-2">
+                                <input type="number" placeholder={t('tables.finalPrice', 'Final price ¥')} id={`final-${order.id}`}
+                                  className="w-28 bg-[#0A0A0A] border border-white/10 text-white text-xs rounded-lg px-2 py-2" />
+                                <select id={`payst-${order.id}`} className="bg-[#0A0A0A] border border-white/10 text-white text-xs rounded-lg px-2 py-2">
+                                  <option value="pending">pending</option>
+                                  <option value="paid_online">paid_online</option>
+                                  <option value="at_venue">at_venue</option>
+                                  <option value="waived">waived</option>
+                                </select>
+                                <button onClick={() => resolveUpgrade(order.id, 'approve')} disabled={processingOrder === order.id}
+                                  className="px-3 py-2 rounded-lg bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] disabled:opacity-50">
+                                  {t('tables.approveUpgrade', 'Approve')}
+                                </button>
+                                <button onClick={() => resolveUpgrade(order.id, 'decline')} disabled={processingOrder === order.id}
+                                  className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 text-xs font-semibold hover:bg-red-500/25 disabled:opacity-50">
+                                  {t('tables.declineUpgrade', 'Decline')}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Guest tickets */}
+                        {(order.tickets?.length || 0) > 0 && (
+                          <div className="bg-white/5 rounded-xl p-4">
+                            <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.guestTickets', 'Guest tickets')}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {order.tickets!.map((tk, idx) => (
+                                <div key={tk.id} className="bg-[#0A0A0A] rounded-lg px-2.5 py-2">
+                                  <p className="text-[10px] text-gray-500">{order.guest_names?.[idx] || `Guest ${idx + 1}`}</p>
+                                  <p className="text-[11px] text-white font-mono truncate">{tk.ticket_number}</p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
 

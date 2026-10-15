@@ -83,6 +83,7 @@ export interface Event {
   payment_instructions?: string;
   event_type?: string;
   refund_policy?: string;
+  refunds_allowed?: boolean;
   require_id?: boolean;
   qr_code?: string;
   share_url?: string;

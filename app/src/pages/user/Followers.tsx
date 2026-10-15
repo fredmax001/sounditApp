@@ -134,26 +134,18 @@ const Followers = () => {
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-24">
-            <section className="relative py-16 bg-[#111111]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center"
-                    >
-                        <span className="inline-block text-[#d3da0c] text-sm font-medium tracking-wider uppercase mb-4">
-                            {t('user.followers.community')}
-                        </span>
-                        <h1 className="text-4xl md:text-6xl font-display text-white mb-6">
-                            {t('user.followers.social')}{' '}
-                            <span className="text-[#d3da0c]">{t('user.followers.network')}</span>
-                        </h1>
-                    </motion.div>
+        <div className="min-h-screen pb-24">
+            {/* Header */}
+            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <h1 className="text-2xl font-display text-white">
+                        {t('user.followers.social')}{' '}
+                        <span className="text-[#d3da0c]">{t('user.followers.network')}</span>
+                    </h1>
                 </div>
             </section>
 
-            <section className="py-12">
+            <section className="py-8">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row gap-6 justify-between items-center mb-8">
                         <div className="flex gap-4">

@@ -43,31 +43,16 @@ const Food = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] pt-24 pb-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                {/* Header */}
-                <div className="mb-12">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-4xl md:text-5xl font-display text-white mb-4"
-                    >
-                        {t('food.title')}
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-gray-400 text-lg max-w-2xl"
-                    >
+        <div className="min-h-screen bg-[#0A0A0A] pb-12">
+            {/* Header + Filters */}
+            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <h1 className="text-2xl font-display text-white">{t('food.title')}</h1>
+                    <p className="text-gray-400 text-sm hidden md:block mt-1">
                         {t('food.subtitle')}
-                    </motion.p>
-                </div>
+                    </p>
 
-                {/* Filters */}
-                <div className="sticky top-20 z-30 bg-[#0A0A0A]/95 backdrop-blur-md py-4 mb-8 border-b border-white/5">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-4 mt-4">
                         {/* Search */}
                         <div className="flex-1 relative">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -149,8 +134,10 @@ const Food = () => {
                         </div>
                     )}
                 </div>
+            </section>
 
-                {/* Grid */}
+            {/* Grid */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {isLoading ? (
                         [1, 2, 3, 4, 5, 6].map((i) => (

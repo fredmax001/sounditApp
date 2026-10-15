@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Phone, Loader2, Mail, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import GoogleAuthButton from '@/components/GoogleAuthButton';
@@ -19,6 +19,11 @@ const Login = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [twoFactor, setTwoFactor] = useState<{ token: string; mode: AuthMethod } | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [pinMode, setPinMode] = useState(false);
+  const [pinIdentifier, setPinIdentifier] = useState('');
+  const [pinCode, setPinCode] = useState('');
 
   interface Profile {
     role?: string;
@@ -82,19 +87,26 @@ const Login = () => {
     }
 
     try {
-      let userProfile = null;
-
       if (authMethod === 'email') {
-        userProfile = await loginWithEmail(email, password);
+        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data?.requires_2fa) {
+          setTwoFactor({ token: data.two_factor_token, mode: 'email' });
+          setOtpCode('');
+          setPassword('');
+          return;
+        }
+        if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
 
-        if (!userProfile) {
-          userProfile = useAuthStore.getState().profile;
-        }
-        if (userProfile) {
-          import('@/lib/analytics').then(({ Analytics }) => {
-            Analytics.trackEvent('login', 'engagement', { method: 'email' });
-          });
-        }
+        const userProfile = await loginWithEmail(email, password, data);
+        import('@/lib/analytics').then(({ Analytics }) => {
+          Analytics.trackEvent('login', 'engagement', { method: 'email' });
+        });
+        finalizeLogin(userProfile || useAuthStore.getState().profile);
       } else {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
@@ -102,71 +114,99 @@ const Login = () => {
           body: JSON.stringify({ phone, password })
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || t('auth.login.loginFailed'));
-        }
-
         const data = await response.json();
-
-        localStorage.setItem('auth-token', data.access_token);
-
-        const backendUser = data.user;
-        const backendRole = (backendUser.role || '').toLowerCase();
-
-        let role_type = 'user';
-        let role = 'user';
-
-        if (backendRole === 'business' || backendRole === 'organizer') {
-          role_type = 'business';
-          role = 'organizer';
-        } else if (backendRole === 'artist' || backendRole === 'dj') {
-          role_type = 'artist';
-          role = 'dj';
-        } else if (backendRole === 'super_admin') {
-          role_type = 'super_admin';
-          role = 'admin';
-        } else if (backendRole === 'admin') {
-          role_type = 'admin';
-          role = 'admin';
-        } else if (backendRole === 'vendor') {
-          role_type = 'vendor';
-          role = 'vendor';
+        if (data?.requires_2fa) {
+          setTwoFactor({ token: data.two_factor_token, mode: 'phone' });
+          setOtpCode('');
+          setPassword('');
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
         }
 
-        userProfile = {
-          id: String(backendUser.id),
-          email: backendUser.email || '',
-          phone: backendUser.phone,
-          role: role,
-          role_type: role_type,
-          status: backendUser.status || 'active',
-          first_name: backendUser.first_name,
-          last_name: backendUser.last_name,
-          display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
-          avatar_url: backendUser.avatar_url,
-          is_verified: backendUser.is_verified,
-        };
-
-        const profileCity = backendUser.preferred_city || backendUser.city_id || '';
-        if (profileCity) {
-          setSelectedCity(profileCity);
-        }
+        finalizeLogin(profileFromBackendUser(data));
       }
+    } catch (error) {
+      toast.error((error as Error).message || t('auth.login.loginFailed'));
+    }
+  };
 
-      if (authMethod === 'email') {
-        const storeProfile = useAuthStore.getState().profile;
-        const profileCity = (storeProfile as any)?.preferred_city || (storeProfile as any)?.city_id || '';
-        if (profileCity) {
-          setSelectedCity(profileCity);
-        }
+  const profileFromBackendUser = (data: any) => {
+    const backendUser = data.user;
+    localStorage.setItem('auth-token', data.access_token);
+
+    const backendRole = (backendUser.role || '').toLowerCase();
+    let role_type = 'user';
+    let role = 'user';
+    if (backendRole === 'business' || backendRole === 'organizer') { role_type = 'business'; role = 'organizer'; }
+    else if (backendRole === 'artist' || backendRole === 'dj') { role_type = 'artist'; role = 'dj'; }
+    else if (backendRole === 'super_admin') { role_type = 'super_admin'; role = 'admin'; }
+    else if (backendRole === 'admin') { role_type = 'admin'; role = 'admin'; }
+    else if (backendRole === 'vendor') { role_type = 'vendor'; role = 'vendor'; }
+
+    const userProfile = {
+      id: String(backendUser.id),
+      email: backendUser.email || '',
+      phone: backendUser.phone,
+      role: role,
+      role_type: role_type,
+      status: backendUser.status || 'active',
+      first_name: backendUser.first_name,
+      last_name: backendUser.last_name,
+      display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
+      avatar_url: backendUser.avatar_url,
+      is_verified: backendUser.is_verified,
+    };
+
+    const profileCity = backendUser.preferred_city || backendUser.city_id || '';
+    if (profileCity) setSelectedCity(profileCity);
+    return userProfile;
+  };
+
+  const finalizeLogin = (userProfile: any) => {
+    if (authMethod === 'email') {
+      const storeProfile = useAuthStore.getState().profile;
+      const profileCity = (storeProfile as any)?.preferred_city || (storeProfile as any)?.city_id || '';
+      if (profileCity) setSelectedCity(profileCity);
+    }
+    toast.success(t('auth.login.welcomeBack'));
+    navigate(getRedirectPath(userProfile));
+  };
+
+  const handleVerify2fa = async () => {
+    if (!twoFactor || otpCode.length !== 6) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/2fa/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ two_factor_token: twoFactor.token, code: otpCode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('kit.security.wrongCode'));
+      if (twoFactor.mode === 'phone') {
+        finalizeLogin(profileFromBackendUser(data));
+      } else {
+        const userProfile = await loginWithEmail(email, password, data);
+        finalizeLogin(userProfile || useAuthStore.getState().profile);
       }
+    } catch (error) {
+      toast.error((error as Error).message || t('kit.security.wrongCode'));
+    }
+  };
 
-      toast.success(t('auth.login.welcomeBack'));
-
-      const redirectPath = getRedirectPath(userProfile);
-
-      navigate(redirectPath);
+  const handlePinLogin = async () => {
+    if (!pinIdentifier || !pinCode) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/pin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pinIdentifier.trim().toLowerCase(), pin: pinCode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
+      const userProfile = await loginWithEmail(pinIdentifier, '', data);
+      finalizeLogin(userProfile || useAuthStore.getState().profile);
     } catch (error) {
       toast.error((error as Error).message || t('auth.login.loginFailed'));
     }
@@ -215,6 +255,9 @@ const Login = () => {
   const handleGoogleError = (error?: unknown) => {
     console.error('Google login failed:', error);
     const errorMsg = error instanceof Error ? error.message : typeof error === 'string' ? error : (error as any)?.message || '';
+    if (errorMsg.toLowerCase().includes('cancel') || (error as any)?.code === 'USER_CANCELLED') {
+      return;
+    }
     if (errorMsg) {
       toast.error(`${t('auth.login.googleLoginFailed')}: ${errorMsg}`);
     } else {
@@ -230,8 +273,43 @@ const Login = () => {
         <p className="text-gray-400 text-sm">{t('auth.login.subtitle')}</p>
       </div>
 
-      {/* Auth Method Tabs */}
-      <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-4">
+      {/* Two-factor verification step */}
+      {twoFactor ? (
+        <div>
+          <div className="text-center mb-6">
+            <h1 className="text-xl font-semibold text-white mb-1">{t('kit.security.loginTwoFactorTitle')}</h1>
+            <p className="text-gray-400 text-sm">{t('kit.security.loginTwoFactorDesc')}</p>
+          </div>
+          <div className="space-y-4">
+            <input
+              type="text"
+              inputMode="numeric"
+              autoFocus
+              value={otpCode}
+              onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onKeyDown={e => { if (e.key === 'Enter') handleVerify2fa(); }}
+              placeholder="••••••"
+              className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-lg text-white text-center text-2xl tracking-[0.6em] placeholder-gray-600 focus:border-[#d3da0c] focus:outline-none transition-colors"
+            />
+            <button
+              onClick={handleVerify2fa}
+              disabled={isLoading || otpCode.length !== 6}
+              className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('kit.security.verify')}
+            </button>
+            <button
+              onClick={() => { setTwoFactor(null); setOtpCode(''); }}
+              className="w-full py-2 text-gray-400 text-sm hover:text-white transition-colors"
+            >
+              {t('kit.common.back')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Auth Method Tabs */}
+          <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-4">
         <button
           type="button"
           onClick={() => setAuthMethod('email')}
@@ -331,6 +409,56 @@ const Login = () => {
           )}
         </button>
       </form>
+
+      </>
+      )}
+
+      {/* Quick PIN login */}
+      {!twoFactor && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setPinMode(m => !m)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-[#d3da0c] text-sm font-medium hover:underline"
+          >
+            <KeyRound className="w-4 h-4" />
+            {t('kit.security.loginWithPin')}
+          </button>
+          {pinMode && (
+            <div className="space-y-3 mt-2 bg-white/5 rounded-xl p-4">
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="email"
+                  value={pinIdentifier}
+                  onChange={e => setPinIdentifier(e.target.value)}
+                  placeholder={t('kit.security.pinEmail')}
+                  className="w-full pl-11 pr-4 py-3 bg-[#0A0A0A] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  value={pinCode}
+                  onChange={e => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  onKeyDown={e => { if (e.key === 'Enter') handlePinLogin(); }}
+                  placeholder={t('kit.security.pinCode')}
+                  className="w-full pl-11 pr-4 py-3 bg-[#0A0A0A] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={handlePinLogin}
+                disabled={isLoading || !pinIdentifier || !pinCode}
+                className="w-full py-3 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('kit.security.pinLogin')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Divider */}
       <div className="relative my-6">

@@ -23,6 +23,11 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   plugins: {
+    SocialLogin: {
+      google: {
+        webClientId: '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com',
+      },
+    },
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,

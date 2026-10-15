@@ -89,6 +89,8 @@ const Home = () => {
   const { t } = useTranslation();
   const { featuredEvents, fetchFeaturedEvents, isLoading } = useEventStore();
   const { user, profile, selectedCity } = useAuthStore();
+  const hour = new Date().getHours();
+  const greetingKey = hour < 12 ? 'home.greetingMorning' : hour < 18 ? 'home.greetingAfternoon' : 'home.greetingEvening';
   const [featuredDJs, setFeaturedDJs] = useState<DJ[]>([]);
   const [mobileDateFilter, setMobileDateFilter] = useState<DateFilter>('all');
   const [mobileCategoryFilter, setMobileCategoryFilter] = useState('');
@@ -288,32 +290,15 @@ const Home = () => {
 
       {/* ==================== MOBILE HOME (hidden on desktop) ==================== */}
       <section className="md:hidden pt-16 pb-2">
-        {/* Brand intro */}
+        {/* Greeting + headline */}
         <div className="px-4 mb-4">
-          <div className="relative rounded-2xl overflow-hidden p-5" style={{ background: 'linear-gradient(135deg, #141400 0%, #0A0A0A 55%, #14000C 100%)' }}>
-            <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 25% 30%, rgba(211,218,12,0.14) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(255,45,143,0.1) 0%, transparent 55%)' }} />
-            <div className="relative z-10">
-              <span className="inline-block text-[#d3da0c] text-[10px] font-medium tracking-wider uppercase mb-1.5">
-                {t('home.brand.heroBadge')}
-              </span>
-              <h1 className="text-white font-display font-bold text-2xl leading-tight mb-1">
-                Sound It <span className="hero-gradient-text">Entertainment</span>
-              </h1>
-              <p className="text-[#d3da0c] text-xs font-medium mb-2">{t('home.brand.heroTagline')}</p>
-              <p className="text-gray-400 text-xs leading-relaxed mb-3.5">{t('home.brand.heroDescription')}</p>
-              <div className="flex flex-wrap gap-2">
-                <Link to="/events" className="px-4 py-2 bg-[#d3da0c] text-black text-xs font-bold rounded-full active:scale-95 transition-transform">
-                  {t('home.brand.exploreEvents')}
-                </Link>
-                <Link to="/about" className="px-4 py-2 bg-white/10 border border-white/20 text-white text-xs font-semibold rounded-full active:scale-95 transition-transform">
-                  {t('home.brand.learnAboutUs')}
-                </Link>
-                <a href="https://app.sounditent.com" className="inline-flex items-center gap-1 px-4 py-2 border border-white/20 text-white text-xs font-semibold rounded-full active:scale-95 transition-transform">
-                  {t('home.brand.enterApp')} <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          </div>
+          <p className="text-gray-400 text-sm mb-1">
+            {t(greetingKey)}{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
+          </p>
+          <h1 className="text-white font-display font-bold text-[28px] leading-tight">
+            {t('home.headlineFind', 'Find your next')}{' '}
+            <span className="text-[#d3da0c]">{t('home.headlineExperience', 'experience')}</span>
+          </h1>
         </div>
 
         {/* Search bar */}
@@ -324,7 +309,7 @@ const Home = () => {
             </svg>
             <input
               type="text"
-              placeholder="Search events, artists, venues..."
+              placeholder={t('home.searchPlaceholder', 'Search events, artists, venues...')}
               readOnly
               onClick={() => window.location.href = '/events'}
               className="flex-1 bg-transparent text-gray-400 placeholder-gray-600 text-sm focus:outline-none cursor-pointer"

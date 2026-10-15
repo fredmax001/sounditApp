@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, BadgeCheck } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import VerificationBadge from '@/components/VerificationBadge';
 interface DiscoveryResultCardProps {
   user: any;
   subtitle?: string;
@@ -42,7 +43,7 @@ const DiscoveryResultCard = ({ user, subtitle }: DiscoveryResultCardProps) => {
       <div className="flex flex-col flex-1 min-w-0 justify-center">
         <div className="flex items-center gap-1">
           <h4 className="text-sm font-bold text-white truncate">{displayName}</h4>
-          {user.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
+          {user.is_verified && <VerificationBadge size="sm" />}
         </div>
         <p className="text-xs text-gray-400 truncate capitalize">
           {subtitle || user.role}

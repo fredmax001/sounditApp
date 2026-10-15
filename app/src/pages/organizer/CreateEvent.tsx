@@ -42,6 +42,7 @@ interface CreateEventFormData {
   tags: string[];
   eventType: string;
   refundPolicy: string;
+  refundsAllowed: boolean;
   requireId: boolean;
   showRemainingTickets: boolean;
   ticketPrice: string;
@@ -176,6 +177,7 @@ const CreateEvent = () => {
     tags: [],
     eventType: '',
     refundPolicy: 'Non-refundable',
+    refundsAllowed: false,
     requireId: false,
     showRemainingTickets: true,
     ticketPrice: '',
@@ -508,6 +510,7 @@ const CreateEvent = () => {
         address: formData.address || formData.venue,
         event_type: formData.eventType || undefined,
         refund_policy: formData.refundPolicy || undefined,
+        refunds_allowed: formData.refundsAllowed,
         require_id: formData.requireId,
         show_remaining_tickets: formData.showRemainingTickets,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
@@ -563,7 +566,7 @@ const CreateEvent = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-20 z-30 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -731,6 +734,19 @@ const CreateEvent = () => {
                         <option key={policy} value={policy} className="bg-[#111111]">{policy}</option>
                       ))}
                     </Select>
+                  </div>
+                  <div className="flex items-start gap-3 pt-6">
+                    <input
+                      type="checkbox"
+                      name="refundsAllowed"
+                      checked={formData.refundsAllowed}
+                      onChange={handleChange}
+                      className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                    />
+                    <div>
+                      <p className="text-white text-sm font-medium">{t('organizer.createEvent.allowRefunds', 'Allow cancellations & refunds')}</p>
+                      <p className="text-gray-400 text-xs">{t('organizer.createEvent.allowRefundsDesc', 'Buyers can cancel their orders and request refunds')}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -1459,7 +1475,7 @@ const CreateEvent = () => {
                     setFormData({
                       title: '', titleCN: '', description: '', date: '', time: '', endDate: '', endTime: '',
                       venue: '', address: '', city: '', capacity: '', image: '', tags: [], eventType: '',
-                      refundPolicy: 'Non-refundable', requireId: false, showRemainingTickets: true, ticketPrice: '',
+                      refundPolicy: 'Non-refundable', refundsAllowed: false, requireId: false, showRemainingTickets: true, ticketPrice: '',
                       promoterEnabled: false, commissionRate: '10', discountPercent: '5', maxDiscountAmount: '',
                     });
                     setTicketTiers([{ id: '1', name: 'General Admission', price: '', quantity: '', description: '', saleStartDate: '', saleEndDate: '', maxPerPerson: '10' }]);

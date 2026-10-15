@@ -84,13 +84,16 @@ export default function Marketplace() {
     );
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
-            <div className="max-w-6xl mx-auto px-4">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-white text-3xl font-bold mb-2">Marketplace</h1>
-                    <p className="text-gray-400">Browse products from local vendors</p>
+        <div className="min-h-screen pb-24 bg-[#0A0A0A]">
+            {/* Header */}
+            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-6xl mx-auto px-4 py-4">
+                    <h1 className="text-2xl font-display text-white">Marketplace</h1>
+                    <p className="text-gray-400 text-sm hidden md:block mt-1">Browse products from local vendors</p>
                 </div>
+            </section>
+
+            <div className="max-w-6xl mx-auto px-4 pt-6">
 
                 {/* Search & Toggle */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-6">

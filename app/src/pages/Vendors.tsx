@@ -54,37 +54,35 @@ export default function Vendors() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 lg:pt-24">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-            {t('vendors.title') || 'Vendors'}
-          </h1>
-          <p className="text-white/50 text-lg max-w-2xl">
-            {t('vendors.subtitle') || 'Discover vendors and merchants for your events.'}
-          </p>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder={t('vendors.searchPlaceholder') || 'Search vendors...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
-            />
+      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-display text-white">
+                {t('vendors.title') || 'Vendors'}
+              </h1>
+              <p className="text-gray-400 text-sm hidden md:block mt-1 max-w-2xl">
+                {t('vendors.subtitle') || 'Discover vendors and merchants for your events.'}
+              </p>
+            </div>
+            <div className="relative w-full md:w-72 md:max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t('vendors.searchPlaceholder') || 'Search vendors...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Vendors Grid */}
-      <div className="px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <div className="max-w-7xl mx-auto">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

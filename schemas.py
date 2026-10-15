@@ -569,7 +569,7 @@ class ProductResponse(ProductBase):
     id: int
     vendor_id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None  # legacy rows pre-2026-10 may be NULL
     
     class Config:
         from_attributes = True
@@ -679,6 +679,8 @@ class EventBase(BaseModel):
     capacity: Optional[int] = Field(None, ge=0)
     event_type: Optional[str] = Field(None, max_length=100)
     refund_policy: Optional[str] = Field(None, max_length=2000)
+    refunds_allowed: Optional[bool] = False
+    table_allocation_percent: Optional[float] = Field(None, ge=0, le=100)
     require_id: Optional[bool] = False
     show_remaining_tickets: Optional[bool] = True
     ticket_sales_closed: Optional[bool] = False
@@ -724,6 +726,8 @@ class EventUpdate(BaseModel):
     payment_instructions: Optional[str] = Field(None, max_length=2000)
     event_type: Optional[str] = Field(None, max_length=100)
     refund_policy: Optional[str] = Field(None, max_length=2000)
+    refunds_allowed: Optional[bool] = False
+    table_allocation_percent: Optional[float] = Field(None, ge=0, le=100)
     require_id: Optional[bool] = False
     show_remaining_tickets: Optional[bool] = None
     ticket_sales_closed: Optional[bool] = None
@@ -754,6 +758,8 @@ class EventResponse(EventBase):
     payment_instructions: Optional[str] = None
     event_type: Optional[str] = None
     refund_policy: Optional[str] = None
+    refunds_allowed: Optional[bool] = None
+    table_allocation_percent: Optional[float] = Field(None, ge=0, le=100)
     require_id: Optional[bool] = False
     show_remaining_tickets: bool = True
     ticket_sales_closed: bool = False
@@ -778,10 +784,16 @@ class EventBusiness(BaseModel):
         from_attributes = True
 
 
+class EventDJResponse(ArtistProfileResponse):
+    """DJ/artist entry embedded in event details — adds user avatar + normalized genres."""
+    avatar_url: Optional[str] = None
+    genres: Optional[List[str]] = None
+
+
 class EventDetailResponse(EventResponse):
     venue: Optional[VenueResponse] = None
     business: Optional[EventBusiness] = None
-    djs: Optional[List[ArtistProfileResponse]] = None
+    djs: Optional[List[EventDJResponse]] = None
     vendors: Optional[List[EventVendorResponse]] = None
     ticket_tiers: Optional[List["TicketTierResponse"]] = None
     organizer_plan: Optional[str] = "basic"
@@ -803,6 +815,8 @@ class EventListResponse(BaseModel):
     is_featured: bool = False
     event_type: Optional[str] = None
     tags: Optional[List[str]] = None
+    refunds_allowed: Optional[bool] = None
+    table_allocation_percent: Optional[float] = None
     ticket_tiers: Optional[List[TicketTierResponse]] = None
     venue: Optional[VenueResponse] = None
     promoter_enabled: bool = False
@@ -2096,6 +2110,23 @@ class OrganizerReviewResponse(BaseModel):
         from_attributes = True
 
 
+class EventReviewCreate(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = Field(None, max_length=2000)
+
+
+class EventReviewResponse(BaseModel):
+    id: int
+    user_id: int
+    event_id: int
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
 # ==================== MESSAGING SCHEMAS ====================
 
 class MessageCreate(BaseModel):
@@ -2131,3 +2162,59 @@ class ConversationResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+# ============================================================
+# DRINK MENU + TABLE PACKAGE SELECTION (Table_Packages_Drinks_Spec)
+# ============================================================
+
+class DrinkItemCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    category: str = Field("other", max_length=50)
+    description: Optional[str] = Field(None, max_length=500)
+    price: float = Field(0, ge=0)
+    event_id: Optional[int] = None          # set = event-specific item
+    master_item_id: Optional[int] = None    # set = override of a master item
+    event_price: Optional[float] = Field(None, ge=0)
+    supports_mixers: bool = False
+    allowed_mixers: Optional[List[str]] = None
+    mixer_included_qty: int = Field(0, ge=0)
+    mixer_extra_price: float = Field(0, ge=0)
+    is_active: bool = True
+
+
+class DrinkItemUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    category: Optional[str] = Field(None, max_length=50)
+    description: Optional[str] = Field(None, max_length=500)
+    price: Optional[float] = Field(None, ge=0)
+    event_price: Optional[float] = Field(None, ge=0)
+    supports_mixers: Optional[bool] = None
+    allowed_mixers: Optional[List[str]] = None
+    mixer_included_qty: Optional[int] = Field(None, ge=0)
+    mixer_extra_price: Optional[float] = Field(None, ge=0)
+    is_active: Optional[bool] = None
+
+
+class TableDrinkMixer(BaseModel):
+    name: str = Field(..., max_length=100)
+    qty: int = Field(1, ge=1, le=20)
+
+
+class TableDrinkSelection(BaseModel):
+    item_id: int
+    qty: int = Field(1, ge=1, le=50)
+    mixers: Optional[List[TableDrinkMixer]] = None
+
+
+class TableUpgradeSubmit(BaseModel):
+    item_id: int
+    qty: int = Field(1, ge=1, le=50)
+    notes: Optional[str] = Field(None, max_length=1000)
+    payment_preference: Optional[str] = Field(None, max_length=50)  # contact_me / settle_at_venue
+
+
+class UpgradeResolve(BaseModel):
+    final_price: Optional[float] = Field(None, ge=0)
+    payment_status: Optional[str] = Field(None, max_length=30)  # pending/paid_online/at_venue/waived
+    reason: Optional[str] = Field(None, max_length=500)

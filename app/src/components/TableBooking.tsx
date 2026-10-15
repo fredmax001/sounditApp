@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   Wine, Users, Ticket, Check, X, Loader2, 
   ChevronRight, CreditCard, Upload, PartyPopper,
-  ImageIcon, MessageSquare
+  ImageIcon, MessageSquare, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -50,12 +50,22 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
     contact_name: '',
     contact_phone: '',
     contact_email: '',
-    guest_count: '',
     special_requests: '',
     payment_notes: '',
     payment_reference: '',
   });
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+
+  // ---- Drink selection + financial breakdown (Table_Packages_Drinks_Spec) ----
+  const [eventDrinks, setEventDrinks] = useState<Array<{
+    id: number; name: string; category: string; effective_price: number;
+    supports_mixers: boolean; allowed_mixers: string[]; mixer_included_qty: number; mixer_extra_price: number;
+  }>>([]);
+  const [eventTicketPrice, setEventTicketPrice] = useState<number | null>(null);
+  const [allocationPercent, setAllocationPercent] = useState<number | null>(null);
+  const [selectedDrinks, setSelectedDrinks] = useState<Record<number, { qty: number; asUpgrade: boolean; mixers: Record<string, number> }>>({});
+  const [upgradeNotes, setUpgradeNotes] = useState('');
+  const [upgradePreference, setUpgradePreference] = useState<'contact_me' | 'settle_at_venue'>('contact_me');
 
   const fetchPackages = useCallback(async () => {
     try {
@@ -81,6 +91,20 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
 
     setSelectedPackage(pkg);
     setShowBookingModal(true);
+
+    // Load event drinks + financial config for the breakdown/allowance UI
+    try {
+      const [drinksRes, eventRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/tables/events/${eventId}/drinks`),
+        axios.get(`${API_BASE_URL}/events/${eventId}`),
+      ]);
+      setEventDrinks(drinksRes.data?.items || []);
+      setEventTicketPrice(eventRes.data?.ticket_price ?? null);
+      setAllocationPercent(eventRes.data?.table_allocation_percent ?? null);
+    } catch {
+      setEventDrinks([]);
+    }
+    setSelectedDrinks({});
   };
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
@@ -99,6 +123,20 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
         if (value) form.append(key, value);
       });
       form.append('payment_screenshot', paymentScreenshot);
+      const confirmedSelections = drinkLines.filter(l => !l.asUpgrade).map(l => ({
+        item_id: l.item.id,
+        qty: l.qty,
+        mixers: Object.entries(l.mixers).filter(([, q]) => q > 0).map(([name, qty]) => ({ name, qty })),
+      }));
+      if (confirmedSelections.length) form.append('drink_selections', JSON.stringify(confirmedSelections));
+      if (upgradeLine) {
+        form.append('drink_selections', JSON.stringify([...confirmedSelections, {
+          item_id: upgradeLine.item.id,
+          qty: upgradeLine.qty,
+          mixers: Object.entries(upgradeLine.mixers).filter(([, q]) => q > 0).map(([name, qty]) => ({ name, qty })),
+        }]));
+      }
+      form.append('buyer_confirmed', 'true');
 
       await axios.post(
         `${API_BASE_URL}/tables/packages/${selectedPackage.id}/book`,
@@ -122,13 +160,53 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
       contact_name: '',
       contact_phone: '',
       contact_email: '',
-      guest_count: '',
       special_requests: '',
       payment_notes: '',
       payment_reference: '',
     });
     setPaymentScreenshot(null);
     setSelectedPackage(null);
+    setSelectedDrinks({});
+    setUpgradeNotes('');
+  };
+
+  // Financial mirror (display only — the server recalculates authoritatively).
+  // Guest count is fixed by the organizer's package (ticket_quantity) — the buyer cannot change it.
+  const guestsCount = Math.max(1, selectedPackage?.ticket_quantity || selectedPackage?.max_people || 1);
+  const ticketTotalCents = Math.round((eventTicketPrice || 0) * 100) * guestsCount;
+  const allocationCents = Math.round((eventTicketPrice || 0) * 100 * (allocationPercent || 0) / 100);
+  const packageCents = Math.round((selectedPackage?.price || 0) * 100);
+  const allowanceCents = packageCents - ticketTotalCents - allocationCents;
+
+  const drinkLines = Object.entries(selectedDrinks)
+    .map(([idStr, sel]) => {
+      const item = eventDrinks.find(d => d.id === Number(idStr));
+      if (!item || sel.qty <= 0) return null;
+      return { item, ...sel, lineCents: Math.round(item.effective_price * 100) * sel.qty };
+    })
+    .filter(Boolean) as Array<{ item: (typeof eventDrinks)[0]; qty: number; asUpgrade: boolean; mixers: Record<string, number>; lineCents: number }>;
+
+  const confirmedCents = drinkLines.filter(l => !l.asUpgrade).reduce((s, l) => s + l.lineCents, 0);
+  const remainingCents = allowanceCents - confirmedCents;
+  const upgradeLine = drinkLines.find(l => l.asUpgrade) || null;
+  const yuan = (c: number) => `¥${(c / 100).toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
+
+  const setDrinkQty = (itemId: number, qty: number) => {
+    setSelectedDrinks(prev => {
+      const cur = prev[itemId] || { qty: 0, asUpgrade: false, mixers: {} };
+      const next = { ...prev };
+      if (qty <= 0) delete next[itemId];
+      else next[itemId] = { ...cur, qty: Math.min(qty, 50) };
+      return next;
+    });
+  };
+
+  const toggleUpgrade = (itemId: number, asUpgrade: boolean) => {
+    setSelectedDrinks(prev => {
+      const cur = prev[itemId];
+      if (!cur) return prev;
+      return { ...prev, [itemId]: { ...cur, asUpgrade } };
+    });
   };
 
   if (loading) {
@@ -352,26 +430,14 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-white/60 text-sm mb-2">{t('tableBooking.email')}</label>
-                    <input
-                      type="email"
-                      value={formData.contact_email}
-                      onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
-                      className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white/60 text-sm mb-2">{t('tableBooking.numberOfGuests')}</label>
-                    <input
-                      type="number"
-                      value={formData.guest_count}
-                      onChange={(e) => setFormData({...formData, guest_count: e.target.value})}
-                      max={selectedPackage.max_people || undefined}
-                      className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-white/60 text-sm mb-2">{t('tableBooking.email')}</label>
+                  <input
+                    type="email"
+                    value={formData.contact_email}
+                    onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  />
                 </div>
 
                 <div>
@@ -387,6 +453,122 @@ export default function TableBooking({ eventId, eventTitle, wechatQrUrl, alipayQ
                     className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
+
+                {/* Auto-issued guest tickets info (no guest names/count needed — payer only) */}
+                <div className="bg-[#d3da0c]/5 border border-[#d3da0c]/20 rounded-xl p-4">
+                  <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-[#d3da0c]" />
+                    {t('tables.autoTickets', 'Guest tickets included')}: {guestsCount}
+                  </h3>
+                  <p className="text-white/50 text-xs leading-relaxed">
+                    {t('tables.autoTicketsHint', 'One ticket per guest is issued automatically under your name once the organizer approves this booking. Need more seats? Extra guests can buy regular tickets for this event.')}
+                  </p>
+                </div>
+
+                {/* Financial breakdown (spec §2/§9) */}
+                {eventTicketPrice != null && allocationPercent != null && (
+                  <div className="bg-white/5 rounded-xl p-4 space-y-1.5 text-sm">
+                    <div className="flex justify-between"><span className="text-white/60">{t('tables.packagePrice', 'Package price')}</span><span className="text-white font-medium">{yuan(packageCents)}</span></div>
+                    <div className="flex justify-between"><span className="text-white/60">{t('tables.ticketsDeduction', 'Included tickets')}</span><span className="text-white/80">−{yuan(ticketTotalCents)} ({guestsCount} × {yuan(Math.round((eventTicketPrice || 0) * 100))})</span></div>
+                    <div className="flex justify-between"><span className="text-white/60">{t('tables.tableAllocation', 'Table allocation')}</span><span className="text-white/80">−{yuan(allocationCents)} ({allocationPercent}% {t('tables.oncePerTable', 'once per table')})</span></div>
+                    <div className="border-t border-white/10 my-1" />
+                    <div className="flex justify-between"><span className="text-[#d3da0c] font-semibold">{t('tables.drinkAllowance', 'Drink allowance')}</span><span className="text-[#d3da0c] font-bold">{yuan(allowanceCents)}</span></div>
+                    <div className="flex justify-between"><span className="text-white/60">{t('tables.allowanceUsed', 'Selected drinks')}</span><span className="text-white/80">−{yuan(confirmedCents)}</span></div>
+                    <div className="flex justify-between"><span className="text-white/60">{t('tables.allowanceRemaining', 'Remaining')}</span><span className={remainingCents < 0 ? 'text-red-400 font-bold' : 'text-white font-bold'}>{yuan(Math.max(0, remainingCents))}</span></div>
+                    {allowanceCents < 0 && (
+                      <p className="text-red-400 text-xs pt-1">{t('tables.configError', 'Package configuration error — please contact the organizer.')}</p>
+                    )}
+                  </div>
+                )}
+                {eventTicketPrice != null && allocationPercent == null && (
+                  <p className="text-amber-400 text-xs bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                    {t('tables.allocNotConfigured', 'The organizer has not configured the table allocation for this event yet.')}
+                  </p>
+                )}
+
+                {/* Drink selection (spec §5) */}
+                {eventDrinks.length > 0 && allowanceCents >= 0 && (
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
+                      <Wine className="w-4 h-4 text-[#d3da0c]" />
+                      {t('tables.chooseDrinks', 'Choose your drinks')}
+                    </h3>
+                    <p className="text-white/40 text-xs mb-3">{t('tables.chooseDrinksHint', 'Selections within your allowance are included. Bigger requests go through an upgrade request.')}</p>
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      {eventDrinks.map(drink => {
+                        const sel = selectedDrinks[drink.id];
+                        const qty = sel?.qty || 0;
+                        const lineCents = Math.round(drink.effective_price * 100) * qty;
+                        const exceeds = qty > 0 && !sel?.asUpgrade && lineCents > remainingCents + lineCents - (sel ? 0 : 0) && lineCents > remainingCents;
+                        return (
+                          <div key={drink.id} className={`rounded-xl border p-3 transition-colors ${sel?.asUpgrade ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/10 bg-[#0A0A0A]'}`}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-white text-sm font-medium truncate">{drink.name}</p>
+                                <p className="text-white/40 text-xs">{yuan(Math.round(drink.effective_price * 100))}
+                                  {drink.supports_mixers && drink.mixer_included_qty > 0 && (
+                                    <span className="text-[#d3da0c]/70"> · {t('tables.mixersIncluded', '{{count}} mixers included', { count: drink.mixer_included_qty })}</span>
+                                  )}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button type="button" onClick={() => setDrinkQty(drink.id, qty - 1)} className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-30" disabled={qty === 0}>−</button>
+                                <span className="text-white text-sm w-5 text-center">{qty}</span>
+                                <button type="button" onClick={() => setDrinkQty(drink.id, qty + 1)} className="w-8 h-8 rounded-lg bg-[#d3da0c] text-black font-bold hover:bg-[#bbc10b]">+</button>
+                              </div>
+                            </div>
+                            {qty > 0 && drink.supports_mixers && (drink.allowed_mixers?.length || 0) > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {drink.allowed_mixers.map(m => (
+                                  <button key={m} type="button"
+                                    onClick={() => setSelectedDrinks(prev => {
+                                      const cur = prev[drink.id] || { qty: 1, asUpgrade: false, mixers: {} };
+                                      const curQ = cur.mixers[m] || 0;
+                                      return { ...prev, [drink.id]: { ...cur, mixers: { ...cur.mixers, [m]: curQ > 0 ? 0 : 1 } } };
+                                    })}
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${(sel?.mixers?.[m] || 0) > 0 ? 'bg-[#d3da0c]/15 text-[#d3da0c] border-[#d3da0c]/40' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+                                    {m}{(sel?.mixers?.[m] || 0) > 0 ? ` ×${sel!.mixers[m]}` : ''}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            {qty > 0 && lineCents > remainingCents && (
+                              <label className="mt-2 flex items-center gap-2 text-xs cursor-pointer">
+                                <input type="checkbox" checked={!!sel?.asUpgrade} onChange={(e) => toggleUpgrade(drink.id, e.target.checked)} className="accent-[#d3da0c]" />
+                                <span className="text-amber-400">{t('tables.requestAsUpgrade', 'Over allowance — request as upgrade (pending organizer confirmation)')}</span>
+                              </label>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upgrade request notes */}
+                {upgradeLine && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-3">
+                    <p className="text-amber-400 text-sm font-semibold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      {t('tables.upgradeRequest', 'Upgrade request')}: {upgradeLine.item.name} ×{upgradeLine.qty}
+                    </p>
+                    <textarea
+                      value={upgradeNotes}
+                      onChange={(e) => setUpgradeNotes(e.target.value)}
+                      rows={2}
+                      placeholder={t('tables.upgradeNotes', 'Notes for the organizer (preferred bottle, mixers, special request)...')}
+                      className="w-full bg-[#0A0A0A] border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                    />
+                    <div className="flex gap-2">
+                      {(['contact_me', 'settle_at_venue'] as const).map(p => (
+                        <button key={p} type="button" onClick={() => setUpgradePreference(p)}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors ${upgradePreference === p ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+                          {p === 'contact_me' ? t('tables.prefContact', 'Contact me to confirm extra payment') : t('tables.prefVenue', 'I’ll settle the difference at the venue')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Payment Section */}
                 <div className="bg-white/5 rounded-xl p-4 space-y-4">

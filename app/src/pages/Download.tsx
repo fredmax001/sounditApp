@@ -60,7 +60,7 @@ const DownloadPage = () => {
                   {t('download.android.title', 'Android App')}
                 </h2>
                 <p className="text-gray-400 text-sm">
-                  {t('download.android.version', 'Version {{v}} ({{size}} MB)', { v: '1.2', size: '16.8' })}
+                  {t('download.android.version', 'Version {{v}} ({{size}} MB)', { v: '1.3', size: '18' })}
                 </p>
               </div>
             </div>
@@ -75,7 +75,7 @@ const DownloadPage = () => {
             </ol>
 
             <a
-              href="/download/android"
+              href="/api/v1/download/android"
               download
               className="inline-flex items-center justify-center gap-2 w-full md:w-auto px-8 py-3.5 rounded-xl bg-[#d3da0c] text-black font-semibold hover:bg-[#c4cf0a] transition-colors"
             >

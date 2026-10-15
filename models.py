@@ -253,6 +253,14 @@ class User(Base):
     refresh_token_expires_at = Column(DateTime(timezone=True), nullable=True)
     last_login = Column(DateTime(timezone=True), nullable=True, index=True)
 
+    # Two-factor authentication (TOTP)
+    totp_secret = Column(String(64), nullable=True)
+    totp_enabled = Column(Boolean, default=False)
+
+    # Quick-login PIN
+    pin_hash = Column(String(255), nullable=True)
+    pin_enabled = Column(Boolean, default=False)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Relationships
@@ -760,7 +768,7 @@ class Product(Base):
     event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
     vendor = relationship("VendorProfile", back_populates="products")
@@ -1035,6 +1043,26 @@ class OrganizerReview(Base):
     reviewer = relationship("User")
 
 
+class EventReview(Base):
+    """Reviews for events — one review per user per event (upsert on re-submit)."""
+    __tablename__ = "event_reviews"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False, index=True)
+    
+    rating = Column(Integer, nullable=False)  # 1-5
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint("user_id", "event_id", name="uq_event_reviews_user_event"),
+    )
+    
+    user = relationship("User", backref="event_reviews")
+    event = relationship("Event", backref="event_reviews")
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
     
@@ -1231,8 +1259,7 @@ class Event(Base):
     
     # Display & Ticket Control options
     show_remaining_tickets = Column(Boolean, default=True)
-    ticket_sales_closed = Column(Boolean, default=False, index=True)
-    
+    ticket_sales_closed = Column(Boolean, default=False, index=True)    
     # Stats
     views_count = Column(Integer, default=0, index=True)
     tickets_sold = Column(Integer, default=0, index=True)
@@ -1250,6 +1277,10 @@ class Event(Base):
     # Event details
     event_type = Column(String(100), nullable=True)
     refund_policy = Column(String(50), nullable=True)
+    # Organizer-controlled: when False, buyers cannot cancel/refund their orders
+    refunds_allowed = Column(Boolean, default=False)
+    # Percentage (0-100) of ONE ticket price allocated to the table, once per table booking
+    table_allocation_percent = Column(Float, nullable=True)
     require_id = Column(Boolean, default=False)
     
     # Payment QR codes for manual ticketing
@@ -1357,12 +1388,13 @@ class Ticket(Base):
     ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"), index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=True, index=True)
     ticket_order_id = Column(Integer, ForeignKey("ticket_orders.id"), nullable=True)
+    table_order_id = Column(Integer, ForeignKey("table_orders.id"), nullable=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
     
     # Ticket Info
     ticket_number = Column(String(50), unique=True, nullable=False)
     qr_token = Column(String(255), unique=True, index=True, nullable=False)
-    qr_code = Column(String(1500), nullable=True)
+    qr_code = Column(Text, nullable=True)
     
     # Status
     status = Column(String(50), default="active", index=True)
@@ -2411,14 +2443,16 @@ class TicketOrder(Base):
     quantity = Column(Integer, default=1)
     ticket_tier_id = Column(Integer, ForeignKey("ticket_tiers.id"), nullable=True)
     
-    # QR Code for approved ticket
-    ticket_qr_code = Column(String(1500), nullable=True)  # URL to generated QR
+    # QR Code for approved ticket (base64 data-URI PNG; Text to avoid the
+    # 1500-char varchar overflow that could fail approvals on PostgreSQL)
+    ticket_qr_code = Column(Text, nullable=True)  # base64 data-URI QR image
     ticket_code = Column(String(100), unique=True, nullable=True)  # Unique ticket code
     
     # Auto-approval tracking
     tickets_generated = Column(Integer, default=0)
     auto_approved = Column(Boolean, default=False)
     cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    cancel_reason = Column(String(500), nullable=True)
     validation_notes = Column(Text, nullable=True)
     
     # Organizer approval
@@ -2576,6 +2610,7 @@ class TableOrderStatus(str, enum.Enum):
     APPROVED = "approved"
     REJECTED = "rejected"
     CANCELLED = "cancelled"
+    USED = "used"
 
 
 class TableOrder(Base):
@@ -2612,12 +2647,31 @@ class TableOrder(Base):
     admin_notes = Column(Text, nullable=True)
     
     # QR Code for approved table order
-    ticket_qr_code = Column(String(1500), nullable=True)
+    ticket_qr_code = Column(Text, nullable=True)
     ticket_code = Column(String(100), unique=True, nullable=True)
-    
+
     # Usage tracking
     used_at = Column(DateTime(timezone=True), nullable=True)
     used_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Financial snapshot + drink selection (calculated server-side at booking time)
+    ticket_price_snapshot = Column(Float, nullable=True)
+    allocation_amount = Column(Float, nullable=True)
+    drink_allowance = Column(Float, nullable=True)
+    allowance_used = Column(Float, default=0)
+    drink_selections = Column(JSON, nullable=True)  # confirmed: [{item_id, name, qty, unit_price, mixers, line_total}]
+    guest_names = Column(JSON, nullable=True)
+
+    # Upgrade request workflow (string values: none/pending/approved/declined —
+    # plain VARCHAR so existing PostgreSQL tables need no enum type changes)
+    upgrade_request = Column(JSON, nullable=True)  # {item_id, name, qty, price_snapshot, estimated_extra, notes, payment_preference}
+    upgrade_status = Column(String(20), nullable=False, default="none")
+    upgrade_final_price = Column(Float, nullable=True)
+    upgrade_payment_status = Column(String(30), nullable=True)  # pending/paid_online/at_venue/waived
+
+    # Per-guest ticket generation (idempotent via tickets_generated)
+    tickets_generated = Column(Integer, default=0)
+    buyer_confirmed_at = Column(DateTime(timezone=True), nullable=True, index=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -2628,6 +2682,42 @@ class TableOrder(Base):
     user = relationship("User", foreign_keys=[user_id], back_populates="table_orders")
     business = relationship("User", foreign_keys=[business_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+
+class DrinkItem(Base):
+    """Organizer-managed drink menu.
+
+    Rows with event_id NULL are the organizer's reusable master menu.
+    Rows with event_id set are event-specific: either an override of a master
+    item (master_item_id set, event_price overrides) or a standalone event item.
+    """
+    __tablename__ = "drink_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
+    master_item_id = Column(Integer, ForeignKey("drink_items.id"), nullable=True)
+
+    name = Column(String(200), nullable=False)
+    category = Column(String(50), nullable=False, default="other", index=True)
+    description = Column(String(500), nullable=True)
+
+    # Master/default price; event rows use event_price when set, else fall back to price
+    price = Column(Float, nullable=False, default=0)
+    event_price = Column(Float, nullable=True)
+
+    # Mixers
+    supports_mixers = Column(Boolean, default=False)
+    allowed_mixers = Column(JSON, nullable=True)        # ["Red Bull","Tonic","Cola",...]
+    mixer_included_qty = Column(Integer, default=0)     # per bottle/package, organizer-configured
+    mixer_extra_price = Column(Float, default=0)        # charge per mixer beyond inclusion
+
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    business = relationship("User", foreign_keys=[business_id])
+    event = relationship("Event", foreign_keys=[event_id])
 
 
 class ModerationReport(Base):

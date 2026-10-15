@@ -214,6 +214,23 @@ def parse_pdf_menu(pdf_bytes: bytes) -> List[MenuItem]:
         except Exception as e:
             logger.warning(f"[PDF] PyPDF2 failed: {e}")
     
+    # Middle fallback: rasterize with PyMuPDF + OCR (no pdf2image/poppler needed)
+    if not text.strip():
+        try:
+            import pymupdf
+            import pytesseract
+            from PIL import Image as PILImage
+            doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+            for page in doc:
+                pix = page.get_pixmap(dpi=200)
+                img = PILImage.frombytes("RGB", (pix.width, pix.height), pix.samples)
+                text += pytesseract.image_to_string(img, lang="eng") + "\n"
+            if text.strip():
+                logger.info(f"[PDF] Extracted {len(text)} chars via pymupdf+pytesseract")
+                return parse_text_menu(text)
+        except Exception as e:
+            logger.warning(f"[PDF] pymupdf OCR fallback failed: {e}")
+
     # Last resort: OCR each page as image
     if pytesseract is not None and Image is not None:
         try:

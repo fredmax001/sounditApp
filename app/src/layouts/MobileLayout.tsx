@@ -14,6 +14,7 @@ import {
   formatPlanName,
 } from '@/store/subscriptionStore';
 import UpgradeModal from '@/components/UpgradeModal';
+import NotificationBell from '@/components/NotificationBell';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import MobilePageTransition from '@/components/MobilePageTransition';
 import {
@@ -278,10 +279,12 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               {getPageTitle}
             </span>
 
-            <button
-              onClick={() => setShowDrawer(true)}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden touch-feedback"
-            >
+            <div className="flex items-center gap-1.5">
+              <NotificationBell mobile />
+              <button
+                onClick={() => setShowDrawer(true)}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden touch-feedback"
+              >
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -294,13 +297,14 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               ) : (
                 <User className="w-4 h-4 text-black" />
               )}
-            </button>
+              </button>
+            </div>
           </div>
         </motion.header>
       )}
 
       {/* Main Content */}
-      <main ref={mainRef} className={`flex-1 ${hideHeader ? 'pt-0' : 'pt-14'} safe-area-pt pb-app-nav overflow-y-auto app-page`}>
+      <main ref={mainRef} className={`flex-1 ${hideHeader ? 'pt-0' : 'pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]'} pb-app-nav overflow-y-auto app-page`}>
         <AnimatePresence mode="wait">
           <MobilePageTransition key={location.pathname}>
             {children}

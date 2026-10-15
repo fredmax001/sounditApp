@@ -177,3 +177,54 @@ def cancel_stale_orders(db: Session, hours: int = 24) -> int:
     
     db.commit()
     return count
+
+
+def generate_tickets_for_table_order(
+    db: Session,
+    order: "TableOrder",
+    event: Event,
+    count: Optional[int] = None,
+) -> Tuple[int, list]:
+    """Generate individual per-guest Ticket rows for an APPROVED table order.
+
+    Idempotent via order.tickets_generated (safe against approval retries).
+    Each ticket gets a unique number + QR encoding it, linked via table_order_id.
+    """
+    from models import Ticket, TableOrderStatus
+
+    if order.tickets_generated and order.tickets_generated > 0:
+        existing = db.query(Ticket).filter(Ticket.table_order_id == order.id).all()
+        return len(existing), existing
+
+    tickets_to_generate = count or order.ticket_quantity or 1
+    if tickets_to_generate <= 0:
+        tickets_to_generate = 1
+
+    generated = []
+    for i in range(tickets_to_generate):
+        ticket_code = f"TKT-{event.id}-{order.user_id}-T{uuid.uuid4().hex[:8].upper()}-{i+1}"
+        ticket = Ticket(
+            user_id=order.user_id,
+            event_id=event.id,
+            ticket_order_id=None,
+            table_order_id=order.id,
+            ticket_number=ticket_code,
+            qr_token=f"qr-{uuid.uuid4().hex}",
+            qr_code=_generate_qr_code(ticket_code),
+            status="active",
+            is_used=False,
+        )
+        db.add(ticket)
+        generated.append(ticket)
+
+    order.tickets_generated = tickets_to_generate
+    order.status = TableOrderStatus.APPROVED  # keep approved; used tracked per-ticket
+
+    if event.tickets_sold is None:
+        event.tickets_sold = 0
+    event.tickets_sold += tickets_to_generate
+
+    db.commit()
+    for t in generated:
+        db.refresh(t)
+    return tickets_to_generate, generated

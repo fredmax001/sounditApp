@@ -62,7 +62,7 @@ const MobileBottomNav = () => {
         { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: Calendar },
         { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine, isCenter: true },
         { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Tickets', icon: Ticket },
-        { path: '/dashboard/business/profile', label: t('nav.profile') || 'Profile', icon: User },
+        { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
       ];
     }
 
@@ -82,7 +82,7 @@ const MobileBottomNav = () => {
         { path: '/dashboard/vendor/products', label: t('vendor.myProducts') || 'Products', icon: Store },
         { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine },
         { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel') || 'Orders', icon: ShoppingBag },
-        { path: '/dashboard/vendor/profile', label: t('nav.profile') || 'Profile', icon: User },
+        { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
       ];
     }
 
@@ -127,6 +127,10 @@ const MobileBottomNav = () => {
   };
 
   const isDashboardRole = isBusiness || isArtist || isVendor || isAdmin;
+
+  // Event detail pages render their own sticky purchase bar — hide the tab bar
+  const hideOnEventDetail = /^\/events\/[^/]+/.test(location.pathname);
+  if (hideOnEventDetail) return null;
 
   /* ── Dashboard roles: anchored bottom bar ── */
   if (isDashboardRole) {

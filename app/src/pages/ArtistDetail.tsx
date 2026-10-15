@@ -257,7 +257,7 @@ const BookingModal = ({
           className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="sticky top-0 bg-[#111111] border-b border-white/10 p-6 flex items-center justify-between">
+          <div className="sticky top-20 bg-[#111111] border-b border-white/10 p-6 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-white">{t('artistDetail.book')} {artist.stage_name}</h2>
               <p className="text-gray-400 text-sm">{t('artistDetail.bookingSubtitle')}</p>

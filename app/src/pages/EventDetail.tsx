@@ -39,6 +39,7 @@ export default function EventDetail() {
   const [referralCode, setReferralCode] = useState('');
   const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
+  const [descExpanded, setDescExpanded] = useState(false);
   // One-tap payment confirmation flow (buyer returns from Alipay/WeChat app)
   const [buyerConfirmed, setBuyerConfirmed] = useState(false);
   const [payReturnPrompt, setPayReturnPrompt] = useState(false);
@@ -356,10 +357,59 @@ export default function EventDetail() {
     .filter((e) => e.city === currentEvent?.city && e.id !== currentEvent?.id)
     .slice(0, 3);
 
+  // Mobile UI helpers (presentation only)
+  const fmtPrice = (currency?: string, price?: number) => {
+    const symbol = currency === 'USD' ? '$' : '¥';
+    return `${symbol}${price ?? 0}`;
+  };
+  const tierPrices = (currentEvent.ticket_tiers || [])
+    .map((t) => (typeof t.price === 'number' ? t.price : Number(t.price) || 0));
+  const minTierPrice = tierPrices.length > 0 ? Math.min(...tierPrices) : (currentEvent.ticket_price ?? 0);
+  const minTierCurrency = (currentEvent.ticket_tiers || []).find(
+    (t) => (typeof t.price === 'number' ? t.price : Number(t.price) || 0) === minTierPrice
+  )?.currency || 'CNY';
+
+  // Description cleanup: hashtags -> chips, drop external purchase CTA lines and bullet emojis
+  const rawDescription = currentEvent.description || '';
+  const hashtags = [...rawDescription.matchAll(/#[^\s#]+/g)].map((m) => m[0]);
+  const descriptionBody = rawDescription
+    .replace(/#[^\s#]+/g, '')
+    .split('\n')
+    .map((l) => l.replace(/^[\s]*[📅🕘📍🎟🚪]+[\s]*/, ''))
+    .filter((l) => l.trim() && !/sounditent\.com/i.test(l))
+    .join('\n')
+    .trim();
+
+  const handleBuyTicket = () => {
+    if (isSalesClosed) return;
+    if (!selectedTierId) {
+      // Bring the tier selector into view, then let the user pick
+      document.getElementById('ticket-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast.error(t('eventDetail.pleaseSelectTicketType'));
+      return;
+    }
+    if (!profile) {
+      setPendingAction('ticket');
+      setShowAuthModal(true);
+      return;
+    }
+    setShowQuantityModal(true);
+  };
+
+  const eventDateObj = new Date(currentEvent.start_date);
+  const chipDate = eventDateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const chipTime = eventDateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const venuePrimary = currentEvent.venue?.name || currentEvent.address || null;
+  const rawVenueSecondary = currentEvent.venue?.name
+    ? (currentEvent.venue?.address || currentEvent.city || '')
+    : (currentEvent.city || '');
+  const venueSecondary = rawVenueSecondary.replace(/^\w/, (c) => c.toUpperCase());
+  const mapQuery = encodeURIComponent([venuePrimary, venueSecondary].filter(Boolean).join(', '));
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-16 lg:pt-20">
-      {/* Back Button */}
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-[#0A0A0A] pt-16 lg:pt-20 md:pb-0 pb-32">
+      {/* Back Button (desktop) */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
@@ -371,6 +421,14 @@ export default function EventDetail() {
 
       {/* Hero Image */}
       <div className="relative h-[40vh] lg:h-[50vh]">
+        {/* Mobile floating back button */}
+        <button
+          onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
+          aria-label={t('eventDetail.back')}
+          className="md:hidden absolute top-3 left-3 z-20 w-10 h-10 rounded-full bg-black/45 backdrop-blur-md border border-white/15 text-white flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
         <img
           src={currentEvent.flyer_image || '/placeholder_event.jpg'}
           alt={currentEvent.title}
@@ -379,7 +437,7 @@ export default function EventDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/50 to-transparent" />
 
         {/* Action Buttons */}
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-3 right-3 md:top-4 md:right-4 flex gap-2 z-20">
           <button
             onClick={async () => {
               const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
@@ -405,16 +463,18 @@ export default function EventDetail() {
                 toast.error(t('eventDetail.saveError'));
               }
             }}
-            className={`p-3 rounded-full backdrop-blur-md transition-colors ${isLiked
-              ? 'bg-red-500 text-white'
-              : 'bg-black/50 text-white hover:bg-black/70'
+            aria-label="Save"
+            className={`w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-all active:scale-90 ${isLiked
+              ? 'bg-[#d3da0c] border-[#d3da0c] text-black'
+              : 'bg-black/45 border-white/15 text-white'
               }`}
           >
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={() => { setIsShareModalOpen(true); Analytics.trackEvent("event_shared", "social", { event_id: id }); }}
-            className="p-3 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-md transition-colors"
+            aria-label="Share"
+            className="w-10 h-10 rounded-full bg-black/45 border border-white/15 text-white backdrop-blur-md flex items-center justify-center transition-all active:scale-90"
           >
             <Share2 className="w-5 h-5" />
           </button>
@@ -447,8 +507,56 @@ export default function EventDetail() {
                 {currentEvent.title}
               </h1>
 
-              {/* Info Grid */}
-              <div className="grid sm:grid-cols-2 gap-4 mb-8">
+              {/* Info chips (mobile) */}
+              <div className="md:hidden grid grid-cols-3 gap-2 mb-3">
+                <div className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0">
+                  <Calendar className="w-4 h-4 text-[#d3da0c] shrink-0" />
+                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.date')}</p>
+                  <p className="text-white text-[11px] font-semibold leading-tight">{chipDate}</p>
+                  <p className="text-white/60 text-[10px] leading-tight">{chipTime}</p>
+                </div>
+                <a
+                  href={`https://maps.apple.com/?q=${mapQuery}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0"
+                >
+                  <MapPin className="w-4 h-4 text-[#d3da0c] shrink-0" />
+                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.venue')}</p>
+                  <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{venuePrimary || t('eventDetail.venueTba', 'Venue to be announced')}</p>
+                  {venueSecondary && <p className="text-white/60 text-[10px] leading-tight line-clamp-1">{venueSecondary}</p>}
+                </a>
+                <div className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0">
+                  <Users className="w-4 h-4 text-[#d3da0c] shrink-0" />
+                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.going', 'Going')}</p>
+                  <p className="text-white text-[11px] font-semibold leading-tight">{currentEvent.tickets_sold || 0}</p>
+                  <p className="text-white/60 text-[10px] leading-tight">{t('eventDetail.attending', 'attending')}</p>
+                </div>
+              </div>
+
+              {/* Map card (mobile) */}
+              {mapQuery && (
+                <a
+                  href={`https://maps.apple.com/?q=${mapQuery}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="md:hidden flex items-center gap-3 p-3 mb-6 bg-[#141414] rounded-xl border border-white/5 active:border-[#d3da0c]/40 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-[#d3da0c]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white text-sm font-medium truncate">{venuePrimary || venueSecondary}</p>
+                    {venueSecondary && venueSecondary !== venuePrimary && (
+                      <p className="text-white/50 text-xs truncate">{venueSecondary}</p>
+                    )}
+                  </div>
+                  <span className="text-[#d3da0c] text-xs font-semibold shrink-0">{t('eventDetail.openMap', 'Map')}</span>
+                </a>
+              )}
+
+              {/* Info Grid (desktop) */}
+              <div className="hidden md:grid md:grid-cols-2 gap-4 mb-8">
                 <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl">
                   <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
                     <Calendar className="w-6 h-6 text-[#d3da0c]" />
@@ -512,9 +620,32 @@ export default function EventDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">
                   {t('eventDetail.aboutThisEvent')}
                 </h2>
-                <div className="text-white/60 leading-relaxed whitespace-pre-wrap">
-                  {currentEvent.description}
-                </div>
+                {descriptionBody ? (
+                  <>
+                    <div className={`text-white/60 leading-relaxed whitespace-pre-wrap text-sm ${descExpanded ? '' : 'line-clamp-5'}`}>
+                      {descriptionBody}
+                    </div>
+                    {descriptionBody.split('\n').length > 5 && (
+                      <button
+                        onClick={() => setDescExpanded((v) => !v)}
+                        className="text-[#d3da0c] text-sm font-medium mt-2 active:opacity-70 transition-opacity"
+                      >
+                        {descExpanded ? t('eventDetail.showLess', 'Show less') : t('eventDetail.showMore', 'Show more')}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-white/40 text-sm">{t('eventDetail.noDescription', 'No description available.')}</p>
+                )}
+                {hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {hashtags.slice(0, 12).map((tag) => (
+                      <span key={tag} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] text-white/40">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Table Packages */}
@@ -528,44 +659,49 @@ export default function EventDetail() {
                 />
               </div>
 
-              {/* Artist Section */}
+              {/* Lineup */}
               {currentEvent.djs && currentEvent.djs.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold text-white mb-4">
-                    {t('eventDetail.featuredDJsAndArtists')}
+                    {t('eventDetail.lineup', 'Lineup')}
                   </h2>
-                  <div className="grid gap-4">
-                    {currentEvent.djs.map((dj) => (
-                      <Link
-                        key={dj.id}
-                        to={`/artists/${dj.id}`}
-                        className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
-                      >
-                        <img
-                          src={dj.avatar_url || '/default-avatar.png'}
-                          alt={dj.stage_name}
-                          className="w-16 h-16 rounded-xl object-cover"
-                        />
-                        <div>
-                          <p className="text-white font-semibold flex items-center gap-2">
-                            {dj.stage_name}
-                            {dj.verification_badge && <VerificationBadge size="sm" />}
-                          </p>
-                          <p className="text-white/50 text-sm">
-                            {dj.genres?.join(', ') || t('eventDetail.artist')}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
+                  <div className="grid gap-3">
+                    {currentEvent.djs.map((dj) => {
+                      const djAny = dj as any;
+                      const genreLine = djAny.genres?.join(', ') || djAny.genre || djAny.genre_tags?.join(', ');
+                      return (
+                        <Link
+                          key={dj.id}
+                          to={`/artists/${dj.id}`}
+                          className="flex items-center gap-3 p-3 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                        >
+                          <img
+                            src={dj.avatar_url || '/default-avatar.png'}
+                            alt={dj.stage_name}
+                            className="w-12 h-12 rounded-full object-cover shrink-0 border border-white/10"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-white font-semibold flex items-center gap-2 truncate">
+                              {dj.stage_name}
+                              {dj.verification_badge && <VerificationBadge size="sm" />}
+                            </p>
+                            <p className="text-white/50 text-sm capitalize truncate">
+                              {genreLine || djAny.artist_type || t('eventDetail.artist')}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Business */}
+              {/* Organizer */}
               {currentEvent.business && (
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold text-white mb-4">
-                    {t('eventDetail.business')}
+                    {t('eventDetail.organizer', 'Organizer')}
                   </h2>
                   <Link
                     to={`/profiles/${currentEvent.business.id}`}
@@ -664,7 +800,7 @@ export default function EventDetail() {
                             {new Date(related.start_date).toLocaleDateString()}
                           </p>
                           <p className="text-[#d3da0c] font-semibold mt-1">
-                            {related.ticket_tiers?.[0]?.currency || 'CNY'} {related.ticket_tiers?.[0]?.price || 0}
+                            {fmtPrice(related.ticket_tiers?.[0]?.currency, related.ticket_tiers?.[0]?.price || 0)}
                           </p>
                         </div>
                       </Link>
@@ -676,7 +812,7 @@ export default function EventDetail() {
 
             {/* Sidebar / Ticket Card */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24 bg-[#141414] rounded-2xl p-6 border border-white/5">
+              <div id="ticket-selector" className="sticky top-24 bg-[#141414] rounded-2xl p-6 border border-white/5 scroll-mt-24">
                 {isSalesClosed && (
                   <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
                     <p className="font-semibold text-sm flex items-center gap-2">
@@ -714,9 +850,9 @@ export default function EventDetail() {
                             >
                               <div className="flex justify-between items-center mb-1">
                                 <span className="font-semibold text-white">{tier.name}</span>
-                                <span className="text-[#d3da0c] font-bold">
-                                  {tier.currency} {tier.price}
-                                </span>
+                                <span className="text-[#d3da0c] font-bold shrink-0 whitespace-nowrap">
+                          {fmtPrice(tier.currency, typeof tier.price === 'number' ? tier.price : Number(tier.price) || 0)}
+                        </span>
                               </div>
                               <p className="text-white/50 text-xs">
                                 {isTierClosed
@@ -733,19 +869,7 @@ export default function EventDetail() {
                     </div>
                     <button
                       disabled={isSalesClosed}
-                      onClick={() => {
-                        if (isSalesClosed) return;
-                        if (!selectedTierId) {
-                          toast.error(t('eventDetail.pleaseSelectTicketType'));
-                          return;
-                        }
-                        if (!profile) {
-                          setPendingAction('ticket');
-                          setShowAuthModal(true);
-                          return;
-                        }
-                        setShowQuantityModal(true);
-                      }}
+                      onClick={handleBuyTicket}
                       className={`w-full py-4 rounded-xl font-semibold transition-colors ${
                         isSalesClosed
                           ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
@@ -764,21 +888,13 @@ export default function EventDetail() {
                     <div className="mb-6">
                       <p className="text-white/50 text-sm mb-2">{t('eventDetail.ticketPrice')}</p>
                       <p className="text-3xl font-bold text-white">
-                        ¥{currentEvent.ticket_price || 0}
+                        {fmtPrice('CNY', currentEvent.ticket_price || 0)}
                       </p>
                     </div>
 
                     <button
                       disabled={isSalesClosed}
-                      onClick={() => {
-                        if (isSalesClosed) return;
-                        if (!profile) {
-                          setPendingAction('ticket');
-                          setShowAuthModal(true);
-                          return;
-                        }
-                        setShowQuantityModal(true);
-                      }}
+                      onClick={handleBuyTicket}
                       className={`w-full py-4 rounded-xl font-semibold transition-colors mb-4 ${
                         isSalesClosed
                           ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
@@ -806,6 +922,38 @@ export default function EventDetail() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile sticky purchase bar */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#111111]/95 backdrop-blur-md border-t border-white/10 px-4 pt-3"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 shrink-0">
+            <p className="text-white/50 text-[10px] uppercase tracking-wide leading-none mb-1">
+              {t('eventDetail.startingFrom', 'Starting from')}
+            </p>
+            <p className="text-white font-bold text-lg leading-none">
+              {fmtPrice(minTierCurrency, minTierPrice)}
+            </p>
+          </div>
+          <button
+            disabled={isSalesClosed}
+            onClick={handleBuyTicket}
+            className={`flex-1 h-12 rounded-xl font-bold text-sm transition-colors ${
+              isSalesClosed
+                ? 'bg-gray-800 text-gray-400 cursor-not-allowed'
+                : 'bg-[#d3da0c] text-black active:bg-[#bbc10b]'
+            }`}
+          >
+            {isEventPast
+              ? t('eventDetail.eventEnded', 'Event Ended')
+              : isSalesClosed
+                ? t('eventDetail.salesClosed', 'Sales Closed')
+                : t('eventDetail.buyTicket')}
+          </button>
         </div>
       </div>
 

@@ -175,18 +175,18 @@ const MobileHeroCarousel = ({ events, autoAdvanceMs = 4500 }: MobileHeroCarousel
                 <h3 className="text-white font-bold text-base leading-snug line-clamp-2 mb-2">
                   {event.title}
                 </h3>
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-gray-300 text-[11px]">
-                    <Clock className="w-3 h-3 text-[#d3da0c]" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex items-center gap-1 text-gray-300 text-[11px] whitespace-nowrap">
+                    <Clock className="w-3 h-3 text-[#d3da0c] shrink-0" />
                     {dateStr} · {timeStr}
                   </span>
                   {event.city && (
-                    <span className="flex items-center gap-1 text-gray-300 text-[11px]">
-                      <MapPin className="w-3 h-3 text-[#d3da0c]" />
-                      {event.city}
+                    <span className="flex items-center gap-1 text-gray-300 text-[11px] min-w-0 truncate">
+                      <MapPin className="w-3 h-3 text-[#d3da0c] shrink-0" />
+                      {event.city.replace(/^\w/, (c) => c.toUpperCase())}
                     </span>
                   )}
-                  <span className={`ml-auto font-bold text-[11px] ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
+                  <span className={`ml-auto shrink-0 whitespace-nowrap font-bold text-[11px] ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
                     {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
                   </span>
                 </div>

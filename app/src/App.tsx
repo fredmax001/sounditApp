@@ -69,10 +69,16 @@ const Validate = lazy(() => import('./pages/Validate'));
 // User Dashboard
 const Profile = lazy(() => import('./pages/user/Profile'));
 const Tickets = lazy(() => import('./pages/user/Tickets'));
+const TicketReceipt = lazy(() => import('./pages/user/TicketReceipt'));
 const TableBookings = lazy(() => import('./pages/user/TableBookings'));
 const Favorites = lazy(() => import('./pages/user/Favorites'));
 const Followers = lazy(() => import('./pages/user/Followers'));
 const Settings = lazy(() => import('./pages/user/Settings'));
+const EditProfile = lazy(() => import('./pages/user/EditProfile'));
+const NotificationSettings = lazy(() => import('./pages/user/NotificationSettings'));
+const SecuritySettings = lazy(() => import('./pages/user/SecuritySettings'));
+const LanguageSettings = lazy(() => import('./pages/user/LanguageSettings'));
+const InviteFriends = lazy(() => import('./pages/user/InviteFriends'));
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'));
 
 // Business Dashboard
@@ -306,6 +312,7 @@ function App() {
             <Route path="/cart" element={<Suspense fallback={<PageLoader />}><Cart /></Suspense>} />
             <Route path="/checkout/:eventId" element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
             <Route path="/tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
+            <Route path="/tickets/receipt/:orderId" element={<Suspense fallback={<PageLoader />}><TicketReceipt /></Suspense>} />
             {/* <Route path="/assistant" element={<Suspense fallback={<PageLoader />}><Assistant /></Suspense>} /> */}
           </Route>
 
@@ -335,6 +342,11 @@ function App() {
               <Route path="/favorites" element={<Suspense fallback={<PageLoader />}><Favorites /></Suspense>} />
               <Route path="/followers" element={<Suspense fallback={<PageLoader />}><Followers /></Suspense>} />
               <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
+              <Route path="/profile/edit" element={<Suspense fallback={<PageLoader />}><EditProfile /></Suspense>} />
+              <Route path="/settings/notifications" element={<Suspense fallback={<PageLoader />}><NotificationSettings /></Suspense>} />
+              <Route path="/settings/security" element={<Suspense fallback={<PageLoader />}><SecuritySettings /></Suspense>} />
+              <Route path="/settings/language" element={<Suspense fallback={<PageLoader />}><LanguageSettings /></Suspense>} />
+              <Route path="/settings/invite" element={<Suspense fallback={<PageLoader />}><InviteFriends /></Suspense>} />
               <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
             </Route>
 

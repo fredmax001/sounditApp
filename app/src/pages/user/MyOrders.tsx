@@ -36,10 +36,17 @@ export default function MyOrders() {
     }
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
-            <div className="max-w-3xl mx-auto px-4">
-                <h1 className="text-white text-2xl font-bold mb-6">My Orders</h1>
+        <div className="min-h-screen pb-24 bg-[#0A0A0A]">
+            {/* Header */}
+            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-3xl mx-auto px-4 py-4">
+                    <h1 className="text-2xl font-display text-white">
+                        My <span className="text-[#d3da0c]">Orders</span>
+                    </h1>
+                </div>
+            </section>
 
+            <div className="max-w-3xl mx-auto px-4 pt-6">
                 {/* Filters */}
                 <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
                     {(['all', 'active', 'completed', 'cancelled'] as const).map((f) => (

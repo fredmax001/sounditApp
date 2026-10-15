@@ -406,7 +406,10 @@ const Register = () => {
             onToken={handleGoogleSuccess}
             onError={(error?: unknown) => {
               console.error('Google sign-up error:', error);
-              const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+              const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : (error as any)?.message || '';
+              if (msg.toLowerCase().includes('cancel') || (error as any)?.code === 'USER_CANCELLED') {
+                return;
+              }
               toast.error(msg ? `${t('auth.register.googleSignUpFailed')}: ${msg}` : t('auth.register.googleSignUpFailed'));
             }}
           />

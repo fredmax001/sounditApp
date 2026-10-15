@@ -357,27 +357,20 @@ const Community = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 lg:pt-24">
-      {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">{t('community.community')}</h1>
-          <p className="text-white/50 text-lg">
-            {t('community.subtitle')}
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#0A0A0A]">
+      {/* Header — title + section tabs pinned together below the app header */}
+      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-3">
+          <h1 className="text-xl font-display text-white mb-3">{t('community.community')}</h1>
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Section Tabs */}
-        <div className="mb-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {/* Section Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               onClick={() => handleSectionSelect(null)}
-              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap border transition-colors ${
+              className={`min-h-[36px] px-4 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
                 !selectedSection
                   ? 'bg-[#d3da0c] text-black border-[#d3da0c]'
-                  : 'bg-transparent text-white border-white/20 hover:border-white/40'
+                  : 'bg-white/5 text-gray-400 border-transparent hover:text-white'
               }`}
             >
               {t('community.allPosts') || 'All Posts'}
@@ -386,26 +379,29 @@ const Community = () => {
               <button
                 key={section.id}
                 onClick={() => handleSectionSelect(section)}
-                className={`px-4 py-2 rounded-full text-sm whitespace-nowrap border transition-colors ${
+                className={`min-h-[36px] px-4 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
                   selectedSection?.id === section.id
                     ? 'bg-[#d3da0c] text-black border-[#d3da0c]'
-                    : 'bg-transparent text-white border-white/20 hover:border-white/40'
+                    : 'bg-white/5 text-gray-400 border-transparent hover:text-white'
                 }`}
               >
                 {section.name}
-                {typeof section.post_count === 'number' && (
-                  <span className="ml-1.5 text-xs opacity-80">({section.post_count})</span>
+                {typeof section.post_count === 'number' && section.post_count > 0 && (
+                  <span className="ml-1.5 text-xs opacity-80">{section.post_count}</span>
                 )}
               </button>
             ))}
           </div>
         </div>
+      </section>
+
+      <div className="max-w-3xl mx-auto px-4 py-5">
 
         {/* Create Post Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#141414] rounded-2xl border border-white/10 p-4 mb-6 w-full"
+          className="bg-[#111111] rounded-2xl border border-white/5 p-4 mb-5 w-full"
         >
           {!isWritingPost ? (
             <div
@@ -418,7 +414,7 @@ const Community = () => {
                   {getInitials(profile?.first_name, profile?.last_name)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-white/50">{t('community.shareExperience')}</span>
+              <span className="text-gray-500 text-sm">{t('community.shareExperience')}</span>
             </div>
           ) : (
             <div className="space-y-4">
@@ -429,14 +425,14 @@ const Community = () => {
                     value={guestName}
                     onChange={(e) => handleGuestNameChange(e.target.value)}
                     placeholder={t('community.yourName') || 'Your Name *'}
-                    className="bg-[#0A0A0A] border-white/10 text-white"
+                    className="bg-[#0A0A0A] border-white/10 text-white placeholder:text-gray-600 text-sm"
                   />
                   <Input
                     type="email"
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
                     placeholder={t('community.yourEmail') || 'Email (optional)'}
-                    className="bg-[#0A0A0A] border-white/10 text-white"
+                    className="bg-[#0A0A0A] border-white/10 text-white placeholder:text-gray-600 text-sm"
                   />
                 </div>
               )}
@@ -453,13 +449,13 @@ const Community = () => {
                     value={newPostTitle}
                     onChange={(e) => setNewPostTitle(e.target.value)}
                     placeholder={t('community.postTitle') || 'Post title (optional)'}
-                    className="bg-[#0A0A0A] border-white/10 text-white"
+                    className="bg-[#0A0A0A] border-white/10 text-white placeholder:text-gray-600 text-sm"
                   />
                   <Textarea
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     placeholder={t('community.shareExperiencePlaceholder')}
-                    className="bg-[#0A0A0A] border-white/10 text-white resize-none min-h-[100px]"
+                    className="bg-[#0A0A0A] border-white/10 text-white placeholder:text-gray-600 text-sm resize-none min-h-[100px]"
                     autoFocus
                   />
                   <Select value={newPostSectionId} onValueChange={setNewPostSectionId}>
@@ -605,7 +601,7 @@ const Community = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-[#141414] rounded-xl border border-white/10 overflow-hidden"
+                  className="bg-[#111111] rounded-2xl border border-white/5 overflow-hidden"
                 >
                   {/* Post Header */}
                   <div className="p-3 flex items-center justify-between">
@@ -617,15 +613,15 @@ const Community = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="text-white font-medium flex items-center gap-2">
+                        <h3 className="text-white text-sm font-semibold flex items-center gap-2">
                           {post.user.first_name} {post.user.last_name}
                           {post.user.is_guest && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-white/10 text-white/70 rounded-full">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-white/10 text-gray-400 rounded-full font-normal">
                               {t('community.guest') || 'Guest'}
                             </span>
                           )}
                         </h3>
-                        <p className="text-white/50 text-sm">
+                        <p className="text-gray-500 text-xs mt-0.5">
                           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                       </div>
@@ -646,20 +642,20 @@ const Community = () => {
                   {/* Title */}
                   {post.title && (
                     <div className="px-3 pb-1">
-                      <h4 className="text-white font-semibold text-base">{post.title}</h4>
+                      <h4 className="text-white font-semibold text-[15px] leading-snug">{post.title}</h4>
                     </div>
                   )}
 
                   {/* Badges */}
                   <div className="px-3 pb-2 flex flex-wrap gap-2">
                     {post.section && (
-                      <div className="inline-flex items-center gap-1.5 bg-white/10 text-white px-3 py-1 rounded-full text-xs">
+                      <div className="inline-flex items-center gap-1.5 bg-white/5 text-gray-400 px-3 py-1 rounded-full text-xs">
                         <FolderOpen className="w-3.5 h-3.5" />
                         {post.section.name}
                       </div>
                     )}
                     {post.event_title && (
-                      <div className="inline-flex items-center gap-2 bg-[#d3da0c]/10 text-[#d3da0c] px-3 py-1 rounded-full text-sm">
+                      <div className="inline-flex items-center gap-1.5 bg-[#d3da0c]/10 text-[#d3da0c] border border-[#d3da0c]/20 px-3 py-1 rounded-full text-xs">
                         <Calendar className="w-4 h-4" />
                         {post.event_title}
                       </div>
@@ -668,7 +664,7 @@ const Community = () => {
 
                   {/* Post Content */}
                   <div className="px-3 pb-2">
-                    <p className="text-white text-sm whitespace-pre-wrap">
+                    <p className="text-gray-200 text-[15px] leading-relaxed whitespace-pre-wrap">
                       {expandedPosts[post.id]
                         ? post.content
                         : post.content.slice(0, 300)
@@ -710,7 +706,7 @@ const Community = () => {
                   )}
 
                   {/* Post Stats */}
-                  <div className="px-3 py-1.5 flex items-center justify-between text-white/50 text-[11px]">
+                  <div className="px-3 py-2 flex items-center justify-between text-gray-500 text-xs">
                     <div className="flex gap-4">
                       <span>{post.likes_count || 0} {t('community.likes')}</span>
                       <span className="flex items-center gap-1">
@@ -724,7 +720,7 @@ const Community = () => {
                     </div>
                   </div>
 
-                  <Separator className="bg-white/10" />
+                  <Separator className="bg-white/5" />
 
                   {/* Action Buttons */}
                   <div className="p-1 flex items-center justify-around">

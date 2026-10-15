@@ -11,7 +11,7 @@ import { pushManager } from './lib/pushNotifications'
 
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  '247782235504-v65bs2rl21kt1ovb3vrglskndf276li9.apps.googleusercontent.com'
+  '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com'
 
 function CapacitorInit() {
   useEffect(() => {

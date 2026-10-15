@@ -1,642 +1,190 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Bell, Lock, Globe, Moon, Trash2, Loader2, Eye, EyeOff, ChevronRight, X, MapPin, LogOut } from 'lucide-react';
-import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Bell, ChevronRight, Globe, HelpCircle, LogOut, Moon,
+  Shield, User as UserIcon, UserPlus, X,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/store/themeStore';
-import { API_BASE_URL } from '@/config/api';
+import { Switch } from '@/components/ui/switch';
 
-interface UserSettings {
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  eventReminders: boolean;
-  marketingEmails: boolean;
-  twoFactor: boolean;
-}
-
-const languages = [
-  { code: 'en', name: 'English', flag: 'EN' },
-  { code: 'fr', name: 'Français', flag: 'FR' },
-  { code: 'zh', name: '中文', flag: 'ZH' },
-];
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English',
+  es: 'Español',
+  zh: '中文',
+  fr: 'Français',
+  pt: 'Português',
+  ru: 'Русский',
+  ar: 'العربية',
+  de: 'Deutsch',
+  ja: '日本語',
+  ko: '한국어',
+};
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { session, cities, selectedCity, setSelectedCity, logout } = useAuthStore();
+  const { profile, logout } = useAuthStore();
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useThemeStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const isDeleting = false;
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const [settings, setSettings] = useState<UserSettings>({
-    emailNotifications: true,
-    pushNotifications: true,
-    eventReminders: true,
-    marketingEmails: false,
-    twoFactor: false,
-  });
+  const displayName = (profile?.first_name || profile?.last_name
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+    : profile?.email?.split('@')[0] || '');
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const currentLanguage = LANGUAGE_NAMES[i18n.language?.split('-')[0]] || LANGUAGE_NAMES.en;
 
-  // Initialize theme on mount
-  useEffect(() => {
-    useThemeStore.getState().initTheme();
-  }, []);
-
-  // Fetch user settings on mount
-  useEffect(() => {
-    const fetchSettings = async () => {
-      if (!session?.access_token) return;
-
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setSettings(prev => ({
-            ...prev,
-            emailNotifications: data.email_enabled ?? prev.emailNotifications,
-            pushNotifications: data.push_enabled ?? prev.pushNotifications,
-            eventReminders: data.events ?? prev.eventReminders,
-            marketingEmails: data.marketing ?? prev.marketingEmails,
-          }));
-        }
-      } catch (error) {
-        console.error('Failed to fetch settings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, [session]);
-
-  const saveSettingsToBackend = async (newSettings: UserSettings) => {
-    if (!session?.access_token) {
-      toast.error('Not authenticated');
-      return false;
-    }
-
-    setIsSaving(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          email_enabled: newSettings.emailNotifications,
-          push_enabled: newSettings.pushNotifications,
-          events: newSettings.eventReminders,
-          marketing: newSettings.marketingEmails,
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to save settings');
-      }
-
-      return true;
-    } catch {
-      toast.error('Failed to save settings');
-      return false;
-    } finally {
-      setIsSaving(false);
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
-  const handleToggle = async (key: keyof UserSettings) => {
-    if (key === 'twoFactor') {
-      toast.error('Two-factor authentication settings are not supported yet');
-      return;
-    }
-
-    const newValue = !settings[key];
-    const newSettings = { ...settings, [key]: newValue };
-    setSettings(newSettings);
-
-    const success = await saveSettingsToBackend(newSettings);
-    if (success) {
-      toast.success('Setting saved');
-    }
-  };
-
-  const handleLanguageChange = (langCode: string) => {
-    i18n.changeLanguage(langCode);
-    toast.success('Language updated');
-  };
-
-  const handleThemeToggle = () => {
-    toggleTheme();
-    toast.success(isDark ? 'Light mode enabled' : 'Dark mode enabled');
-  };
-
-  const handleSave = async () => {
-    const success = await saveSettingsToBackend(settings);
-    if (success) {
-      toast.success('Settings saved successfully');
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (!session?.access_token) {
-      toast.error('Not authenticated');
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-
-    setIsChangingPassword(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          current_password: passwordData.currentPassword,
-          new_password: passwordData.newPassword
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to change password');
-      }
-
-      toast.success('Password changed successfully');
-      setShowPasswordModal(false);
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch {
-      toast.error('Failed to change password');
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') {
-      toast.error('Please type DELETE to confirm');
-      return;
-    }
-
-    if (!session?.access_token) {
-      toast.error('Not authenticated');
-      return;
-    }
-
-    toast.error('Account deletion is not supported by the current backend API');
-  };
-
-  const settingSections = [
-    {
-      title: 'Notifications',
-      icon: Bell,
-      settings: [
-        { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates about your events' },
-        { key: 'pushNotifications', label: 'Push Notifications', description: 'Get notified about new events' },
-        { key: 'eventReminders', label: 'Event Reminders', description: 'Reminders before your booked events' },
-        { key: 'marketingEmails', label: 'Marketing Emails', description: 'Promotions and special offers' },
-      ],
-    },
+  const menuItems = [
+    { icon: UserIcon, label: t('kit.settingsMenu.profile'), value: null as string | null, path: '/profile' },
+    { icon: Bell, label: t('kit.settingsMenu.notifications'), value: null, path: '/settings/notifications' },
+    { icon: Shield, label: t('kit.settingsMenu.security'), value: null, path: '/settings/security' },
+    { icon: Globe, label: t('kit.settingsMenu.language'), value: currentLanguage, path: '/settings/language' },
+    { icon: HelpCircle, label: t('kit.settingsMenu.helpCenter'), value: null, path: '/help' },
+    { icon: UserPlus, label: t('kit.settingsMenu.inviteFriends'), value: null, path: '/settings/invite' },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Loading settings...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen pb-20 pt-16 lg:pt-24">
-      {/* Header */}
-      <div className="px-4 pt-2 pb-4">
-        <h1 className="text-2xl font-bold text-white">{t('settings.title')}</h1>
-        <p className="text-gray-500 text-sm">Manage your preferences and account</p>
-      </div>
+    <div className="min-h-screen pb-12 pt-16 lg:pt-20">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="pt-2 pb-4">
+          <h1 className="text-2xl font-bold text-white">{t('kit.settingsMenu.title')}</h1>
+        </div>
 
-      {/* Settings Content */}
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 space-y-3">
-        {/* Appearance / Theme */}
-        <motion.div
+        {/* Profile header card */}
+        <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
+          onClick={() => navigate('/profile')}
+          className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-2xl p-4 text-left active:border-[#d3da0c]/30 transition-colors mb-4"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-              <Moon className="w-4 h-4 text-[#d3da0c]" />
-            </div>
-            <h2 className="text-base font-semibold text-white">{t('settings.appearance')}</h2>
-          </div>
-
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <p className="text-white text-sm font-medium">{t('settings.darkMode')}</p>
-              <p className="text-gray-500 text-xs">Toggle between dark and light theme</p>
-            </div>
-            <button
-              onClick={handleThemeToggle}
-              className={`w-11 h-6 rounded-full transition-colors relative ${isDark ? 'bg-[#d3da0c]' : 'bg-white/20'}`}
-            >
-              <div
-                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-1'}`}
+          <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-[#d3da0c]/60 bg-white/5 shrink-0">
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={displayName}
+                className="w-full h-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
               />
-            </button>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                <span className="text-xl font-bold text-black">{(displayName || '?')[0].toUpperCase()}</span>
+              </div>
+            )}
           </div>
-        </motion.div>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-semibold text-white truncate">{displayName}</p>
+            <p className="text-xs text-gray-500 mt-0.5 truncate">
+              {profile?.followers_count || 0} {t('kit.profile.followers')} · {profile?.following_count || 0} {t('kit.profile.following')}
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-600 shrink-0" />
+        </motion.button>
 
-        {/* Language */}
+        {/* Menu rows */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
+          className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden mb-4"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-              <Globe className="w-4 h-4 text-[#d3da0c]" />
-            </div>
-            <h2 className="text-base font-semibold text-white">{t('settings.language')}</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            {languages.map((lang) => (
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            return (
               <button
-                key={lang.code}
-                onClick={() => handleLanguageChange(lang.code)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${i18n.language === lang.code
-                    ? 'bg-[#d3da0c]/15 border border-[#d3da0c]/40'
-                    : 'bg-white/5 border border-transparent hover:bg-white/10'
-                  }`}
+                key={item.path}
+                onClick={() => navigate(item.path!)}
+                className={`w-full flex items-center gap-3 px-4 py-4 min-h-[44px] text-left hover:bg-white/5 active:bg-white/10 transition-colors ${index > 0 ? 'border-t border-white/5' : ''}`}
               >
-                <span className="text-lg">{lang.flag}</span>
-                <span className={`text-sm font-medium ${i18n.language === lang.code ? 'text-[#d3da0c]' : 'text-white'}`}>
-                  {lang.name}
-                </span>
-                {i18n.language === lang.code && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
-                )}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* City Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-[#d3da0c]" />
-            </div>
-            <h2 className="text-base font-semibold text-white">{t('settings.city') || 'City'}</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
-            {cities.map((city) => (
-              <button
-                key={city.id}
-                onClick={() => {
-                  setSelectedCity(city.id);
-                  toast.success(`City updated to ${city.name}`);
-                }}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${selectedCity === city.id
-                    ? 'bg-[#d3da0c]/15 border border-[#d3da0c]/40'
-                    : 'bg-white/5 border border-transparent hover:bg-white/10'
-                  }`}
-              >
-                <span className={`text-sm font-medium ${selectedCity === city.id ? 'text-[#d3da0c]' : 'text-white'}`}>
-                  {city.name}
-                </span>
-                {selectedCity === city.id && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
-                )}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Notification Settings */}
-        {settingSections.map((section, sectionIndex) => {
-          const Icon = section.icon;
-          return (
-            <motion.div
-              key={section.title}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + sectionIndex * 0.05 }}
-              className="bg-[#111111] border border-white/5 rounded-2xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-[#d3da0c]" />
+                <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-[#d3da0c]" />
                 </div>
-                <h2 className="text-base font-semibold text-white">{section.title}</h2>
-              </div>
+                <span className="text-sm font-medium text-white flex-1">{item.label}</span>
+                {item.value && <span className="text-xs text-gray-500 mr-1">{item.value}</span>}
+                <ChevronRight className="w-5 h-5 text-gray-600 shrink-0" />
+              </button>
+            );
+          })}
 
-              <div className="space-y-1">
-                {section.settings.map((setting) => (
-                  <div
-                    key={setting.key}
-                    className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0"
-                  >
-                    <div className="pr-4">
-                      <p className="text-white text-sm font-medium">{setting.label}</p>
-                      <p className="text-gray-500 text-xs">{setting.description}</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggle(setting.key as keyof UserSettings)}
-                      disabled={setting.key === 'twoFactor'}
-                      className={`shrink-0 w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${settings[setting.key as keyof UserSettings] ? 'bg-[#d3da0c]' : 'bg-white/20'}`}
-                    >
-                      <div
-                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${settings[setting.key as keyof UserSettings] ? 'translate-x-6' : 'translate-x-1'}`}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          );
-        })}
-
-        {/* Password */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-              <Lock className="w-4 h-4 text-[#d3da0c]" />
+          {/* Dark mode toggle row */}
+          <div className="w-full flex items-center gap-3 px-4 py-4 min-h-[44px] border-t border-white/5">
+            <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+              <Moon className="w-5 h-5 text-[#d3da0c]" />
             </div>
-            <h2 className="text-base font-semibold text-white">Password</h2>
-          </div>
-          <button
-            onClick={() => setShowPasswordModal(true)}
-            className="w-full flex items-center justify-between px-3 py-2.5 bg-white/5 border border-white/5 rounded-xl text-white text-sm hover:bg-white/10 transition-colors"
-          >
-            <span>Change Password</span>
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          </button>
-        </motion.div>
-
-        {/* Save Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full py-3.5 bg-[#d3da0c] text-black font-semibold rounded-xl hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
-          </button>
-        </motion.div>
-
-        {/* Danger Zone */}
-        {/* Logout */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
-        >
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
-          </button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-[#111111] border border-red-500/15 rounded-2xl p-4"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <Trash2 className="w-4 h-4 text-red-500" />
-            </div>
-            <h2 className="text-base font-semibold text-white">Danger Zone</h2>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white text-sm font-medium">Delete Account</p>
-              <p className="text-gray-500 text-xs">This action cannot be undone</p>
-            </div>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="px-3 py-1.5 bg-red-500/10 text-red-400 text-sm rounded-lg hover:bg-red-500/20 transition-colors"
-            >
-              Delete
-            </button>
+            <span className="text-sm font-medium text-white flex-1">{t('kit.settingsMenu.darkMode')}</span>
+            <Switch
+              checked={isDark}
+              onCheckedChange={() => toggleTheme()}
+              className="data-[state=checked]:bg-[#d3da0c]"
+              aria-label={t('kit.settingsMenu.darkMode')}
+            />
           </div>
         </motion.div>
+
+        {/* Log out */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full flex items-center justify-center gap-2 py-4 min-h-[48px] rounded-2xl bg-[#111111] border border-red-500/15 text-red-400 font-medium text-sm hover:bg-red-500/5 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          {t('kit.settingsMenu.logOut')}
+        </motion.button>
       </div>
 
-      {/* Password Change Modal */}
-      {showPasswordModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
-          onClick={() => setShowPasswordModal(false)}
-        >
+      {/* Logout confirmation dialog */}
+      {createPortal(
+      <AnimatePresence>
+        {showLogoutConfirm && (
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            className="bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-white/10"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+            onClick={() => setShowLogoutConfirm(false)}
           >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-white">Change Password</h3>
-              <button onClick={() => setShowPasswordModal(false)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="relative">
-                <input
-                  type={showPasswords.current ? 'text' : 'password'}
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  placeholder="Current Password"
-                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none pr-10"
-                />
-                <button
-                  onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              className="bg-[#111111] border border-white/10 rounded-2xl p-6 w-full max-w-sm"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold text-white">{t('kit.settingsMenu.logOut')}</h3>
+                <button onClick={() => setShowLogoutConfirm(false)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-
-              <div className="relative">
-                <input
-                  type={showPasswords.new ? 'text' : 'password'}
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                  placeholder="New Password"
-                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none pr-10"
-                />
+              <p className="text-gray-400 text-sm mb-5">{t('kit.settingsMenu.logOutConfirm')}</p>
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors"
                 >
-                  {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {t('kit.common.cancel')}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 min-h-[44px] bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 transition-colors"
+                >
+                  {t('kit.settingsMenu.logOut')}
                 </button>
               </div>
-
-              <div className="relative">
-                <input
-                  type={showPasswords.confirm ? 'text' : 'password'}
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  placeholder="Confirm New Password"
-                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none pr-10"
-                />
-                <button
-                  onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="flex-1 py-2.5 bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleChangePassword}
-                disabled={isChangingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                className="flex-1 py-2.5 bg-[#d3da0c] text-black text-sm font-semibold rounded-xl hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
-              >
-                {isChangingPassword ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                ) : (
-                  'Change Password'
-                )}
-              </button>
-            </div>
+            </motion.div>
           </motion.div>
-        </div>
-      )}
-
-      {/* Delete Account Modal */}
-      {showDeleteModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
-          onClick={() => setShowDeleteModal(false)}
-        >
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            className="bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-red-500/20"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-3">
-              <Trash2 className="w-6 h-6 text-red-500" />
-            </div>
-            <h3 className="text-lg font-bold text-white text-center mb-1">Delete Account</h3>
-            <p className="text-gray-400 text-sm text-center mb-4">
-              This action cannot be undone. All your data will be permanently deleted.
-            </p>
-            <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3 mb-4">
-              <p className="text-red-400 text-xs">
-                Type <strong>DELETE</strong> to confirm
-              </p>
-            </div>
-            <input
-              type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE"
-              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-red-500 focus:outline-none mb-4"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-2.5 bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isDeleting || deleteConfirmText !== 'DELETE'}
-                className="flex-1 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                ) : (
-                  'Delete Account'
-                )}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>,
+      document.body)}
     </div>
   );
 };

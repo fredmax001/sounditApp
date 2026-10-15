@@ -1,7 +1,41 @@
+self.addEventListener('notificationclose', (event) => {
+  // User dismissed without tapping — nothing to route.
+});
+
+// Re-subscribe when the browser rotates the push subscription keys, then tell
+// the app to refresh the subscription on the backend.
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        const keyRes = await fetch('/api/v1/notifications/vapid-public-key');
+        const { public_key } = await keyRes.json();
+        const reg = await self.registration;
+        const newSub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: (function (b64) {
+            const padding = '='.repeat((4 - (b64.length % 4)) % 4);
+            const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            const arr = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) arr[i] = raw.charCodeAt(i);
+            return arr;
+          })(public_key)
+        });
+        const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of clientsList) {
+          client.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGE', subscription: newSub.toJSON() });
+        }
+      } catch (e) {
+        // Subscription refresh failed; the app will resubscribe on next enable.
+      }
+    })()
+  );
+});
 // Sound It - Service Worker for Push Notifications
 // Must be at the root scope: /service-worker.js
 
-const CACHE_NAME = 'soundit-v4';
+const CACHE_NAME = 'soundit-v5';
 const urlsToCache = [
   '/',
   '/logo-platform.png',
@@ -53,9 +87,11 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/android-chrome-192x192.png',
     badge: data.badge || '/android-chrome-192x192.png',
     tag: data.tag || data.data?.notification_id?.toString() || 'soundit-notification',
-    requireInteraction: true,
+    renotify: true,
+    vibrate: [100, 50, 100],
+    requireInteraction: false,
     actions: data.actions || [],
-    data: data.data || {}
+    data: { url: data.url || data.action_url || '/', ...(data.data || {}) }
   };
 
   if (data.image) {
@@ -84,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  let url = data.action_url || '/';
+  let url = data.url || data.action_url || '/';
 
   if (action === 'accept' && data.category === 'booking') {
     url = `/dashboard/artist/bookings?action=accept&id=${data.payload?.booking_id || ''}`;

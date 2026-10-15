@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "247782235504",
+    "project_id": "sound-it-app",
+    "storage_bucket": "sound-it-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247782235504:android:sounditentapp",
+        "android_client_info": {
+          "package_name": "app.sounditent.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247782235504-v65bs2rl21kt1ovb3vrglskndf276li9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.sounditent.com",
+            "certificate_hash": "8df9f38d73b388a2ef9f3f19b41cf2ef058a2300"
+          }
+        },
+        {
+          "client_id": "247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyPlaceholderKeyReplaceWithRealKey"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

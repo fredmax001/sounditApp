@@ -147,34 +147,32 @@ export default function Artists() {
   }, [artists, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 lg:pt-24">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-            {t('artists.title')}
-          </h1>
-          <p className="text-white/50 text-lg max-w-2xl">
-            {t('artists.subtitle')}
-          </p>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-            <input
-              type="text"
-              placeholder={t('artists.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#141414] border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#d3da0c]/50"
-            />
+      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-display text-white">
+                {t('artists.title')}
+              </h1>
+              <p className="text-gray-400 text-sm hidden md:block mt-1 max-w-2xl">
+                {t('artists.subtitle')}
+              </p>
+            </div>
+            <div className="relative w-full md:w-72 md:max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input
+                type="text"
+                placeholder={t('artists.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#141414] border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#d3da0c]/50"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Artists Grid */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">

@@ -135,18 +135,18 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
           </h3>
 
           {/* Meta row */}
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-gray-300/80 text-[10px]">
-              <Clock className="w-2.5 h-2.5" />
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex items-center gap-1 text-gray-300/80 text-[10px] whitespace-nowrap">
+              <Clock className="w-2.5 h-2.5 shrink-0" />
               {timeStr}
             </span>
             {event.city && (
-              <span className="flex items-center gap-1 text-gray-300/80 text-[10px]">
-                <MapPin className="w-2.5 h-2.5" />
-                {event.city}
+              <span className="flex items-center gap-1 text-gray-300/80 text-[10px] min-w-0 truncate">
+                <MapPin className="w-2.5 h-2.5 shrink-0" />
+                {event.city.replace(/^\w/, (c) => c.toUpperCase())}
               </span>
             )}
-            <span className={`ml-auto text-[10px] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
+            <span className={`ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
               {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
             </span>
           </div>

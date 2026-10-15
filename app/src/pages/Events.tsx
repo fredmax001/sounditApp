@@ -85,48 +85,50 @@ export default function Events() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-28">
-      {/* Search Header */}
-      <div className="px-4 pt-4 pb-2 sticky top-14 z-30 bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-white/5">
-        <h1 className="text-2xl font-bold text-white mb-3">Search</h1>
+      {/* Header */}
+      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
+          <h1 className="text-2xl font-display text-white mb-3">Search</h1>
 
-        {/* Input + Filter button */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 flex items-center gap-2.5 h-11 px-3.5 bg-[#1A1A1A] border border-white/8 rounded-2xl">
-            <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Discover an event..."
-              className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="p-1">
-                <X className="w-3.5 h-3.5 text-gray-400" />
-              </button>
-            )}
+          {/* Input + Filter button */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1 flex items-center gap-2.5 h-11 px-3.5 bg-[#1A1A1A] border border-white/8 rounded-2xl">
+              <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Discover an event..."
+                className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="p-1">
+                  <X className="w-3.5 h-3.5 text-gray-400" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilterModal(true)}
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center border active:scale-95 transition-all ${
+                selectedCategory || dateFilter !== 'all' || freeOnly
+                  ? 'bg-[#d3da0c] text-black border-[#d3da0c]'
+                  : 'bg-[#1A1A1A] text-gray-400 border-white/8'
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center border active:scale-95 transition-all ${
-              selectedCategory || dateFilter !== 'all' || freeOnly
-                ? 'bg-[#d3da0c] text-black border-[#d3da0c]'
-                : 'bg-[#1A1A1A] text-gray-400 border-white/8'
-            }`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-        </div>
 
-        {/* Date Filter Pills */}
-        <MobileFilterPills
-          activeDate={dateFilter}
-          onDateChange={setDateFilter}
-          activeCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          showCategoryRow={true}
-        />
-      </div>
+          {/* Date Filter Pills */}
+          <MobileFilterPills
+            activeDate={dateFilter}
+            onDateChange={setDateFilter}
+            activeCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            showCategoryRow={true}
+          />
+        </div>
+      </section>
 
       {/* Count & View Toggle */}
       <div className="px-4 py-3 flex items-center justify-between">

@@ -77,19 +77,25 @@ export default function OrderTracking() {
     }
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
-            <div className="max-w-lg mx-auto px-4">
-                <div className="flex items-center gap-3 mb-6">
-                    <Link to="/my-orders" className="p-2 text-gray-400 hover:text-white">
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                    <div>
-                        <h1 className="text-white text-xl font-bold">Order #{order.id}</h1>
-                        {order.vendor_name && (
-                            <p className="text-gray-500 text-sm">{order.vendor_name}</p>
-                        )}
+        <div className="min-h-screen pb-24 bg-[#0A0A0A]">
+            {/* Header */}
+            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-lg mx-auto px-4 py-4">
+                    <div className="flex items-center gap-3">
+                        <Link to="/my-orders" className="p-1 -ml-1 text-gray-400 hover:text-white">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Link>
+                        <div>
+                            <h1 className="text-2xl font-display text-white">Order #{order.id}</h1>
+                            {order.vendor_name && (
+                                <p className="text-gray-500 text-sm">{order.vendor_name}</p>
+                            )}
+                        </div>
                     </div>
                 </div>
+            </section>
+
+            <div className="max-w-lg mx-auto px-4 pt-6">
 
                 {/* Status Tracker */}
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">

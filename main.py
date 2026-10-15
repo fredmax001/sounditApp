@@ -17,8 +17,11 @@ from database import init_db, SessionLocal
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from utils.logging_config import setup_logging
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, drinks, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders
 import api.reviews as reviews
+import api.event_reviews as event_reviews
+import api.two_factor as two_factor
+import api.linked_accounts as linked_accounts
 import api.messaging as messaging
 import api.verification as verification
 import api.sms_test as sms_test
@@ -173,6 +176,23 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         f"HTTP {exc.status_code} at {request.url.path}: {exc.detail}",
         extra={"request_id": request_id_var.get(), "status_code": exc.status_code}
     )
+    # Structured details (e.g. PLAN_RESTRICTED dicts) must stay structured JSON,
+    # not stringified into the message (frontend checks error.code).
+    if isinstance(exc.detail, dict):
+        detail = exc.detail
+        message = detail.get("message") or str(detail)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "code": detail.get("code", "error"),
+                    "message": message,
+                    "request_id": request_id_var.get() or str(uuid.uuid4()),
+                    "path": request.url.path,
+                    **{k: v for k, v in detail.items() if k not in ("code", "message", "error")},
+                }
+            },
+        )
     return _error_response(request, exc.status_code, str(exc.detail))
 
 
@@ -362,9 +382,13 @@ app.include_router(tickets.router, prefix="/api/v1")
 app.include_router(product_orders.router, prefix="/api/v1")
 app.include_router(vendor_orders.router, prefix="/api/v1")
 app.include_router(table_reservations.router, prefix="/api/v1")
+app.include_router(drinks.router, prefix="/api/v1")
 app.include_router(cities.router, prefix="/api/v1")
 app.include_router(promoters.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
+app.include_router(event_reviews.router, prefix="/api/v1")
+app.include_router(two_factor.router, prefix="/api/v1")
+app.include_router(linked_accounts.router, prefix="/api/v1")
 app.include_router(messaging.router, prefix="/api/v1")
 app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
@@ -435,23 +459,29 @@ from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 @app.get("/download/android")
 @app.get("/api/v1/download/android")
 def download_android_apk():
-    apk_candidates = [
-        "static/downloads/SoundIt-Android-release-v1.2.apk",
-        "/var/www/soundit/current/static/downloads/SoundIt-Android-release-v1.2.apk",
-        "SoundIt-Android-release-v1.2.apk",
+    import glob
+    search_dirs = [
+        "static/downloads",
+        "/var/www/soundit/current/static/downloads",
+        ".",
     ]
-    for apk_path in apk_candidates:
-        if os.path.exists(apk_path) and os.path.isfile(apk_path):
-            return FileResponse(
-                apk_path,
-                media_type="application/vnd.android.package-archive",
-                filename="SoundIt-Android-release-v1.2.apk",
-                headers={
-                    "Content-Disposition": 'attachment; filename="SoundIt-Android-release-v1.2.apk"',
-                    "Cache-Control": "no-cache",
-                }
-            )
-    return RedirectResponse(url="/static/downloads/SoundIt-Android-release-v1.2.apk")
+    apks = []
+    for d in search_dirs:
+        apks.extend(glob.glob(os.path.join(d, "SoundIt-Android-release-*.apk")))
+    if apks:
+        apks.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        latest_apk = apks[0]
+        filename = os.path.basename(latest_apk)
+        return FileResponse(
+            latest_apk,
+            media_type="application/vnd.android.package-archive",
+            filename=filename,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-cache",
+            }
+        )
+    return RedirectResponse(url="/static/downloads/SoundIt-Android-release-v1.3.apk")
 
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")

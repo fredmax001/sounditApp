@@ -433,6 +433,93 @@ with engine.connect() as conn:
     else:
         print("Skipped notifications (table does not exist)")
 
+    # 19) Phase 2/3: security + refunds + QR safety (2FA/PIN, refunds_allowed, cancel_reason)
+    if 'users' in insp.get_table_names():
+        user_cols2 = [c['name'] for c in insp.get_columns('users')]
+        for col, col_type in [
+            ('totp_secret', 'VARCHAR(64)'),
+            ('totp_enabled', 'BOOLEAN DEFAULT false'),
+            ('pin_hash', 'VARCHAR(255)'),
+            ('pin_enabled', 'BOOLEAN DEFAULT false'),
+        ]:
+            if col not in user_cols2:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
+                print(f"Added users.{col}")
+            else:
+                print(f"Skipped users.{col}")
+
+    if 'events' in insp.get_table_names():
+        ev_cols = [c['name'] for c in insp.get_columns('events')]
+        if 'refunds_allowed' not in ev_cols:
+            conn.execute(text("ALTER TABLE events ADD COLUMN refunds_allowed BOOLEAN DEFAULT false"))
+            print("Added events.refunds_allowed")
+        else:
+            print("Skipped events.refunds_allowed")
+        if 'table_allocation_percent' not in ev_cols:
+            conn.execute(text("ALTER TABLE events ADD COLUMN table_allocation_percent FLOAT"))
+            print("Added events.table_allocation_percent")
+        else:
+            print("Skipped events.table_allocation_percent")
+
+    if 'table_orders' in insp.get_table_names():
+        to_cols = [c['name'] for c in insp.get_columns('table_orders')]
+        for col, col_type in [
+            ('cancel_reason', 'VARCHAR(500)'),
+            ('ticket_price_snapshot', 'FLOAT'),
+            ('allocation_amount', 'FLOAT'),
+            ('drink_allowance', 'FLOAT'),
+            ('allowance_used', 'FLOAT DEFAULT 0'),
+            ('drink_selections', 'JSON'),
+            ('guest_names', 'JSON'),
+            ('upgrade_request', 'JSON'),
+            ('upgrade_status', 'VARCHAR(20) DEFAULT \'none\''),
+            ('upgrade_final_price', 'FLOAT'),
+            ('upgrade_payment_status', 'VARCHAR(30)'),
+            ('tickets_generated', 'INTEGER DEFAULT 0'),
+            ('buyer_confirmed_at', 'TIMESTAMP WITH TIME ZONE'),
+        ]:
+            if col not in to_cols:
+                conn.execute(text(f"ALTER TABLE table_orders ADD COLUMN {col} {col_type}"))
+                print(f"Added table_orders.{col}")
+            else:
+                print(f"Skipped table_orders.{col}")
+
+    if 'tickets' in insp.get_table_names():
+        t_cols = [c['name'] for c in insp.get_columns('tickets')]
+        if 'table_order_id' not in t_cols:
+            conn.execute(text("ALTER TABLE tickets ADD COLUMN table_order_id INTEGER"))
+            print("Added tickets.table_order_id")
+        else:
+            print("Skipped tickets.table_order_id")
+
+    # Backfill legacy NULL product timestamps (ProductResponse requires them)
+    if 'products' in insp.get_table_names():
+        conn.execute(text("UPDATE products SET updated_at = created_at WHERE updated_at IS NULL"))
+        print("Backfilled products.updated_at")
+
+    # Add USED label to the existing PG enum (model gained TableOrderStatus.USED;
+    # the type was created before it existed and PG enums are append-only).
+    # Runs in its own transaction so a failure can't poison the main migration.
+    if engine.dialect.name == 'postgresql':
+        try:
+            with engine.begin() as pg_conn:
+                pg_conn.execute(text("ALTER TYPE tableorderstatus ADD VALUE IF NOT EXISTS 'USED'"))
+            print("Added USED to tableorderstatus enum")
+        except Exception as e:
+            print(f"Skipped tableorderstatus enum update: {e}")
+
+    # 20) Widen QR code columns to TEXT (base64 data-URIs can exceed VARCHAR(1500))
+    #     PostgreSQL-only syntax — SQLite has no type enforcement and errors here, so guard it.
+    if engine.dialect.name == 'postgresql':
+        if 'tickets' in insp.get_table_names():
+            conn.execute(text("ALTER TABLE tickets ALTER COLUMN qr_code TYPE TEXT"))
+            print("Widened tickets.qr_code to TEXT")
+        if 'ticket_orders' in insp.get_table_names():
+            conn.execute(text("ALTER TABLE ticket_orders ALTER COLUMN ticket_qr_code TYPE TEXT"))
+            print("Widened ticket_orders.ticket_qr_code to TEXT")
+    else:
+        print("Skipped QR column widening (non-PostgreSQL dialect)")
+
     conn.commit()
 
 print("Comprehensive migration complete.")

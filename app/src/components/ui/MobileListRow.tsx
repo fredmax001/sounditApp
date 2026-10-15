@@ -60,7 +60,7 @@ const MobileListRow = ({ event, index = 0 }: MobileListRowProps) => {
             {event.city && (
               <span className="flex items-center gap-1 text-gray-400 text-[10px]">
                 <MapPin className="w-2.5 h-2.5" />
-                {event.city}
+                {event.city.replace(/^\w/, (c) => c.toUpperCase())}
               </span>
             )}
           </div>
