@@ -178,7 +178,7 @@ export default function ProductCheckout() {
     const preferredOnlyAlipay = vendorSettings?.preferred_method === 'ALIPAY_ONLY';
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
             <div className="max-w-2xl mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">

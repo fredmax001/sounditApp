@@ -1439,7 +1439,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#020b00]">
       {/* Page Header */}
       <div className="px-4 pt-6 pb-4 lg:px-8 lg:pt-8">
         <div className="flex items-start justify-between gap-4 mb-6">

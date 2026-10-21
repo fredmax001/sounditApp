@@ -136,12 +136,12 @@ const Payouts = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{t('business.payouts.title')}</h2>
-          <p className="text-gray-400">{t('business.payouts.subtitle')}</p>
+          <h2 className="text-3xl font-bold text-[#020b00] dark:text-white mb-2">{t('business.payouts.title')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('business.payouts.subtitle')}</p>
         </div>
         <button 
           onClick={() => setShowWithdrawModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl font-semibold hover:opacity-90 transition-opacity"
         >
           <ArrowUpRight className="w-5 h-5" />
           {t('business.payouts.requestPayout')}
@@ -150,62 +150,62 @@ const Payouts = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3 mb-2">
             <DollarSign className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-gray-400">{t('business.payouts.availableBalance')}</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('business.payouts.availableBalance')}</span>
           </div>
-          <p className="text-3xl font-bold text-white">¥{availableBalance.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-[#020b00] dark:text-white">¥{availableBalance.toLocaleString()}</p>
         </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3 mb-2">
-            <Wallet className="w-5 h-5 text-green-400" />
-            <span className="text-gray-400">{t('business.payouts.totalEarnings')}</span>
+            <Wallet className="w-5 h-5 text-green-500 dark:text-green-400" />
+            <span className="text-gray-600 dark:text-gray-400">{t('business.payouts.totalEarnings')}</span>
           </div>
-          <p className="text-3xl font-bold text-white">¥{totalEarnings.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-[#020b00] dark:text-white">¥{totalEarnings.toLocaleString()}</p>
         </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-5 h-5 text-yellow-400" />
-            <span className="text-gray-400">{t('business.payouts.pending')}</span>
+            <Clock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+            <span className="text-gray-600 dark:text-gray-400">{t('business.payouts.pending')}</span>
           </div>
-          <p className="text-3xl font-bold text-white">¥{pendingAmount.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-[#020b00] dark:text-white">¥{pendingAmount.toLocaleString()}</p>
         </div>
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="w-5 h-5 text-blue-400" />
-            <span className="text-gray-400">{t('business.payouts.completed')}</span>
+            <CheckCircle className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+            <span className="text-gray-600 dark:text-gray-400">{t('business.payouts.completed')}</span>
           </div>
-          <p className="text-3xl font-bold text-white">¥{completedAmount.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-[#020b00] dark:text-white">¥{completedAmount.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Pending Payouts */}
       {pendingPayouts.length > 0 && (
-        <div className="bg-[#111111] rounded-xl border border-yellow-500/30 overflow-hidden">
-          <div className="p-6 border-b border-white/5">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-yellow-400" />
+        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-yellow-500/30 shadow-xs dark:shadow-none overflow-hidden">
+          <div className="p-6 border-b border-black/5 dark:border-white/5">
+            <h3 className="text-lg font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+              <Clock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
               {t('business.payouts.pendingPayouts')}
             </h3>
           </div>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-black/5 dark:divide-white/5">
             {pendingPayouts.map((payout) => (
               <div key={payout.id} className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-yellow-400" />
+                    <Clock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">¥{payout.amount.toLocaleString()}</p>
-                    <p className="text-gray-500 text-sm">{payout.description}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">¥{payout.amount.toLocaleString()}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">{payout.description}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 capitalize">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 capitalize">
                     {payout.status}
                   </span>
-                  <p className="text-gray-500 text-sm">{payout.created_at ? new Date(payout.created_at).toLocaleDateString() : ''}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{payout.created_at ? new Date(payout.created_at).toLocaleDateString() : ''}</p>
                 </div>
               </div>
             ))}
@@ -214,10 +214,10 @@ const Payouts = () => {
       )}
 
       {/* Transaction History */}
-      <div className="bg-[#111111] rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">{t('business.payouts.transactionHistory')}</h3>
-          <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
+      <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden">
+        <div className="p-6 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('business.payouts.transactionHistory')}</h3>
+          <button className="flex items-center gap-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors text-sm">
             <Download className="w-4 h-4" />
             {t('business.payouts.export')}
           </button>
@@ -225,46 +225,46 @@ const Payouts = () => {
         {loading ? (
           <div className="p-12 text-center">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">{t('business.payouts.loadingTransactions')}</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('business.payouts.loadingTransactions')}</p>
           </div>
         ) : transactions.length > 0 ? (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-black/5 dark:divide-white/5">
             {transactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+              <div key={tx.id} className="flex items-center justify-between p-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     tx.type === 'sale' ? 'bg-green-500/20' : 
                     tx.type === 'payout' ? 'bg-blue-500/20' : 'bg-red-500/20'
                   }`}>
-                    {tx.type === 'sale' ? <DollarSign className="w-5 h-5 text-green-400" /> : 
-                     tx.type === 'payout' ? <Wallet className="w-5 h-5 text-blue-400" /> : 
-                     <ArrowUpRight className="w-5 h-5 text-red-400" />}
+                    {tx.type === 'sale' ? <DollarSign className="w-5 h-5 text-green-500 dark:text-green-400" /> : 
+                     tx.type === 'payout' ? <Wallet className="w-5 h-5 text-blue-500 dark:text-blue-400" /> : 
+                     <ArrowUpRight className="w-5 h-5 text-red-500 dark:text-red-400" />}
                   </div>
                   <div>
-                    <p className="text-white font-medium">{tx.description}</p>
-                    <p className="text-gray-500 text-sm capitalize">{tx.type}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">{tx.description}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">{tx.type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className={`font-medium ${tx.type === 'payout' ? 'text-white' : 'text-green-400'}`}>
+                  <p className={`font-semibold ${tx.type === 'payout' ? 'text-[#020b00] dark:text-white' : 'text-green-600 dark:text-green-400'}`}>
                     {tx.type === 'payout' ? '-' : '+'}¥{tx.amount.toLocaleString()}
                   </p>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                    tx.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
-                    tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-gray-500/20 text-gray-400'
+                    tx.status === 'completed' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 
+                    tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
+                    'bg-gray-500/20 text-gray-600 dark:text-gray-400'
                   }`}>
                     {tx.status}
                   </span>
-                  <p className="text-gray-500 text-sm">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : ''}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : ''}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="p-12 text-center">
-            <Wallet className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg mb-2">{t('business.payouts.noTransactions')}</p>
+            <Wallet className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-[#020b00] dark:text-gray-400 text-lg mb-2">{t('business.payouts.noTransactions')}</p>
             <p className="text-gray-500 text-sm">{t('business.payouts.noTransactionsHint')}</p>
           </div>
         )}
@@ -277,7 +277,7 @@ const Payouts = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowWithdrawModal(false)}
           >
             <motion.div
@@ -285,13 +285,13 @@ const Payouts = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111111] rounded-2xl border border-white/10 p-6 w-full max-w-md"
+              className="bg-white dark:bg-[#111111] rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl p-6 w-full max-w-md"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">{t('business.payouts.requestPayoutModalTitle')}</h3>
+                <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('business.payouts.requestPayoutModalTitle')}</h3>
                 <button 
                   onClick={() => setShowWithdrawModal(false)}
-                  className="p-2 text-gray-500 hover:text-white transition-colors"
+                  className="p-2 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -299,37 +299,37 @@ const Payouts = () => {
 
               <form onSubmit={handleWithdraw} className="space-y-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('business.payouts.amountLabel')}</label>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.payouts.amountLabel')}</label>
                   <input
                     type="number"
                     value={withdrawForm.amount}
                     onChange={(e) => setWithdrawForm({...withdrawForm, amount: e.target.value})}
                     placeholder={t('business.payouts.amountPlaceholder', { max: availableBalance.toLocaleString() })}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('business.payouts.paymentMethod')}</label>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.payouts.paymentMethod')}</label>
                   <select
                     value={withdrawForm.payment_method}
                     onChange={(e) => setWithdrawForm({...withdrawForm, payment_method: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer"
                   >
-                    <option value="bank_transfer" className="bg-[#111111]">{t('business.payouts.bankTransfer')}</option>
-                    <option value="alipay" className="bg-[#111111]">{t('business.payouts.alipay')}</option>
-                    <option value="wechat_pay" className="bg-[#111111]">{t('business.payouts.wechatPay')}</option>
+                    <option value="bank_transfer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.payouts.bankTransfer')}</option>
+                    <option value="alipay" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.payouts.alipay')}</option>
+                    <option value="wechat_pay" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.payouts.wechatPay')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('business.payouts.accountDetails')}</label>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.payouts.accountDetails')}</label>
                   <textarea
                     value={withdrawForm.account_details}
                     onChange={(e) => setWithdrawForm({...withdrawForm, account_details: e.target.value})}
                     placeholder={t('business.payouts.accountDetailsPlaceholder')}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
                     rows={3}
                     required
                   />
@@ -339,14 +339,14 @@ const Payouts = () => {
                   <button
                     type="button"
                     onClick={() => setShowWithdrawModal(false)}
-                    className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors"
+                    className="flex-1 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 font-medium transition-colors"
                   >
                     {t('business.payouts.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-3 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>

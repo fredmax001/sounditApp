@@ -152,58 +152,58 @@ const ManageEvents = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.manageEvents.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.manageEvents.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageEvents.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageEvents.subtitle')}</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
-              <Calendar className="w-5 h-5 text-[#d3da0c]" />
+            <div className="p-2.5 bg-[#d3da0c]/15 text-yellow-700 dark:text-[#d3da0c] rounded-xl">
+              <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.manageEvents.totalEvents')}</p>
-              <p className="text-white font-bold text-xl">{events.length}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageEvents.totalEvents')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{events.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-500/10 rounded-lg">
-              <Clock className="w-5 h-5 text-yellow-400" />
+            <div className="p-2.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 rounded-xl">
+              <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.manageEvents.pending')}</p>
-              <p className="text-white font-bold text-xl">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageEvents.pending')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {events.filter(e => e.status === 'pending').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className="p-2.5 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl">
+              <Check className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.manageEvents.approved')}</p>
-              <p className="text-white font-bold text-xl">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageEvents.approved')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {events.filter(e => e.status === 'approved').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Star className="w-5 h-5 text-purple-400" />
+            <div className="p-2.5 bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded-xl">
+              <Star className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.manageEvents.featured')}</p>
-              <p className="text-white font-bold text-xl">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageEvents.featured')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {events.filter(e => e.is_featured).length}
               </p>
             </div>
@@ -214,25 +214,25 @@ const ManageEvents = () => {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.manageEvents.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
         >
-          <option value="">{t('admin.manageEvents.allStatus')}</option>
-          <option value="pending">{t('admin.manageEvents.statusPending')}</option>
-          <option value="approved">{t('admin.manageEvents.statusApproved')}</option>
-          <option value="rejected">{t('admin.manageEvents.statusRejected')}</option>
-          <option value="draft">{t('admin.manageEvents.statusDraft')}</option>
+          <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.allStatus')}</option>
+          <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusPending')}</option>
+          <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusApproved')}</option>
+          <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusRejected')}</option>
+          <option value="draft" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusDraft')}</option>
         </select>
       </div>
 
@@ -250,21 +250,21 @@ const ManageEvents = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-[#111111] border border-white/10 rounded-xl p-4"
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none"
               >
                 <div className="flex items-start gap-4">
                   <img
                     src={event.flyer_image || '/placeholder-event.jpg'}
                     alt={event.title}
-                    className="w-24 h-24 rounded-lg object-cover"
+                    className="w-24 h-24 rounded-xl object-cover"
                   />
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-white font-semibold">{event.title}</h3>
-                        <div className="flex items-center gap-4 text-gray-400 text-sm mt-1">
+                        <h3 className="text-[#020b00] dark:text-white font-semibold text-base">{event.title}</h3>
+                        <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm mt-1">
                           <span className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" /> {event.city}
+                            <MapPin className="w-4 h-4 text-[#d3da0c]" /> {event.city}
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" /> {new Date(event.start_date).toLocaleDateString()}
@@ -273,7 +273,7 @@ const ManageEvents = () => {
                             <Users className="w-4 h-4" /> {event.attendees_count || 0} {t('admin.manageEvents.attendees')}
                           </span>
                         </div>
-                        <p className="text-gray-500 text-sm mt-2">{t('admin.manageEvents.by')} {event.business_name}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{t('admin.manageEvents.by')} {event.business_name}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {event.status === 'pending' && (
@@ -281,14 +281,14 @@ const ManageEvents = () => {
                             <button
                               onClick={() => handleApprove(event.id)}
                               disabled={actionLoading === `approve-${event.id}`}
-                              className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20"
+                              className="p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-500/20 transition-colors"
                             >
                               {actionLoading === `approve-${event.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             </button>
                             <button
                               onClick={() => handleReject(event.id)}
                               disabled={actionLoading === `reject-${event.id}`}
-                              className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
+                              className="p-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 transition-colors"
                             >
                               {actionLoading === `reject-${event.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
                             </button>
@@ -297,30 +297,30 @@ const ManageEvents = () => {
                         <button
                           onClick={() => handleFeature(event)}
                           disabled={actionLoading === `feature-${event.id}`}
-                          className={`p-2 rounded-lg ${event.is_featured ? 'bg-[#d3da0c]/20 text-[#d3da0c]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                          className={`p-2 rounded-xl transition-colors ${event.is_featured ? 'bg-[#d3da0c]/20 text-yellow-700 dark:text-[#d3da0c]' : 'bg-neutral-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-neutral-200 dark:hover:bg-white/10'}`}
                         >
                           {actionLoading === `feature-${event.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className={`w-4 h-4 ${event.is_featured ? 'fill-current' : ''}`} />}
                         </button>
                         <button
                           onClick={() => handleDelete(event.id)}
                           disabled={actionLoading === `delete-${event.id}`}
-                          className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
+                          className="p-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 transition-colors"
                         >
                           {actionLoading === `delete-${event.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        event.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                        event.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                        event.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                        'bg-gray-500/20 text-gray-400'
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        event.status === 'approved' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
+                        event.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' :
+                        event.status === 'rejected' ? 'bg-red-500/15 text-red-600 dark:text-red-400' :
+                        'bg-black/5 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400'
                       }`}>
                         {event.status}
                       </span>
                       {event.is_featured && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-700 dark:text-purple-400">
                           {t('admin.manageEvents.featuredBadge')}
                         </span>
                       )}

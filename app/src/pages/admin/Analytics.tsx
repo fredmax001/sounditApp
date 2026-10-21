@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useThemeStore } from "@/store/themeStore";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
@@ -155,23 +156,23 @@ function StatCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[#111111] border border-white/5 rounded-xl p-5 hover:border-[#d3da0c]/20 transition-colors"
+      className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-xl p-5 hover:border-[#d3da0c]/30 shadow-xs dark:shadow-none transition-colors"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center">
           <Icon className="w-5 h-5 text-[#d3da0c]" />
         </div>
         {change !== undefined && (
-          <div className={`flex items-center text-xs font-medium ${isPositive ? "text-green-400" : "text-red-400"}`}>
+          <div className={`flex items-center text-xs font-medium ${isPositive ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
             {isPositive ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
             {Math.abs(change)}%
           </div>
         )}
       </div>
-      <div className="text-2xl font-bold text-white mb-1">
+      <div className="text-2xl font-bold text-[#020b00] dark:text-white mb-1">
         {prefix}{typeof value === "number" ? value.toLocaleString() : value}{suffix}
       </div>
-      <div className="text-sm text-gray-400">{title}</div>
+      <div className="text-sm text-gray-600 dark:text-gray-400">{title}</div>
     </motion.div>
   );
 }
@@ -181,7 +182,7 @@ function SectionHeader({ title, icon: Icon, action }: { title: string; icon: Rea
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <Icon className="w-5 h-5 text-[#d3da0c]" />
-        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{title}</h3>
       </div>
       {action}
     </div>
@@ -190,7 +191,7 @@ function SectionHeader({ title, icon: Icon, action }: { title: string; icon: Rea
 
 function ChartCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-[#111111] border border-white/5 rounded-xl p-5 ${className}`}>
+    <div className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-xl p-5 shadow-xs dark:shadow-none ${className}`}>
       {children}
     </div>
   );
@@ -209,6 +210,10 @@ function LivePill() {
 
 export default function AnalyticsPage() {
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
+  const tooltipContentStyle = isDark
+    ? { background: "#111111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#ffffff" }
+    : { background: "#ffffff", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "8px", color: "#020b00", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" };
   const token = localStorage.getItem("auth-token") || localStorage.getItem("token") || "";
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
@@ -325,23 +330,23 @@ export default function AnalyticsPage() {
 
   if (loading && !summary) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <BarChart3 className="w-7 h-7 text-[#d3da0c]" />
               <div>
-                <h1 className="text-xl font-bold text-white">Analytics Dashboard</h1>
-                <p className="text-sm text-gray-400">Enterprise Insights for Soundit Platform</p>
+                <h1 className="text-xl font-bold text-[#020b00] dark:text-white">Analytics Dashboard</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Enterprise Insights for Soundit Platform</p>
               </div>
               <LivePill />
             </div>
@@ -351,7 +356,7 @@ export default function AnalyticsPage() {
                 <select
                   value={days}
                   onChange={(e) => setDays(Number(e.target.value))}
-                  className="appearance-none bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2 pr-10 text-sm text-white focus:outline-none focus:border-[#d3da0c]/50 cursor-pointer"
+                  className="appearance-none bg-neutral-50 dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 pr-10 text-sm text-[#020b00] dark:text-white focus:outline-none focus:border-[#d3da0c]/50 cursor-pointer"
                 >
                   {DAYS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -364,7 +369,7 @@ export default function AnalyticsPage() {
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-sm text-gray-300 hover:text-white hover:border-white/20 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 bg-neutral-100 dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:text-[#020b00] dark:hover:text-white hover:border-black/20 dark:hover:border-white/20 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
                 Refresh
@@ -376,15 +381,15 @@ export default function AnalyticsPage() {
                   <Download className="w-4 h-4" />
                   Export
                 </button>
-                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50">
                   <div className="p-2 space-y-1">
-                    <button onClick={() => handleExport("visits", "csv")} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2">
+                    <button onClick={() => handleExport("visits", "csv")} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-[#020b00] dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 rounded-lg flex items-center gap-2">
                       <FileSpreadsheet className="w-4 h-4" /> Visits (CSV)
                     </button>
-                    <button onClick={() => handleExport("events", "csv")} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2">
+                    <button onClick={() => handleExport("events", "csv")} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-[#020b00] dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 rounded-lg flex items-center gap-2">
                       <FileSpreadsheet className="w-4 h-4" /> Events (CSV)
                     </button>
-                    <button onClick={() => handleExport("visits", "json")} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2">
+                    <button onClick={() => handleExport("visits", "json")} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-[#020b00] dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5 rounded-lg flex items-center gap-2">
                       <FileText className="w-4 h-4" /> Visits (JSON)
                     </button>
                   </div>
@@ -405,7 +410,7 @@ export default function AnalyticsPage() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-[#d3da0c]/10 text-[#d3da0c] border border-[#d3da0c]/20"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      : "text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -468,8 +473,8 @@ export default function AnalyticsPage() {
                       <XAxis dataKey="date" stroke="#666" fontSize={12} tickFormatter={(v) => v.slice(5)} />
                       <YAxis stroke="#666" fontSize={12} />
                       <Tooltip
-                        contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }}
-                        labelStyle={{ color: "#999" }}
+                        contentStyle={tooltipContentStyle}
+                        labelStyle={{ color: isDark ? "#999" : "#666" }}
                       />
                       <Legend />
                       <Area type="monotone" dataKey="visits" stroke="#d3da0c" fill="url(#colorVisits)" strokeWidth={2} />
@@ -502,15 +507,15 @@ export default function AnalyticsPage() {
                             insight.severity === "warning" ? "bg-red-500/10" :
                             "bg-[#d3da0c]/10"
                           }`}>
-                            {insight.icon === "trending_up" && <TrendingUp className={`w-4 h-4 ${insight.severity === "positive" ? "text-green-400" : "text-[#d3da0c]"}`} />}
-                            {insight.icon === "trending_down" && <TrendingDown className="w-4 h-4 text-red-400" />}
+                            {insight.icon === "trending_up" && <TrendingUp className={`w-4 h-4 ${insight.severity === "positive" ? "text-green-500 dark:text-green-400" : "text-[#d3da0c]"}`} />}
+                            {insight.icon === "trending_down" && <TrendingDown className="w-4 h-4 text-red-500 dark:text-red-400" />}
                             {insight.icon === "smartphone" && <Smartphone className="w-4 h-4 text-[#d3da0c]" />}
                             {insight.icon === "globe" && <Globe className="w-4 h-4 text-[#d3da0c]" />}
                             {insight.icon === "users" && <Users className="w-4 h-4 text-[#d3da0c]" />}
                             {insight.icon === "dollar" && <DollarSign className="w-4 h-4 text-[#d3da0c]" />}
                             {insight.icon === "star" && <Target className="w-4 h-4 text-[#d3da0c]" />}
                           </div>
-                          <p className="text-sm text-gray-300 leading-relaxed">{insight.message}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{insight.message}</p>
                         </div>
                       </motion.div>
                     ))}
@@ -535,8 +540,8 @@ export default function AnalyticsPage() {
                     <SectionHeader title="Top Pages" icon={Eye} />
                     <div className="space-y-2">
                       {summary.top_pages.map((p, i) => (
-                        <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                          <span className="text-sm text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
                           <span className="text-sm font-medium text-[#d3da0c]">{p.count}</span>
                         </div>
                       ))}
@@ -546,9 +551,9 @@ export default function AnalyticsPage() {
                     <SectionHeader title="Entry Pages" icon={ArrowUpRight} />
                     <div className="space-y-2">
                       {summary.entry_pages.map((p, i) => (
-                        <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                          <span className="text-sm text-gray-300 truncate max-w-[200px]">{p.path}</span>
-                          <span className="text-sm font-medium text-green-400">{p.count}</span>
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                          <span className="text-sm font-medium text-green-500 dark:text-green-400">{p.count}</span>
                         </div>
                       ))}
                     </div>
@@ -557,9 +562,9 @@ export default function AnalyticsPage() {
                     <SectionHeader title="Exit Pages" icon={ArrowDownRight} />
                     <div className="space-y-2">
                       {summary.exit_pages.map((p, i) => (
-                        <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                          <span className="text-sm text-gray-300 truncate max-w-[200px]">{p.path}</span>
-                          <span className="text-sm font-medium text-red-400">{p.count}</span>
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                          <span className="text-sm font-medium text-red-500 dark:text-red-400">{p.count}</span>
                         </div>
                       ))}
                     </div>
@@ -577,7 +582,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis type="number" stroke="#666" fontSize={12} />
                         <YAxis dataKey="name" type="category" stroke="#666" fontSize={11} width={100} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="visits" fill="#d3da0c" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -589,7 +594,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis type="number" stroke="#666" fontSize={12} />
                         <YAxis dataKey="name" type="category" stroke="#666" fontSize={11} width={100} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="visits" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -628,7 +633,7 @@ export default function AnalyticsPage() {
                             <Cell key={i} fill={COLORS[i % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
@@ -640,7 +645,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="label" stroke="#666" fontSize={11} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="visits" fill="#a855f7" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -652,7 +657,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="code" stroke="#666" fontSize={11} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -672,7 +677,7 @@ export default function AnalyticsPage() {
                             <Cell key={i} fill={COLORS[i % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartCard>
@@ -685,7 +690,7 @@ export default function AnalyticsPage() {
                             <Cell key={i} fill={COLORS[i % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartCard>
@@ -698,7 +703,7 @@ export default function AnalyticsPage() {
                             <Cell key={i} fill={COLORS[i % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartCard>
@@ -706,8 +711,8 @@ export default function AnalyticsPage() {
                     <SectionHeader title="Screen Resolutions" icon={Monitor} />
                     <div className="space-y-2 max-h-[200px] overflow-y-auto">
                       {device.screen_resolutions.map((r, i) => (
-                        <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                          <span className="text-xs text-gray-400">{r.resolution}</span>
+                        <div key={i} className="flex items-center justify-between py-1.5 border-b border-black/5 dark:border-white/5 last:border-0">
+                          <span className="text-xs text-gray-700 dark:text-gray-400">{r.resolution}</span>
                           <span className="text-xs font-medium text-[#d3da0c]">{r.count}</span>
                         </div>
                       ))}
@@ -726,7 +731,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="hour" stroke="#666" fontSize={11} tickFormatter={(v) => `${v}:00`} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="visits" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -738,7 +743,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="day_name" stroke="#666" fontSize={11} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Bar dataKey="visits" fill="#22c55e" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -783,7 +788,7 @@ export default function AnalyticsPage() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                           <XAxis type="number" stroke="#666" fontSize={12} />
                           <YAxis dataKey="type" type="category" stroke="#666" fontSize={10} width={120} />
-                          <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                          <Tooltip contentStyle={tooltipContentStyle} />
                           <Bar dataKey="count" fill="#d3da0c" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
@@ -798,7 +803,7 @@ export default function AnalyticsPage() {
                           <Radar name="Active Users" dataKey="active_users" stroke="#d3da0c" fill="#d3da0c" fillOpacity={0.2} />
                           <Radar name="Events" dataKey="events" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
                           <Legend />
-                          <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                          <Tooltip contentStyle={tooltipContentStyle} />
                         </RadarChart>
                       </ResponsiveContainer>
                     </ChartCard>
@@ -811,7 +816,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="date" stroke="#666" fontSize={11} tickFormatter={(v) => v.slice(5)} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Legend />
                         <Line type="monotone" dataKey="active_users" stroke="#d3da0c" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="events" stroke="#3b82f6" strokeWidth={2} dot={false} />
@@ -847,8 +852,8 @@ export default function AnalyticsPage() {
                       <SectionHeader title="Top Events by Views" icon={Eye} />
                       <div className="space-y-2">
                         {eventAnalytics.top_events_by_views.map((e, i) => (
-                          <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                            <span className="text-sm text-gray-300 truncate max-w-[250px]">{e.title}</span>
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[250px]">{e.title}</span>
                             <span className="text-sm font-medium text-[#d3da0c]">{e.views} views</span>
                           </div>
                         ))}
@@ -858,10 +863,10 @@ export default function AnalyticsPage() {
                       <SectionHeader title="Top Events by Revenue" icon={DollarSign} />
                       <div className="space-y-2">
                         {eventAnalytics.top_events_by_revenue.map((e, i) => (
-                          <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                            <span className="text-sm text-gray-300 truncate max-w-[200px]">{e.title}</span>
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{e.title}</span>
                             <div className="text-right">
-                              <div className="text-sm font-medium text-green-400">¥{e.revenue.toLocaleString()}</div>
+                              <div className="text-sm font-medium text-green-500 dark:text-green-400">¥{e.revenue.toLocaleString()}</div>
                               <div className="text-xs text-gray-500">{e.tickets_sold} tickets</div>
                             </div>
                           </div>
@@ -883,7 +888,7 @@ export default function AnalyticsPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                         <XAxis dataKey="date" stroke="#666" fontSize={11} tickFormatter={(v) => v.slice(5)} />
                         <YAxis stroke="#666" fontSize={12} />
-                        <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                        <Tooltip contentStyle={tooltipContentStyle} />
                         <Legend />
                         <Area type="monotone" dataKey="revenue" stroke="#22c55e" fill="url(#colorRevenue)" strokeWidth={2} />
                         <Line type="monotone" dataKey="orders" stroke="#d3da0c" strokeWidth={2} dot={false} />
@@ -925,7 +930,7 @@ export default function AnalyticsPage() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#222" />
                           <XAxis dataKey="label" stroke="#666" fontSize={11} />
                           <YAxis stroke="#666" fontSize={12} />
-                          <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #333" }} />
+                          <Tooltip contentStyle={tooltipContentStyle} />
                           <Legend />
                           <Bar dataKey="total" fill="#d3da0c" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="active" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -938,9 +943,9 @@ export default function AnalyticsPage() {
                       <SectionHeader title="Profile Counts" icon={Target} />
                       <div className="grid grid-cols-2 gap-4">
                         {Object.entries(roles.profiles).map(([key, value]) => (
-                          <div key={key} className="bg-white/5 rounded-lg p-4">
+                          <div key={key} className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-4">
                             <div className="text-2xl font-bold text-[#d3da0c]">{value}</div>
-                            <div className="text-sm text-gray-400 capitalize">{key}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 capitalize">{key}</div>
                           </div>
                         ))}
                       </div>
@@ -987,9 +992,9 @@ export default function AnalyticsPage() {
                             }`}
                           >
                             {insight.icon === "trending_up" && (
-                              <TrendingUp className={`w-6 h-6 ${insight.severity === "positive" ? "text-green-400" : "text-[#d3da0c]"}`} />
+                              <TrendingUp className={`w-6 h-6 ${insight.severity === "positive" ? "text-green-500 dark:text-green-400" : "text-[#d3da0c]"}`} />
                             )}
-                            {insight.icon === "trending_down" && <TrendingDown className="w-6 h-6 text-red-400" />}
+                            {insight.icon === "trending_down" && <TrendingDown className="w-6 h-6 text-red-500 dark:text-red-400" />}
                             {insight.icon === "smartphone" && <Smartphone className="w-6 h-6 text-[#d3da0c]" />}
                             {insight.icon === "globe" && <Globe className="w-6 h-6 text-[#d3da0c]" />}
                             {insight.icon === "users" && <Users className="w-6 h-6 text-[#d3da0c]" />}
@@ -997,7 +1002,7 @@ export default function AnalyticsPage() {
                             {insight.icon === "star" && <Target className="w-6 h-6 text-[#d3da0c]" />}
                           </div>
                           <div>
-                            <p className="text-base text-white font-medium leading-relaxed mb-1">{insight.message}</p>
+                            <p className="text-base text-[#020b00] dark:text-white font-medium leading-relaxed mb-1">{insight.message}</p>
                             <p className="text-sm text-gray-500">
                               Value: <span className="text-[#d3da0c] font-medium">{insight.value.toLocaleString()}</span>
                             </p>

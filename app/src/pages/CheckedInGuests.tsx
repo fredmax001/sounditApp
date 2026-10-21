@@ -68,7 +68,7 @@ export default function CheckedInGuests() {
 
   if (!token || !event) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-400">Please log in from On Site Tools</p>
         </div>
@@ -77,7 +77,7 @@ export default function CheckedInGuests() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#020b00]">
       {/* Header */}
       <div className="bg-[#111111] border-b border-white/5 px-4 py-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">

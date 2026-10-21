@@ -152,7 +152,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
     <Link to={`/events/${event.id}`}>
       <motion.div
         whileHover={{ y: -5 }}
-        className={`group relative bg-[#111111] rounded-2xl overflow-hidden border border-white/5 hover:border-[#d3da0c]/30 transition-all duration-300 ${isCompact ? 'h-full' : ''}`}
+        className={`group relative bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-all duration-300 shadow-sm dark:shadow-none ${isCompact ? 'h-full' : ''}`}
       >
         <div className={`relative overflow-hidden ${isCompact ? 'h-36 md:h-40' : 'h-44 md:h-56'}`}>
           <img
@@ -162,10 +162,10 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
             loading="lazy"
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#111111] via-transparent to-transparent" />
 
           {event.is_featured && (
-            <div className="absolute top-4 left-4 px-3 py-1 bg-[#d3da0c] text-black text-xs font-semibold rounded-full">
+            <div className="absolute top-4 left-4 px-3 py-1 bg-[#d3da0c] text-black text-xs font-semibold rounded-full shadow-xs">
               {t('eventCard.featured')}
             </div>
           )}
@@ -186,33 +186,33 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
             </div>
           )}
 
-          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 px-3 md:px-4 py-1.5 md:py-2 glass rounded-lg">
+          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 px-3 md:px-4 py-1.5 md:py-2 bg-black/60 dark:bg-black/40 backdrop-blur-md rounded-lg border border-white/10">
             <span className="text-[#d3da0c] font-bold">{currency === 'CNY' ? '¥' : '$'}{price}</span>
-            <span className="text-gray-400 text-sm ml-1">{currency}</span>
+            <span className="text-white/80 text-sm ml-1">{currency}</span>
           </div>
         </div>
 
         <div className={`p-5 ${isCompact ? 'p-4' : ''}`}>
-          <h3 className={`font-semibold text-white group-hover:text-[#d3da0c] transition-colors mb-3 ${isCompact ? 'text-lg' : 'text-xl'}`}>
+          <h3 className={`font-semibold text-[#020b00] dark:text-white group-hover:text-[#d3da0c] transition-colors mb-3 ${isCompact ? 'text-lg' : 'text-xl'}`}>
             {event.title}
           </h3>
 
           <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <Calendar className="w-4 h-4 text-[#d3da0c]" />
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+              <Calendar className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
               <span>{dateStr}</span>
-              <span className="text-gray-600">•</span>
+              <span className="text-gray-400 dark:text-gray-600">•</span>
               <span>{timeStr}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <MapPin className="w-4 h-4 text-[#d3da0c]" />
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+              <MapPin className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
               <span>{event.address || event.venue?.name || 'TBA'}</span>
-              <span className="text-gray-600">•</span>
+              <span className="text-gray-400 dark:text-gray-600">•</span>
               <span>{event.city}</span>
             </div>
             {!isCompact && capacity > 0 && showRemaining && (
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <Users className="w-4 h-4 text-[#d3da0c]" />
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                <Users className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
                 <span>{ticketsSold} / {capacity} {t('eventCard.attending')}</span>
               </div>
             )}

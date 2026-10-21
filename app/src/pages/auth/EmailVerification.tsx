@@ -125,17 +125,15 @@ const EmailVerification = () => {
     <div className="max-w-md mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Mail className="w-8 h-8 text-[#d3da0c]" />
+        <div className="w-16 h-16 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Mail className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
         </div>
-        <h1 className="text-2xl font-semibold text-white mb-2">{t('auth.emailVerification.title')}</h1>
-        <p className="text-gray-400 text-sm">
+        <h1 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.emailVerification.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           {t('auth.emailVerification.instructions')}<br />
-          <span className="text-[#d3da0c] font-medium">{email}</span>
+          <span className="text-[#020b00] dark:text-[#d3da0c] font-semibold">{email}</span>
         </p>
       </div>
-
-
 
       {/* OTP Inputs */}
       <div className="flex justify-center gap-2 mb-6">
@@ -149,7 +147,7 @@ const EmailVerification = () => {
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-12 h-14 text-center text-2xl font-semibold bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors"
+            className="w-12 h-14 text-center text-2xl font-semibold bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
           />
         ))}
       </div>
@@ -158,7 +156,7 @@ const EmailVerification = () => {
       <button
         onClick={() => handleVerify(otp.join(''))}
         disabled={isLoading || otp.some(d => !d)}
-        className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
@@ -171,7 +169,7 @@ const EmailVerification = () => {
       </button>
 
       {/* Resend */}
-      <p className="text-center text-gray-400 text-sm mt-6">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
         {t('auth.emailVerification.didntReceiveCode')}{' '}
         {resendTimer > 0 ? (
           <span className="text-gray-500">
@@ -180,7 +178,7 @@ const EmailVerification = () => {
         ) : (
           <button
             onClick={handleResend}
-            className="text-[#d3da0c] hover:underline inline-flex items-center gap-1"
+            className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline inline-flex items-center gap-1"
           >
             <RefreshCw className="w-3 h-3" />
             {t('auth.emailVerification.resendButton')}
@@ -189,10 +187,10 @@ const EmailVerification = () => {
       </p>
 
       {/* Back Link */}
-      <p className="text-center text-gray-400 text-sm mt-4">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4">
         <button
           onClick={() => navigate('/register')}
-          className="text-[#d3da0c] hover:underline inline-flex items-center gap-2"
+          className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline inline-flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('auth.emailVerification.backToSignUp')}
@@ -200,9 +198,9 @@ const EmailVerification = () => {
       </p>
 
       {/* Info Box */}
-      <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
-        <p className="text-gray-400 text-xs text-center">
-          ðŸ”’ {t('auth.emailVerification.infoLine1')}
+      <div className="mt-6 p-4 bg-neutral-100 dark:bg-white/5 rounded-lg border border-black/10 dark:border-white/10">
+        <p className="text-gray-600 dark:text-gray-400 text-xs text-center">
+          🔒 {t('auth.emailVerification.infoLine1')}
           {t('auth.emailVerification.infoLine2')}
         </p>
       </div>

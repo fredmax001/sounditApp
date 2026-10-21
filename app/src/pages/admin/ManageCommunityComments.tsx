@@ -113,10 +113,10 @@ const ManageCommunityComments = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.manageCommunityComments.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.manageCommunityComments.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageCommunityComments.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageCommunityComments.subtitle')}</p>
         </div>
-        <div className="flex bg-white/5 p-1 rounded-xl w-fit">
+        <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/10 p-1 rounded-xl w-fit">
           {[
             { id: 'metrics', label: t('admin.communityMetrics.tabMetrics'), path: '/admin/community' },
             { id: 'sections', label: t('admin.communityMetrics.tabSections'), path: '/admin/community/sections' },
@@ -126,7 +126,7 @@ const ManageCommunityComments = () => {
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname === tab.path ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname === tab.path ? 'bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'}`}
             >
               {tab.label}
             </button>
@@ -136,12 +136,12 @@ const ManageCommunityComments = () => {
 
       {/* Tabs & Search */}
       <div className="flex flex-col md:flex-row gap-4 justify-between">
-        <div className="flex bg-white/5 p-1 rounded-xl w-fit">
+        <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/10 p-1 rounded-xl w-fit">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === tab.id ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === tab.id ? 'bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'}`}
             >
               {tab.label}
             </button>
@@ -149,19 +149,19 @@ const ManageCommunityComments = () => {
         </div>
         <div className="flex gap-2 max-w-md w-full">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder={t('admin.manageCommunityComments.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
             />
           </div>
           <button
             onClick={handleSearch}
-            className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+            className="px-4 py-2 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white font-medium rounded-lg hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors border border-black/5 dark:border-white/5"
           >
             {t('common.search')}
           </button>
@@ -182,18 +182,18 @@ const ManageCommunityComments = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-[#111111] border border-white/10 rounded-xl p-4"
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-200 text-sm">{comment.content}</p>
-                    <div className="flex flex-wrap items-center gap-4 text-gray-500 text-xs mt-3">
+                    <p className="text-[#020b00] dark:text-gray-200 text-sm">{comment.content}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-gray-500 dark:text-gray-400 text-xs mt-3">
                       <span className="flex items-center gap-1">
-                        <span className="text-gray-400">{t('admin.manageCommunityComments.author')}:</span>{' '}
+                        <span className="text-gray-700 dark:text-gray-300">{t('admin.manageCommunityComments.author')}:</span>{' '}
                         {comment.user_id === null ? (
                           <>
                             {comment.guest_name || t('community.guestBadge')}
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-white/10 text-gray-700 dark:text-gray-300">
                               {t('community.guestBadge')}
                             </span>
                           </>
@@ -204,13 +204,13 @@ const ManageCommunityComments = () => {
                         )}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="text-gray-400">{t('admin.manageCommunityComments.post')}:</span> {comment.post_title || `#${comment.post_id}`}
+                        <span className="text-gray-700 dark:text-gray-300">{t('admin.manageCommunityComments.post')}:</span> {comment.post_title || `#${comment.post_id}`}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${comment.is_approved ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${comment.is_approved ? 'bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400'}`}>
                         {comment.is_approved ? t('admin.manageCommunityComments.approved') : t('admin.manageCommunityComments.pending')}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="text-gray-400">{t('admin.manageCommunityComments.likes')}:</span> {comment.like_count}
+                        <span className="text-gray-700 dark:text-gray-300">{t('admin.manageCommunityComments.likes')}:</span> {comment.like_count}
                       </span>
                       <span>{new Date(comment.created_at).toLocaleString()}</span>
                     </div>
@@ -221,7 +221,7 @@ const ManageCommunityComments = () => {
                         <button
                           onClick={() => handleApprove(comment.id)}
                           disabled={actionLoading === `approve-${comment.id}`}
-                          className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20"
+                          className="p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-500/20"
                           title={t('admin.manageCommunityComments.approve')}
                         >
                           {actionLoading === `approve-${comment.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -229,7 +229,7 @@ const ManageCommunityComments = () => {
                         <button
                           onClick={() => handleReject(comment.id)}
                           disabled={actionLoading === `reject-${comment.id}`}
-                          className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
+                          className="p-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20"
                           title={t('admin.manageCommunityComments.reject')}
                         >
                           {actionLoading === `reject-${comment.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
@@ -241,8 +241,8 @@ const ManageCommunityComments = () => {
               </motion.div>
             ))}
             {comments.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-700" />
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
                 <p>{t('admin.manageCommunityComments.noCommentsFound')}</p>
               </div>
             )}

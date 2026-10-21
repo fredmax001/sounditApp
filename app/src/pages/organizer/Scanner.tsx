@@ -309,24 +309,24 @@ const Scanner = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-display text-white mb-2">
+          <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">
             {t('organizer.scanner.titlePrefix')} <span className="text-[#d3da0c]">{t('organizer.scanner.titleHighlight')}</span>
           </h1>
-          <p className="text-gray-400">{t('organizer.scanner.subtitle')}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('organizer.scanner.subtitle')}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-8 text-center"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-8 text-center shadow-xs dark:shadow-none"
         >
           <div className="w-20 h-20 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <Smartphone className="w-10 h-10 text-[#d3da0c]" />
           </div>
-          <h2 className="text-2xl font-semibold text-white mb-3">
+          <h2 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-3">
             {t('organizer.scanner.mobileOnlyTitle') || 'Mobile & Tablet Only'}
           </h2>
-          <p className="text-gray-400 max-w-md mx-auto mb-6">
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
             {t('organizer.scanner.mobileOnlyDesc') || 'QR code scanning and check-in are only available on mobile devices and tablets for the best experience.'}
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
@@ -345,10 +345,10 @@ const Scanner = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-3xl font-display text-white mb-2">
+        <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">
           {t('organizer.scanner.titlePrefix')} <span className="text-[#d3da0c]">{t('organizer.scanner.titleHighlight')}</span>
         </h1>
-        <p className="text-gray-400">{t('organizer.scanner.subtitle')}</p>
+        <p className="text-gray-600 dark:text-gray-400">{t('organizer.scanner.subtitle')}</p>
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-8">
@@ -357,7 +357,7 @@ const Scanner = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass rounded-2xl p-6 md:p-8"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-6 md:p-8 shadow-xs dark:shadow-none"
         >
           <AnimatePresence mode="wait">
             {!scannedTicket ? (
@@ -391,21 +391,21 @@ const Scanner = () => {
 
                 {scannerError && (
                   <div className="max-w-sm mx-auto mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                    <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
                       <AlertCircle className="w-4 h-4" />
                       <span>{scannerError}</span>
                     </div>
                   </div>
                 )}
 
-                <p className="text-gray-400 mb-4 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
                   {t('organizer.scanner.scanPrompt') || 'Point your camera at a ticket QR code'}
                 </p>
 
                 {/* Error Display */}
                 {validationError && (
                   <div className="max-w-sm mx-auto mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-400">
+                    <div className="flex items-center gap-2 text-red-500 dark:text-red-400">
                       <AlertCircle className="w-4 h-4" />
                       <span className="text-sm">{validationError}</span>
                     </div>
@@ -414,7 +414,7 @@ const Scanner = () => {
 
                 {/* Manual Input */}
                 <div className="max-w-sm mx-auto">
-                  <p className="text-gray-500 text-sm mb-2">{t('organizer.scanner.inputLabel')}</p>
+                  <p className="text-gray-700 dark:text-gray-400 text-sm mb-2">{t('organizer.scanner.inputLabel')}</p>
                   <input
                     ref={inputRef}
                     type="text"
@@ -425,12 +425,12 @@ const Scanner = () => {
                         handleScan(e.currentTarget.value);
                       }
                     }}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors text-center disabled:opacity-50"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors text-center disabled:opacity-50"
                   />
                   <button
                     onClick={() => inputRef.current && handleScan(inputRef.current.value)}
                     disabled={isValidating}
-                    className="w-full mt-3 py-2 bg-[#d3da0c] text-black font-medium rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
+                    className="w-full mt-3 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold rounded-lg hover:bg-black dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50 shadow-xs"
                   >
                     {isValidating ? t('organizer.scanner.validatingButton') : t('organizer.scanner.validateButton')}
                   </button>
@@ -474,7 +474,7 @@ const Scanner = () => {
                 </h2>
 
                 {scannedTicket && scanResult !== 'invalid' ? (
-                  <div className="glass rounded-xl p-6 mt-6 text-left">
+                  <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-6 mt-6 text-left">
                     <div className="flex items-center gap-4 mb-4">
                       <img
                         src={scannedTicket.event?.flyer_image || '/event_placeholder.jpg'}
@@ -485,32 +485,32 @@ const Scanner = () => {
                         }}
                       />
                       <div>
-                        <p className="text-white font-semibold">{scannedTicket.event?.title || t('organizer.scanner.unknownEvent')}</p>
-                        <p className="text-gray-400 text-sm">{scannedTicket.ticket_tier?.name || t('organizer.scanner.generalAdmission')}</p>
+                        <p className="text-[#020b00] dark:text-white font-semibold">{scannedTicket.event?.title || t('organizer.scanner.unknownEvent')}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">{scannedTicket.ticket_tier?.name || t('organizer.scanner.generalAdmission')}</p>
                       </div>
                     </div>
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-gray-400">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Ticket className="w-4 h-4 text-[#d3da0c]" />
                         <span>{scannedTicket.ticket_number || scannedTicket.id}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-400">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <User className="w-4 h-4 text-[#d3da0c]" />
                         <span>{scannedTicket.attendee_name || t('organizer.scanner.unknownAttendee')}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-400">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Calendar className="w-4 h-4 text-[#d3da0c]" />
                         <span>{scannedTicket.event?.start_date ? new Date(scannedTicket.event.start_date).toLocaleDateString() : ''}</span>
                       </div>
                       {/* Table order extras */}
                       {(scannedTicket as { table_name?: string }).table_name && (
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                           <Info className="w-4 h-4 text-[#d3da0c]" />
                           <span>Table: {(scannedTicket as { table_name?: string }).table_name}</span>
                         </div>
                       )}
                       {(scannedTicket as { guest_count?: number }).guest_count ? (
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                           <Users className="w-4 h-4 text-[#d3da0c]" />
                           <span>Guests: {(scannedTicket as { guest_count?: number }).guest_count}</span>
                         </div>
@@ -518,15 +518,15 @@ const Scanner = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="glass rounded-xl p-6 mt-6 text-center">
-                    <p className="text-gray-400">{scannedTicket.message || t('organizer.scanner.validationFailed')}</p>
-                    <p className="text-gray-500 text-sm mt-2">{t('organizer.scanner.ticketIdLabel')}: {scannedTicket.qr_code || t('organizer.scanner.unknownTicketId')}</p>
+                  <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-6 mt-6 text-center">
+                    <p className="text-gray-600 dark:text-gray-400">{scannedTicket?.message || t('organizer.scanner.validationFailed')}</p>
+                    <p className="text-gray-500 text-sm mt-2">{t('organizer.scanner.ticketIdLabel')}: {scannedTicket?.qr_code || t('organizer.scanner.unknownTicketId')}</p>
                   </div>
                 )}
 
                 <button
                   onClick={resetScanner}
-                  className="mt-8 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-xl hover:bg-[#bbc10b] transition-colors"
+                  className="mt-8 px-6 py-3 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold rounded-xl hover:bg-black dark:hover:bg-[#bbc10b] transition-colors shadow-xs"
                 >
                   {t('organizer.scanner.scanAnother')}
                 </button>
@@ -540,17 +540,17 @@ const Scanner = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass rounded-2xl p-6 md:p-8"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-6 md:p-8 shadow-xs dark:shadow-none"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
               <Clock className="w-5 h-5 text-[#d3da0c]" />
               {t('organizer.scanner.recentScans')}
             </h2>
             {recentScans.length > 0 && (
               <button
                 onClick={clearRecentScans}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
+                className="text-sm text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white transition-colors"
               >
                 {t('organizer.scanner.clearAll')}
               </button>
@@ -559,8 +559,8 @@ const Scanner = () => {
 
           {recentScans.length === 0 ? (
             <div className="text-center py-12">
-              <ScanLine className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">{t('organizer.scanner.noScansYet')}</p>
+              <ScanLine className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">{t('organizer.scanner.noScansYet')}</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
@@ -576,10 +576,10 @@ const Scanner = () => {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className={`text-sm font-medium ${scan.status === 'valid'
-                      ? 'text-green-400'
+                      ? 'text-green-500 dark:text-green-400'
                       : scan.status === 'used'
-                        ? 'text-yellow-400'
-                        : 'text-red-400'
+                        ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-red-500 dark:text-red-400'
                       }`}>
                       {scan.status === 'valid'
                         ? t('organizer.scanner.statusValid')
@@ -591,8 +591,8 @@ const Scanner = () => {
                       {new Date(scan.scanned_at).toLocaleTimeString()}
                     </span>
                   </div>
-                  <p className="text-white text-sm font-medium truncate">{scan.event_title}</p>
-                  <p className="text-gray-400 text-xs truncate">{scan.ticket_number}</p>
+                  <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">{scan.event_title}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{scan.ticket_number}</p>
                   {scan.attendee_name && scan.attendee_name !== t('organizer.scanner.unknownAttendee') && (
                     <p className="text-gray-500 text-xs mt-1">{scan.attendee_name}</p>
                   )}

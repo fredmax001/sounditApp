@@ -12,7 +12,7 @@ import {
     QrCode, Filter, Search, Upload, CreditCard, BarChart3
 } from 'lucide-react';
 import type { Product } from '@/store/vendorStore';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -67,10 +67,38 @@ const VendorDashboard = () => {
     const { profile: vendorProfile, products, fetchProfile, fetchProducts, updateProduct, deleteProduct, updateProfile } = useVendorStore();
     const { stats: dashboardStats, fetchStats, fetchActivities } = useDashboardStore();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('overview');
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    // Deep-link support: /dashboard/vendor?tab=products&edit=<id> (used by the
+    // Products page "Edit" buttons). Opens the matching tab and edit form.
+    const editParam = searchParams.get('edit');
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam) setActiveTab(tabParam);
+        if (editParam && products.length > 0) {
+            const target = products.find((p) => String(p.id) === String(editParam));
+            if (target) {
+                setActiveTab('products');
+                setEditingProduct(target);
+                setProductForm({
+                    name: target.name,
+                    price: String(target.price),
+                    quantity: String(target.stock_quantity ?? ''),
+                    description: target.description || '',
+                    category: target.category || '',
+                    currency: target.currency || 'CNY'
+                });
+                setProductImagePreview(target.image_url || null);
+                setShowAddProduct(true);
+                // Clean the URL so refresh doesn't reopen the modal
+                setSearchParams({}, { replace: true });
+            }
+        }
+    }, [searchParams, editParam, products, setSearchParams]);
 
     // Booth apply modal state
     const [showBoothModal, setShowBoothModal] = useState(false);
@@ -253,7 +281,7 @@ const VendorDashboard = () => {
                 body: JSON.stringify({
                     name: productForm.name,
                     price: parseFloat(productForm.price),
-                    stock_quantity: parseInt(productForm.quantity) || 0,
+                    stock_quantity: parseInt(productForm.quantity) || 100,
                     description: productForm.description,
                     category: productForm.category || undefined,
                     currency: productForm.currency,
@@ -318,7 +346,7 @@ const VendorDashboard = () => {
             await updateProduct(session.access_token, editingProduct.id, {
                 name: productForm.name,
                 price: parseFloat(productForm.price),
-                stock_quantity: parseInt(productForm.quantity) || 0,
+                stock_quantity: parseInt(productForm.quantity) || 100,
                 description: productForm.description,
                 category: productForm.category || undefined,
                 currency: productForm.currency,
@@ -693,10 +721,10 @@ const VendorDashboard = () => {
 
     const EmptyState = ({ message, icon: Icon }: { message: string, icon: React.ComponentType<{ className?: string }> }) => (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <Icon className="w-8 h-8 text-gray-500" />
+            <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+                <Icon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-gray-400 text-sm">{message}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">{message}</p>
         </div>
     );
 
@@ -716,17 +744,17 @@ const VendorDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] pb-24 lg:pb-10">
+        <div className="min-h-screen bg-white dark:bg-[#020b00] pb-24 lg:pb-10">
 
       {/* ── Page Header ── */}
-      <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-white/[0.06]">
+      <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-black/8 dark:border-white/[0.06]">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[#d3da0c] text-xs font-bold uppercase tracking-widest mb-1">Vendor Dashboard</p>
-            <h1 className="text-2xl font-bold text-white lg:text-3xl tracking-tight">{displayName}</h1>
+            <p className="text-[#020b00] dark:text-[#d3da0c] text-xs font-bold uppercase tracking-widest mb-1">Vendor Dashboard</p>
+            <h1 className="text-2xl font-bold text-[#020b00] dark:text-white lg:text-3xl tracking-tight">{displayName}</h1>
           </div>
           <button onClick={() => { setActiveTab('products'); setShowAddProduct(true); }}
-            className="flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-all shadow-[0_0_20px_rgba(211,218,12,0.2)]">
+            className="flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-xs">
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('vendor.dashboard.addProduct')}</span>
             <span className="sm:hidden">Add</span>
@@ -736,13 +764,13 @@ const VendorDashboard = () => {
 
       {/* ── Tab Bar ── */}
       <div className="px-4 pt-4 lg:px-10">
-        <div className="flex gap-1.5 overflow-x-auto bg-[#111111] p-1.5 rounded-xl border border-white/[0.06] w-full hide-scrollbar">
+        <div className="flex gap-1.5 overflow-x-auto bg-neutral-100 dark:bg-[#111111] p-1.5 rounded-xl border border-black/8 dark:border-white/[0.06] w-full hide-scrollbar">
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all lg:px-5 lg:text-sm ${
                 activeTab === tab.id
-                  ? 'bg-[#d3da0c] text-black shadow-[0_0_20px_rgba(211,218,12,0.15)]'
-                  : 'text-gray-500 hover:text-white hover:bg-white/[0.05]'
+                  ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.05]'
               }`}>
               <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
@@ -757,13 +785,13 @@ const VendorDashboard = () => {
           <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 mb-4">
             <div className="col-span-2 lg:col-span-4">
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                className="h-full bg-[#d3da0c]/[0.07] border border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#d3da0c]/35 transition-all">
-                <div className="p-2.5 bg-[#d3da0c]/15 rounded-xl w-fit">
-                  <DollarSign className="w-5 h-5 text-[#d3da0c]" />
+                className="h-full bg-neutral-50 dark:bg-[#d3da0c]/[0.07] border border-black/8 dark:border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-black/15 dark:hover:border-[#d3da0c]/35 transition-all shadow-xs dark:shadow-none">
+                <div className="p-2.5 bg-[#020b00]/10 dark:bg-[#d3da0c]/15 rounded-xl w-fit">
+                  <DollarSign className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                 </div>
                 <div>
-                  <p className="text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('vendor.dashboard.totalSalesLabel')}</p>
-                  <p className="text-3xl font-bold text-white lg:text-4xl">¥{stats.totalSales.toLocaleString()}</p>
+                  <p className="text-gray-500 dark:text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('vendor.dashboard.totalSalesLabel')}</p>
+                  <p className="text-3xl font-bold text-[#020b00] dark:text-white lg:text-4xl">¥{stats.totalSales.toLocaleString()}</p>
                 </div>
               </motion.div>
             </div>
@@ -774,13 +802,13 @@ const VendorDashboard = () => {
             ].map((stat, idx) => (
               <div key={idx} className="lg:col-span-2 col-span-1">
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
-                  className="h-full bg-[#111111] border border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-white/[0.14] transition-all group">
-                  <div className="p-2 bg-[#d3da0c]/10 rounded-xl w-fit group-hover:bg-[#d3da0c]/15 transition-colors">
-                    <stat.icon className="w-4 h-4 text-[#d3da0c]" />
+                  className="h-full bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-black/15 dark:hover:border-white/[0.14] transition-all group shadow-xs dark:shadow-none">
+                  <div className="p-2 bg-black/5 dark:bg-[#d3da0c]/10 rounded-xl w-fit group-hover:bg-[#020b00]/10 dark:group-hover:bg-[#d3da0c]/15 transition-colors">
+                    <stat.icon className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div>
-                    <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
-                    <p className="text-xl font-bold text-white lg:text-2xl">{stat.value}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
+                    <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-2xl">{stat.value}</p>
                   </div>
                 </motion.div>
               </div>
@@ -794,25 +822,25 @@ const VendorDashboard = () => {
       <div className="px-4 pt-4 pb-4 lg:px-10 lg:pt-4">
       <motion.div key={activeTab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#111111] border border-white/[0.07] rounded-2xl p-4 md:p-6"
+        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-2xl p-4 md:p-6 shadow-xs dark:shadow-none"
       >
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                     <div className="grid lg:grid-cols-3 gap-8">
                         {/* Recent Orders */}
                         <div className="lg:col-span-2">
-                            <h3 className="text-xl font-black text-white mb-6">{t('vendor.dashboard.recentOrders')}</h3>
+                            <h3 className="text-xl font-black text-[#020b00] dark:text-white mb-6">{t('vendor.dashboard.recentOrders')}</h3>
                             {orders.length > 0 ? (
                                 <div className="space-y-3">
                                     {orders.slice(0, 5).map((order) => (
-                                        <div key={order.id} className="flex items-center justify-between gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:border-[#d3da0c]/30 transition-all">
+                                        <div key={order.id} className="flex items-center justify-between gap-3 p-4 bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg hover:border-[#d3da0c]/30 transition-all">
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-white font-bold truncate">{order.customer || order.customer_name || t('vendor.dashboard.unknownCustomer')}</p>
-                                                <p className="text-gray-400 text-sm truncate">{t('vendor.dashboard.orderProductQty', { product: order.product || order.product_name || t('vendor.dashboard.unknownProduct'), qty: order.qty || order.quantity || 1 })}</p>
+                                                <p className="text-[#020b00] dark:text-white font-bold truncate">{order.customer || order.customer_name || t('vendor.dashboard.unknownCustomer')}</p>
+                                                <p className="text-gray-600 dark:text-gray-400 text-sm truncate">{t('vendor.dashboard.orderProductQty', { product: order.product || order.product_name || t('vendor.dashboard.unknownProduct'), qty: order.qty || order.quantity || 1 })}</p>
                                             </div>
                                             <div className="text-right flex-shrink-0">
-                                                <p className="text-[#d3da0c] font-bold">¥{order.total || order.amount || 0}</p>
-                                                <span className={`text-xs font-bold ${order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.total || order.amount || 0}</p>
+                                                <span className={`text-xs font-bold ${order.status === 'completed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
                                                     {order.status === 'completed' ? t('vendor.dashboard.statusCompleted') : order.status === 'cancelled' ? t('vendor.dashboard.statusCancelled') : t('vendor.dashboard.statusPending')}
                                                 </span>
                                             </div>
@@ -828,37 +856,37 @@ const VendorDashboard = () => {
                         <div className="space-y-3">
                             <Link
                                 to="/dashboard/vendor/menu-import"
-                                className="w-full block p-4 bg-gradient-to-br from-[#d3da0c]/20 to-[#d3da0c]/5 border border-[#d3da0c]/30 rounded-lg text-[#d3da0c] font-bold hover:bg-[#d3da0c]/30 transition-all text-center"
+                                className="w-full block p-4 bg-neutral-50 dark:bg-gradient-to-br dark:from-[#d3da0c]/20 dark:to-[#d3da0c]/5 border border-black/10 dark:border-[#d3da0c]/30 rounded-lg text-[#020b00] dark:text-[#d3da0c] font-bold hover:opacity-90 transition-all text-center"
                             >
-                                <Upload className="w-4 h-4 inline mr-2" />
+                                <Upload className="w-4 h-4 inline mr-2 text-[#020b00] dark:text-[#d3da0c]" />
                                 Import Menu
                             </Link>
                             <Link
                                 to="/dashboard/vendor/payment-settings"
-                                className="w-full block p-4 bg-gradient-to-br from-green-600/20 to-green-700/10 border border-green-500/30 rounded-lg text-green-400 font-bold hover:bg-green-600/30 transition-all text-center"
+                                className="w-full block p-4 bg-green-500/10 dark:bg-gradient-to-br dark:from-green-600/20 dark:to-green-700/10 border border-green-500/20 dark:border-green-500/30 rounded-lg text-green-700 dark:text-green-400 font-bold hover:opacity-90 transition-all text-center"
                             >
-                                <QrCode className="w-4 h-4 inline mr-2" />
+                                <QrCode className="w-4 h-4 inline mr-2 text-green-700 dark:text-green-400" />
                                 Payment QR Codes
                             </Link>
                             <Link
                                 to="/dashboard/vendor/analytics"
-                                className="w-full block p-4 bg-gradient-to-br from-purple-600/20 to-purple-700/10 border border-purple-500/30 rounded-lg text-purple-400 font-bold hover:bg-purple-600/30 transition-all text-center"
+                                className="w-full block p-4 bg-purple-500/10 dark:bg-gradient-to-br dark:from-purple-600/20 dark:to-purple-700/10 border border-purple-500/20 dark:border-purple-500/30 rounded-lg text-purple-700 dark:text-purple-400 font-bold hover:opacity-90 transition-all text-center"
                             >
-                                <BarChart3 className="w-4 h-4 inline mr-2" />
+                                <BarChart3 className="w-4 h-4 inline mr-2 text-purple-700 dark:text-purple-400" />
                                 Analytics
                             </Link>
                             <button
                                 onClick={handleViewMessages}
-                                className="w-full p-4 bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-lg text-blue-400 font-bold hover:bg-blue-600/30 transition-all"
+                                className="w-full p-4 bg-blue-500/10 dark:bg-gradient-to-br dark:from-blue-600/20 dark:to-blue-700/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg text-blue-700 dark:text-blue-400 font-bold hover:opacity-90 transition-all"
                             >
-                                <MessageSquare className="w-4 h-4 inline mr-2" />
+                                <MessageSquare className="w-4 h-4 inline mr-2 text-blue-700 dark:text-blue-400" />
                                 {t('vendor.dashboard.messages')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('profile')}
-                                className="w-full p-4 bg-gradient-to-br from-gray-600/20 to-gray-700/10 border border-gray-500/30 rounded-lg text-gray-400 font-bold hover:bg-gray-600/30 transition-all"
+                                className="w-full p-4 bg-neutral-100 dark:bg-gradient-to-br dark:from-gray-600/20 dark:to-gray-700/10 border border-black/10 dark:border-gray-500/30 rounded-lg text-gray-700 dark:text-gray-400 font-bold hover:opacity-90 transition-all"
                             >
-                                <User className="w-4 h-4 inline mr-2" />
+                                <User className="w-4 h-4 inline mr-2 text-gray-700 dark:text-gray-400" />
                                 {t('vendor.dashboard.editProfile')}
                             </button>
                         </div>
@@ -871,27 +899,27 @@ const VendorDashboard = () => {
                         <div className="grid gap-4">
                             {/* Add/Edit Product Form */}
                             {showAddProduct && (
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-white font-bold text-lg">{editingProduct ? t('vendor.dashboard.editProduct') : t('vendor.dashboard.addNewProduct')}</h4>
+                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
+                                    <h4 className="text-[#020b00] dark:text-white font-bold text-lg">{editingProduct ? t('vendor.dashboard.editProduct') : t('vendor.dashboard.addNewProduct')}</h4>
 
                                     {/* Image Upload */}
                                     <div className="flex items-center gap-4">
-                                        <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <div className="w-24 h-24 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
                                             {productImagePreview ? (
                                                 <img src={productImagePreview} alt={t('vendor.dashboard.productImagePreview')} className="w-full h-full object-cover" />
                                             ) : (
-                                                <ImageIcon className="w-8 h-8 text-gray-500" />
+                                                <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <label className="block text-sm text-gray-400 mb-2">{t('vendor.dashboard.productImageLabel')}</label>
+                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.productImageLabel')}</label>
                                             <input
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageChange}
-                                                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#d3da0c] file:text-black file:font-bold hover:file:bg-[#bbc10b]"
+                                                className="w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#020b00] file:text-[#d3da0c] dark:file:bg-[#d3da0c] dark:file:text-black file:font-bold hover:file:opacity-90"
                                             />
-                                            <p className="text-xs text-gray-500 mt-1">{t('vendor.dashboard.imageHint')}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('vendor.dashboard.imageHint')}</p>
                                         </div>
                                     </div>
 
@@ -900,7 +928,7 @@ const VendorDashboard = () => {
                                         placeholder={t('vendor.dashboard.productNamePlaceholder')}
                                         value={productForm.name}
                                         onChange={(e) => handleProductChange('name', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                     />
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <input
@@ -908,25 +936,25 @@ const VendorDashboard = () => {
                                             placeholder={t('vendor.dashboard.pricePlaceholder')}
                                             value={productForm.price}
                                             onChange={(e) => handleProductChange('price', e.target.value)}
-                                            className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                         />
                                         <input
                                             type="number"
                                             placeholder={t('vendor.dashboard.quantityPlaceholder')}
                                             value={productForm.quantity}
                                             onChange={(e) => handleProductChange('quantity', e.target.value)}
-                                            className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                         />
                                         <select
                                             value={productForm.category}
                                             onChange={(e) => handleProductChange('category', e.target.value)}
-                                            className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
                                         >
-                                            <option value="" className="bg-[#111111]">{t('vendor.dashboard.selectCategory')}</option>
-                                            <option value="food" className="bg-[#111111]">{t('vendor.dashboard.categoryFoodBeverages')}</option>
-                                            <option value="merchandise" className="bg-[#111111]">{t('vendor.dashboard.categoryMerchandise')}</option>
-                                            <option value="services" className="bg-[#111111]">{t('vendor.dashboard.categoryServices')}</option>
-                                            <option value="other" className="bg-[#111111]">{t('vendor.dashboard.categoryOther')}</option>
+                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.selectCategory')}</option>
+                                            <option value="food" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryFoodBeverages')}</option>
+                                            <option value="merchandise" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryMerchandise')}</option>
+                                            <option value="services" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryServices')}</option>
+                                            <option value="other" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryOther')}</option>
                                         </select>
                                     </div>
                                     <textarea
@@ -934,20 +962,20 @@ const VendorDashboard = () => {
                                         rows={3}
                                         value={productForm.description}
                                         onChange={(e) => handleProductChange('description', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none resize-none"
+                                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none"
                                     />
 
                                     <div className="flex gap-3">
                                         <button
                                             onClick={handleCancelEdit}
-                                            className="flex-1 px-4 py-2 bg-red-500/20 text-red-400 font-bold rounded-lg hover:bg-red-500/30 transition-all"
+                                            className="flex-1 px-4 py-2 bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all"
                                         >
                                             {t('vendor.dashboard.cancel')}
                                         </button>
                                         <button
                                             onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
                                             disabled={isAddingProduct || isUpdatingProduct || isUploadingImage}
-                                            className="flex-1 px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                                            className="flex-1 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
                                         >
                                             {isAddingProduct || isUpdatingProduct || isUploadingImage ? (
                                                 <><Loader2 className="w-4 h-4 inline mr-2 animate-spin" />{editingProduct ? t('vendor.dashboard.saving') : t('vendor.dashboard.adding')}</>
@@ -960,41 +988,41 @@ const VendorDashboard = () => {
                             )}
                         </div>
 
-                        <h3 className="text-xl font-black text-white">{t('vendor.dashboard.yourProducts')}</h3>
+                        <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.yourProducts')}</h3>
                         {products && products.length > 0 ? (
                             <div className="grid md:grid-cols-2 gap-6">
                                 {products.map((product) => (
-                                    <div key={product.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all">
+                                    <div key={product.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all shadow-xs dark:shadow-none">
                                         <div className="flex items-start gap-4 mb-4">
                                             {product.image_url ? (
-                                                <img src={product.image_url} alt={product.name} className="w-20 h-20 rounded-lg object-cover bg-white/5" />
+                                                <img src={product.image_url} alt={product.name} className="w-20 h-20 rounded-lg object-cover bg-white dark:bg-white/5 border border-black/5 dark:border-transparent" />
                                             ) : (
-                                                <div className="w-20 h-20 rounded-lg bg-white/5 flex items-center justify-center">
-                                                    <Package className="w-8 h-8 text-gray-500" />
+                                                <div className="w-20 h-20 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                                                    <Package className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-white font-bold text-lg truncate">{product.name}</h4>
-                                                <p className="text-gray-400 text-sm mt-1">{t('vendor.dashboard.productId', { id: String(product.id).slice(0, 8) })}</p>
+                                                <h4 className="text-[#020b00] dark:text-white font-bold text-lg truncate">{product.name}</h4>
+                                                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{t('vendor.dashboard.productId', { id: String(product.id).slice(0, 8) })}</p>
                                                 {product.category && (
-                                                    <span className="inline-block mt-1 px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400 capitalize">
+                                                    <span className="inline-block mt-1 px-2 py-0.5 bg-black/5 dark:bg-white/10 rounded text-xs text-gray-700 dark:text-gray-400 capitalize">
                                                         {product.category}
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${product.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${product.status === 'active' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20'}`}>
                                                 {product.status === 'active' ? t('vendor.dashboard.statusActive') : t('vendor.dashboard.statusInactive')}
                                             </span>
                                         </div>
-                                        <p className="text-[#d3da0c] text-2xl font-black mb-4">¥{product.price}</p>
-                                        <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
+                                        <p className="text-[#020b00] dark:text-[#d3da0c] text-2xl font-black mb-4">¥{product.price}</p>
+                                        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
                                             <span>{t('vendor.dashboard.stock', { quantity: product.stock_quantity ?? 'N/A' })}</span>
                                         </div>
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleEditProduct(product)}
                                                 disabled={isDeletingProduct === product.id}
-                                                className="flex-1 px-3 py-2 bg-blue-500/20 text-blue-400 font-bold rounded-lg hover:bg-blue-500/30 transition-all text-sm disabled:opacity-50"
+                                                className="flex-1 px-3 py-2 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold rounded-lg hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all text-sm disabled:opacity-50"
                                             >
                                                 <Edit className="w-3 h-3 inline mr-1" />
                                                 {t('vendor.dashboard.edit')}
@@ -1002,7 +1030,7 @@ const VendorDashboard = () => {
                                             <button
                                                 onClick={() => handleDeleteProduct(product.id)}
                                                 disabled={isDeletingProduct === product.id}
-                                                className="flex-1 px-3 py-2 bg-red-500/20 text-red-400 font-bold rounded-lg hover:bg-red-500/30 transition-all text-sm disabled:opacity-50"
+                                                className="flex-1 px-3 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all text-sm disabled:opacity-50"
                                             >
                                                 {isDeletingProduct === product.id ? (
                                                     <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" />{t('vendor.dashboard.deleting')}</>
@@ -1024,18 +1052,18 @@ const VendorDashboard = () => {
                 {activeTab === 'orders' && (
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-xl font-black text-white">{t('vendor.dashboard.orderManagement')}</h3>
+                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.orderManagement')}</h3>
                             <div className="flex items-center gap-2">
-                                <Filter className="w-4 h-4 text-gray-400" />
+                                <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                                 <select
                                     value={orderFilter}
                                     onChange={(e) => setOrderFilter(e.target.value as typeof orderFilter)}
-                                    className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] outline-none"
+                                    className="px-3 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-hidden"
                                 >
-                                    <option value="all" className="bg-[#111111]">{t('vendor.dashboard.filterAll') || 'All'}</option>
-                                    <option value="pending" className="bg-[#111111]">{t('vendor.dashboard.filterPending') || 'Pending'}</option>
-                                    <option value="approved" className="bg-[#111111]">{t('vendor.dashboard.filterApproved') || 'Approved'}</option>
-                                    <option value="rejected" className="bg-[#111111]">{t('vendor.dashboard.filterRejected') || 'Rejected'}</option>
+                                    <option value="all" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterAll') || 'All'}</option>
+                                    <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterPending') || 'Pending'}</option>
+                                    <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterApproved') || 'Approved'}</option>
+                                    <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterRejected') || 'Rejected'}</option>
                                 </select>
                             </div>
                         </div>
@@ -1049,8 +1077,8 @@ const VendorDashboard = () => {
                             {/* Desktop Table */}
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="border-b border-white/10">
-                                        <tr className="text-gray-400 text-xs uppercase font-bold">
+                                    <thead className="border-b border-black/10 dark:border-white/10">
+                                        <tr className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">
                                             <th className="text-left py-3 px-4">{t('vendor.dashboard.customerHeader')}</th>
                                             <th className="text-left py-3 px-4">{t('vendor.dashboard.productHeader')}</th>
                                             <th className="text-left py-3 px-4">{t('vendor.dashboard.totalHeader')}</th>
@@ -1061,15 +1089,15 @@ const VendorDashboard = () => {
                                     </thead>
                                     <tbody>
                                         {productOrders.map((order) => (
-                                            <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                            <tr key={order.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                                                 <td className="py-3 px-4">
-                                                    <p className="text-white font-medium">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
+                                                    <p className="text-[#020b00] dark:text-white font-medium">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
                                                     <p className="text-gray-500 text-xs">{order.user?.email}</p>
                                                 </td>
-                                                <td className="py-3 px-4 text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</td>
-                                                <td className="py-3 px-4 text-[#d3da0c] font-bold">¥{order.payment_amount}</td>
+                                                <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</td>
+                                                <td className="py-3 px-4 text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.payment_amount}</td>
                                                 <td className="py-3 px-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${order.status === 'approved' ? 'bg-green-500/20 text-green-400' : order.status === 'rejected' ? 'bg-red-500/20 text-red-400' : order.status === 'used' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${order.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : order.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : order.status === 'used' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
                                                         {order.status === 'approved' ? (t('vendor.dashboard.statusApproved') || 'Approved') : order.status === 'rejected' ? (t('vendor.dashboard.statusRejected') || 'Rejected') : order.status === 'used' ? (t('vendor.dashboard.statusUsed') || 'Used') : (t('vendor.dashboard.statusPending') || 'Pending')}
                                                     </span>
                                                 </td>
@@ -1077,7 +1105,7 @@ const VendorDashboard = () => {
                                                     {order.payment_screenshot ? (
                                                         <button
                                                             onClick={() => setViewScreenshotOrder(order)}
-                                                            className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 hover:border-[#d3da0c]/50 transition-all"
+                                                            className="w-12 h-12 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/50 transition-all"
                                                         >
                                                             <img
                                                                 src={order.payment_screenshot.startsWith('http') ? order.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${order.payment_screenshot}`}
@@ -1086,7 +1114,7 @@ const VendorDashboard = () => {
                                                             />
                                                         </button>
                                                     ) : (
-                                                        <span className="text-gray-500 text-xs">-</span>
+                                                        <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
                                                     )}
                                                 </td>
                                                 <td className="py-3 px-4">
@@ -1095,14 +1123,14 @@ const VendorDashboard = () => {
                                                             <button
                                                                 onClick={() => approveOrder(order.id)}
                                                                 disabled={processingOrderId === order.id}
-                                                                className="px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/30 transition-all disabled:opacity-50"
+                                                                className="px-3 py-1.5 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all disabled:opacity-50 border border-green-500/20"
                                                             >
                                                                 {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.approve') || 'Approve'}</>}
                                                             </button>
                                                             <button
                                                                 onClick={() => { setRejectingOrder(order); setRejectReason(''); }}
                                                                 disabled={processingOrderId === order.id}
-                                                                className="px-3 py-1.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50"
+                                                                className="px-3 py-1.5 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
                                                             >
                                                                 <X className="w-3 h-3 inline mr-1" />
                                                                 {t('vendor.dashboard.reject') || 'Reject'}
@@ -1111,15 +1139,15 @@ const VendorDashboard = () => {
                                                     ) : order.status === 'approved' && order.order_qr_code ? (
                                                         <button
                                                             onClick={() => setViewQrOrder(order)}
-                                                            className="px-3 py-1.5 bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-bold rounded-lg hover:bg-[#d3da0c]/30 transition-all flex items-center gap-1"
+                                                            className="px-3 py-1.5 bg-black/5 dark:bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold rounded-lg hover:opacity-80 transition-all flex items-center gap-1 border border-black/10 dark:border-[#d3da0c]/30"
                                                         >
                                                             <QrCode className="w-3 h-3" />
                                                             {t('vendor.dashboard.viewQr') || 'QR Code'}
                                                         </button>
                                                     ) : order.status === 'rejected' && order.rejection_reason ? (
-                                                        <span className="text-red-400 text-xs">{order.rejection_reason}</span>
+                                                        <span className="text-red-500 dark:text-red-400 text-xs">{order.rejection_reason}</span>
                                                     ) : (
-                                                        <span className="text-gray-500 text-xs">-</span>
+                                                        <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -1131,25 +1159,25 @@ const VendorDashboard = () => {
                             {/* Mobile Cards */}
                             <div className="md:hidden grid gap-3">
                                 {productOrders.map((order) => (
-                                    <div key={order.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 space-y-3">
+                                    <div key={order.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-xl p-4 space-y-3">
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <p className="text-white font-medium text-sm">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
+                                                <p className="text-[#020b00] dark:text-white font-medium text-sm">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
                                                 <p className="text-gray-500 text-xs">{order.user?.email}</p>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'approved' ? 'bg-green-500/20 text-green-400' : order.status === 'rejected' ? 'bg-red-500/20 text-red-400' : order.status === 'used' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : order.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : order.status === 'used' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
                                                 {order.status === 'approved' ? (t('vendor.dashboard.statusApproved') || 'Approved') : order.status === 'rejected' ? (t('vendor.dashboard.statusRejected') || 'Rejected') : order.status === 'used' ? (t('vendor.dashboard.statusUsed') || 'Used') : (t('vendor.dashboard.statusPending') || 'Pending')}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</span>
-                                            <span className="text-[#d3da0c] font-bold">¥{order.payment_amount}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</span>
+                                            <span className="text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.payment_amount}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                                        <div className="flex items-center gap-3 pt-2 border-t border-black/8 dark:border-white/5">
                                             {order.payment_screenshot ? (
                                                 <button
                                                     onClick={() => setViewScreenshotOrder(order)}
-                                                    className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 hover:border-[#d3da0c]/50 transition-all flex-shrink-0"
+                                                    className="w-10 h-10 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/50 transition-all shrink-0"
                                                 >
                                                     <img
                                                         src={order.payment_screenshot.startsWith('http') ? order.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${order.payment_screenshot}`}
@@ -1158,7 +1186,7 @@ const VendorDashboard = () => {
                                                     />
                                                 </button>
                                             ) : (
-                                                <span className="text-gray-500 text-xs">-</span>
+                                                <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
                                             )}
                                             <div className="flex-1 flex items-center justify-end gap-2">
                                                 {order.status === 'pending' ? (
@@ -1166,14 +1194,14 @@ const VendorDashboard = () => {
                                                         <button
                                                             onClick={() => approveOrder(order.id)}
                                                             disabled={processingOrderId === order.id}
-                                                            className="px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/30 transition-all disabled:opacity-50"
+                                                            className="px-3 py-1.5 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all disabled:opacity-50 border border-green-500/20"
                                                         >
                                                             {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.approve') || 'Approve'}</>}
                                                         </button>
                                                         <button
                                                             onClick={() => { setRejectingOrder(order); setRejectReason(''); }}
                                                             disabled={processingOrderId === order.id}
-                                                            className="px-3 py-1.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50"
+                                                            className="px-3 py-1.5 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
                                                         >
                                                             <X className="w-3 h-3 inline mr-1" />
                                                             {t('vendor.dashboard.reject') || 'Reject'}
@@ -1182,15 +1210,15 @@ const VendorDashboard = () => {
                                                 ) : order.status === 'approved' && order.order_qr_code ? (
                                                     <button
                                                         onClick={() => setViewQrOrder(order)}
-                                                        className="px-3 py-1.5 bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-bold rounded-lg hover:bg-[#d3da0c]/30 transition-all flex items-center gap-1"
+                                                        className="px-3 py-1.5 bg-black/5 dark:bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold rounded-lg hover:opacity-80 transition-all flex items-center gap-1 border border-black/10 dark:border-[#d3da0c]/30"
                                                     >
                                                         <QrCode className="w-3 h-3" />
                                                         {t('vendor.dashboard.viewQr') || 'QR'}
                                                     </button>
                                                 ) : order.status === 'rejected' && order.rejection_reason ? (
-                                                    <span className="text-red-400 text-xs">{order.rejection_reason}</span>
+                                                    <span className="text-red-500 dark:text-red-400 text-xs">{order.rejection_reason}</span>
                                                 ) : (
-                                                    <span className="text-gray-500 text-xs">-</span>
+                                                    <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
                                                 )}
                                             </div>
                                         </div>
@@ -1204,11 +1232,11 @@ const VendorDashboard = () => {
 
                         {/* View Screenshot Modal */}
                         {viewScreenshotOrder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-                                <div className="bg-[#111111] border border-white/10 rounded-2xl p-4 max-w-md w-full">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
+                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-4 max-w-md w-full shadow-2xl">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-white font-bold">{t('vendor.dashboard.paymentScreenshot') || 'Payment Screenshot'}</h4>
-                                        <button onClick={() => setViewScreenshotOrder(null)} className="p-1 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
+                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.paymentScreenshot') || 'Payment Screenshot'}</h4>
+                                        <button onClick={() => setViewScreenshotOrder(null)} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
                                     </div>
                                     <img
                                         src={viewScreenshotOrder.payment_screenshot.startsWith('http') ? viewScreenshotOrder.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${viewScreenshotOrder.payment_screenshot}`}
@@ -1221,46 +1249,46 @@ const VendorDashboard = () => {
 
                         {/* View QR Modal */}
                         {viewQrOrder && viewQrOrder.order_qr_code && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-                                <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-sm w-full text-center">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
+                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-white font-bold">{t('vendor.dashboard.orderQrCode') || 'Order QR Code'}</h4>
-                                        <button onClick={() => setViewQrOrder(null)} className="p-1 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
+                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.orderQrCode') || 'Order QR Code'}</h4>
+                                        <button onClick={() => setViewQrOrder(null)} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
                                     </div>
                                     <img src={viewQrOrder.order_qr_code} alt="QR Code" className="w-48 h-48 mx-auto rounded-lg" />
-                                    <p className="text-[#d3da0c] font-bold mt-4">{viewQrOrder.order_code}</p>
-                                    <p className="text-gray-400 text-sm mt-1">{viewQrOrder.product?.name}</p>
+                                    <p className="text-[#020b00] dark:text-[#d3da0c] font-bold mt-4">{viewQrOrder.order_code}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{viewQrOrder.product?.name}</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Reject Modal */}
                         {rejectingOrder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-                                <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-md w-full">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
+                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-white font-bold">{t('vendor.dashboard.rejectOrder') || 'Reject Order'}</h4>
-                                        <button onClick={() => { setRejectingOrder(null); setRejectReason(''); }} className="p-1 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
+                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.rejectOrder') || 'Reject Order'}</h4>
+                                        <button onClick={() => { setRejectingOrder(null); setRejectReason(''); }} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
                                     </div>
-                                    <p className="text-gray-400 text-sm mb-4">{t('vendor.dashboard.rejectReasonPrompt') || 'Please provide a reason for rejection.'}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t('vendor.dashboard.rejectReasonPrompt') || 'Please provide a reason for rejection.'}</p>
                                     <textarea
                                         value={rejectReason}
                                         onChange={(e) => setRejectReason(e.target.value)}
                                         placeholder={t('vendor.dashboard.rejectReasonPlaceholder') || 'Reason...'}
                                         rows={3}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none resize-none mb-4"
+                                        className="w-full px-4 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none mb-4"
                                     />
                                     <div className="flex gap-3">
                                         <button
                                             onClick={() => { setRejectingOrder(null); setRejectReason(''); }}
-                                            className="flex-1 px-4 py-2 bg-white/5 text-gray-400 font-bold rounded-lg hover:bg-white/10 transition-all"
+                                            className="flex-1 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-400 font-bold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-all"
                                         >
                                             {t('vendor.dashboard.cancel')}
                                         </button>
                                         <button
                                             onClick={() => rejectOrder(rejectingOrder.id, rejectReason)}
                                             disabled={!rejectReason.trim() || processingOrderId === rejectingOrder.id}
-                                            className="flex-1 px-4 py-2 bg-red-500/20 text-red-400 font-bold rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50"
+                                            className="flex-1 px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
                                         >
                                             {processingOrderId === rejectingOrder.id ? <Loader2 className="w-4 h-4 inline mr-2 animate-spin" /> : null}
                                             {t('vendor.dashboard.confirmReject') || 'Reject'}
@@ -1276,17 +1304,17 @@ const VendorDashboard = () => {
                 {activeTab === 'events' && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-white">{t('vendor.dashboard.eventBoothsAndApplications')}</h3>
+                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.eventBoothsAndApplications')}</h3>
                             <button
                                 onClick={handleApplyForBooth}
-                                className="px-6 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-all"
+                                className="px-6 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all shadow-xs"
                             >
                                 <Plus className="w-4 h-4 inline mr-2" />
                                 {t('vendor.dashboard.applyForBooth')}
                             </button>
                         </div>
                         {eventsError && (
-                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 dark:text-red-400 text-sm">
                                 {eventsError}
                             </div>
                         )}
@@ -1297,11 +1325,11 @@ const VendorDashboard = () => {
                         ) : events.length > 0 ? (
                             <div className="grid gap-6">
                                 {events.map((event) => (
-                                    <div key={event.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all">
+                                    <div key={event.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all shadow-xs dark:shadow-none">
                                         <div className="flex items-start justify-between mb-4">
                                             <div>
-                                                <h4 className="text-white font-bold text-lg mb-2">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</h4>
-                                                <div className="flex flex-wrap gap-4 text-gray-400 text-sm">
+                                                <h4 className="text-[#020b00] dark:text-white font-bold text-lg mb-2">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</h4>
+                                                <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="w-4 h-4 text-[#d3da0c]" />
                                                         {event.date || event.event_date || 'TBD'}
@@ -1313,7 +1341,7 @@ const VendorDashboard = () => {
                                                     {event.capacity && <span>{t('vendor.dashboard.capacityLabel', { capacity: event.capacity })}</span>}
                                                 </div>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${event.status === 'approved' ? 'bg-green-500/20 text-green-400' : event.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${event.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : event.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
                                                 {event.status === 'approved' ? t('vendor.dashboard.statusApproved') : event.status === 'rejected' ? t('vendor.dashboard.statusRejected') : t('vendor.dashboard.statusPending')}
                                             </span>
                                         </div>
@@ -1321,7 +1349,7 @@ const VendorDashboard = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleCancelEventApplication(event.id)}
-                                                    className="flex-1 px-4 py-2 bg-red-500/20 text-red-400 font-bold rounded-lg hover:bg-red-500/30 transition-all text-sm"
+                                                    className="flex-1 px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all text-sm border border-red-500/20"
                                                 >
                                                     <X className="w-3 h-3 inline mr-2" />
                                                     {t('vendor.dashboard.cancelApplication')}
@@ -1340,7 +1368,7 @@ const VendorDashboard = () => {
                 {/* Reviews Tab */}
                 {activeTab === 'reviews' && (
                     <div className="space-y-6">
-                        <h3 className="text-xl font-black text-white">{t('vendor.dashboard.customerReviews')}</h3>
+                        <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.customerReviews')}</h3>
                         {isLoadingReviews ? (
                             <div className="flex justify-center py-12">
                                 <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
@@ -1348,19 +1376,19 @@ const VendorDashboard = () => {
                         ) : reviews.length > 0 ? (
                             <div className="grid gap-4">
                                 {reviews.map((review) => (
-                                    <div key={review.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-6">
+                                    <div key={review.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 shadow-xs dark:shadow-none">
                                         <div className="flex items-start justify-between mb-3">
                                             <div>
-                                                <p className="text-white font-bold">{review.customer || review.customer_name || t('vendor.dashboard.anonymous')}</p>
-                                                <p className="text-gray-400 text-sm">{review.date || review.created_at ? new Date(review.date || review.created_at).toLocaleDateString() : ''}</p>
+                                                <p className="text-[#020b00] dark:text-white font-bold">{review.customer || review.customer_name || t('vendor.dashboard.anonymous')}</p>
+                                                <p className="text-gray-500 dark:text-gray-400 text-sm">{review.date || review.created_at ? new Date(review.date || review.created_at).toLocaleDateString() : ''}</p>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 {Array.from({ length: 5 }).map((_, i) => (
-                                                    <Star key={i} className={`w-4 h-4 ${i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'}`} />
+                                                    <Star key={i} className={`w-4 h-4 ${i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 dark:text-gray-600'}`} />
                                                 ))}
                                             </div>
                                         </div>
-                                        <p className="text-gray-300">{review.comment || review.review || t('vendor.dashboard.noComment')}</p>
+                                        <p className="text-gray-700 dark:text-gray-300">{review.comment || review.review || t('vendor.dashboard.noComment')}</p>
                                     </div>
                                 ))}
                             </div>
@@ -1374,21 +1402,21 @@ const VendorDashboard = () => {
                 {activeTab === 'profile' && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-white">{t('vendor.dashboard.vendorProfile')}</h3>
+                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.vendorProfile')}</h3>
                             <div className="flex items-center gap-2">
                                 {vendorProfile?.is_approved ? (
-                                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <span className="px-3 py-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold flex items-center gap-1 border border-blue-500/20">
                                         <Check className="w-3 h-3" />
                                         {t('vendor.dashboard.approved') || 'Approved'}
                                     </span>
                                 ) : (
-                                    <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <span className="px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full text-xs font-bold flex items-center gap-1 border border-yellow-500/20">
                                         <Loader2 className="w-3 h-3 animate-spin" />
                                         {t('vendor.dashboard.pendingApproval') || 'Pending Approval'}
                                     </span>
                                 )}
                                 {vendorProfile?.is_verified && (
-                                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <span className="px-3 py-1 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full text-xs font-bold flex items-center gap-1 border border-green-500/20">
                                         <Check className="w-3 h-3" />
                                         {t('vendor.dashboard.verified')}
                                     </span>
@@ -1400,14 +1428,14 @@ const VendorDashboard = () => {
                             {/* Profile Form */}
                             <div className="lg:col-span-2 space-y-6">
                                 {/* Logo Upload */}
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                                    <label className="block text-sm text-gray-400 mb-4">{t('vendor.dashboard.businessLogo')}</label>
+                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6">
+                                    <label className="block text-sm text-gray-700 dark:text-gray-400 mb-4 font-medium">{t('vendor.dashboard.businessLogo')}</label>
                                     <div className="flex items-center gap-6">
-                                        <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <div className="w-24 h-24 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
                                             {profileLogoPreview ? (
                                                 <img src={profileLogoPreview} alt="Logo" className="w-full h-full object-cover" />
                                             ) : (
-                                                <Store className="w-10 h-10 text-gray-500" />
+                                                <Store className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                                             )}
                                         </div>
                                         <div className="flex-1">
@@ -1415,53 +1443,53 @@ const VendorDashboard = () => {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleLogoChange}
-                                                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#d3da0c] file:text-black file:font-bold hover:file:bg-[#bbc10b]"
+                                                className="w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#020b00] file:text-[#d3da0c] dark:file:bg-[#d3da0c] dark:file:text-black file:font-bold hover:file:opacity-90"
                                             />
-                                            <p className="text-xs text-gray-500 mt-2">{t('vendor.dashboard.logoUploadHint')}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t('vendor.dashboard.logoUploadHint')}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Business Information */}
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-white font-bold">{t('vendor.dashboard.businessInformation')}</h4>
+                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
+                                    <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.businessInformation')}</h4>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">{t('vendor.dashboard.businessNameRequiredLabel')}</label>
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessNameRequiredLabel')}</label>
                                         <input
                                             type="text"
                                             placeholder={t('vendor.dashboard.businessNamePlaceholder')}
                                             value={profileForm.business_name}
                                             onChange={(e) => handleProfileChange('business_name', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">{t('vendor.dashboard.businessCategory')}</label>
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessCategory')}</label>
                                         <select
                                             value={profileForm.vendor_type}
                                             onChange={(e) => handleProfileChange('vendor_type', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
                                         >
-                                            <option value="" className="bg-[#111111]">{t('vendor.dashboard.selectCategory')}</option>
-                                            <option value="food" className="bg-[#111111]">{t('vendor.dashboard.categoryFood')}</option>
-                                            <option value="beverage" className="bg-[#111111]">{t('vendor.dashboard.categoryBeverage')}</option>
-                                            <option value="merch" className="bg-[#111111]">{t('vendor.dashboard.categoryMerchandise')}</option>
-                                            <option value="service" className="bg-[#111111]">{t('vendor.dashboard.categoryService')}</option>
+                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.selectCategory')}</option>
+                                            <option value="food" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryFood')}</option>
+                                            <option value="beverage" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryBeverage')}</option>
+                                            <option value="merch" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryMerchandise')}</option>
+                                            <option value="service" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryService')}</option>
                                         </select>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">{t('vendor.profile.city') || 'City'}</label>
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.profile.city') || 'City'}</label>
                                         <select
                                             value={profileForm.city_id}
                                             onChange={(e) => handleProfileChange('city_id', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
                                         >
-                                            <option value="" className="bg-[#111111]">Select city</option>
+                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Select city</option>
                                             {chinaCities.map((city) => (
-                                                <option key={city.id} value={city.id} className="bg-[#111111]">
+                                                <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
                                                     {city.name}
                                                 </option>
                                             ))}
@@ -1469,24 +1497,24 @@ const VendorDashboard = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">{t('vendor.dashboard.businessDescription')}</label>
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessDescription')}</label>
                                         <textarea
                                             placeholder={t('vendor.dashboard.businessDescriptionPlaceholder')}
                                             rows={4}
                                             value={profileForm.description}
                                             onChange={(e) => handleProfileChange('description', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none resize-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Contact Information */}
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-white font-bold">{t('vendor.dashboard.contactInformation')}</h4>
+                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
+                                    <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.contactInformation')}</h4>
 
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
                                                 <Mail className="w-4 h-4" />
                                                 {t('vendor.dashboard.emailLabel')}
                                             </label>
@@ -1495,12 +1523,12 @@ const VendorDashboard = () => {
                                                 placeholder={t('vendor.dashboard.emailPlaceholder')}
                                                 value={profileForm.email}
                                                 onChange={(e) => handleProfileChange('email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
                                                 <Phone className="w-4 h-4" />
                                                 {t('vendor.dashboard.phoneLabel')}
                                             </label>
@@ -1509,13 +1537,13 @@ const VendorDashboard = () => {
                                                 placeholder={t('vendor.dashboard.phonePlaceholder')}
                                                 value={profileForm.phone}
                                                 onChange={(e) => handleProfileChange('phone', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
                                             <MapPin className="w-4 h-4" />
                                             {t('vendor.dashboard.businessAddressLabel')}
                                         </label>
@@ -1524,12 +1552,12 @@ const VendorDashboard = () => {
                                             placeholder={t('vendor.dashboard.addressPlaceholder')}
                                             value={profileForm.address}
                                             onChange={(e) => handleProfileChange('address', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
                                             <Globe className="w-4 h-4" />
                                             {t('vendor.dashboard.websiteLabel')}
                                         </label>
@@ -1538,7 +1566,7 @@ const VendorDashboard = () => {
                                             placeholder={t('vendor.dashboard.websitePlaceholder')}
                                             value={profileForm.website}
                                             onChange={(e) => handleProfileChange('website', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                                         />
                                     </div>
                                 </div>
@@ -1547,14 +1575,14 @@ const VendorDashboard = () => {
                                 <div className="flex gap-3">
                                     <button
                                         onClick={resetProfileForm}
-                                        className="flex-1 px-4 py-3 bg-white/5 text-gray-400 font-bold rounded-lg hover:bg-white/10 transition-all"
+                                        className="flex-1 px-4 py-3 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-400 font-bold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-all"
                                     >
                                         {t('vendor.dashboard.reset')}
                                     </button>
                                     <button
                                         onClick={handleUpdateProfile}
                                         disabled={isUpdatingProfile || isUploadingLogo}
-                                        className="flex-1 px-4 py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                                        className="flex-1 px-4 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
                                     >
                                         {isUpdatingProfile || isUploadingLogo ? (
                                             <><Loader2 className="w-4 h-4 inline mr-2 animate-spin" />{t('vendor.dashboard.saving')}</>
@@ -1567,33 +1595,33 @@ const VendorDashboard = () => {
 
                             {/* Profile Preview / Info Card */}
                             <div className="space-y-6">
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                                    <h4 className="text-white font-bold mb-4">{t('vendor.dashboard.profilePreview')}</h4>
+                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 shadow-xs dark:shadow-none">
+                                    <h4 className="text-[#020b00] dark:text-white font-bold mb-4">{t('vendor.dashboard.profilePreview')}</h4>
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <div className="w-16 h-16 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
                                             {profileLogoPreview ? (
                                                 <img src={profileLogoPreview} alt="Logo" className="w-full h-full object-cover" />
                                             ) : (
-                                                <Store className="w-8 h-8 text-gray-500" />
+                                                <Store className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                                             )}
                                         </div>
                                         <div>
-                                            <p className="text-white font-bold">{profileForm.business_name || t('vendor.dashboard.yourBusiness')}</p>
-                                            <p className="text-gray-400 text-sm capitalize">{profileForm.vendor_type || t('vendor.dashboard.vendorLabel')}</p>
+                                            <p className="text-[#020b00] dark:text-white font-bold">{profileForm.business_name || t('vendor.dashboard.yourBusiness')}</p>
+                                            <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">{profileForm.vendor_type || t('vendor.dashboard.vendorLabel')}</p>
                                         </div>
                                     </div>
                                     {profileForm.description && (
-                                        <p className="text-gray-400 text-sm mb-4 line-clamp-3">{profileForm.description}</p>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">{profileForm.description}</p>
                                     )}
                                     <div className="space-y-2 text-sm">
                                         {profileForm.email && (
-                                            <p className="text-gray-400 flex items-center gap-2">
+                                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                                 <Mail className="w-4 h-4 text-[#d3da0c]" />
                                                 {profileForm.email}
                                             </p>
                                         )}
                                         {profileForm.phone && (
-                                            <p className="text-gray-400 flex items-center gap-2">
+                                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                                 <Phone className="w-4 h-4 text-[#d3da0c]" />
                                                 {profileForm.phone}
                                             </p>
@@ -1601,8 +1629,8 @@ const VendorDashboard = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                                    <p className="text-blue-400 text-sm">
+                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                                    <p className="text-blue-600 dark:text-blue-400 text-sm">
                                         <span className="font-bold">{t('vendor.dashboard.profileTipLabel')}</span> {t('vendor.dashboard.profileTipText')}
                                     </p>
                                 </div>
@@ -1616,26 +1644,26 @@ const VendorDashboard = () => {
 
             {/* Booth Application Modal */}
             {showBoothModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
+                        className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-white">{t('vendor.dashboard.applyForBooth')}</h3>
-                            <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-400 hover:text-white">
+                            <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('vendor.dashboard.applyForBooth')}</h3>
+                            <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="relative mb-4">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                             <input
                                 type="text"
                                 placeholder={t('vendor.dashboard.searchEvents') || 'Search events...'}
                                 value={boothSearchQuery}
                                 onChange={(e) => setBoothSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                                className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
                             />
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-3">
@@ -1647,15 +1675,15 @@ const VendorDashboard = () => {
                                 availableEvents
                                     .filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase()))
                                     .map((event) => (
-                                        <div key={event.id} className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
+                                        <div key={event.id} className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-4 flex items-center justify-between">
                                             <div>
-                                                <p className="text-white font-bold">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</p>
-                                                <p className="text-gray-400 text-sm">{event.date || event.event_date || t('vendor.dashboard.tbd')}</p>
+                                                <p className="text-[#020b00] dark:text-white font-bold">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</p>
+                                                <p className="text-gray-600 dark:text-gray-400 text-sm">{event.date || event.event_date || t('vendor.dashboard.tbd')}</p>
                                             </div>
                                             <button
                                                 onClick={() => handleApplyToEvent(event.id)}
                                                 disabled={applyingEventId === event.id}
-                                                className="px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                                                className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
                                             >
                                                 {applyingEventId === event.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -1666,7 +1694,7 @@ const VendorDashboard = () => {
                                         </div>
                                     ))
                             ) : (
-                                <p className="text-gray-400 text-center py-8">{t('vendor.dashboard.noEventsAvailable') || 'No events available for booth application.'}</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-center py-8">{t('vendor.dashboard.noEventsAvailable') || 'No events available for booth application.'}</p>
                             )}
                         </div>
                     </motion.div>

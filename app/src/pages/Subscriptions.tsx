@@ -6,12 +6,16 @@ import { Check, Star, Zap, Crown, Loader2, X, Smartphone, QrCode, Upload } from 
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
+import { getMediaUrl } from '@/lib/appUrl';
 import axios from 'axios';
 
 interface Plan {
   type: string;
   name: string;
   price: number;
+  monthly_price?: number;
+  yearly_price?: number;
+  duration_days?: number;
   features?: string[];
 }
 
@@ -19,6 +23,7 @@ interface SubscriptionStatus {
   has_subscription?: boolean;
   subscription?: {
     plan_type: string;
+    billing_period?: string;
     days_remaining: number;
   };
 }
@@ -42,6 +47,7 @@ export default function Subscriptions() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [paymentModal, setPaymentModal] = useState<{ open: boolean; planType: string | null; details: PaymentDetails | null }>({
     open: false,
     planType: null,
@@ -91,7 +97,7 @@ export default function Subscriptions() {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/subscriptions/subscribe`,
-        { plan_type: planType, role },
+        { plan_type: planType, billing_period: billingPeriod },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const subscriptionId = res.data?.subscription_id;
@@ -163,14 +169,14 @@ export default function Subscriptions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] px-4 pt-24 pb-12 lg:py-12">
+    <div className="min-h-screen bg-[#020b00] px-4 pt-24 pb-12 lg:py-12">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
@@ -207,12 +213,38 @@ export default function Subscriptions() {
           <div className="mb-8 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
             <p className="text-white">
               {t('subscriptions.activePlan')} <span className="text-[#d3da0c] capitalize">{status.subscription.plan_type}</span>
+              {status.subscription.billing_period && status.subscription.billing_period !== 'monthly' && (
+                <span className="text-white/60 text-sm"> ({status.subscription.billing_period})</span>
+              )}
             </p>
             <p className="text-white/60 text-sm">
-              {status.subscription.days_remaining} {t('subscriptions.daysRemaining')}
+              {status.subscription.billing_period === 'lifetime'
+                ? t('subscriptions.lifetimeAccess') || 'Lifetime access'
+                : `${status.subscription.days_remaining} ${t('subscriptions.daysRemaining')}`}
             </p>
           </div>
         )}
+
+        {/* Monthly / Yearly billing toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-white/5 rounded-xl p-1 border border-white/10">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'monthly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
+            >
+              {t('subscriptions.monthly') || 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('yearly')}
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'yearly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
+            >
+              {t('subscriptions.yearly') || 'Yearly'}
+              <span className={`ml-2 text-xs font-bold ${billingPeriod === 'yearly' ? 'text-black/60' : 'text-[#d3da0c]'}`}>
+                {t('subscriptions.saveBadge') || 'Save 2 months'}
+              </span>
+            </button>
+          </div>
+        </div>
 
         <div className={`grid gap-6 ${plans.length === 1 ? 'md:grid-cols-1 max-w-md mx-auto' : 'md:grid-cols-3'}`}>
           {plans.map((plan) => (
@@ -230,8 +262,12 @@ export default function Subscriptions() {
               </div>
               
               <div className="mb-6">
-                <span className="text-3xl font-bold text-white">¥{plan.price}</span>
-                <span className="text-white/60">{(role === 'artist' || role === 'vendor') ? t('subscriptions.oneTime') || 'One-Time' : t('subscriptions.perMonth')}</span>
+                <span className="text-3xl font-bold text-white">
+                  ¥{billingPeriod === 'yearly' ? (plan.yearly_price ?? plan.price) : (plan.monthly_price ?? plan.price)}
+                </span>
+                <span className="text-white/60">
+                  /{billingPeriod === 'yearly' ? (t('subscriptions.year') || 'year') : (t('subscriptions.month') || 'month')}
+                </span>
               </div>
 
               <ul className="space-y-3 mb-6">
@@ -319,7 +355,7 @@ export default function Subscriptions() {
 
                 <div className="flex justify-center">
                   <img
-                    src={paymentModal.details.web_qr_code_url}
+                    src={getMediaUrl(paymentModal.details.web_qr_code_url)}
                     alt="YOOPAY QR"
                     className="w-40 h-40 object-contain rounded-lg bg-white p-2"
                   />

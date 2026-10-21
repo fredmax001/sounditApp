@@ -19,12 +19,13 @@ interface MeResponse {
   phone?: string | null;
   preferred_city?: string | null;
   avatar_url?: string | null;
+  background_url?: string | null;
 }
 
 const EditProfile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { session, profile, updateProfile, uploadAvatar, cities } = useAuthStore();
+  const { session, profile, updateProfile, uploadAvatar, uploadBanner, cities } = useAuthStore();
 
   const [form, setForm] = useState({
     first_name: '',
@@ -37,12 +38,15 @@ const EditProfile = () => {
   });
   const [email, setEmail] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<{ google: boolean; apple: boolean }>({ google: false, apple: false });
   const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const token = () => session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('token');
 
@@ -103,7 +107,8 @@ const EditProfile = () => {
             phone: me.phone || '',
           });
           setEmail(me.email || '');
-          setAvatar(me.avatar_url || null);
+          setAvatar(me.avatar_url || profile?.avatar_url || null);
+          setBackgroundUrl(me.background_url || profile?.background_url || profile?.banner_url || null);
         }
       } catch {
         // fall back to store profile
@@ -119,6 +124,7 @@ const EditProfile = () => {
           });
           setEmail(profile.email || '');
           setAvatar(profile.avatar_url || null);
+          setBackgroundUrl(profile.background_url || profile.banner_url || null);
         }
       } finally {
         setIsLoading(false);
@@ -146,6 +152,22 @@ const EditProfile = () => {
     }
   };
 
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingBanner(true);
+    try {
+      const url = await uploadBanner(file);
+      setBackgroundUrl(url);
+      toast.success(t('business.profile.coverImageUpdated', 'Background image updated'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('business.profile.failedToUploadCoverImage', 'Failed to upload background image'));
+    } finally {
+      setIsUploadingBanner(false);
+      if (bannerInputRef.current) bannerInputRef.current.value = '';
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -170,22 +192,22 @@ const EditProfile = () => {
   const displayName = [form.first_name, form.last_name].filter(Boolean).join(' ') || form.username || email.split('@')[0];
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors duration-200">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate(-1)}
             aria-label={t('kit.common.back')}
-            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white flex-1">{t('kit.editProfile.title')}</h1>
+          <h1 className="text-xl font-display text-[#020b00] dark:text-white flex-1">{t('kit.editProfile.title')}</h1>
           <button
             onClick={handleSave}
             disabled={isSaving || isLoading}
-            className="px-4 min-h-[44px] rounded-xl bg-[#d3da0c] text-black text-sm font-bold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 min-h-[44px] rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm"
           >
             {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
             {t('kit.common.save')}
@@ -194,11 +216,50 @@ const EditProfile = () => {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Avatar */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+        {/* Background Cover & Avatar */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative w-full rounded-3xl overflow-hidden border border-white/10 pt-10 pb-8 px-4 flex flex-col items-center"
+        >
+          {backgroundUrl ? (
+            <img
+              src={backgroundUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : avatar ? (
+            <img
+              src={avatar}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-[#FF2D8F]/10 to-[#020b00]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-[#020b00]" />
+
+          {/* Background Image Upload Button */}
+          <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
           <button
+            type="button"
+            onClick={() => bannerInputRef.current?.click()}
+            disabled={isUploadingBanner}
+            className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md border border-white/15 text-xs font-medium text-white transition-colors disabled:opacity-50"
+          >
+            {isUploadingBanner ? (
+              <Loader2 className="w-3.5 h-3.5 text-[#d3da0c] animate-spin" />
+            ) : (
+              <Camera className="w-3.5 h-3.5 text-[#d3da0c]" />
+            )}
+            <span>{backgroundUrl ? 'Change Background' : 'Add Background'}</span>
+          </button>
+
+          {/* Avatar Upload Button */}
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-[#d3da0c]/50 ring-offset-4 ring-offset-[#0A0A0A]"
+            className="relative z-10 w-24 h-24 rounded-full overflow-hidden ring-2 ring-[#d3da0c]/50 ring-offset-4 ring-offset-[#020b00] shadow-2xl"
             aria-label={t('user.profile.changeAvatar', 'Change avatar')}
           >
             {avatar ? (
@@ -213,7 +274,7 @@ const EditProfile = () => {
                 <Loader2 className="w-6 h-6 text-[#d3da0c] animate-spin" />
               </div>
             )}
-            <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center text-black border-4 border-[#0A0A0A]">
+            <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center text-black border-4 border-[#020b00]">
               <Camera className="w-3.5 h-3.5" />
             </span>
           </button>
@@ -225,64 +286,64 @@ const EditProfile = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl divide-y divide-white/5"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl divide-y divide-black/5 dark:divide-white/5 shadow-xs"
         >
           {isLoading ? (
             <div className="p-6 space-y-4 animate-pulse">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-10 bg-white/5 rounded-xl" />
+                <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-xl" />
               ))}
             </div>
           ) : (
             <>
               {/* Name */}
               <div className="p-4">
-                <label className="block text-xs text-gray-500 mb-1.5">{t('kit.editProfile.firstName')}</label>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">{t('kit.editProfile.firstName')}</label>
                 <input
                   value={form.first_name}
                   onChange={set('first_name')}
-                  className="w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 />
               </div>
               <div className="p-4">
-                <label className="block text-xs text-gray-500 mb-1.5">{t('kit.editProfile.lastName')}</label>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">{t('kit.editProfile.lastName')}</label>
                 <input
                   value={form.last_name}
                   onChange={set('last_name')}
-                  className="w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 />
               </div>
               {/* Nickname */}
               <div className="p-4">
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">
                   <User className="w-3.5 h-3.5" /> {t('kit.editProfile.username')}
                 </label>
                 <input
                   value={form.username}
                   onChange={set('username')}
-                  className="w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 />
               </div>
               {/* Bio */}
               <div className="p-4">
-                <label className="block text-xs text-gray-500 mb-1.5">{t('kit.editProfile.bio')}</label>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">{t('kit.editProfile.bio')}</label>
                 <textarea
                   value={form.bio}
                   onChange={set('bio')}
                   placeholder={t('kit.editProfile.bioPlaceholder')}
                   rows={3}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-[#d3da0c]/60 focus:outline-none resize-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none resize-none"
                 />
               </div>
               {/* Location */}
               <div className="p-4">
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">
                   <MapPin className="w-3.5 h-3.5" /> {t('kit.editProfile.location')}
                 </label>
                 <select
                   value={form.preferred_city}
                   onChange={set('preferred_city')}
-                  className="w-full h-11 px-3 rounded-xl bg-[#0A0A0A] border border-white/10 text-white text-sm capitalize focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm capitalize focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 >
                   <option value="">—</option>
                   {cityOptions.map(city => (
@@ -292,7 +353,7 @@ const EditProfile = () => {
               </div>
               {/* Website */}
               <div className="p-4">
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">
                   <Link2 className="w-3.5 h-3.5" /> {t('kit.editProfile.website')}
                 </label>
                 <input
@@ -300,26 +361,26 @@ const EditProfile = () => {
                   onChange={set('website')}
                   placeholder="https://"
                   inputMode="url"
-                  className="w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 />
               </div>
               {/* Email (read-only) */}
               <div className="p-4">
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">
                   <Mail className="w-3.5 h-3.5" /> {t('kit.editProfile.email')}
                 </label>
                 <div className="flex items-center justify-between gap-3">
                   <input
                     value={email}
                     readOnly
-                    className="flex-1 h-11 px-3 rounded-xl bg-white/5 border border-white/5 text-gray-500 text-sm cursor-not-allowed"
+                    className="flex-1 h-11 px-3 rounded-xl bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/5 text-gray-500 text-sm cursor-not-allowed"
                   />
-                  <span className="text-[10px] text-gray-600 shrink-0">{t('kit.editProfile.emailReadOnly')}</span>
+                  <span className="text-[10px] text-gray-500 shrink-0">{t('kit.editProfile.emailReadOnly')}</span>
                 </div>
               </div>
               {/* Phone */}
               <div className="p-4">
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">
                   <Phone className="w-3.5 h-3.5" /> {t('kit.editProfile.phone')}
                 </label>
                 <input
@@ -327,7 +388,7 @@ const EditProfile = () => {
                   onChange={set('phone')}
                   placeholder="+86 "
                   inputMode="tel"
-                  className="w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-[#d3da0c]/60 focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-[#020b00] dark:focus:border-[#d3da0c]/60 focus:outline-none"
                 />
               </div>
             </>
@@ -339,15 +400,15 @@ const EditProfile = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl p-4"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs"
         >
-          <h2 className="text-sm font-semibold text-white mb-3">{t('kit.security.linkedAccounts')}</h2>
+          <h2 className="text-sm font-semibold text-[#020b00] dark:text-white mb-3">{t('kit.security.linkedAccounts')}</h2>
           <div className="flex items-center gap-3 py-1">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-white">G</span>
+            <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-transparent flex items-center justify-center shrink-0">
+              <span className="text-lg font-bold text-[#020b00] dark:text-white">G</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">{t('kit.security.linkedGoogle')}</p>
+              <p className="text-sm font-medium text-[#020b00] dark:text-white">{t('kit.security.linkedGoogle')}</p>
               <p className="text-xs text-gray-500">{t('kit.security.linkedGoogleDesc')}</p>
             </div>
             {linkedAccounts.google ? (

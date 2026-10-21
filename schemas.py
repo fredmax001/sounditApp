@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Any
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 from datetime import datetime
 from enum import Enum
 from models import EventStatus, TicketStatus, PaymentStatus, PaymentMethod
@@ -177,6 +176,11 @@ class UserResponse(UserBase):
     business_profile: Optional["BusinessProfileResponse"] = None
     vendor_profile: Optional["VendorProfileResponse"] = None
     
+    staff_id: Optional[int] = None
+    staff_role: Optional[str] = None
+    staff_permissions: Optional[Dict[str, Any]] = None
+    business_name: Optional[str] = None
+    
     class Config:
         from_attributes = True
 
@@ -271,18 +275,29 @@ class RoleSelectionResponse(BaseModel):
 
 class SimpleUserResponse(BaseModel):
     """Simplified user response without strict email validation"""
-    model_config = {"arbitrary_types_allowed": True}
+    model_config = {"arbitrary_types_allowed": True, "extra": "allow"}
     
     id: int
     email: Optional[Any] = None
     phone: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    username: Optional[str] = None
     avatar_url: Optional[str] = None
+    background_url: Optional[str] = None
+    bio: Optional[str] = None
+    instagram: Optional[str] = None
+    twitter: Optional[str] = None
+    website: Optional[str] = None
+    preferred_city: Optional[str] = None
+    preferred_language: Optional[str] = None
+    foreigner_mode: Optional[bool] = None
     role: str
     status: str
     is_verified: bool
     created_at: Any
+    followers_count: Optional[int] = 0
+    following_count: Optional[int] = 0
     
     @field_validator('email', mode='before')
     @classmethod
@@ -292,6 +307,7 @@ class SimpleUserResponse(BaseModel):
 class SignupRedirectResponse(BaseModel):
     """Response after successful signup with redirect URL"""
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
     user: SimpleUserResponse
     redirect_url: str

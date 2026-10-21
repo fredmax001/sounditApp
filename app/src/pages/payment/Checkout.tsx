@@ -129,7 +129,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
+    <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="py-6">

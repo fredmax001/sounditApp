@@ -13,7 +13,7 @@ export default function AssistantPage() {
   }, [setOpen]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 pb-24 px-4">
+    <div className="min-h-screen bg-[#020b00] pt-20 pb-24 px-4">
       <div className="max-w-2xl mx-auto text-center">
         <div className="w-20 h-20 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <Sparkles className="w-10 h-10 text-[#d3da0c]" />

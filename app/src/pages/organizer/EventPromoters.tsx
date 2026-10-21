@@ -229,7 +229,7 @@ export default function EventPromoters() {
   const getPromoterShareUrl = (code: string) => `${WEB_ORIGIN}/events/${eventId}?ref=${code}`;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-16 lg:pt-20">
+    <div className="min-h-screen bg-[#020b00] pt-16 lg:pt-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

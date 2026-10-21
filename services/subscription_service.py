@@ -219,27 +219,41 @@ class SubscriptionService:
     
     @staticmethod
     def create_subscription(db: Session, user_id: int, plan_type: SubscriptionPlan,
-                           role: UserRole, payment_method: str = None):
-        # Prefer the admin-configured DB price; fall back to the hardcoded matrix
+                           role: UserRole, payment_method: str = None,
+                           billing_period: str = "monthly"):
+        # Prefer the admin-configured DB price for the requested billing period;
+        # fall back to monthly config, then to the hardcoded matrix.
         price = None
+        duration_days = None
         try:
             from models import SubscriptionPlanConfig
             cfg = db.query(SubscriptionPlanConfig).filter(
                 SubscriptionPlanConfig.role == role,
                 SubscriptionPlanConfig.plan_type == plan_type,
+                SubscriptionPlanConfig.billing_period == billing_period,
                 SubscriptionPlanConfig.is_active == True
             ).first()
+            if not cfg and billing_period != "monthly":
+                cfg = db.query(SubscriptionPlanConfig).filter(
+                    SubscriptionPlanConfig.role == role,
+                    SubscriptionPlanConfig.plan_type == plan_type,
+                    SubscriptionPlanConfig.is_active == True
+                ).first()
             if cfg:
                 price = cfg.price
+                duration_days = cfg.duration_days
         except Exception:
             price = None
         if price is None:
             price = get_plan_price(role.value, plan_type.value)
+        if duration_days is None:
+            duration_days = 365 if billing_period == "yearly" else 30
 
         subscription = Subscription(
             user_id=user_id,
             role=role,
             plan_type=plan_type,
+            billing_period=billing_period,
             price=price,
             status=SubscriptionStatus.PENDING,
             payment_method=payment_method
@@ -270,13 +284,22 @@ class SubscriptionService:
         
         now = datetime.now(timezone.utc)
         
-        # Get plan config for duration
-        plan_config = db.query(SubscriptionPlanConfig).filter(
-            SubscriptionPlanConfig.role == subscription.role,
-            SubscriptionPlanConfig.plan_type == subscription.plan_type,
-            SubscriptionPlanConfig.is_active == True
-        ).first()
-        duration_days = plan_config.duration_days if plan_config else 30
+        # Lifetime subscriptions (admin-granted) never expire
+        period = subscription.billing_period or "monthly"
+        if period == "lifetime":
+            duration_days = 36500
+        else:
+            # Match duration to the billing period purchased (default monthly)
+            plan_config = db.query(SubscriptionPlanConfig).filter(
+                SubscriptionPlanConfig.role == subscription.role,
+                SubscriptionPlanConfig.plan_type == subscription.plan_type,
+                SubscriptionPlanConfig.billing_period == period,
+                SubscriptionPlanConfig.is_active == True
+            ).first()
+            if plan_config:
+                duration_days = plan_config.duration_days
+            else:
+                duration_days = 365 if period == "yearly" else 30
         
         subscription.status = SubscriptionStatus.ACTIVE
         subscription.start_date = now

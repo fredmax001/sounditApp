@@ -12,8 +12,9 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3, Sparkles
+  BarChart3, Sparkles, Sun, Moon
 } from 'lucide-react';
+import { useThemeStore } from '@/store/themeStore';
 
 // Grouped sidebar menu structure - each item has a permission key
 const menuGroups = [
@@ -145,9 +146,11 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
 
   const activeItem = allMenuItems.find(m => isActiveRoute(m.path));
 
+  const { isDark, toggleTheme } = useThemeStore();
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-500 text-sm">Loading admin panel…</p>
@@ -157,7 +160,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex">
       {/* Mobile Overlay */}
       <AnimatePresence>
         {isMobile && isSidebarOpen && (
@@ -179,10 +182,10 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           x: isMobile && !isSidebarOpen ? -260 : 0
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={`fixed lg:static inset-y-0 left-0 bg-[#111111] border-r border-white/[0.06] z-50 flex flex-col overflow-hidden`}
+        className={`fixed lg:static inset-y-0 left-0 bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/[0.06] z-50 flex flex-col overflow-hidden shadow-xs dark:shadow-none`}
       >
         {/* Logo */}
-        <div className="h-[64px] flex items-center px-4 border-b border-white/[0.06] shrink-0">
+        <div className="h-[64px] flex items-center px-4 border-b border-black/8 dark:border-white/[0.06] shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 bg-[#d3da0c] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#d3da0c]/20">
               <Zap className="w-5 h-5 text-black" fill="black" />
@@ -195,7 +198,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                   exit={{ opacity: 0, x: -8 }}
                   className="overflow-hidden min-w-0"
                 >
-                  <h1 className="text-white font-bold text-base leading-tight whitespace-nowrap">Sound It</h1>
+                  <h1 className="text-[#020b00] dark:text-white font-bold text-base leading-tight whitespace-nowrap">Sound It</h1>
                   <p className="text-[#d3da0c] text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap">Admin Panel</p>
                 </motion.div>
               )}
@@ -223,10 +226,10 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                       onClick={() => toggleGroup(group.label)}
                       className="w-full flex items-center justify-between px-3 py-1.5 mb-0.5 group"
                     >
-                      <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${hasActiveItem ? 'text-[#d3da0c]' : 'text-gray-600 group-hover:text-gray-400'}`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${hasActiveItem ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-gray-500 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-gray-400'}`}>
                         {group.label}
                       </span>
-                      <ChevronDown className={`w-3 h-3 text-gray-600 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                      <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-gray-600 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
                     </button>
                   )}
                   {!isSidebarOpen && <div className="h-2" />}
@@ -260,26 +263,26 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                                 }}
                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all relative group ${
                                   isActive
-                                    ? 'bg-[#d3da0c]/10 text-[#d3da0c]'
-                                    : 'text-gray-500 hover:text-white hover:bg-white/[0.04]'
+                                    ? 'bg-black/5 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] font-semibold'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.04]'
                                 }`}
                                 title={!isSidebarOpen ? item.label : undefined}
                               >
                                 {isActive && (
                                   <motion.div
                                     layoutId="activeBar"
-                                    className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#d3da0c] rounded-full"
+                                    className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#020b00] dark:bg-[#d3da0c] rounded-full"
                                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                                   />
                                 )}
-                                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#d3da0c]' : ''}`} />
+                                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#020b00] dark:text-[#d3da0c]' : ''}`} />
                                 <AnimatePresence>
                                   {isSidebarOpen && (
                                     <motion.span
                                       initial={{ opacity: 0 }}
                                       animate={{ opacity: 1 }}
                                       exit={{ opacity: 0 }}
-                                      className="text-sm font-medium whitespace-nowrap overflow-hidden"
+                                      className="text-sm whitespace-nowrap overflow-hidden"
                                     >
                                       {item.label}
                                     </motion.span>
@@ -297,7 +300,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
         </nav>
 
         {/* User Info & Logout */}
-        <div className="border-t border-white/[0.06] p-3 space-y-1 shrink-0">
+        <div className="border-t border-black/8 dark:border-white/[0.06] p-3 space-y-1 shrink-0">
           <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${isSidebarOpen ? '' : 'justify-center'}`}>
             <div className="w-8 h-8 bg-gradient-to-br from-[#d3da0c] to-[#a8b009] rounded-full flex items-center justify-center text-black font-bold text-sm shrink-0">
               {profile?.first_name?.[0] || profile?.email?.[0] || 'A'}
@@ -310,10 +313,10 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                   exit={{ opacity: 0 }}
                   className="overflow-hidden min-w-0"
                 >
-                  <p className="text-white text-sm font-medium whitespace-nowrap truncate">
+                  <p className="text-[#020b00] dark:text-white text-sm font-medium whitespace-nowrap truncate">
                     {profile?.first_name} {profile?.last_name}
                   </p>
-                  <p className="text-[#d3da0c] text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
+                  <p className="text-gray-500 dark:text-[#d3da0c] text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
                     {profile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                   </p>
                 </motion.div>
@@ -323,7 +326,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
 
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all ${!isSidebarOpen ? 'justify-center' : ''}`}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all ${!isSidebarOpen ? 'justify-center' : ''}`}
             title={!isSidebarOpen ? 'Logout' : undefined}
           >
             <LogOut className="w-4 h-4 shrink-0" />
@@ -346,36 +349,45 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-[64px] bg-[#111111]/80 backdrop-blur-md border-b border-white/[0.06] flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+        <header className="h-[64px] bg-white/90 dark:bg-[#111111]/80 backdrop-blur-md border-b border-black/8 dark:border-white/[0.06] flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all"
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {/* Breadcrumb */}
             <div className="hidden md:flex items-center gap-1.5 text-sm">
-              <span className="text-gray-600">Admin</span>
-              <ChevronRight className="w-3 h-3 text-gray-700" />
-              <span className="text-white font-medium">{activeItem?.label || 'Dashboard'}</span>
+              <span className="text-gray-500 dark:text-gray-400">Admin</span>
+              <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+              <span className="text-[#020b00] dark:text-white font-medium">{activeItem?.label || 'Dashboard'}</span>
             </div>
           </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
             {/* Live Clock */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/[0.04] rounded-lg border border-white/[0.06]">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-gray-400 text-xs font-mono">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-black/5 dark:bg-white/[0.04] rounded-lg border border-black/8 dark:border-white/[0.06]">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-gray-600 dark:text-gray-400 text-xs font-mono">
                 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
 
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all"
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDark ? <Sun className="w-4 h-4 text-[#d3da0c]" /> : <Moon className="w-4 h-4 text-[#020b00]" />}
+            </button>
+
             <button
               onClick={() => navigate('/admin/notifications')}
-              className="relative p-2 text-gray-500 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all"
+              className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
@@ -383,19 +395,19 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
 
             <button
               onClick={() => navigate('/admin/settings')}
-              className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all"
             >
               <Settings className="w-4 h-4" />
             </button>
 
             {myRoleInfo.role_name && (
-              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-[#d3da0c]/10 text-[#d3da0c] rounded-full border border-[#d3da0c]/20 text-xs font-semibold">
-                <Shield className="w-3 h-3" />
+              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] rounded-full border border-[#d3da0c]/30 text-xs font-semibold">
+                <Shield className="w-3 h-3 text-[#d3da0c]" />
                 <span>{myRoleInfo.role_name}</span>
               </div>
             )}
 
-            <div className="w-8 h-8 bg-gradient-to-br from-[#d3da0c] to-[#a8b009] rounded-full flex items-center justify-center text-black font-bold text-sm cursor-default">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#d3da0c] to-[#a8b009] rounded-full flex items-center justify-center text-black font-bold text-sm cursor-default shadow-xs">
               {profile?.first_name?.[0] || 'A'}
             </div>
           </div>

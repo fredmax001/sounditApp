@@ -182,17 +182,23 @@ const RolePermissions = () => {
   };
 
   const handleDeleteRole = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
+    const targetRole = adminRoles.find(r => r.id === id);
+    const confirmMsg = targetRole && targetRole.user_count > 0
+      ? `Are you sure you want to delete the "${targetRole.name}" role? This will also unassign ${targetRole.user_count} user(s) from this role.`
+      : 'Are you sure you want to delete this role?';
+    if (!confirm(confirmMsg)) return;
     setActionLoading(`delete-${id}`);
     try {
       await deleteAdminRole(session?.access_token || '', id);
-      toast.success('Role deleted');
+      toast.success('Role deleted successfully');
       if (selectedRoleId === id) {
         setSelectedRoleId(null);
         setIsEditing(false);
       }
+      await loadAdmins();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to delete role';
+      const errData = (err as { response?: { data?: { detail?: string; error?: { message?: string } } } })?.response?.data;
+      const msg = errData?.error?.message || errData?.detail || 'Failed to delete role';
       toast.error(msg);
     } finally {
       setActionLoading(null);
@@ -200,13 +206,16 @@ const RolePermissions = () => {
   };
 
   const handleAssignRole = async (userId: number, roleId: number | null) => {
+    if (roleId === -1 && !confirm('Revoke admin access for this user?')) return;
     setActionLoading(`assign-${userId}`);
     try {
       await assignAdminRole(session?.access_token || '', String(userId), roleId);
-      toast.success(roleId ? 'Role assigned' : 'Role unassigned');
+      toast.success(roleId === -1 ? 'Admin access revoked' : roleId ? 'Role assigned' : 'Role unassigned');
       await loadAdmins();
+      await fetchAdminRoles(session?.access_token || '');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to assign role';
+      const errData = (err as { response?: { data?: { detail?: string; error?: { message?: string } } } })?.response?.data;
+      const msg = errData?.error?.message || errData?.detail || 'Failed to assign role';
       toast.error(msg);
     } finally {
       setActionLoading(null);
@@ -254,17 +263,17 @@ const RolePermissions = () => {
           const catPerms = groupedPermissions.filter(p => p.category === category);
           const isExpanded = expandedCategories[category] !== false;
           return (
-            <div key={category} className="border border-white/10 rounded-lg overflow-hidden">
+            <div key={category} className="border border-black/10 dark:border-white/10 rounded-lg overflow-hidden">
               <button
                 type="button"
                 onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !isExpanded }))}
-                className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/[0.07] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-2 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200/70 dark:hover:bg-white/[0.07] transition-colors"
               >
-                <span className={`text-xs font-bold uppercase tracking-wider ${CATEGORY_COLORS[category] || 'text-gray-400'}`}>{category}</span>
+                <span className={`text-xs font-bold uppercase tracking-wider ${CATEGORY_COLORS[category] || 'text-gray-600 dark:text-gray-400'}`}>{category}</span>
                 {isExpanded ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
               </button>
               {isExpanded && (
-                <div className="p-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="p-3 grid grid-cols-2 md:grid-cols-3 gap-2 bg-white dark:bg-[#111111]">
                   {catPerms.map(perm => {
                     const has = target.permissions.includes(perm.key);
                     return (
@@ -273,10 +282,10 @@ const RolePermissions = () => {
                         type="button"
                         onClick={() => handleTogglePermission(perm.key, formType)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs transition-colors ${
-                          has ? 'border-[#d3da0c]/30 bg-[#d3da0c]/5 text-white' : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/[0.07]'
+                          has ? 'border-[#d3da0c]/40 bg-[#d3da0c]/10 text-[#020b00] dark:text-white font-medium' : 'border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-gray-700 dark:text-gray-400 hover:bg-neutral-100 dark:hover:bg-white/[0.07]'
                         }`}
                       >
-                        {has ? <Check className="w-3 h-3 text-[#d3da0c] shrink-0" /> : <div className="w-3 h-3 rounded-sm border border-gray-600 shrink-0" />}
+                        {has ? <Check className="w-3 h-3 text-[#d3da0c] shrink-0" /> : <div className="w-3 h-3 rounded-sm border border-gray-400 dark:border-gray-600 shrink-0" />}
                         {perm.label}
                       </button>
                     );
@@ -303,21 +312,21 @@ const RolePermissions = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Roles & Permissions</h1>
-          <p className="text-gray-400 mt-1">Create custom roles, assign permissions, and invite role managers</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">Admin Roles & Permissions</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Create custom roles, assign permissions, and invite role managers</p>
         </div>
         {isSuperAdmin() && (
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-4 py-2 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2 border border-white/10"
+              className="px-4 py-2 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white font-semibold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors flex items-center gap-2 border border-black/10 dark:border-white/10"
             >
               <Mail className="w-4 h-4 text-[#d3da0c]" />
               Invite Admin
             </button>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-black/80 dark:hover:bg-white transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Create Role
@@ -327,20 +336,20 @@ const RolePermissions = () => {
       </div>
 
       {/* Current Admins */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none">
+        <h2 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
           <Crown className="w-5 h-5 text-[#d3da0c]" />
           Platform Administrators
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {admins.map((admin) => (
-            <div key={admin.id} className="p-4 bg-white/5 rounded-xl flex items-center justify-between">
+            <div key={admin.id} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 bg-gradient-to-br from-[#d3da0c] to-green-500 rounded-full flex items-center justify-center text-black font-bold shrink-0">
                   {(admin.first_name || admin.last_name || 'A')[0]}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-white font-medium truncate">{`${admin.first_name || ''} ${admin.last_name || ''}`.trim() || 'Unknown'}</p>
+                  <p className="text-[#020b00] dark:text-white font-medium truncate">{`${admin.first_name || ''} ${admin.last_name || ''}`.trim() || 'Unknown'}</p>
                   <p className="text-gray-500 text-xs truncate">{admin.email}</p>
                   <span className="text-[#d3da0c] text-xs">{admin.role}</span>
                 </div>
@@ -350,12 +359,13 @@ const RolePermissions = () => {
                   value={admin.admin_role_id || ''}
                   onChange={(e) => handleAssignRole(admin.id, e.target.value ? parseInt(e.target.value) : null)}
                   disabled={actionLoading === `assign-${admin.id}`}
-                  className="ml-2 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-[#d3da0c] focus:outline-none disabled:opacity-50 shrink-0"
+                  className="ml-2 px-2 py-1 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded text-xs text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none disabled:opacity-50 shrink-0"
                 >
                   <option value="">Full Admin</option>
                   {adminRoles.filter(r => !r.is_system).map(r => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
+                  <option value="-1" className="text-red-500">Remove Admin Access</option>
                 </select>
               )}
             </div>
@@ -366,51 +376,56 @@ const RolePermissions = () => {
       {/* Roles Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Role List */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4 space-y-2">
-          <h3 className="text-white font-semibold mb-3">Roles</h3>
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 space-y-2 shadow-xs dark:shadow-none">
+          <h3 className="text-[#020b00] dark:text-white font-semibold mb-3">Roles</h3>
           {adminRoles.map(role => (
-            <button
+            <div
               key={role.id}
               onClick={() => handleSelectRole(role.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors ${
-                selectedRoleId === role.id ? 'bg-[#d3da0c]/10 border border-[#d3da0c]/20' : 'bg-white/5 border border-transparent hover:bg-white/[0.07]'
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectRole(role.id); }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors cursor-pointer ${
+                selectedRoleId === role.id ? 'bg-[#d3da0c]/15 border border-[#d3da0c]/30 text-[#020b00] dark:text-white' : 'bg-neutral-50 dark:bg-white/5 border border-transparent hover:bg-neutral-100 dark:hover:bg-white/[0.07]'
               }`}
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-white font-medium text-sm">{role.name}</p>
+                  <p className="text-[#020b00] dark:text-white font-medium text-sm">{role.name}</p>
                   {role.is_system && (
-                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] font-bold uppercase rounded">System</span>
+                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase rounded">System</span>
                   )}
                 </div>
                 <p className="text-gray-500 text-xs">{role.user_count} user{role.user_count !== 1 ? 's' : ''}</p>
               </div>
               {!role.is_system && isSuperAdmin() && (
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); handleDeleteRole(role.id); }}
                   disabled={actionLoading === `delete-${role.id}`}
-                  className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
+                  title={`Delete ${role.name}`}
+                  className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                 >
-                  {actionLoading === `delete-${role.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  {actionLoading === `delete-${role.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                 </button>
               )}
-            </button>
+            </div>
           ))}
         </div>
 
         {/* Role Editor */}
-        <div className="lg:col-span-2 bg-[#111111] border border-white/10 rounded-xl p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none">
           {selectedRole ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${
-                    selectedRole.is_system ? 'bg-purple-500/10 text-purple-400' : 'bg-[#d3da0c]/10 text-[#d3da0c]'
+                    selectedRole.is_system ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : 'bg-[#d3da0c]/10 text-[#d3da0c]'
                   }`}>
                     {selectedRole.is_system ? <Crown className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">{selectedRole.name}</h3>
+                    <h3 className="text-[#020b00] dark:text-white font-semibold">{selectedRole.name}</h3>
                     <p className="text-gray-500 text-xs">{selectedRole.description || 'No description'}</p>
                   </div>
                 </div>
@@ -420,26 +435,36 @@ const RolePermissions = () => {
                       <>
                         <button
                           onClick={() => { setIsEditing(false); handleSelectRole(selectedRole.id); }}
-                          className="px-3 py-1.5 border border-white/10 text-gray-400 rounded-lg text-xs hover:bg-white/5"
+                          className="px-3 py-1.5 border border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 rounded-lg text-xs hover:bg-neutral-100 dark:hover:bg-white/5"
                         >
                           Cancel
                         </button>
                         <button
                           onClick={handleSaveRole}
                           disabled={actionLoading === 'save-role'}
-                          className="px-3 py-1.5 bg-[#d3da0c] text-black font-bold rounded-lg text-xs hover:bg-white disabled:opacity-50 flex items-center gap-1"
+                          className="px-3 py-1.5 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg text-xs hover:bg-black/80 dark:hover:bg-white disabled:opacity-50 flex items-center gap-1"
                         >
                           {actionLoading === 'save-role' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                           Save
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-3 py-1.5 bg-white/5 border border-white/10 text-white rounded-lg text-xs hover:bg-white/10"
-                      >
-                        Edit
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="px-3 py-1.5 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg text-xs hover:bg-neutral-200 dark:hover:bg-white/10"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRole(selectedRole.id)}
+                          disabled={actionLoading === `delete-${selectedRole.id}`}
+                          className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 rounded-lg text-xs hover:bg-red-500/20 disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {actionLoading === `delete-${selectedRole.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          Delete
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -448,36 +473,36 @@ const RolePermissions = () => {
               {isEditing && !selectedRole.is_system ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Role Name</label>
+                    <label className="block text-gray-700 dark:text-gray-400 text-sm mb-1">Role Name</label>
                     <input
                       type="text"
                       value={editForm.name}
                       onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Description</label>
+                    <label className="block text-gray-700 dark:text-gray-400 text-sm mb-1">Description</label>
                     <textarea
                       value={editForm.description}
                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                       rows={2}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none resize-none"
+                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none resize-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Permissions</label>
+                    <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">Permissions</label>
                     {renderPermissionToggles('edit')}
                   </div>
                 </div>
               ) : (
                 <div>
-                  <p className="text-gray-400 text-sm mb-3">Permissions ({selectedRole.permissions?.length || 0})</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">Permissions ({selectedRole.permissions?.length || 0})</p>
                   <div className="flex flex-wrap gap-2">
                     {(selectedRole.permissions || []).map(perm => {
                       const def = groupedPermissions.find(p => p.key === perm);
                       return (
-                        <span key={perm} className="px-2.5 py-1 bg-[#d3da0c]/10 text-[#d3da0c] text-xs font-medium rounded-lg border border-[#d3da0c]/20">
+                        <span key={perm} className="px-2.5 py-1 bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] text-xs font-medium rounded-lg border border-[#d3da0c]/30">
                           {def?.label || perm}
                         </span>
                       );
@@ -488,7 +513,7 @@ const RolePermissions = () => {
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              <Shield className="w-10 h-10 mx-auto mb-3 text-gray-700" />
+              <Shield className="w-10 h-10 mx-auto mb-3 text-gray-400 dark:text-gray-700" />
               <p>Select a role to view or edit its permissions</p>
             </div>
           )}
@@ -497,36 +522,36 @@ const RolePermissions = () => {
 
       {/* Create Role Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-white mb-4">Create New Role</h2>
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">Create New Role</h2>
             <form onSubmit={handleCreateRole} className="space-y-4">
               <div>
-                <label className="block text-gray-400 text-sm mb-1">Role Name *</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-1">Role Name *</label>
                 <input
                   type="text"
                   value={createForm.name}
                   onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-1">Description</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-1">Description</label>
                 <textarea
                   value={createForm.description}
                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none resize-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none resize-none"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Permissions</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">Permissions</label>
                 {renderPermissionToggles('create')}
               </div>
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <p className="text-yellow-400 text-xs">
+                <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p className="text-yellow-700 dark:text-yellow-400 text-xs">
                   New roles will restrict admins to only the selected permissions. Dashboard is always included.
                 </p>
               </div>
@@ -534,14 +559,14 @@ const RolePermissions = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 border border-white/10 text-white rounded-lg hover:bg-white/5"
+                  className="px-4 py-2 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === 'create-role'}
-                  className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-black/80 dark:hover:bg-white disabled:opacity-50 flex items-center gap-2"
                 >
                   {actionLoading === 'create-role' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Create Role
@@ -554,21 +579,21 @@ const RolePermissions = () => {
 
       {/* Invite Admin Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-[#d3da0c]/10 text-[#d3da0c] rounded-lg">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Invite Role Manager</h2>
-                  <p className="text-gray-400 text-xs">Send an invite link with dedicated dashboard access</p>
+                  <h2 className="text-lg font-bold text-[#020b00] dark:text-white">Invite Role Manager</h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs">Send an invite link with dedicated dashboard access</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-black dark:hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -576,46 +601,46 @@ const RolePermissions = () => {
 
             <form onSubmit={handleInviteUser} className="space-y-4">
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Email Address *</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-xs mb-1">Email Address *</label>
                 <input
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                   placeholder="manager@example.com"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1">First Name</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-xs mb-1">First Name</label>
                   <input
                     type="text"
                     value={inviteForm.first_name}
                     onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
                     placeholder="First name"
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1">Last Name</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-xs mb-1">Last Name</label>
                   <input
                     type="text"
                     value={inviteForm.last_name}
                     onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
                     placeholder="Last name"
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Assign Role *</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-xs mb-1">Assign Role *</label>
                 <select
                   value={inviteForm.role_id || ''}
                   onChange={(e) => setInviteForm({ ...inviteForm, role_id: Number(e.target.value) })}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   required
                 >
                   <option value="" disabled>Select a role...</option>
@@ -630,18 +655,18 @@ const RolePermissions = () => {
                 </p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+              <div className="flex justify-end gap-3 pt-3 border-t border-black/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="px-4 py-2 border border-white/10 text-white rounded-lg text-sm hover:bg-white/5"
+                  className="px-4 py-2 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-lg text-sm hover:bg-neutral-100 dark:hover:bg-white/5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === 'invite-admin'}
-                  className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg text-sm hover:bg-white disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg text-sm hover:bg-black/80 dark:hover:bg-white disabled:opacity-50 flex items-center gap-2"
                 >
                   {actionLoading === 'invite-admin' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
                   Send Invitation

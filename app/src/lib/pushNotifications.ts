@@ -27,6 +27,13 @@ class PushNotificationManager {
       this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
       console.log('[Push] Service Worker registered');
 
+      // Proactively check for service worker / PWA updates
+      try {
+        await this.swRegistration.update();
+      } catch (err) {
+        // Ignore offline or update error
+      }
+
       // Check for existing subscription
       this.subscription = await this.swRegistration.pushManager.getSubscription();
 

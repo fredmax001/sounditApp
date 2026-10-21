@@ -102,10 +102,10 @@ const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
-      {label && <p className="text-gray-400 text-xs mb-1">{label}</p>}
+    <div className="bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 shadow-xl">
+      {label && <p className="text-gray-600 dark:text-gray-400 text-xs mb-1">{label}</p>}
       {payload.map((p: any, i: number) => (
-        <p key={i} className="text-white text-xs font-medium" style={{ color: p.color }}>
+        <p key={i} className="text-[#020b00] dark:text-white text-xs font-medium" style={{ color: p.color }}>
           {p.name}: {typeof p.value === 'number' ? p.value.toLocaleString() : p.value}
         </p>
       ))}
@@ -187,7 +187,7 @@ export default function BusinessAnalytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -215,12 +215,12 @@ export default function BusinessAnalytics() {
             { label: 'Live Events', value: realtime.live_events, icon: Calendar },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className="bg-[#111111] border border-white/5 rounded-xl p-3">
+              className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-3 shadow-xs dark:shadow-none">
               <div className="flex items-center gap-2 mb-1">
                 <s.icon className="w-3.5 h-3.5 text-[#d3da0c]" />
-                <span className="text-gray-500 text-[10px]">{s.label}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-[10px]">{s.label}</span>
               </div>
-              <p className="text-white font-bold text-sm lg:text-base">{s.value}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-sm lg:text-base">{s.value}</p>
             </motion.div>
           ))}
         </div>
@@ -230,24 +230,24 @@ export default function BusinessAnalytics() {
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         {statCards.map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="bg-[#111111] border border-white/5 rounded-xl p-4">
+            className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs dark:shadow-none">
             <div className="flex items-center justify-between mb-3">
-              <div className="w-9 h-9 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
                 <s.icon className="w-4 h-4 text-[#d3da0c]" />
               </div>
-              {s.up ? <ArrowUpRight className="w-4 h-4 text-green-400" /> : <ArrowDownRight className="w-4 h-4 text-red-400" />}
+              {s.up ? <ArrowUpRight className="w-4 h-4 text-green-500 dark:text-green-400" /> : <ArrowDownRight className="w-4 h-4 text-red-500 dark:text-red-400" />}
             </div>
-            <p className="text-gray-400 text-xs">{s.label}</p>
-            <p className="text-white font-bold text-lg">{s.value}</p>
-            <p className="text-gray-500 text-[10px]">{s.sub}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-xs">{s.label}</p>
+            <p className="text-[#020b00] dark:text-white font-bold text-lg">{s.value}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-[10px]">{s.sub}</p>
           </motion.div>
         ))}
       </div>
 
       {/* Daily Sales Chart */}
       {sales && sales.daily_sales.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-          <h3 className="text-white font-bold mb-4">Daily Revenue & Tickets</h3>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+          <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Daily Revenue & Tickets</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sales.daily_sales}>
@@ -257,12 +257,12 @@ export default function BusinessAnalytics() {
                     <stop offset="95%" stopColor="#d3da0c" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="date" tick={{ fill: '#666', fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
-                <YAxis yAxisId="left" tick={{ fill: '#666', fontSize: 11 }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#666', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#88888820" />
+                <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
+                <YAxis yAxisId="left" tick={{ fill: '#888', fontSize: 11 }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#888', fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: 12, color: '#999' }} />
+                <Legend wrapperStyle={{ fontSize: 12, color: '#888' }} />
                 <Area yAxisId="left" type="monotone" dataKey="revenue" name="Revenue (¥)" stroke="#d3da0c" fill="url(#revGrad)" strokeWidth={2} />
                 <Area yAxisId="right" type="monotone" dataKey="tickets" name="Tickets" stroke="#8b5cf6" fill="none" strokeWidth={2} />
               </AreaChart>
@@ -281,14 +281,14 @@ export default function BusinessAnalytics() {
         <>
           {/* Daily Sales Bar Chart */}
           {sales.daily_sales.length > 0 ? (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-              <h3 className="text-white font-bold mb-4">Daily Sales</h3>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+              <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Daily Sales</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sales.daily_sales}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                    <XAxis dataKey="date" tick={{ fill: '#666', fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
-                    <YAxis tick={{ fill: '#666', fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#88888820" />
+                    <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
+                    <YAxis tick={{ fill: '#888', fontSize: 11 }} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <Bar dataKey="revenue" name="Revenue (¥)" fill="#d3da0c" radius={[4, 4, 0, 0]} />
@@ -298,17 +298,17 @@ export default function BusinessAnalytics() {
               </div>
             </motion.div>
           ) : (
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center">
-              <BarChart3 className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500">No sales in this period</p>
+            <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-8 text-center shadow-xs dark:shadow-none">
+              <BarChart3 className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No sales in this period</p>
             </div>
           )}
 
           {/* Tier Revenue & Status Breakdown */}
           <div className="grid lg:grid-cols-2 gap-4">
             {sales.tier_revenue.length > 0 ? (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-                <h3 className="text-white font-bold mb-4">Revenue by Ticket Tier</h3>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Revenue by Ticket Tier</h3>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -321,15 +321,15 @@ export default function BusinessAnalytics() {
                 </div>
               </motion.div>
             ) : (
-              <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center">
-                <PieChartIcon className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500">No tier data</p>
+              <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-8 text-center shadow-xs dark:shadow-none">
+                <PieChartIcon className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No tier data</p>
               </div>
             )}
 
             {sales.status_breakdown.length > 0 ? (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-                <h3 className="text-white font-bold mb-4">Orders by Status</h3>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Orders by Status</h3>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -342,9 +342,9 @@ export default function BusinessAnalytics() {
                 </div>
               </motion.div>
             ) : (
-              <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center">
-                <PieChartIcon className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500">No order status data</p>
+              <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-8 text-center shadow-xs dark:shadow-none">
+                <PieChartIcon className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No order status data</p>
               </div>
             )}
           </div>
@@ -356,14 +356,14 @@ export default function BusinessAnalytics() {
   const renderEvents = () => (
     <div className="space-y-6">
       {eventsPerf.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl overflow-hidden">
-          <div className="p-4 lg:p-6 border-b border-white/5">
-            <h3 className="text-white font-bold">Event Performance</h3>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl shadow-xs dark:shadow-none overflow-hidden">
+          <div className="p-4 lg:p-6 border-b border-black/5 dark:border-white/5">
+            <h3 className="text-[#020b00] dark:text-white font-bold">Event Performance</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-gray-500 text-[10px] uppercase border-b border-white/5">
+                <tr className="text-gray-500 dark:text-gray-400 text-[10px] uppercase border-b border-black/5 dark:border-white/5">
                   <th className="py-3 px-4">Event</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Views</th>
@@ -376,32 +376,32 @@ export default function BusinessAnalytics() {
               </thead>
               <tbody>
                 {eventsPerf.map((ev) => (
-                  <tr key={ev.id} className="border-b border-white/5 text-xs hover:bg-white/5">
+                  <tr key={ev.id} className="border-b border-black/5 dark:border-white/5 text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                     <td className="py-3 px-4">
-                      <p className="text-white font-medium truncate max-w-[120px] lg:max-w-[200px]">{ev.title}</p>
-                      <p className="text-gray-500 text-[10px]">{ev.start_date ? new Date(ev.start_date).toLocaleDateString() : ''}</p>
+                      <p className="text-[#020b00] dark:text-white font-medium truncate max-w-[120px] lg:max-w-[200px]">{ev.title}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-[10px]">{ev.start_date ? new Date(ev.start_date).toLocaleDateString() : ''}</p>
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        ev.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                        ev.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                        ev.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                        'bg-gray-500/20 text-gray-400'
+                        ev.status === 'approved' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                        ev.status === 'pending' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
+                        ev.status === 'rejected' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
+                        'bg-gray-500/20 text-gray-600 dark:text-gray-400'
                       }`}>{ev.status}</span>
                     </td>
-                    <td className="py-3 px-4 text-right text-gray-400">{ev.views.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-white">{ev.tickets_sold}</td>
-                    <td className="py-3 px-4 text-right text-gray-400">{ev.capacity || '-'}</td>
+                    <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">{ev.views.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-[#020b00] dark:text-white font-medium">{ev.tickets_sold}</td>
+                    <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">{ev.capacity || '-'}</td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="w-16 h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
                           <div className="h-full bg-[#d3da0c] rounded-full" style={{ width: `${Math.min(ev.fill_rate, 100)}%` }} />
                         </div>
-                        <span className="text-[#d3da0c] font-medium">{ev.fill_rate}%</span>
+                        <span className="text-[#020b00] dark:text-[#d3da0c] font-medium">{ev.fill_rate}%</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right text-white font-medium">¥{ev.revenue.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-green-400">{ev.checkins}</td>
+                    <td className="py-3 px-4 text-right text-[#020b00] dark:text-white font-medium">¥{ev.revenue.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-green-600 dark:text-green-400">{ev.checkins}</td>
                   </tr>
                 ))}
               </tbody>
@@ -412,14 +412,14 @@ export default function BusinessAnalytics() {
 
       {/* Event Views Bar Chart */}
       {eventsPerf.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-          <h3 className="text-white font-bold mb-4">Event Views vs Tickets Sold</h3>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+          <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Event Views vs Tickets Sold</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={eventsPerf.slice(0, 10)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="title" tick={{ fill: '#666', fontSize: 10 }} tickFormatter={(v) => v.slice(0, 12)} />
-                <YAxis tick={{ fill: '#666', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#88888820" />
+                <XAxis dataKey="title" tick={{ fill: '#888', fontSize: 10 }} tickFormatter={(v) => v.slice(0, 12)} />
+                <YAxis tick={{ fill: '#888', fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="views" name="Views" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -444,10 +444,10 @@ export default function BusinessAnalytics() {
               { label: 'Returning', value: audience.returning_attendees, icon: RefreshCw },
             ].map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="bg-[#111111] border border-white/5 rounded-xl p-4 text-center">
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 text-center shadow-xs dark:shadow-none">
                 <s.icon className="w-5 h-5 text-[#d3da0c] mx-auto mb-2" />
-                <p className="text-white font-bold text-xl">{s.value}</p>
-                <p className="text-gray-500 text-xs">{s.label}</p>
+                <p className="text-[#020b00] dark:text-white font-bold text-xl">{s.value}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">{s.label}</p>
               </motion.div>
             ))}
           </div>
@@ -455,14 +455,14 @@ export default function BusinessAnalytics() {
           <div className="grid lg:grid-cols-2 gap-4">
             {/* Cities */}
             {audience.cities.length > 0 && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2"><MapPin className="w-4 h-4 text-[#d3da0c]" /> Attendees by City</h3>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-bold mb-4 flex items-center gap-2"><MapPin className="w-4 h-4 text-[#d3da0c]" /> Attendees by City</h3>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={audience.cities.slice(0, 8)} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                      <XAxis type="number" tick={{ fill: '#666', fontSize: 11 }} />
-                      <YAxis dataKey="city" type="category" tick={{ fill: '#666', fontSize: 11 }} width={80} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#88888820" />
+                      <XAxis type="number" tick={{ fill: '#888', fontSize: 11 }} />
+                      <YAxis dataKey="city" type="category" tick={{ fill: '#888', fontSize: 11 }} width={80} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="count" name="Attendees" fill="#d3da0c" radius={[0, 4, 4, 0]} />
                     </BarChart>
@@ -473,8 +473,8 @@ export default function BusinessAnalytics() {
 
             {/* Gender */}
             {Object.keys(audience.demographics.gender).length > 0 && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2"><PieChartIcon className="w-4 h-4 text-[#d3da0c]" /> Gender Distribution</h3>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-bold mb-4 flex items-center gap-2"><PieChartIcon className="w-4 h-4 text-[#d3da0c]" /> Gender Distribution</h3>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -492,14 +492,14 @@ export default function BusinessAnalytics() {
 
           {/* Age Groups */}
           {Object.keys(audience.demographics.age_groups).length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl p-4 lg:p-6">
-              <h3 className="text-white font-bold mb-4">Age Groups</h3>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 shadow-xs dark:shadow-none">
+              <h3 className="text-[#020b00] dark:text-white font-bold mb-4">Age Groups</h3>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={Object.entries(audience.demographics.age_groups).map(([k, v]) => ({ name: k.replace(/_/g, '-'), value: v }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                    <XAxis dataKey="name" tick={{ fill: '#666', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#666', fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#88888820" />
+                    <XAxis dataKey="name" tick={{ fill: '#888', fontSize: 11 }} />
+                    <YAxis tick={{ fill: '#888', fontSize: 11 }} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="value" name="Attendees" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -527,24 +527,24 @@ export default function BusinessAnalytics() {
               { label: 'Promoter Revenue', value: `¥${promoters.total_revenue.toLocaleString()}`, icon: DollarSign },
             ].map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="bg-[#111111] border border-white/5 rounded-xl p-4">
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs dark:shadow-none">
                 <s.icon className="w-5 h-5 text-[#d3da0c] mb-2" />
-                <p className="text-white font-bold text-lg">{s.value}</p>
-                <p className="text-gray-500 text-xs">{s.label}</p>
+                <p className="text-[#020b00] dark:text-white font-bold text-lg">{s.value}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">{s.label}</p>
               </motion.div>
             ))}
           </div>
 
           {/* Top Promoters Table */}
           {promoters.top_promoters.length > 0 ? (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-xl overflow-hidden">
-              <div className="p-4 lg:p-6 border-b border-white/5">
-                <h3 className="text-white font-bold">Top Promoters</h3>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl shadow-xs dark:shadow-none overflow-hidden">
+              <div className="p-4 lg:p-6 border-b border-black/5 dark:border-white/5">
+                <h3 className="text-[#020b00] dark:text-white font-bold">Top Promoters</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="text-gray-500 text-[10px] uppercase border-b border-white/5">
+                    <tr className="text-gray-500 dark:text-gray-400 text-[10px] uppercase border-b border-black/5 dark:border-white/5">
                       <th className="py-3 px-4">Promoter</th>
                       <th className="py-3 px-4">Code</th>
                       <th className="py-3 px-4 text-right">Clicks</th>
@@ -555,13 +555,13 @@ export default function BusinessAnalytics() {
                   </thead>
                   <tbody>
                     {promoters.top_promoters.map((p) => (
-                      <tr key={p.id} className="border-b border-white/5 text-xs hover:bg-white/5">
-                        <td className="py-3 px-4 text-white font-medium">{p.name}</td>
-                        <td className="py-3 px-4"><code className="text-[#d3da0c] text-[10px]">{p.referral_code}</code></td>
-                        <td className="py-3 px-4 text-right text-gray-400">{p.clicks}</td>
-                        <td className="py-3 px-4 text-right text-white">{p.sales}</td>
-                        <td className="py-3 px-4 text-right text-white font-medium">¥{p.revenue.toLocaleString()}</td>
-                        <td className="py-3 px-4 text-right text-green-400">¥{p.commission.toLocaleString()}</td>
+                      <tr key={p.id} className="border-b border-black/5 dark:border-white/5 text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <td className="py-3 px-4 text-[#020b00] dark:text-white font-medium">{p.name}</td>
+                        <td className="py-3 px-4"><code className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-[10px]">{p.referral_code}</code></td>
+                        <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">{p.clicks}</td>
+                        <td className="py-3 px-4 text-right text-[#020b00] dark:text-white">{p.sales}</td>
+                        <td className="py-3 px-4 text-right text-[#020b00] dark:text-white font-medium">¥{p.revenue.toLocaleString()}</td>
+                        <td className="py-3 px-4 text-right text-green-600 dark:text-green-400">¥{p.commission.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -569,10 +569,10 @@ export default function BusinessAnalytics() {
               </div>
             </motion.div>
           ) : (
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-8 text-center">
-              <Share2 className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500">No promoters assigned yet</p>
-              <p className="text-gray-600 text-sm mt-1">Assign promoters to your events to see their performance here</p>
+            <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-8 text-center shadow-xs dark:shadow-none">
+              <Share2 className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No promoters assigned yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Assign promoters to your events to see their performance here</p>
             </div>
           )}
         </>
@@ -581,12 +581,12 @@ export default function BusinessAnalytics() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
+    <div className="min-h-screen bg-neutral-50/50 dark:bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl lg:text-2xl font-display text-white">Business <span className="text-[#d3da0c]">Analytics</span></h1>
-          <p className="text-gray-400 text-xs lg:text-sm">Deep insights into your events, sales, and audience</p>
+          <h1 className="text-xl lg:text-2xl font-display text-[#020b00] dark:text-white">Business <span className="text-[#d3da0c]">Analytics</span></h1>
+          <p className="text-gray-600 dark:text-gray-400 text-xs lg:text-sm">Deep insights into your events, sales, and audience</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Period selector */}
@@ -594,10 +594,10 @@ export default function BusinessAnalytics() {
             <select
               value={period}
               onChange={(e) => setPeriod(Number(e.target.value))}
-              className="appearance-none bg-[#111111] border border-white/10 text-white text-sm rounded-lg px-3 py-2 pr-8 focus:border-[#d3da0c] focus:outline-none"
+              className="appearance-none bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2 pr-8 focus:border-[#d3da0c] focus:outline-none cursor-pointer"
             >
               {PERIOD_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{o.label}</option>
               ))}
             </select>
             <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -605,13 +605,13 @@ export default function BusinessAnalytics() {
           <button
             onClick={fetchAll}
             disabled={refreshing}
-            className="p-2 bg-[#111111] border border-white/10 rounded-lg hover:bg-white/5 disabled:opacity-50"
+            className="p-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50 transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-gray-600 dark:text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={exportCSV}
-            className="px-3 py-2 bg-[#111111] border border-white/10 text-white text-sm rounded-lg hover:bg-white/5 flex items-center gap-2"
+            className="px-3 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold text-sm rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-xs"
           >
             <Download className="w-4 h-4" /> Export
           </button>
@@ -619,7 +619,7 @@ export default function BusinessAnalytics() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#111111] border border-white/5 rounded-xl p-1 mb-6 overflow-x-auto">
+      <div className="flex gap-1 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-1 mb-6 overflow-x-auto shadow-xs dark:shadow-none">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.key;
@@ -627,8 +627,8 @@ export default function BusinessAnalytics() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs lg:text-sm font-medium whitespace-nowrap transition-all ${
-                active ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white hover:bg-white/5'
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs lg:text-sm font-semibold whitespace-nowrap transition-all ${
+                active ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
               <Icon className="w-4 h-4" />

@@ -5,7 +5,7 @@
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 
-export type DateFilter = 'all' | 'today' | 'tomorrow' | 'this_week' | 'this_weekend';
+export type DateFilter = 'all' | 'current' | 'upcoming' | 'past';
 
 interface DatePill {
   id: DateFilter;
@@ -22,11 +22,10 @@ interface MobileFilterPillsProps {
 }
 
 const DATE_PILLS: DatePill[] = [
-  { id: 'all', label: 'All' },
-  { id: 'today', label: 'Today' },
-  { id: 'tomorrow', label: 'Tomorrow' },
-  { id: 'this_week', label: 'This week' },
-  { id: 'this_weekend', label: 'Weekend' },
+  { id: 'all', label: 'All Events' },
+  { id: 'current', label: 'Current Events' },
+  { id: 'upcoming', label: 'Upcoming Events' },
+  { id: 'past', label: 'Past Events' },
 ];
 
 const DEFAULT_CATEGORIES = ['Music', 'Nightlife', 'Sports', 'Art', 'Food', 'Film', 'Business', 'Culture'];
@@ -42,7 +41,7 @@ const MobileFilterPills = ({
   return (
     <div className="space-y-2.5">
       {/* Date filter row */}
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar px-4 pb-0.5">
+      <div className="grid grid-cols-2 gap-2 px-4 pb-0.5">
         {DATE_PILLS.map((pill) => {
           const isActive = activeDate === pill.id;
           return (
@@ -50,10 +49,10 @@ const MobileFilterPills = ({
               key={pill.id}
               whileTap={{ scale: 0.94 }}
               onClick={() => onDateChange(pill.id)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+              className={`flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-all ${
                 isActive
                   ? 'bg-[#d3da0c] text-black shadow-md shadow-[#d3da0c]/30'
-                  : 'bg-white/5 text-gray-400 border border-white/8'
+                  : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 border border-black/8 dark:border-white/8 hover:bg-black/10 dark:hover:bg-white/10'
               }`}
             >
               {pill.label}
@@ -86,7 +85,7 @@ const MobileFilterPills = ({
                 className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
                   isActive
                     ? 'bg-[#FF2D8F]/15 text-[#FF2D8F] border border-[#FF2D8F]/40'
-                    : 'bg-white/5 text-gray-500 border border-white/8'
+                    : 'bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-black/8 dark:border-white/8'
                 }`}
               >
                 {cat}

@@ -31,7 +31,10 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
       : false;
   const isSoldOut = ((event.tickets_sold || 0) >= (event.capacity || 1) && (event.capacity || 0) > 0) || allTiersSoldOut;
 
+  const now = new Date();
   const eventDate = new Date(event.start_date);
+  const eventEndDate = event.end_date ? new Date(event.end_date) : new Date(eventDate.getTime() + 4 * 60 * 60 * 1000);
+  const isPast = event.status === 'completed' || (eventEndDate < now && event.status !== 'live');
   const dayStr = eventDate.toLocaleDateString('en-US', { weekday: 'short' });
   const monthStr = eventDate.toLocaleDateString('en-US', { month: 'short' });
   const dayNum = eventDate.getDate();
@@ -104,13 +107,21 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
         </div>
 
         {/* Badges */}
-        {(event.is_featured || isSoldOut) && (
+        {(event.is_featured || isSoldOut || isPast) && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-            {event.is_featured && !isSoldOut && (
-              <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full">FEATURED</span>
-            )}
-            {isSoldOut && (
-              <span className="px-2 py-0.5 bg-[#FF2D8F] text-white text-[9px] font-bold rounded-full">SOLD OUT</span>
+            {isPast ? (
+              <span className="px-2 py-0.5 bg-neutral-900/90 text-gray-300 border border-white/20 text-[9px] font-bold rounded-full backdrop-blur-sm">
+                ENDED · RECAP
+              </span>
+            ) : (
+              <>
+                {event.is_featured && !isSoldOut && (
+                  <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full">FEATURED</span>
+                )}
+                {isSoldOut && (
+                  <span className="px-2 py-0.5 bg-[#FF2D8F] text-white text-[9px] font-bold rounded-full">SOLD OUT</span>
+                )}
+              </>
             )}
           </div>
         )}
@@ -146,9 +157,15 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
                 {event.city.replace(/^\w/, (c) => c.toUpperCase())}
               </span>
             )}
-            <span className={`ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
-              {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
-            </span>
+            {isPast ? (
+              <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold text-[#d3da0c]">
+                View Recap →
+              </span>
+            ) : (
+              <span className={`ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
+                {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
+              </span>
+            )}
           </div>
         </div>
       </motion.div>

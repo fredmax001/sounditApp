@@ -134,13 +134,13 @@ const Followers = () => {
     };
 
     return (
-        <div className="min-h-screen pb-24">
+        <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 transition-colors">
             {/* Header */}
-            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+            <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <h1 className="text-2xl font-display text-white">
+                    <h1 className="text-2xl font-bold font-display text-[#020b00] dark:text-white">
                         {t('user.followers.social')}{' '}
-                        <span className="text-[#d3da0c]">{t('user.followers.network')}</span>
+                        <span className="text-[#020b00] dark:text-[#d3da0c] underline decoration-[#d3da0c] decoration-2 underline-offset-4">{t('user.followers.network')}</span>
                     </h1>
                 </div>
             </section>
@@ -151,18 +151,18 @@ const Followers = () => {
                         <div className="flex gap-4">
                             <button
                                 onClick={() => setActiveTab('followers')}
-                                className={`px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'followers'
-                                    ? 'bg-[#d3da0c] text-black'
-                                    : 'bg-white/5 text-gray-400 hover:text-white'
+                                className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'followers'
+                                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+                                    : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {t('user.followers.followersTab', { count: totalFollowers })}
                             </button>
                             <button
                                 onClick={() => setActiveTab('following')}
-                                className={`px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'following'
-                                    ? 'bg-[#d3da0c] text-black'
-                                    : 'bg-white/5 text-gray-400 hover:text-white'
+                                className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'following'
+                                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+                                    : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {t('user.followers.followingTab', { count: totalFollowing })}
@@ -170,21 +170,21 @@ const Followers = () => {
                         </div>
 
                         <div className="relative w-full md:w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                             <input
                                 type="text"
                                 placeholder={t('user.followers.searchPeople')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:border-[#d3da0c] focus:outline-none"
+                                className="w-full bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-2 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
                             />
                         </div>
                     </div>
 
                     {isLoading && (
-                        <div className="text-center py-24 glass rounded-3xl">
-                            <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
-                            <p className="text-gray-400">{t('user.followers.loading')}</p>
+                        <div className="text-center py-24 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-3xl shadow-xs">
+                            <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#020b00] dark:border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+                            <p className="text-gray-600 dark:text-gray-400">{t('user.followers.loading')}</p>
                         </div>
                     )}
 
@@ -196,14 +196,14 @@ const Followers = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className="glass rounded-2xl p-4 flex items-center gap-4"
+                                    className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 flex items-center gap-4 shadow-xs dark:shadow-none"
                                 >
-                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black">
                                         {getIcon(item.type)}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-white font-semibold truncate">{item.name}</h3>
+                                        <h3 className="text-[#020b00] dark:text-white font-bold truncate">{item.name}</h3>
                                         <p className="text-gray-500 text-xs capitalize">{item.type}</p>
                                     </div>
 
@@ -211,14 +211,14 @@ const Followers = () => {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => navigate(getLink(item))}
-                                                className="px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                                                className="px-4 py-2 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-black dark:hover:text-white font-semibold transition-colors"
                                             >
                                                 {t('user.followers.viewProfile')}
                                             </button>
                                             <button
                                                 onClick={() => handleUnfollow(item)}
                                                 disabled={actionLoading === item.id}
-                                                className="px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2 disabled:opacity-50"
+                                                className="px-4 py-2 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-black dark:hover:text-white font-semibold transition-colors flex items-center gap-2 disabled:opacity-50"
                                             >
                                                 {actionLoading === item.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -235,26 +235,26 @@ const Followers = () => {
                             ))}
                         </div>
                     ) : !isLoading && searchQuery ? (
-                        <div className="text-center py-24 glass rounded-3xl">
-                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
+                        <div className="text-center py-24 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-3xl shadow-xs">
+                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
                                 <Search className="w-10 h-10 text-gray-500" />
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
+                            <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-2">
                                 {t('user.followers.noResultsFound')}
                             </h3>
-                            <p className="text-gray-400 max-w-sm mx-auto">
+                            <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
                                 {t('user.followers.adjustSearchTerms')}
                             </p>
                         </div>
                     ) : !isLoading && (
-                        <div className="text-center py-24 glass rounded-3xl">
-                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
+                        <div className="text-center py-24 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-3xl shadow-xs">
+                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center">
                                 <Users className="w-10 h-10 text-gray-500" />
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
+                            <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-2">
                                 {activeTab === 'followers' ? t('user.followers.noFollowersYet') : t('user.followers.noFollowingYet')}
                             </h3>
-                            <p className="text-gray-400 max-w-sm mx-auto">
+                            <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
                                 {activeTab === 'followers'
                                     ? t('user.followers.whenPeopleFollowYou')
                                     : t('user.followers.explorePlatform')}
@@ -262,7 +262,7 @@ const Followers = () => {
                             {activeTab === 'following' && (
                                 <button
                                     onClick={() => navigate('/artists')}
-                                    className="mt-8 px-8 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors inline-flex items-center gap-2"
+                                    className="mt-8 px-8 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:opacity-90 transition-all inline-flex items-center gap-2"
                                 >
                                     <UserPlus className="w-5 h-5" />
                                     {t('user.followers.findPeople')}

@@ -103,44 +103,43 @@ const SecurityLogs = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.securityLogs.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.securityLogs.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.securityLogs.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.securityLogs.subtitle')}</p>
         </div>
-        {/* Export logs button hidden until backend export endpoint is implemented */}
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
               <Activity className="w-5 h-5 text-[#d3da0c]" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.securityLogs.totalEvents') || 'Total Logs (7d)'}</p>
-              <p className="text-white font-bold text-xl">{stats.total_logs_7d || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.securityLogs.totalEvents') || 'Total Logs (7d)'}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.total_logs_7d || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-500/10 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
+              <AlertTriangle className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.securityLogs.failedAttempts') || 'Failed Logins (7d)'}</p>
-              <p className="text-white font-bold text-xl">{stats.failed_logins_7d || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.securityLogs.failedAttempts') || 'Failed Logins (7d)'}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.failed_logins_7d || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Lock className="w-5 h-5 text-orange-400" />
+              <Lock className="w-5 h-5 text-orange-500 dark:text-orange-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.securityLogs.securityActions') || 'Suspicious Activities (7d)'}</p>
-              <p className="text-white font-bold text-xl">{stats.suspicious_activities_7d || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.securityLogs.securityActions') || 'Suspicious Activities (7d)'}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.suspicious_activities_7d || 0}</p>
             </div>
           </div>
         </div>
@@ -149,19 +148,19 @@ const SecurityLogs = () => {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.securityLogs.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
         >
           <option value="">{t('admin.securityLogs.allActions')}</option>
           <option value="login">{t('admin.securityLogs.action.login')}</option>
@@ -175,7 +174,7 @@ const SecurityLogs = () => {
         <select
           value={dateRange}
           onChange={(e) => setDateRange(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
         >
           <option value="1">{t('admin.securityLogs.last24Hours')}</option>
           <option value="7">{t('admin.securityLogs.last7Days')}</option>
@@ -185,31 +184,31 @@ const SecurityLogs = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-xs dark:shadow-none">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <FileX className="w-12 h-12 mb-4 text-gray-600" />
-            <p className="text-lg font-medium text-white mb-1">{t('admin.securityLogs.noLogs') || 'No security logs found'}</p>
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+            <FileX className="w-12 h-12 mb-4 text-gray-400 dark:text-gray-600" />
+            <p className="text-lg font-medium text-[#020b00] dark:text-white mb-1">{t('admin.securityLogs.noLogs') || 'No security logs found'}</p>
             <p className="text-sm">{t('admin.securityLogs.noLogsHint') || 'Logs will appear here once security events are recorded.'}</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-white/5">
+            <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.securityLogs.actionHeader')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.securityLogs.userHeader')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.securityLogs.ipAddressHeader')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.securityLogs.detailsHeader')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.securityLogs.timestampHeader')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider p-4">{t('admin.securityLogs.actionHeader')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider p-4">{t('admin.securityLogs.userHeader')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider p-4">{t('admin.securityLogs.ipAddressHeader')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider p-4">{t('admin.securityLogs.detailsHeader')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider p-4">{t('admin.securityLogs.timestampHeader')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {filteredLogs.map((log) => (
-                <tr key={log.id} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={log.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
                   <td className="p-4">
                     <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium ${getActionColor(log.event_type)}`}>
                       {getActionIcon(log.event_type)}
@@ -218,15 +217,15 @@ const SecurityLogs = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-gray-400" />
+                      <div className="w-8 h-8 bg-neutral-100 dark:bg-white/10 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       </div>
-                      <span className="text-white">{log.user_email || t('admin.securityLogs.unknownUser') || 'Unknown'}</span>
+                      <span className="text-[#020b00] dark:text-white font-medium">{log.user_email || t('admin.securityLogs.unknownUser') || 'Unknown'}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-gray-400 font-mono text-sm">{log.ip_address || '-'}</td>
-                  <td className="p-4 text-gray-400 text-sm max-w-xs truncate">{log.details || '-'}</td>
-                  <td className="p-4 text-gray-400 text-sm">
+                  <td className="p-4 text-gray-600 dark:text-gray-400 font-mono text-sm">{log.ip_address || '-'}</td>
+                  <td className="p-4 text-gray-600 dark:text-gray-400 text-sm max-w-xs truncate">{log.details || '-'}</td>
+                  <td className="p-4 text-gray-600 dark:text-gray-400 text-sm">
                     {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
                   </td>
                 </tr>

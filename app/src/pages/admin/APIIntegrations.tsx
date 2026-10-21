@@ -187,23 +187,23 @@ const APIIntegrations = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.apiIntegrations.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.apiIntegrations.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.apiIntegrations.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.apiIntegrations.subtitle')}</p>
         </div>
       </div>
 
       {/* API Keys */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
               <Key className="w-5 h-5 text-[#d3da0c]" />
             </div>
-            <h2 className="text-lg font-semibold text-white">{t('admin.apiIntegrations.apiKeys')}</h2>
+            <h2 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('admin.apiIntegrations.apiKeys')}</h2>
           </div>
           <button
             onClick={() => handleRegenerateKey(0)}
-            className="px-3 py-1.5 text-sm border border-white/10 text-white rounded-lg hover:bg-white/5 flex items-center gap-2"
+            className="px-3 py-1.5 text-sm border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
             {t('admin.apiIntegrations.generateNewKey')}
@@ -212,34 +212,34 @@ const APIIntegrations = () => {
 
         <div className="space-y-3">
           {apiKeys.map((key) => (
-            <div key={key.id} className="p-4 bg-white/5 rounded-xl">
+            <div key={key.id} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white font-medium">{key.name}</p>
-                  <p className="text-gray-500 text-xs mt-1">{t('admin.apiIntegrations.created')} {new Date(key.created_at).toLocaleDateString()}</p>
+                  <p className="text-[#020b00] dark:text-white font-medium">{key.name}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{t('admin.apiIntegrations.created')} {new Date(key.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 bg-black/50 rounded-lg px-3 py-2">
-                    <code className="text-[#d3da0c] text-sm font-mono">
+                  <div className="flex items-center gap-2 bg-neutral-200/70 dark:bg-black/50 border border-black/5 dark:border-white/10 rounded-lg px-3 py-2">
+                    <code className="text-[#020b00] dark:text-[#d3da0c] text-sm font-mono font-medium">
                       {revealedKey?.id === key.id ? revealedKey.key : (showKey === key.id ? key.key : '••••••••••••••••••••••••••')}
                     </code>
                     <button
                       onClick={() => setShowKey(showKey === key.id ? null : key.id)}
-                      className="p-1 hover:bg-white/10 rounded"
+                      className="p-1 hover:bg-neutral-300/60 dark:hover:bg-white/10 rounded transition-colors"
                     >
-                      {showKey === key.id ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+                      {showKey === key.id ? <EyeOff className="w-4 h-4 text-gray-500 dark:text-gray-400" /> : <Eye className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
                     </button>
                     <button
                       onClick={() => copyToClipboard(revealedKey?.id === key.id ? revealedKey.key : key.key)}
-                      className="p-1 hover:bg-white/10 rounded"
+                      className="p-1 hover:bg-neutral-300/60 dark:hover:bg-white/10 rounded transition-colors"
                     >
-                      <Copy className="w-4 h-4 text-gray-400" />
+                      <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     </button>
                   </div>
                   <button
                     onClick={() => handleRegenerateKey(key.id)}
                     disabled={actionLoading === `regen-${key.id}`}
-                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                    className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
                   >
                     {actionLoading === `regen-${key.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                   </button>
@@ -251,36 +251,36 @@ const APIIntegrations = () => {
       </div>
 
       {/* Third-party Integrations */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-blue-500/10 rounded-lg">
-            <Cloud className="w-5 h-5 text-blue-400" />
+            <Cloud className="w-5 h-5 text-blue-500 dark:text-blue-400" />
           </div>
-          <h2 className="text-lg font-semibold text-white">{t('admin.apiIntegrations.thirdPartyServices')}</h2>
+          <h2 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('admin.apiIntegrations.thirdPartyServices')}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {integrations.map((integration) => (
-            <div key={integration.id} className="p-4 bg-white/5 rounded-xl">
+            <div key={integration.id} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-neutral-100 dark:bg-white/10 rounded-lg flex items-center justify-center shrink-0">
                     {integration.icon ? (
-                      <img src={integration.icon} alt="" className="w-6 h-6" />
+                      <img src={integration.icon} alt="" className="w-6 h-6 object-contain" />
                     ) : (
-                      <Cloud className="w-5 h-5 text-gray-400" />
+                      <Cloud className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     )}
                   </div>
                   <div>
-                    <p className="text-white font-medium">{integration.name}</p>
-                    <p className="text-gray-500 text-xs">{integration.description}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">{integration.name}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">{integration.description}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleToggleIntegration(integration.id, integration.enabled)}
                   disabled={actionLoading === `toggle-${integration.id}`}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    integration.enabled ? 'bg-[#d3da0c]' : 'bg-gray-600'
+                    integration.enabled ? 'bg-[#d3da0c]' : 'bg-neutral-300 dark:bg-gray-600'
                   }`}
                 >
                   <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
@@ -289,14 +289,14 @@ const APIIntegrations = () => {
                 </button>
               </div>
               {integration.enabled && integration.config && (
-                <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="mt-4 pt-4 border-t border-black/10 dark:border-white/10">
                   <div className="grid grid-cols-2 gap-3">
                     {Object.keys(integration.config).map((key) => (
                       <div key={key}>
-                        <label className="text-gray-500 text-xs capitalize">{key.replace('_', ' ')}</label>
+                        <label className="text-gray-500 dark:text-gray-400 text-xs capitalize">{key.replace('_', ' ')}</label>
                         <div className="flex items-center gap-2 mt-1">
-                          <code className="text-gray-400 text-xs">••••••••</code>
-                          <button className="text-[#d3da0c] text-xs hover:underline">{t('admin.apiIntegrations.edit')}</button>
+                          <code className="text-gray-600 dark:text-gray-400 text-xs">••••••••</code>
+                          <button className="text-[#020b00] dark:text-[#d3da0c] text-xs font-medium hover:underline">{t('admin.apiIntegrations.edit')}</button>
                         </div>
                       </div>
                     ))}
@@ -309,17 +309,17 @@ const APIIntegrations = () => {
       </div>
 
       {/* Webhooks */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Webhook className="w-5 h-5 text-purple-400" />
+              <Webhook className="w-5 h-5 text-purple-500 dark:text-purple-400" />
             </div>
-            <h2 className="text-lg font-semibold text-white">{t('admin.apiIntegrations.webhooks')}</h2>
+            <h2 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('admin.apiIntegrations.webhooks')}</h2>
           </div>
           <button
             onClick={() => setShowAddWebhook(true)}
-            className="px-3 py-1.5 text-sm bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
+            className="px-3 py-1.5 text-sm bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-white transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Webhook
@@ -328,22 +328,22 @@ const APIIntegrations = () => {
 
         <div className="space-y-3">
           {webhooks.map((webhook) => (
-            <div key={webhook.id} className="p-4 bg-white/5 rounded-xl">
+            <div key={webhook.id} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-white font-medium">{webhook.url}</p>
-                    <span className={`px-2 py-0.5 rounded text-xs ${
-                      webhook.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                      webhook.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                      'bg-gray-500/20 text-gray-400'
+                    <p className="text-[#020b00] dark:text-white font-medium">{webhook.url}</p>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      webhook.status === 'active' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
+                      webhook.status === 'failed' ? 'bg-red-500/15 text-red-700 dark:text-red-400' :
+                      'bg-gray-500/15 text-gray-700 dark:text-gray-400'
                     }`}>
                       {webhook.status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {webhook.events.map((event: string) => (
-                      <span key={event} className="px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400">
+                      <span key={event} className="px-2 py-0.5 bg-neutral-200/70 dark:bg-white/10 rounded text-xs text-gray-700 dark:text-gray-300">
                         {event}
                       </span>
                     ))}
@@ -352,7 +352,7 @@ const APIIntegrations = () => {
                 <button
                   onClick={() => handleDeleteWebhook(webhook.id)}
                   disabled={actionLoading === `delete-webhook-${webhook.id}`}
-                  className="p-2 hover:bg-red-500/10 rounded-lg text-red-400"
+                  className="p-2 hover:bg-red-500/10 rounded-lg text-red-500 dark:text-red-400 transition-colors"
                 >
                   {actionLoading === `delete-webhook-${webhook.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 </button>
@@ -364,26 +364,26 @@ const APIIntegrations = () => {
 
       {/* Add Webhook Modal */}
       {showAddWebhook && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-white mb-4">{t('admin.apiIntegrations.addWebhook')}</h2>
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('admin.apiIntegrations.addWebhook')}</h2>
             <form onSubmit={handleAddWebhook} className="space-y-4">
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.apiIntegrations.webhookUrl')}</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.apiIntegrations.webhookUrl')}</label>
                 <input
                   type="url"
                   value={newWebhook.url}
                   onChange={(e) => setNewWebhook({ ...newWebhook, url: e.target.value })}
                   placeholder={t('admin.apiIntegrations.webhookUrlPlaceholder')}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.apiIntegrations.events')}</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.apiIntegrations.events')}</label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto">
                   {availableEvents.map((event) => (
-                    <label key={event} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg cursor-pointer">
+                    <label key={event} className="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-lg cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newWebhook.events.includes(event)}
@@ -394,25 +394,25 @@ const APIIntegrations = () => {
                             setNewWebhook({ ...newWebhook, events: newWebhook.events.filter((e: string) => e !== event) });
                           }
                         }}
-                        className="rounded border-white/10"
+                        className="rounded border-black/20 dark:border-white/10 accent-[#d3da0c]"
                       />
-                      <span className="text-gray-400 text-xs">{event}</span>
+                      <span className="text-gray-700 dark:text-gray-300 text-xs">{event}</span>
                     </label>
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2 border-t border-black/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowAddWebhook(false)}
-                  className="px-4 py-2 border border-white/10 text-white rounded-lg hover:bg-white/5"
+                  className="px-4 py-2 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
                 >
                   {t('admin.apiIntegrations.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === 'add-webhook' || newWebhook.events.length === 0}
-                  className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white disabled:opacity-50"
+                  className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-white disabled:opacity-50 transition-colors"
                 >
                   {actionLoading === 'add-webhook' ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.apiIntegrations.addWebhook')}
                 </button>

@@ -5,16 +5,17 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#d3da0c] text-black hover:bg-[#bbc10b] hover:shadow-glow active:scale-95",
+        default:
+          "bg-[#020B00] text-[#D3DA0C] hover:bg-[#020B00]/90 dark:bg-[#d3da0c] dark:text-[#020B00] dark:hover:bg-[#bbc10b] dark:hover:shadow-glow active:scale-95 shadow-sm",
         destructive:
           "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-500",
         outline:
-          "border-2 border-[#d3da0c] bg-transparent text-[#d3da0c] hover:bg-[#d3da0c] hover:text-black",
+          "border-2 border-[#020B00] dark:border-[#d3da0c] bg-transparent text-[#020B00] dark:text-[#d3da0c] hover:bg-[#020B00] hover:text-[#D3DA0C] dark:hover:bg-[#d3da0c] dark:hover:text-black",
         secondary:
-          "bg-white/10 text-white hover:bg-white/20 border border-white/20",
+          "bg-[#D3DA0C] text-[#020B00] hover:bg-[#bbc10b] dark:bg-white/10 dark:text-white dark:hover:bg-white/20 border border-black/10 dark:border-white/20",
         ghost:
-          "hover:bg-white/5 hover:text-[#d3da0c] text-white",
-        link: "text-[#d3da0c] underline-offset-4 hover:underline hover:text-[#bbc10b]",
+          "hover:bg-black/5 dark:hover:bg-white/5 text-[#020B00] dark:text-white hover:text-[#d3da0c]",
+        link: "text-[#020B00] dark:text-[#d3da0c] underline-offset-4 hover:underline hover:text-[#d3da0c] dark:hover:text-[#bbc10b]",
         lime: "bg-[#d3da0c] text-black font-semibold hover:bg-[#bbc10b] hover:shadow-glow active:scale-95",
       },
       size: {

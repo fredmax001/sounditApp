@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Calendar,
@@ -13,6 +13,7 @@ import {
   Heart,
   Star,
   Clock,
+  ChevronLeft,
   ChevronRight,
   Camera,
   Handshake,
@@ -33,10 +34,8 @@ import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import EventCard from '@/components/EventCard';
-import CompactEventCard from '@/components/ui/CompactEventCard';
 import ArtistCard from '@/components/ArtistCard';
 import AdBanner from '@/components/AdBanner';
-import WeatherWidget from '@/components/WeatherWidget';
 import MobileHeroCarousel from '@/components/ui/MobileHeroCarousel';
 import MobileEventCard from '@/components/ui/MobileEventCard';
 import MobileListRow from '@/components/ui/MobileListRow';
@@ -45,7 +44,7 @@ import MobileFilterPills from '@/components/ui/MobileFilterPills';
 import type { DateFilter } from '@/components/ui/MobileFilterPills';
 
 import axios from 'axios';
-import type { DJ } from '@/store/eventStore';
+import type { DJ, EventWithDetails } from '@/store/eventStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -86,12 +85,15 @@ const FloatingNotes = () => {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { featuredEvents, fetchFeaturedEvents, isLoading } = useEventStore();
   const { user, profile, selectedCity } = useAuthStore();
   const hour = new Date().getHours();
   const greetingKey = hour < 12 ? 'home.greetingMorning' : hour < 18 ? 'home.greetingAfternoon' : 'home.greetingEvening';
   const [featuredDJs, setFeaturedDJs] = useState<DJ[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventWithDetails[]>([]);
+  const [pastEventsLoading, setPastEventsLoading] = useState(false);
   const [mobileDateFilter, setMobileDateFilter] = useState<DateFilter>('all');
   const [mobileCategoryFilter, setMobileCategoryFilter] = useState('');
   const [platformStats, setPlatformStats] = useState({
@@ -160,30 +162,51 @@ const Home = () => {
     fetchCityGuideCounts();
   }, [fetchFeaturedEvents, selectedCity, fetchDJs, fetchPlatformStats, fetchCityGuideCounts]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadPastEvents = async () => {
+      setPastEventsLoading(true);
+      try {
+        const { data } = await axios.get(`${API_URL}/events/past`, {
+          params: selectedCity ? { city: selectedCity } : undefined,
+        });
+        if (!cancelled) setPastEvents(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch past events:', error);
+        if (!cancelled) setPastEvents([]);
+      } finally {
+        if (!cancelled) setPastEventsLoading(false);
+      }
+    };
+    loadPastEvents();
+    return () => { cancelled = true; };
+  }, [selectedCity]);
+
   const userCity = selectedCity || profile?.city?.name || 'China';
 
   const heroRef = useRef<HTMLDivElement>(null);
+  const upcomingScrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
 
-  // Hero background slideshow
-  const HERO_SLIDES = ['/hero-slide-1.jpg', '/hero-slide-2.jpg', '/hero-slide-3.jpg', '/hero-slide-4.jpg'];
+  // Hero background slideshow using the curated WEB HERO photography
+  const HERO_SLIDES = [
+    '/web-hero/C48A0758.jpg',
+    '/web-hero/C48A0916.jpg',
+    '/web-hero/C48A0775.jpg',
+    '/web-hero/C48A0889.jpg',
+    '/web-hero/C48A0779.jpg',
+  ];
   const [heroSlide, setHeroSlide] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
-    return () => clearInterval(t);
-  }, []);
-
-  const quickChips = [
-    { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: Music, label: 'Talent', path: '/artists' },
-    { icon: Utensils, label: 'Vendors', path: '/marketplace' },
-  ];
+    const timer = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(timer);
+  }, [HERO_SLIDES.length]);
 
   const platformFeatures = [
     { icon: Calendar, title: 'Discover Events', path: '/events', color: '#d3da0c' },
@@ -196,25 +219,120 @@ const Home = () => {
     { icon: Star, title: 'Discover Dancers', path: '/artists', color: '#C8A000' },
   ];
 
+  // 6 photo-backed cards matching the reference design (informational only — no external links)
   const whatWeDo = [
-    { icon: PartyPopper, title: 'Live Events & Festivals', description: 'Curated parties, cultural showcases, nightlife experiences, and premium festival concepts.' },
-    { icon: Music, title: 'Music & Cultural Experiences', description: 'Signature event series like RNB & Slow Sessions that celebrate timeless music and culture.' },
-    { icon: Mic2, title: 'Artist & DJ Collaborations', description: 'Bookings and collaborations with artists and DJs across Africa, China, and international markets.' },
-    { icon: Code, title: 'Technology & Digital Platforms', description: 'The Sound it platform, mobile apps, and digital tools for the entertainment industry.' },
-    { icon: Palette, title: 'Creative Services', description: 'Graphic design, branding, and creative production through Sound It Tech.' },
-    { icon: Users, title: 'Community & Cultural Initiatives', description: 'Community-focused events and programs that connect and celebrate culture.' },
-    { icon: Globe, title: 'Brand Partnerships & International Collaborations', description: 'Partnerships with brands, venues, and international entertainment personalities.' },
+    {
+      icon: Calendar,
+      iconColor: '#00E5FF',
+      title: 'Live Events & Festivals',
+      description: 'Curated parties, cultural showcases, nightlife experiences, and premium festival concepts.',
+      image: '/web-hero/C48A0775.jpg',
+    },
+    {
+      icon: Music,
+      iconColor: '#FF2D8F',
+      title: 'Music & Cultural Experiences',
+      description: 'Signature event series like RNB & Slow Sessions that celebrate timeless music and culture.',
+      image: '/web-hero/C48A0758.jpg',
+    },
+    {
+      icon: Users,
+      iconColor: '#d3da0c',
+      title: 'Artist & DJ Collaborations',
+      description: 'Bookings and collaborations with artists and DJs across Africa, China, and international markets.',
+      image: '/web-hero/C48A0916.jpg',
+    },
+    {
+      icon: Palette,
+      iconColor: '#a855f7',
+      title: 'Creative Services',
+      description: 'Graphic design, branding, and creative production through Sound It Tech.',
+      image: '/web-hero/C48A0903.jpg',
+    },
+    {
+      icon: Users,
+      iconColor: '#00E5FF',
+      title: 'Community & Cultural Initiatives',
+      description: 'Community-focused events and programs that connect and celebrate culture.',
+      image: '/web-hero/C48A0779.jpg',
+    },
+    {
+      icon: Globe,
+      iconColor: '#a855f7',
+      title: 'Brand Partnerships & International Collaborations',
+      description: 'Partnerships with brands, venues, and international entertainment personalities.',
+      image: '/web-hero/C48A0811.jpg',
+    },
   ];
 
-  const ecosystemItems = [
-    { icon: PartyPopper, name: 'Sound It Events', description: 'Live experiences: parties, showcases, nightlife, and community events.', status: 'active' },
-    { icon: Music, name: 'RNB & Slow Sessions', description: 'Signature R&B and soul event series with curated musical storytelling.', status: 'active' },
-    { icon: Radio, name: 'Sound It Platform', description: 'Digital ecosystem for events, artists, vendors, businesses, and fans.', status: 'active' },
-    { icon: Code, name: 'Sound It Tech', description: 'Software, mobile apps, design, branding, and IT solutions.', status: 'active' },
-    { icon: Sparkles, name: 'BOA Festival', description: 'Premium festival concept bringing together African, Chinese, and international artists.', status: 'development' },
-    { icon: Rocket, name: 'Deck Salone', description: 'Sierra Leone-focused DJ and entertainment ecosystem.', status: 'prelaunch' },
-    { icon: Headphones, name: 'Sound It DJ', description: 'DJ platform for music organization, mixes, and performance preparation.', status: 'planned' },
-    { icon: Disc3, name: 'Sound It Muzik', description: 'Music streaming, distribution, and artist-support platform.', status: 'planned' },
+  // Single section for our 6 live ecosystem websites with their actual landing page previews
+  const liveEcosystemSites = [
+    {
+      name: 'Beatz of Afrika (BOA)',
+      tagline: "Shanghai's Premier African Music & Culture Festival",
+      description: 'Two days of Afrobeats, Amapiano, food, fashion, VIP hosting, and international headliners in Shanghai.',
+      url: 'https://boa.sounditent.com/',
+      domain: 'boa.sounditent.com',
+      screenshot: '/web-hero/site-boa.png',
+      fallbackPhoto: '/web-hero/C48A0775.jpg',
+      accent: '#d3da0c',
+      badge: 'Festival Platform',
+    },
+    {
+      name: 'RNB & Slow Sessions',
+      tagline: 'Signature R&B & Soul Experience Series',
+      description: 'Curated musical storytelling celebrating timeless R&B, soul, slow jams, and intimate community vibes.',
+      url: 'https://rnbnslowsessions.com/',
+      domain: 'rnbnslowsessions.com',
+      screenshot: '/web-hero/site-rnb.png',
+      fallbackPhoto: '/web-hero/C48A0779.jpg',
+      accent: '#FF2D8F',
+      badge: 'Signature Series',
+    },
+    {
+      name: 'Sound It DJ',
+      tagline: 'Professional DJ Library & Mix Intelligence',
+      description: 'Import, analyze, and export your music across all DJ platforms. AI-powered mix analysis, visualizer creation, and USB export for CDJs.',
+      url: 'https://sounditdj.cloud/',
+      domain: 'sounditdj.cloud',
+      screenshot: '/web-hero/site-sounditdj.png',
+      fallbackPhoto: '/web-hero/C48A0903.jpg',
+      accent: '#EDC61E',
+      badge: 'DJ Intelligence & Cloud',
+    },
+    {
+      name: 'Sound It Tech',
+      tagline: 'Building the Future of Technology & Innovation',
+      description: 'Full-stack software engineering, mobile & web applications, WeChat mini programs, computer sales & repair, and enterprise IT solutions.',
+      url: 'https://www.soundit.tech/#',
+      domain: 'www.soundit.tech',
+      screenshot: '/web-hero/site-soundittech.png',
+      fallbackPhoto: '/web-hero/C48A0811.jpg',
+      accent: '#00E5FF',
+      badge: 'Tech & IT Solutions',
+    },
+    {
+      name: 'Deck Salone',
+      tagline: "Sierra Leone's Official DJ & Entertainment Ecosystem",
+      description: 'Discover top DJs, stream exclusive Sierra Leonean mixes, book talent for events, and experience live DJ battles.',
+      url: 'https://www.decksalone.com/',
+      domain: 'www.decksalone.com',
+      screenshot: '/web-hero/site-decksalone.png',
+      fallbackPhoto: '/web-hero/C48A0916.jpg',
+      accent: '#22c55e',
+      badge: 'DJ Ecosystem',
+    },
+    {
+      name: 'Fred Max Official',
+      tagline: 'Founder & CEO · DJ · Producer · Software Developer',
+      description: 'Bridging Africa, China, and the global stage through music, technology, creative production, and cultural innovation.',
+      url: 'https://fredmax.sounditent.com/',
+      domain: 'fredmax.sounditent.com',
+      screenshot: '/web-hero/site-fredmax.png',
+      fallbackPhoto: '/web-hero/C48A0758.jpg',
+      accent: '#a855f7',
+      badge: 'Founder & Artist Hub',
+    },
   ];
 
   const joinItems = [
@@ -259,25 +377,29 @@ const Home = () => {
     }),
   };
 
-  // Filter featured events for mobile based on date/category filter
-  const filteredMobileEvents = featuredEvents.filter((event) => {
+  // Use the archive endpoint for past events; featured events are upcoming-only.
+  const timelineSource = mobileDateFilter === 'past' ? pastEvents : featuredEvents;
+  const filteredMobileEvents = timelineSource.filter((event) => {
     const now = new Date();
     const eventDate = new Date(event.start_date);
+    const eventEnd = event.end_date ? new Date(event.end_date) : new Date(eventDate.getTime() + 4 * 60 * 60 * 1000);
+    const isCompleted = event.status === 'completed' || (eventEnd < now && event.status !== 'live');
+
     let passDate = true;
-    if (mobileDateFilter === 'today') {
-      passDate = eventDate.toDateString() === now.toDateString();
-    } else if (mobileDateFilter === 'tomorrow') {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      passDate = eventDate.toDateString() === tomorrow.toDateString();
-    } else if (mobileDateFilter === 'this_week') {
-      const weekEnd = new Date(now);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-      passDate = eventDate >= now && eventDate <= weekEnd;
-    } else if (mobileDateFilter === 'this_weekend') {
-      const day = eventDate.getDay();
-      passDate = day === 0 || day === 6;
+    if (mobileDateFilter === 'current') {
+      const isToday = eventDate.toDateString() === now.toDateString();
+      const isLiveNow = eventDate <= now && eventEnd >= now;
+      passDate = (isToday || isLiveNow || event.status === 'live') && !isCompleted;
+    } else if (mobileDateFilter === 'upcoming') {
+      const isToday = eventDate.toDateString() === now.toDateString();
+      passDate = eventDate > now && !isToday && !isCompleted;
+    } else if (mobileDateFilter === 'past') {
+      passDate = isCompleted;
+    } else {
+      // 'all' shows active events
+      passDate = !isCompleted;
     }
+
     let passCat = true;
     if (mobileCategoryFilter && event.category) {
       passCat = event.category.toLowerCase().includes(mobileCategoryFilter.toLowerCase());
@@ -292,10 +414,10 @@ const Home = () => {
       <section className="md:hidden pt-16 pb-2">
         {/* Greeting + headline */}
         <div className="px-4 mb-4">
-          <p className="text-gray-400 text-sm mb-1">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">
             {t(greetingKey)}{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
           </p>
-          <h1 className="text-white font-display font-bold text-[28px] leading-tight">
+          <h1 className="text-[#020b00] dark:text-white font-display font-bold text-[28px] leading-tight">
             {t('home.headlineFind', 'Find your next')}{' '}
             <span className="text-[#d3da0c]">{t('home.headlineExperience', 'experience')}</span>
           </h1>
@@ -303,17 +425,17 @@ const Home = () => {
 
         {/* Search bar */}
         <div className="px-4 mb-4">
-          <div className="flex items-center gap-2.5 h-11 px-3.5 bg-[#1A1A1A] border border-white/8 rounded-2xl">
+          <div className="flex items-center gap-2.5 h-11 px-3.5 bg-neutral-100 dark:bg-[#1A1A1A] border border-black/8 dark:border-white/8 rounded-2xl shadow-xs">
             <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input
-              type="text"
-              placeholder={t('home.searchPlaceholder', 'Search events, artists, venues...')}
-              readOnly
-              onClick={() => window.location.href = '/events'}
-              className="flex-1 bg-transparent text-gray-400 placeholder-gray-600 text-sm focus:outline-none cursor-pointer"
-            />
+            <button
+              type="button"
+              onClick={() => navigate('/events')}
+              className="flex-1 bg-transparent text-left text-gray-500 dark:text-gray-600 text-base focus:outline-none cursor-pointer"
+            >
+              {t('home.searchPlaceholder', 'Search events, artists, venues...')}
+            </button>
           </div>
         </div>
 
@@ -329,14 +451,14 @@ const Home = () => {
         </div>
 
         {/* Recommended - Hero Carousel */}
-        {!isLoading && featuredEvents.length > 0 && (
+        {!isLoading && mobileDateFilter !== 'past' && filteredMobileEvents.length > 0 && (
           <div className="mb-6">
             <MobileSectionHeader
               title="Recommended"
               seeAllPath="/events"
               accentColor="#d3da0c"
             />
-            <MobileHeroCarousel events={filteredMobileEvents.length > 0 ? filteredMobileEvents : featuredEvents} />
+            <MobileHeroCarousel events={filteredMobileEvents} />
           </div>
         )}
 
@@ -348,7 +470,7 @@ const Home = () => {
         )}
 
         {/* Popular Events - horizontal scroll cards */}
-        {!isLoading && featuredEvents.length > 0 && (
+        {!isLoading && mobileDateFilter === 'all' && featuredEvents.length > 0 && (
           <div className="mb-6">
             <MobileSectionHeader
               label="Hot this week"
@@ -365,20 +487,35 @@ const Home = () => {
         )}
 
         {/* Events list rows */}
-        {!isLoading && featuredEvents.length > 0 && (
+        {!(mobileDateFilter === 'past' ? pastEventsLoading : isLoading) && (
           <div className="mb-6">
             <MobileSectionHeader
               label="Don't miss out"
-              title="Upcoming Events"
+              title={mobileDateFilter === 'past' ? 'Past Events' : 'Upcoming Events'}
               seeAllPath="/events"
               seeAllLabel="View all"
               accentColor="#00E5FF"
             />
-            <div className="flex flex-col gap-2 px-4">
-              {(filteredMobileEvents.length > 0 ? filteredMobileEvents : featuredEvents).slice(0, 5).map((event, index) => (
-                <MobileListRow key={event.id} event={event} index={index} />
-              ))}
-            </div>
+            {mobileDateFilter === 'past' && (
+              <div className="px-4 mb-3">
+                <Link to="/recaps" className="inline-flex items-center gap-2 rounded-full border border-[#d3da0c]/30 bg-[#d3da0c]/10 px-3.5 py-2 text-xs font-semibold text-[#695f00] dark:text-[#d3da0c]">
+                  <Camera className="h-3.5 w-3.5" />
+                  Browse event photos & recaps
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
+            {filteredMobileEvents.length > 0 ? (
+              <div className="flex flex-col gap-2 px-4">
+                {filteredMobileEvents.slice(0, 5).map((event, index) => (
+                  <MobileListRow key={event.id} event={event} index={index} />
+                ))}
+              </div>
+            ) : (
+              <p className="px-4 text-sm text-gray-500 dark:text-gray-400">
+                {mobileDateFilter === 'past' ? 'No past events found in this city.' : 'No events match this filter.'}
+              </p>
+            )}
           </div>
         )}
 
@@ -457,7 +594,7 @@ const Home = () => {
         {/* Mobile CTA */}
         {!user && (
           <div className="px-4 mb-6">
-            <div className="relative rounded-2xl overflow-hidden p-5 text-center" style={{ background: 'linear-gradient(135deg, #1A1A00 0%, #0A0A0A 50%, #1A0010 100%)' }}>
+            <div className="relative rounded-2xl overflow-hidden p-5 text-center" style={{ background: 'linear-gradient(135deg, #1A1A00 0%, #020b00 50%, #1A0010 100%)' }}>
               <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(circle at 30% 50%, rgba(211,218,12,0.15) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,45,143,0.1) 0%, transparent 60%)' }} />
               <div className="relative z-10">
                 <h3 className="text-white font-bold text-lg mb-1">Find your favorite events.</h3>
@@ -473,747 +610,749 @@ const Home = () => {
       </section>
 
       {/* ==================== DESKTOP HOME (hidden on mobile) ==================== */}
-      <div className="hidden md:block">
-        {/* ==================== HERO SECTION ==================== */}
-        <section ref={heroRef} className="relative h-screen overflow-hidden">
-        {/* Background Slideshow with Ken Burns + Parallax - sharp, no blur */}
-        {HERO_SLIDES.map((src, i) => (
-          <motion.div
-            key={src}
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              y: heroY,
-              backgroundImage: `url('${src}')`,
-            }}
-            initial={false}
-            animate={{
-              opacity: heroSlide === i ? 1 : 0,
-              scale: heroSlide === i ? [1.15, 1.25, 1.15] : 1.15,
-              x: heroSlide === i ? [0, -8, 0] : 0,
-            }}
-            transition={{
-              opacity: { duration: 1.4, ease: 'easeInOut' },
-              scale: { duration: 25, repeat: Infinity, ease: 'easeInOut' },
-              x: { duration: 25, repeat: Infinity, ease: 'easeInOut' },
-            }}
-          />
-        ))}
-
-        {/* Slide indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2 pointer-events-none">
-          {HERO_SLIDES.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1 rounded-full transition-all duration-500 ${heroSlide === i ? 'w-8 bg-[#d3da0c]' : 'w-3 bg-white/40'}`}
+      <div className="hidden md:block bg-[#060608]">
+        {/* ==================== 1. HERO SECTION ==================== */}
+        <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden bg-[#050507]">
+          {/* Right-weighted DJ & Crowd Photography Slideshow */}
+          {HERO_SLIDES.map((src, i) => (
+            <motion.div
+              key={src}
+              className="absolute inset-0 bg-cover bg-[center_top] lg:bg-[right_center]"
+              style={{
+                y: heroY,
+                backgroundImage: `url('${src}')`,
+              }}
+              initial={false}
+              animate={{
+                opacity: heroSlide === i ? 1 : 0,
+                scale: heroSlide === i ? [1.04, 1.1, 1.04] : 1.04,
+              }}
+              transition={{
+                opacity: { duration: 1.2, ease: 'easeInOut' },
+                scale: { duration: 22, repeat: Infinity, ease: 'easeInOut' },
+              }}
             />
           ))}
-        </div>
 
-        {/* Black overlay for readability */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/50" />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            boxShadow: 'inset 0 0 200px 80px rgba(0,0,0,0.6)',
-          }}
-        />
-
-        {/* Light sweep overlay - gives a subtle "video" feel */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
+          {/* Multi-layer directional dark gradients matching reference image */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050507] via-[#050507]/85 to-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#060608] via-transparent to-[#050507]/70" />
           <div
-            className="absolute top-0 left-0 h-full w-1/3 animate-light-sweep"
+            className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)',
+              background:
+                'radial-gradient(circle at 75% 45%, rgba(211,218,12,0.12) 0%, rgba(0,0,0,0) 55%)',
             }}
           />
-        </div>
 
-        {/* Floating particles */}
-        <FloatingNotes />
+          <FloatingNotes />
 
-        {/* Hero Content */}
-        <motion.div
-          className="relative z-10 h-full flex flex-col justify-center px-5"
-          style={{ opacity: heroOpacity }}
-        >
-          <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+          {/* Slide indicators */}
+          <div className="absolute bottom-7 right-10 z-20 flex items-center gap-2">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setHeroSlide(i)}
+                aria-label={`Slide ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  heroSlide === i ? 'w-8 bg-[#d3da0c]' : 'w-2.5 bg-white/30 hover:bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Hero Content */}
+          <motion.div
+            className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 pt-24 pb-16"
+            style={{ opacity: heroOpacity }}
+          >
             <div className="max-w-2xl">
-            {/* Welcome Pill */}
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-4 py-2 glass-pill-premium text-[#d3da0c] text-sm font-medium mb-5 w-fit"
-            >
-              <motion.span
-                animate={{ rotate: [0, 15, -15, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              {/* Welcome Pill */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="inline-flex items-center gap-2 px-4 py-2 glass-pill-premium text-[#d3da0c] text-sm font-medium mb-5 w-fit"
               >
                 <Zap className="w-4 h-4" />
-              </motion.span>
-              <span>
-                {user ? `Welcome back! Exploring ${userCity}` : t('home.brand.heroBadge')}
-              </span>
-            </motion.div>
+                <span>
+                  {user ? `Welcome back! Exploring ${userCity}` : t('home.brand.heroBadge')}
+                </span>
+              </motion.div>
 
-            {/* Headline - Brand introduction for first-time visitors */}
-            <div className="mb-5">
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                aria-label="Sound It Entertainment"
-                className="text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.95] tracking-tight hero-headline"
-              >
-                <span className="block font-bold">Sound It</span>
-                <span className="block font-bold hero-gradient-text mt-1" aria-hidden="true">Entertainment</span>
-              </motion.h1>
+              {/* Headline — Previous Hero Text */}
+              <div className="mb-5">
+                <motion.h1
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                  aria-label="Sound It Entertainment"
+                  className="text-5xl md:text-6xl lg:text-7xl font-display text-white leading-[0.98] tracking-tight hero-headline"
+                >
+                  <span className="block font-bold drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
+                    Sound It
+                  </span>
+                  <span
+                    className="block font-bold hero-gradient-text mt-1 drop-shadow-[0_4px_28px_rgba(211,218,12,0.22)]"
+                    aria-hidden="true"
+                  >
+                    Entertainment
+                  </span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35, duration: 0.6 }}
+                  className="text-[#d3da0c] text-lg md:text-xl font-display mt-3"
+                >
+                  {t('home.brand.heroTagline')}
+                </motion.p>
+              </div>
+
+              {/* Subtext */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65, duration: 0.6 }}
-                className="text-[#d3da0c] text-lg md:text-xl font-display mt-3"
+                transition={{ delay: 0.45, duration: 0.6 }}
+                className="text-gray-200/90 text-lg leading-relaxed max-w-xl mb-9"
               >
-                {t('home.brand.heroTagline')}
+                {t('home.brand.heroDescription')}
               </motion.p>
-              <p className="sr-only">
-                Sound It Entertainment is an entertainment and technology company connecting African culture,
-                international entertainment, and the Chinese market through music, events, technology, and creative collaboration.
-              </p>
-            </div>
 
-            {/* Subtext */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-gray-300/80 text-lg mb-6 max-w-md leading-relaxed"
-            >
-              {t('home.brand.heroDescription')}
-            </motion.p>
-
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 0.6 }}
-              className="flex flex-col gap-3"
-            >
-              <Link
-                to="/events"
-                className="glass-button-primary text-base group w-full sm:w-auto"
-              >
-                <span className="relative z-10">{t('home.brand.exploreEvents')}</span>
-                <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                to="/about"
-                className="glass-button-secondary text-base w-full sm:w-auto"
-              >
-                <span className="relative z-10">{t('home.brand.learnAboutUs')}</span>
-              </Link>
-              <a
-                href="https://app.sounditent.com"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white text-base font-semibold hover:border-[#d3da0c]/60 hover:text-[#d3da0c] transition-colors w-full sm:w-auto"
-              >
-                <span>{t('home.brand.enterApp')}</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </motion.div>
-
-            {/* Quick Chips */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1, duration: 0.5 }}
-              className="flex gap-2 mt-5 overflow-x-auto hide-scrollbar pb-1"
-            >
-              {quickChips.map((chip) => {
-                const Icon = chip.icon;
-                return (
-                  <Link
-                    key={chip.label}
-                    to={chip.path}
-                    className="glass-chip flex items-center gap-1.5 active:scale-95 transition-transform"
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {chip.label}
-                  </Link>
-                );
-              })}
-            </motion.div>
-          </div>
-
-          {/* Weather Widget - right side on desktop */}
-          <WeatherWidget city={selectedCity || 'Shanghai'} />
-        </div>
-        </motion.div>
-      </section>
-
-      {/* ==================== AD BANNER (DESKTOP HERO) ==================== */}
-      <section className="hidden md:block px-5 pt-6 pb-2">
-        <AdBanner position="homepage_hero" />
-      </section>
-
-      {/* ==================== WHO WE ARE (company introduction) ==================== */}
-      <section className="py-10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00E5FF]/[0.03] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="max-w-4xl"
-          >
-            <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-2">
-              {t('home.brand.whoKicker')}
-            </span>
-            <h2 className="text-2xl md:text-4xl font-display text-white mb-4">
-              {t('home.brand.whoTitle')}
-            </h2>
-            <p className="text-gray-300/85 text-sm md:text-lg leading-relaxed max-w-3xl">
-              {t('home.brand.whoText')}
-            </p>
-            <Link
-              to="/about"
-              className="inline-flex items-center gap-1.5 mt-4 text-[#d3da0c] text-sm font-medium hover:gap-2.5 transition-all"
-            >
-              {t('home.brand.whoLink')} <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ==================== WHAT WE DO ==================== */}
-      <section className="py-8 relative">
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="mb-5"
-          >
-            <span className="inline-block text-[#00E5FF] text-xs font-medium tracking-wider uppercase mb-1">
-              {t('home.brand.whatKicker')}
-            </span>
-            <h2 className="text-xl font-bold text-white">{t('home.brand.whatTitle')}</h2>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {whatWeDo.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.title}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                  className="glass-card-premium p-4 min-h-[150px]"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[#00E5FF]/10 flex items-center justify-center mb-3">
-                    <Icon className="w-5 h-5 text-[#00E5FF]" />
-                  </div>
-                  <h3 className="text-white font-semibold text-sm mb-1.5">{item.title}</h3>
-                  <p className="text-gray-400 text-xs leading-relaxed">{item.description}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== PLATFORM FEATURES ==================== */}
-      <section className="py-8 relative">
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#FF2D8F] text-xs font-medium tracking-wider uppercase mb-1">
-                Platform Features
-              </span>
-              <h2 className="text-xl font-bold text-white">Everything Sound It Helps You Do</h2>
-            </div>
-            <Link to="/city-guide" className="hidden sm:flex items-center gap-1 text-[#FF2D8F] text-sm font-medium">
-              Explore <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {platformFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={feature.title}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                >
-                  <Link
-                    to={feature.path}
-                    className="group glass-card-premium min-h-[132px] p-4 flex flex-col justify-between active:scale-[0.98] transition-transform"
-                  >
-                    <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${feature.color}18` }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: feature.color }} />
-                    </div>
-                    <div className="flex items-end justify-between gap-3">
-                      <h3 className="text-white font-semibold text-sm md:text-base leading-tight group-hover:text-[#d3da0c] transition-colors">
-                        {feature.title}
-                      </h3>
-                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== FEATURED ECOSYSTEM ==================== */}
-      <section className="py-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FF2D8F]/[0.03] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#FF2D8F] text-xs font-medium tracking-wider uppercase mb-1">
-                {t('home.brand.ecoKicker')}
-              </span>
-              <h2 className="text-xl font-bold text-white">{t('home.brand.ecoTitle')}</h2>
-            </div>
-            <Link to="/about" className="hidden sm:flex items-center gap-1 text-[#FF2D8F] text-sm font-medium">
-              {t('home.brand.ecoLink')} <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            {ecosystemItems.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.name}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                  className="glass-card-premium p-4 flex flex-col justify-between min-h-[150px]"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-[#d3da0c]" />
-                    </div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusStyles[item.status] || statusStyles.planned}`}>
-                      {statusLabels[item.status] || item.status}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold text-sm mb-1">{item.name}</h3>
-                    <p className="text-gray-400 text-xs leading-relaxed">{item.description}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <Link to="/about" className="sm:hidden flex items-center justify-center gap-1 mt-4 text-[#FF2D8F] text-sm font-medium">
-            {t('home.brand.ecoLink')} <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
-
-      {/* ==================== TRENDING NOW ==================== */}
-      <section className="py-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#d3da0c]/[0.04] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-1">
-                Trending Now
-              </span>
-              <h2 className="text-xl font-bold text-white">Hot This Week</h2>
-            </div>
-            <Link to="/events" className="flex items-center gap-1 text-[#d3da0c] text-sm font-medium">
-              See All <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          {/* Mobile: horizontal scroll | Desktop: grid */}
-          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-4 -mx-5 px-5 md:mx-0 md:px-0 hide-scrollbar pb-2">
-            {isLoading ? (
-              [1, 2, 3].map((i) => (
-                <div key={i} className="w-[280px] md:w-auto h-[360px] shimmer-glass flex-shrink-0 md:flex-shrink snap-start" />
-              ))
-            ) : featuredEvents.length > 0 ? (
-              featuredEvents.slice(0, 5).map((event, index) => (
-                <motion.div
-                  key={event.id}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                  className="w-[280px] md:w-auto flex-shrink-0 md:flex-shrink snap-start"
-                >
-                  <EventCard event={event} variant="trending" />
-                </motion.div>
-              ))
-            ) : (
-              <div className="w-full py-8 text-center text-gray-500 text-sm">
-                No trending events in {userCity}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== UPCOMING EVENTS ==================== */}
-      <section className="py-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#d3da0c]/[0.02] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#FF2D8F] text-xs font-medium tracking-wider uppercase mb-1">
-                Don't Miss Out
-              </span>
-              <h2 className="text-xl font-bold text-white">Upcoming Events</h2>
-            </div>
-            <Link to="/events" className="flex items-center gap-1 text-[#FF2D8F] text-sm font-medium">
-              View All <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-            {featuredEvents.slice(0, 4).map((event, index) => (
+              {/* Horizontal Pill CTAs: Explore Events -> + Learn More */}
               <motion.div
-                key={event.id}
-                custom={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={sectionVariants}
-              >
-                <CompactEventCard event={event} />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== FEATURED DJS ==================== */}
-      <section className="py-8 relative">
-        <div className="px-5">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#00E5FF] text-xs font-medium tracking-wider uppercase mb-1">
-                Top Performers
-              </span>
-              <h2 className="text-xl font-bold text-white">Featured DJs</h2>
-            </div>
-            <Link to="/artists" className="flex items-center gap-1 text-[#00E5FF] text-sm font-medium">
-              All Artists <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-5 px-5 hide-scrollbar pb-2">
-            {featuredDJs.length > 0 ? (
-              featuredDJs.map((artist, index) => (
-                <motion.div
-                  key={artist.id}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                  className="flex-shrink-0 snap-start"
-                >
-                  <ArtistCard artist={artist} variant="featured" />
-                </motion.div>
-              ))
-            ) : (
-              <div className="w-full py-8 text-center text-gray-500 text-sm">
-                No featured DJs in {userCity}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== INTERNATIONAL COLLABORATIONS ==================== */}
-      <section className="py-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00E5FF]/[0.03] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="glass-card-premium p-6 md:p-8"
-          >
-            <div className="flex flex-col md:flex-row md:items-center gap-6">
-              <div className="flex-1">
-                <span className="inline-block text-[#00E5FF] text-xs font-medium tracking-wider uppercase mb-2">
-                  {t('home.brand.collabsKicker')}
-                </span>
-                <h2 className="text-xl md:text-2xl font-bold text-white mb-3">{t('home.brand.collabsTitle')}</h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  {t('home.brand.collabsText')}
-                </p>
-                <p className="text-gray-300 text-xs md:text-sm font-medium">
-                  {t('home.brand.collabsNames')}
-                </p>
-              </div>
-              <Link
-                to="/about"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white text-sm font-semibold hover:border-[#00E5FF]/60 hover:text-[#00E5FF] transition-colors shrink-0"
-              >
-                {t('home.brand.collabsLink')} <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ==================== JOIN & PARTICIPATE ==================== */}
-      <section className="py-8 relative">
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="mb-5 text-center"
-          >
-            <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-1">
-              {t('home.brand.joinKicker')}
-            </span>
-            <h2 className="text-xl md:text-2xl font-bold text-white">{t('home.brand.joinTitle')}</h2>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {joinItems.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.title}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={sectionVariants}
-                >
-                  <Link
-                    to={item.path}
-                    className="group glass-card-premium p-4 flex flex-col justify-between min-h-[150px] active:scale-[0.98] transition-transform"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-[#FF2D8F]/10 flex items-center justify-center mb-3">
-                      <Icon className="w-5 h-5 text-[#FF2D8F]" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold text-sm mb-1 group-hover:text-[#d3da0c] transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-400 text-xs leading-relaxed mb-2.5">{item.description}</p>
-                      <span className="inline-flex items-center gap-1 text-[#d3da0c] text-xs font-medium">
-                        {item.action} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== SIDEBAR AD (DESKTOP) ==================== */}
-      <section className="hidden md:block px-5 py-4">
-        <AdBanner position="homepage_sidebar" />
-      </section>
-
-      {/* ==================== CITY GUIDE GRID ==================== */}
-      <section className="py-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FF2D8F]/[0.02] to-transparent pointer-events-none" />
-        <div className="px-5 relative">
-          <motion.div
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={sectionVariants}
-            className="flex items-end justify-between mb-5"
-          >
-            <div>
-              <span className="inline-block text-[#d3da0c] text-xs font-medium tracking-wider uppercase mb-1">
-                Explore
-              </span>
-              <h2 className="text-xl font-bold text-white">City Guide</h2>
-            </div>
-            <Link to="/city-guide" className="flex items-center gap-1 text-[#d3da0c] text-sm font-medium">
-              Explore <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { title: 'Business', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.businesses || 0} businesses`, color: '#d3da0c' },
-              { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0} vendors`, color: '#FF2D8F' },
-              { title: 'Events', image: '/hero-bg.jpg', count: `${cityGuideCounts.events || 0} upcoming`, color: '#00E5FF' },
-              { title: 'Artists', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.artists || 0} DJs`, color: '#C8A000' },
-            ].map((item, index) => (
-              <motion.div
-                key={item.title}
-                custom={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={sectionVariants}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, duration: 0.6 }}
+                className="flex flex-wrap items-center gap-4"
               >
                 <Link
-                  to="/city-guide"
-                  className="group block relative h-36 rounded-2xl overflow-hidden active:scale-[0.97] transition-transform"
+                  to="/events"
+                  className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#d3da0c] text-black font-bold text-base hover:bg-[#dfe619] transition-all shadow-[0_0_32px_rgba(211,218,12,0.35)] group"
                 >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute inset-0 glass-panel-dark opacity-0 group-hover:opacity-30 transition-opacity" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="text-white font-semibold text-sm">{item.title}</h3>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3" style={{ color: item.color }} />
-                      <span className="text-xs text-gray-300">{item.count}</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-2 right-2">
-                    <div className="w-7 h-7 rounded-full glass-pill-premium flex items-center justify-center">
-                      <Star className="w-3 h-3 text-white/70" />
-                    </div>
-                  </div>
+                  <span>{t('home.brand.exploreEvents') || 'Explore Events'}</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  to="/about"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-full border border-[#d3da0c]/45 bg-black/55 backdrop-blur-md text-white font-semibold text-base hover:border-[#d3da0c] hover:text-[#d3da0c] transition-all"
+                >
+                  {t('home.brand.learnAboutUs') || 'Learn More'}
                 </Link>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          </motion.div>
+        </section>
 
-      {/* ==================== STATS ==================== */}
-      <section className="py-10 relative">
-        <div className="absolute inset-0 mesh-gradient-premium opacity-40 pointer-events-none" />
-        <div className="px-5 relative">
-          <div className="grid grid-cols-2 gap-3">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div
-                  key={stat.label}
-                  custom={index}
+        {/* ==================== AD BANNER (DESKTOP HERO) ==================== */}
+        <section className="max-w-7xl mx-auto px-6 lg:px-10 pt-4">
+          <AdBanner position="homepage_hero" />
+        </section>
+
+        {/* ==================== 2. WHAT WE DO (Reference 6-Card Photo Grid — Informational Only) ==================== */}
+        <section className="py-16 lg:py-20 relative border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10">
+            {/* Section Header Row matching Reference Image */}
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-12">
+              <motion.div
+                custom={0}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={sectionVariants}
+                className="max-w-xl"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-[#38bdf8] text-xs font-bold tracking-[0.25em] uppercase">
+                    WHAT WE DO
+                  </span>
+                  <span className="h-[1.5px] w-10 bg-[#38bdf8]/60 rounded-full" />
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-2.5">
+                  One company, many ways to create
+                </h2>
+                <p className="text-gray-400 text-base">
+                  Connecting people through music, culture and unforgettable experiences.
+                </p>
+              </motion.div>
+
+              {/* Right Accent Brush + Brand Statement */}
+              <motion.div
+                custom={1}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={sectionVariants}
+                className="flex items-center gap-5 max-w-lg"
+              >
+                {/* Decorative Neon Yellow Brush Stroke SVG */}
+                <svg
+                  viewBox="0 0 140 42"
+                  className="w-28 h-9 shrink-0 text-[#d3da0c]"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6 22C38 11 88 6 134 8"
+                    stroke="currentColor"
+                    strokeWidth="4.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M14 30C48 19 92 15 130 16"
+                    stroke="currentColor"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                    opacity="0.85"
+                  />
+                  <path
+                    d="M28 36C62 28 96 24 124 25"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    opacity="0.6"
+                  />
+                </svg>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Sound It is an entertainment platform and creative brand that brings the community
+                  together through events, culture and technology.
+                </p>
+              </motion.div>
+            </div>
+
+            {/* 6 Photo-Backed Cards Grid — Clean informational cards without external links */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {whatWeDo.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={item.title}
+                    custom={index}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={sectionVariants}
+                    className="group relative rounded-2xl bg-[#0d0f14] border border-white/10 hover:border-white/20 overflow-hidden min-h-[245px] p-6 flex flex-col justify-between transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
+                  >
+                    {/* Right/Top Background Photo from /web-hero/ */}
+                    <div className="absolute top-0 right-0 w-[78%] h-[78%] overflow-hidden pointer-events-none">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-85"
+                        loading="lazy"
+                      />
+                      {/* Smooth blend into card background */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f14] via-[#0d0f14]/45 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f14] via-[#0d0f14]/35 to-transparent" />
+                    </div>
+
+                    {/* Top Row: Icon Badge Only */}
+                    <div className="relative z-10 flex items-start justify-between gap-3">
+                      <div
+                        className="w-12 h-12 rounded-xl bg-[#131722]/90 border border-white/10 flex items-center justify-center shadow-lg"
+                        style={{ boxShadow: `0 0 20px ${item.iconColor}20` }}
+                      >
+                        <Icon className="w-6 h-6" style={{ color: item.iconColor }} />
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Title + Description */}
+                    <div className="relative z-10 mt-14">
+                      <h3 className="text-white font-bold text-lg mb-1.5">
+                        {item.title}
+                      </h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== 3. THE APP — Sound It App Showcase (Reference Match) ==================== */}
+        <section className="py-16 lg:py-24 relative overflow-hidden border-y border-white/10 bg-gradient-to-r from-[#121308] via-[#0b0c10] to-[#07080c]">
+          {/* Subtle stage/gold radial glow */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 50%, rgba(211,218,12,0.14) 0%, transparent 55%), radial-gradient(circle at 75% 50%, rgba(211,218,12,0.18) 0%, transparent 50%)',
+            }}
+          />
+
+          <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              {/* Left Column: App Info & Google Play Testing Badge */}
+              <motion.div
+                custom={0}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={sectionVariants}
+                className="lg:col-span-6"
+              >
+                <span className="inline-block text-[#d3da0c] text-xs font-bold tracking-[0.28em] uppercase mb-3">
+                  THE APP
+                </span>
+                <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-2">
+                  Sound It App
+                </h2>
+                <p className="text-xl lg:text-2xl font-bold text-white/95 mb-4">
+                  Events. DJs. Vendors. Venues. Spots.
+                </p>
+                <p className="text-gray-300/85 text-base lg:text-lg leading-relaxed max-w-md mb-8">
+                  Discover what&apos;s happening around you, connect with the community, and never
+                  miss a vibe.
+                </p>
+
+                {/* Google Play Testing Button matching reference image */}
+                <div className="mb-5">
+                  <Link
+                    to="/download"
+                    className="inline-flex items-center gap-5 px-6 py-3.5 rounded-2xl bg-black/85 border border-[#d3da0c]/65 hover:border-[#d3da0c] hover:bg-black transition-all shadow-[0_0_32px_rgba(211,218,12,0.15)] group"
+                  >
+                    {/* Google Play Multi-color Triangle Icon */}
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-9 h-9 shrink-0"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill="#00E5FF"
+                        d="M3.61 1.814L13.793 12 3.61 22.186a1.75 1.75 0 0 1-.61-1.33V3.144c0-.522.226-.996.61-1.33z"
+                      />
+                      <path
+                        fill="#00E676"
+                        d="M17.218 8.575L5.255 1.66a1.72 1.72 0 0 0-1.645.154L13.793 12l3.425-3.425z"
+                      />
+                      <path
+                        fill="#FFEA00"
+                        d="M20.665 10.566l-3.447-1.99L13.793 12l3.425 3.425 3.447-1.991c.98-.566.98-2.302 0-2.868z"
+                      />
+                      <path
+                        fill="#FF3D00"
+                        d="M3.61 22.186a1.72 1.72 0 0 0 1.645.154l11.963-6.915L13.793 12 3.61 22.186z"
+                      />
+                    </svg>
+
+                    <div className="text-left pr-2">
+                      <span className="block text-[10px] font-bold tracking-[0.2em] uppercase text-gray-300">
+                        GET IT ON
+                      </span>
+                      <span className="block text-xl lg:text-2xl font-bold text-white leading-tight">
+                        Google Play
+                      </span>
+                    </div>
+
+                    {/* Testing Version Pill inside Button */}
+                    <span className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-gray-100 inline-flex items-center gap-1.5 group-hover:border-[#d3da0c]/60 group-hover:text-[#d3da0c] transition-colors">
+                      <Sparkles className="w-3.5 h-3.5 text-[#d3da0c]" />
+                      Testing Version
+                    </span>
+                  </Link>
+                </div>
+
+                <p className="text-gray-400 text-sm max-w-sm leading-relaxed mb-5">
+                  Android users: Join our testing community and be one of the first to try the app!
+                </p>
+
+                <Link
+                  to="/download"
+                  className="inline-flex items-center gap-2 text-[#d3da0c] text-sm font-bold hover:gap-3 transition-all"
+                >
+                  <span>Learn More About the App</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </motion.div>
+
+              {/* Right Column: Two Angled Phone Mockups (/web-hero/sds.png & /web-hero/wew.png) */}
+              <motion.div
+                custom={1}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={sectionVariants}
+                className="lg:col-span-6 relative flex items-center justify-center min-h-[460px]"
+              >
+                {/* Neon Yellow Backlight Glow */}
+                <div className="absolute w-80 h-80 rounded-full bg-[#d3da0c]/20 blur-[90px] pointer-events-none" />
+
+                {/* Left / Foreground Phone (sds.png) */}
+                <Link
+                  to="/download"
+                  className="relative z-20 w-[260px] xl:w-[295px] -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
+                >
+                  <img
+                    src="/web-hero/sds.png"
+                    alt="Sound It App Home Screen"
+                    className="w-full h-auto object-contain"
+                  />
+                </Link>
+
+                {/* Right / Secondary Phone (wew.png) */}
+                <Link
+                  to="/download"
+                  className="relative z-10 w-[245px] xl:w-[275px] -ml-14 mt-10 rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
+                >
+                  <img
+                    src="/web-hero/wew.png"
+                    alt="Sound It App Discovery Hub"
+                    className="w-full h-auto object-contain"
+                  />
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== 4. UPCOMING EVENTS — Events You Don't Want to Miss (Only Live Platform Events) ==================== */}
+        <section className="py-16 lg:py-20 relative">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10 relative">
+            {/* Header Row */}
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <div className="flex items-center gap-3 mb-2.5">
+                  <span className="text-[#d3da0c] text-xs font-bold tracking-[0.25em] uppercase">
+                    UPCOMING EVENTS
+                  </span>
+                  <span className="h-[1.5px] w-10 bg-[#d3da0c]/70 rounded-full" />
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+                  Events You Don&apos;t Want to Miss
+                </h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/recaps"
+                  className="hidden md:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#d3da0c]/50 transition-all"
+                >
+                  <Camera className="w-3.5 h-3.5 text-[#d3da0c]" />
+                  <span>Past Events Recaps</span>
+                </Link>
+                <Link
+                  to="/events"
+                  className="inline-flex items-center gap-2 text-[#d3da0c] text-sm font-bold hover:gap-3 transition-all"
+                >
+                  <span>View All Events</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {featuredEvents.length > 0 ? (
+              <div className="relative group/carousel">
+                {featuredEvents.length > 4 && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous events"
+                      onClick={() =>
+                        upcomingScrollRef.current?.scrollBy({ left: -340, behavior: 'smooth' })
+                      }
+                      className="hidden lg:flex absolute -left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#141720]/90 border border-white/15 text-white items-center justify-center hover:border-[#d3da0c] hover:text-[#d3da0c] transition-all shadow-xl"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label="Next events"
+                      onClick={() =>
+                        upcomingScrollRef.current?.scrollBy({ left: 340, behavior: 'smooth' })
+                      }
+                      className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#141720]/90 border border-white/15 text-white items-center justify-center hover:border-[#d3da0c] hover:text-[#d3da0c] transition-all shadow-xl"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+
+                <div
+                  ref={upcomingScrollRef}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 overflow-x-auto hide-scrollbar"
+                >
+                  {featuredEvents.map((ev, idx) => {
+                    const badgeColors = [
+                      { bg: '#d3da0c', text: '#000000' },
+                      { bg: '#FF2D8F', text: '#000000' },
+                      { bg: '#00E5FF', text: '#000000' },
+                      { bg: '#a855f7', text: '#ffffff' },
+                    ];
+                    const badge = badgeColors[idx % badgeColors.length];
+                    const d = ev.start_date ? new Date(ev.start_date) : new Date();
+                    const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const city = ev.city || selectedCity || 'Shanghai';
+
+                    return (
+                      <Link key={ev.id} to={`/events/${ev.id}`}>
+                        <div className="group relative h-[280px] rounded-2xl overflow-hidden bg-[#101218] border border-white/10 hover:border-[#d3da0c]/60 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+                          <img
+                            src={ev.flyer_image || '/web-hero/C48A0889.jpg'}
+                            alt={ev.title}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10" />
+
+                          {/* Top-left Date Badge matching Reference */}
+                          <div
+                            className="absolute top-4 left-4 w-13 h-14 px-3 py-1.5 rounded-xl flex flex-col items-center justify-center shadow-lg"
+                            style={{ backgroundColor: badge.bg, color: badge.text }}
+                          >
+                            <span className="text-[10px] font-extrabold tracking-wider uppercase leading-none">
+                              {month}
+                            </span>
+                            <span className="text-xl font-black leading-tight mt-0.5">{day}</span>
+                          </div>
+
+                          {/* Bottom Event Title & Location */}
+                          <div className="absolute bottom-0 left-0 right-0 p-5">
+                            <h3 className="text-white font-extrabold text-lg uppercase tracking-wide line-clamp-1 group-hover:text-[#d3da0c] transition-colors">
+                              {ev.title}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-gray-300 text-xs mt-1">
+                              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <span className="capitalize">{city}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[#0d0f14] border border-white/10 p-10 text-center text-gray-400">
+                No upcoming live events at the moment. Check back soon!
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ==================== 5. FEATURED DJS ==================== */}
+        <section className="py-12 relative border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10">
+            <motion.div
+              custom={0}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={sectionVariants}
+              className="flex items-end justify-between mb-6"
+            >
+              <div>
+                <span className="inline-block text-[#00E5FF] text-xs font-bold tracking-[0.22em] uppercase mb-1">
+                  Top Performers
+                </span>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-white">Featured DJs &amp; Artists</h2>
+              </div>
+              <Link to="/artists" className="flex items-center gap-1 text-[#00E5FF] text-sm font-semibold">
+                All Artists <ChevronRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 hide-scrollbar pb-2">
+              {featuredDJs.length > 0 ? (
+                featuredDJs.map((artist, index) => (
+                  <motion.div
+                    key={artist.id}
+                    custom={index}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={sectionVariants}
+                    className="flex-shrink-0 snap-start"
+                  >
+                    <ArtistCard artist={artist} variant="featured" />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="w-full py-8 text-center text-gray-500 text-sm">
+                  No featured DJs in {userCity}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== 6. OUR PLATFORMS & WEBSITES (Single Section with the 4 External Links) ==================== */}
+        <section className="py-16 relative border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10 relative">
+            <motion.div
+              custom={0}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={sectionVariants}
+              className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8"
+            >
+              <div>
+                <span className="inline-block text-[#d3da0c] text-xs font-bold tracking-[0.22em] uppercase mb-1.5">
+                  {t('home.brand.ecoKicker') || 'THE SOUND IT ECOSYSTEM'}
+                </span>
+                <h2 className="text-2xl lg:text-4xl font-extrabold text-white">
+                  {t('home.brand.ecoTitle') || 'One brand, many platforms'}
+                </h2>
+              </div>
+              <Link to="/about" className="hidden sm:flex items-center gap-1 text-[#d3da0c] text-sm font-semibold">
+                {t('home.brand.ecoLink') || 'Explore the full ecosystem'} <ChevronRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {liveEcosystemSites.map((site, idx) => (
+                <motion.a
+                  key={site.url}
+                  href={site.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  custom={idx}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
                   variants={sectionVariants}
-                  className="glass-card-premium p-4 text-center"
+                  className="group rounded-2xl bg-[#0d0f14] border border-white/10 hover:border-[#d3da0c]/70 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)]"
                 >
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#d3da0c]/10 mb-2">
-                    <Icon className="w-5 h-5 text-[#d3da0c]" />
+                  {/* Browser Chrome Header */}
+                  <div className="px-3.5 py-2.5 bg-[#141720] border-b border-white/10 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                    </div>
+                    <div className="flex-1 mx-2 px-2.5 py-0.5 rounded-md bg-black/50 border border-white/10 text-[11px] text-gray-300 truncate font-mono text-center">
+                      {site.domain}
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#d3da0c] transition-colors shrink-0" />
                   </div>
-                  <div className="text-2xl font-display text-white mb-0.5">{stat.value}</div>
-                  <div className="text-gray-500 text-xs">{stat.label}</div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* ==================== CTA ==================== */}
-      <section className="py-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/cta-bg.jpg')" }} />
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 glass-frosted opacity-20" />
+                  {/* Actual Website Landing Page Preview */}
+                  <div className="relative h-44 w-full bg-black overflow-hidden">
+                    <img
+                      src={site.screenshot}
+                      alt={`${site.name} Landing Page`}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = site.fallbackPhoto;
+                      }}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <iframe
+                      src={site.url}
+                      title={site.name}
+                      loading="lazy"
+                      sandbox="allow-scripts allow-same-origin"
+                      className="absolute top-0 left-0 w-[1440px] h-[900px] origin-top-left scale-[0.22] pointer-events-none opacity-95 border-0"
+                      tabIndex={-1}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f14] via-transparent to-transparent" />
+                    <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
+                      <span
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md border border-white/15"
+                        style={{ color: site.accent }}
+                      >
+                        {site.badge}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-lg">
+                        Visit Site <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </div>
 
-        <div className="relative z-10 max-w-lg mx-auto px-5 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-2xl md:text-4xl font-display text-white mb-3">
-              {t('home.cta.title')}
-            </h2>
-            <p className="text-gray-400 text-sm md:text-base mb-5 max-w-md mx-auto">
-              {t('home.cta.subtitle')}
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                to="/register"
-                className="glass-button-primary text-sm"
-              >
-                {t('home.cta.button')}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/events"
-                className="glass-button-secondary text-sm"
-              >
-                Browse Events
-              </Link>
+                  {/* Site Info Footer */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-white font-bold text-base group-hover:text-[#d3da0c] transition-colors mb-1">
+                        {site.name}
+                      </h4>
+                      <p className="text-gray-400 text-xs leading-relaxed line-clamp-2">
+                        {site.description}
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#d3da0c]">
+                      <span>{site.domain}</span>
+                      <span className="inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        Explore <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </motion.a>
+              ))}
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
+
+        {/* ==================== 7. PLATFORM FEATURES & CITY GUIDE ==================== */}
+        <section className="py-12 relative border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+              {stats.map((stat, index) => {
+                const Icon = stat.icon;
+                return (
+                  <motion.div
+                    key={stat.label}
+                    custom={index}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={sectionVariants}
+                    className="rounded-2xl bg-[#0d0f14] border border-white/10 p-5 text-center"
+                  >
+                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#d3da0c]/10 mb-2">
+                      <Icon className="w-5 h-5 text-[#d3da0c]" />
+                    </div>
+                    <div className="text-2xl lg:text-3xl font-display text-white mb-0.5">{stat.value}</div>
+                    <div className="text-gray-400 text-xs">{stat.label}</div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <AdBanner position="homepage_sidebar" />
+          </div>
+        </section>
+
+        {/* ==================== 8. CTA ==================== */}
+        <section className="py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/web-hero/C48A0779.jpg')" }} />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px]" />
+
+          <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+                {t('home.cta.title')}
+              </h2>
+              <p className="text-gray-300 text-base mb-7 max-w-lg mx-auto">
+                {t('home.cta.subtitle')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#d3da0c] text-black font-bold text-sm hover:bg-[#dfe619] transition-all"
+                >
+                  {t('home.cta.button')}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/events"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-white/25 bg-black/50 text-white font-semibold text-sm hover:border-[#d3da0c] hover:text-[#d3da0c] transition-all"
+                >
+                  Browse Events
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
       </div>
     </div>
   );

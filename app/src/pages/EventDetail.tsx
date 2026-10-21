@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle, Smartphone } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle, Smartphone, Camera } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -260,7 +260,7 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center transition-colors">
         <div className="w-12 h-12 border-4 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -268,15 +268,15 @@ export default function EventDetail() {
 
   if (!currentEvent) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] pt-32 px-4 text-center">
-        <h1 className="text-2xl text-white mb-4">{t('eventDetail.eventNotFound')}</h1>
+      <div className="min-h-screen bg-white dark:bg-[#020b00] pt-32 px-4 text-center transition-colors">
+        <h1 className="text-2xl text-[#020b00] dark:text-white mb-4">{t('eventDetail.eventNotFound')}</h1>
         <button
           onClick={() => id && fetchEventById(id)}
-          className="text-[#d3da0c] hover:underline mb-4 block"
+          className="text-[#d3da0c] hover:underline mb-4 block mx-auto font-medium"
         >
           {t('eventDetail.retry')}
         </button>
-        <Link to="/events" className="text-gray-400 hover:underline">
+        <Link to="/events" className="text-gray-500 dark:text-gray-400 hover:underline">
           {t('eventDetail.backToEvents')}
         </Link>
       </div>
@@ -407,13 +407,13 @@ export default function EventDetail() {
   const mapQuery = encodeURIComponent([venuePrimary, venueSecondary].filter(Boolean).join(', '));
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-16 lg:pt-20 md:pb-0 pb-32">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-16 lg:pt-20 md:pb-0 pb-32 transition-colors duration-200">
       {/* Back Button (desktop) */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-gray-500 hover:text-[#020b00] dark:text-white/60 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />{t('eventDetail.back')}</button>
         </div>
@@ -434,7 +434,7 @@ export default function EventDetail() {
           alt={currentEvent.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#020b00] dark:via-[#020b00]/50 dark:to-transparent" />
 
         {/* Action Buttons */}
         <div className="absolute top-3 right-3 md:top-4 md:right-4 flex gap-2 z-20">
@@ -495,7 +495,7 @@ export default function EventDetail() {
               {currentEvent.tags && currentEvent.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {currentEvent.tags.map((tag, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-xs text-white/60">
+                    <span key={idx} className="px-2 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-xs text-gray-600 dark:text-white/60">
                       {tag}
                     </span>
                   ))}
@@ -503,34 +503,34 @@ export default function EventDetail() {
               )}
 
               {/* Title */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#020b00] dark:text-white mb-6">
                 {currentEvent.title}
               </h1>
 
               {/* Info chips (mobile) */}
               <div className="md:hidden grid grid-cols-3 gap-2 mb-3">
-                <div className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0">
-                  <Calendar className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.date')}</p>
-                  <p className="text-white text-[11px] font-semibold leading-tight">{chipDate}</p>
-                  <p className="text-white/60 text-[10px] leading-tight">{chipTime}</p>
+                <div className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0">
+                  <Calendar className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
+                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.date')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight">{chipDate}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight">{chipTime}</p>
                 </div>
                 <a
                   href={`https://maps.apple.com/?q=${mapQuery}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0"
+                  className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0"
                 >
-                  <MapPin className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.venue')}</p>
-                  <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{venuePrimary || t('eventDetail.venueTba', 'Venue to be announced')}</p>
-                  {venueSecondary && <p className="text-white/60 text-[10px] leading-tight line-clamp-1">{venueSecondary}</p>}
+                  <MapPin className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
+                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.venue')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight line-clamp-2">{venuePrimary || t('eventDetail.venueTba', 'Venue to be announced')}</p>
+                  {venueSecondary && <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight line-clamp-1">{venueSecondary}</p>}
                 </a>
-                <div className="flex flex-col gap-1 p-3 bg-[#141414] rounded-xl min-w-0">
-                  <Users className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                  <p className="text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.going', 'Going')}</p>
-                  <p className="text-white text-[11px] font-semibold leading-tight">{currentEvent.tickets_sold || 0}</p>
-                  <p className="text-white/60 text-[10px] leading-tight">{t('eventDetail.attending', 'attending')}</p>
+                <div className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0">
+                  <Users className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
+                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.going', 'Going')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight">{currentEvent.tickets_sold || 0}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight">{t('eventDetail.attending', 'attending')}</p>
                 </div>
               </div>
 
@@ -540,30 +540,30 @@ export default function EventDetail() {
                   href={`https://maps.apple.com/?q=${mapQuery}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="md:hidden flex items-center gap-3 p-3 mb-6 bg-[#141414] rounded-xl border border-white/5 active:border-[#d3da0c]/40 transition-colors"
+                  className="md:hidden flex items-center gap-3 p-3 mb-6 bg-neutral-50 dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 active:border-[#d3da0c]/40 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-[#d3da0c]" />
+                  <div className="w-10 h-10 rounded-lg bg-[#d3da0c]/15 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{venuePrimary || venueSecondary}</p>
+                    <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">{venuePrimary || venueSecondary}</p>
                     {venueSecondary && venueSecondary !== venuePrimary && (
-                      <p className="text-white/50 text-xs truncate">{venueSecondary}</p>
+                      <p className="text-gray-500 dark:text-white/50 text-xs truncate">{venueSecondary}</p>
                     )}
                   </div>
-                  <span className="text-[#d3da0c] text-xs font-semibold shrink-0">{t('eventDetail.openMap', 'Map')}</span>
+                  <span className="text-[#020b00] dark:text-[#d3da0c] text-xs font-semibold shrink-0">{t('eventDetail.openMap', 'Map')}</span>
                 </a>
               )}
 
               {/* Info Grid (desktop) */}
               <div className="hidden md:grid md:grid-cols-2 gap-4 mb-8">
-                <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-[#d3da0c]" />
+                <div className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/15 flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">{t('eventDetail.date')}</p>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-500 dark:text-white/50 text-sm">{t('eventDetail.date')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">
                       {new Date(currentEvent.start_date).toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
@@ -574,36 +574,36 @@ export default function EventDetail() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-[#d3da0c]" />
+                <div className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/15 flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">{t('eventDetail.time')}</p>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-500 dark:text-white/50 text-sm">{t('eventDetail.time')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">
                       {new Date(currentEvent.start_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-[#d3da0c]" />
+                <div className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/15 flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">{t('eventDetail.venue')}</p>
-                    <p className="text-white font-medium">{currentEvent.venue?.name || currentEvent.address || t('eventDetail.toBeAnnounced')}</p>
-                    <p className="text-white/50 text-sm">{currentEvent.venue?.address || currentEvent.city}</p>
+                    <p className="text-gray-500 dark:text-white/50 text-sm">{t('eventDetail.venue')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">{currentEvent.venue?.name || currentEvent.address || t('eventDetail.toBeAnnounced')}</p>
+                    <p className="text-gray-500 dark:text-white/50 text-sm">{currentEvent.venue?.address || currentEvent.city}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-[#d3da0c]" />
+                <div className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/15 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">{t('eventDetail.availability')}</p>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-500 dark:text-white/50 text-sm">{t('eventDetail.availability')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">
                       {currentEvent.show_remaining_tickets === false
                         ? ((currentEvent.ticket_tiers && currentEvent.ticket_tiers.length > 0
                             ? currentEvent.ticket_tiers.every(t => t.status === 'sold_out' || (t.quantity_sold || 0) >= (t.quantity || 0))
@@ -617,30 +617,30 @@ export default function EventDetail() {
 
               {/* Description */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-white mb-4">
+                <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">
                   {t('eventDetail.aboutThisEvent')}
                 </h2>
                 {descriptionBody ? (
                   <>
-                    <div className={`text-white/60 leading-relaxed whitespace-pre-wrap text-sm ${descExpanded ? '' : 'line-clamp-5'}`}>
+                    <div className={`text-gray-700 dark:text-white/60 leading-relaxed whitespace-pre-wrap text-sm ${descExpanded ? '' : 'line-clamp-5'}`}>
                       {descriptionBody}
                     </div>
                     {descriptionBody.split('\n').length > 5 && (
                       <button
                         onClick={() => setDescExpanded((v) => !v)}
-                        className="text-[#d3da0c] text-sm font-medium mt-2 active:opacity-70 transition-opacity"
+                        className="text-[#020b00] dark:text-[#d3da0c] font-medium text-sm mt-2 active:opacity-70 transition-opacity underline decoration-[#d3da0c]"
                       >
                         {descExpanded ? t('eventDetail.showLess', 'Show less') : t('eventDetail.showMore', 'Show more')}
                       </button>
                     )}
                   </>
                 ) : (
-                  <p className="text-white/40 text-sm">{t('eventDetail.noDescription', 'No description available.')}</p>
+                  <p className="text-gray-500 dark:text-white/40 text-sm">{t('eventDetail.noDescription', 'No description available.')}</p>
                 )}
                 {hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {hashtags.slice(0, 12).map((tag) => (
-                      <span key={tag} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] text-white/40">
+                      <span key={tag} className="px-2 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-[10px] text-gray-600 dark:text-white/40">
                         {tag}
                       </span>
                     ))}
@@ -655,6 +655,8 @@ export default function EventDetail() {
                   eventTitle={currentEvent.title}
                   wechatQrUrl={currentEvent.wechat_qr_url}
                   alipayQrUrl={currentEvent.alipay_qr_url}
+                  wechatPayUrl={(currentEvent as any).wechat_pay_url}
+                  alipayPayUrl={(currentEvent as any).alipay_pay_url}
                   paymentInstructions={currentEvent.payment_instructions}
                 />
               </div>
@@ -662,7 +664,7 @@ export default function EventDetail() {
               {/* Lineup */}
               {currentEvent.djs && currentEvent.djs.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-white mb-4">
+                  <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">
                     {t('eventDetail.lineup', 'Lineup')}
                   </h2>
                   <div className="grid gap-3">
@@ -673,20 +675,20 @@ export default function EventDetail() {
                         <Link
                           key={dj.id}
                           to={`/artists/${dj.id}`}
-                          className="flex items-center gap-3 p-3 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                          className="flex items-center gap-3 p-3 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-colors shadow-xs dark:shadow-none"
                         >
                           <img
                             src={dj.avatar_url || '/default-avatar.png'}
                             alt={dj.stage_name}
-                            className="w-12 h-12 rounded-full object-cover shrink-0 border border-white/10"
+                            className="w-12 h-12 rounded-full object-cover shrink-0 border border-black/10 dark:border-white/10"
                             onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
                           />
                           <div className="min-w-0">
-                            <p className="text-white font-semibold flex items-center gap-2 truncate">
+                            <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2 truncate">
                               {dj.stage_name}
                               {dj.verification_badge && <VerificationBadge size="sm" />}
                             </p>
-                            <p className="text-white/50 text-sm capitalize truncate">
+                            <p className="text-gray-500 dark:text-white/50 text-sm capitalize truncate">
                               {genreLine || djAny.artist_type || t('eventDetail.artist')}
                             </p>
                           </div>
@@ -700,12 +702,12 @@ export default function EventDetail() {
               {/* Organizer */}
               {currentEvent.business && (
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-white mb-4">
+                  <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">
                     {t('eventDetail.organizer', 'Organizer')}
                   </h2>
                   <Link
                     to={`/profiles/${currentEvent.business.id}`}
-                    className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                    className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-colors shadow-xs dark:shadow-none"
                   >
                     <img
                       src={currentEvent.business.logo_url || '/placeholder.jpg'}
@@ -714,11 +716,11 @@ export default function EventDetail() {
                       onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                     />
                     <div>
-                      <p className="text-white font-semibold flex items-center gap-2">
+                      <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2">
                         {currentEvent.business.business_name}
                         {currentEvent.business.verification_badge && <VerificationBadge size="sm" />}
                       </p>
-                      <p className="text-white/50 text-sm">
+                      <p className="text-gray-500 dark:text-white/50 text-sm">
                         {currentEvent.business.verification_badge ? t('eventDetail.verifiedBusiness') : t('eventDetail.business')}
                       </p>
                     </div>
@@ -729,7 +731,7 @@ export default function EventDetail() {
               {/* Vendors at this Event */}
               {eventVendors.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-white mb-4">
+                  <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">
                     Vendors at this Event
                   </h2>
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -737,9 +739,9 @@ export default function EventDetail() {
                       <Link
                         key={vendor.id}
                         to={`/store/${vendor.vendor_id}`}
-                        className="flex items-center gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                        className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-colors shadow-xs dark:shadow-none"
                       >
-                        <div className="w-16 h-16 rounded-xl bg-gray-800 overflow-hidden flex-shrink-0">
+                        <div className="w-16 h-16 rounded-xl bg-neutral-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
                           {vendor.logo_url ? (
                             <img
                               src={vendor.logo_url}
@@ -749,21 +751,21 @@ export default function EventDetail() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Store className="w-6 h-6 text-gray-600" />
+                              <Store className="w-6 h-6 text-gray-400 dark:text-gray-600" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-semibold flex items-center gap-2 truncate">
+                          <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2 truncate">
                             {vendor.business_name}
                             {vendor.is_verified && <VerificationBadge size="sm" />}
                           </p>
-                          <p className="text-white/50 text-sm capitalize">
+                          <p className="text-gray-500 dark:text-white/50 text-sm capitalize">
                             {vendor.vendor_type || 'Vendor'}
                             {vendor.booth_location && ` · Booth ${vendor.booth_location}`}
                           </p>
                           {vendor.products && vendor.products.length > 0 && (
-                            <p className="text-[#d3da0c] text-xs mt-1">
+                            <p className="text-[#020b00] dark:text-[#d3da0c] font-medium text-xs mt-1">
                               {vendor.products.length} item{vendor.products.length > 1 ? 's' : ''} available
                             </p>
                           )}
@@ -777,7 +779,7 @@ export default function EventDetail() {
               {/* Related Events */}
               {relatedEvents.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-white mb-4">
+                  <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">
                     {t('eventDetail.similarEvents')}
                   </h2>
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -785,7 +787,7 @@ export default function EventDetail() {
                       <Link
                         key={related.id}
                         to={`/events/${related.id}`}
-                        className="flex gap-4 p-4 bg-[#141414] rounded-xl hover:border-[#d3da0c]/30 border border-transparent transition-colors"
+                        className="flex gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-colors shadow-xs dark:shadow-none"
                       >
                         <img
                           src={related.flyer_image || '/placeholder_event.jpg'}
@@ -793,13 +795,13 @@ export default function EventDetail() {
                           className="w-20 h-20 rounded-lg object-cover"
                         />
                         <div>
-                          <p className="text-white font-medium line-clamp-1">
+                          <p className="text-[#020b00] dark:text-white font-medium line-clamp-1">
                             {related.title}
                           </p>
-                          <p className="text-white/50 text-sm">
+                          <p className="text-gray-500 dark:text-white/50 text-sm">
                             {new Date(related.start_date).toLocaleDateString()}
                           </p>
-                          <p className="text-[#d3da0c] font-semibold mt-1">
+                          <p className="text-[#020b00] dark:text-[#d3da0c] font-bold mt-1">
                             {fmtPrice(related.ticket_tiers?.[0]?.currency, related.ticket_tiers?.[0]?.price || 0)}
                           </p>
                         </div>
@@ -812,26 +814,35 @@ export default function EventDetail() {
 
             {/* Sidebar / Ticket Card */}
             <div className="lg:col-span-1">
-              <div id="ticket-selector" className="sticky top-24 bg-[#141414] rounded-2xl p-6 border border-white/5 scroll-mt-24">
+              <div id="ticket-selector" className="sticky top-24 bg-white dark:bg-[#141414] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-sm dark:shadow-none scroll-mt-24">
                 {isSalesClosed && (
-                  <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                  <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400">
                     <p className="font-semibold text-sm flex items-center gap-2">
                       <AlertCircle className="w-4 h-4" />
                       {isEventPast 
                         ? t('eventDetail.eventEnded', 'Event Ended') 
                         : t('eventDetail.salesClosed', 'Ticket Sales Closed')}
                     </p>
-                    <p className="text-xs text-red-400/80 mt-1">
+                    <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
                       {isEventPast 
                         ? t('eventDetail.eventEndedDesc', 'This event has already ended. Ticket sales are closed.') 
                         : t('eventDetail.salesClosedDesc', 'Ticket sales for this event have been closed by the organizer.')}
                     </p>
+                    {isEventPast && (
+                      <Link
+                        to={`/recaps?event_id=${currentEvent.id}`}
+                        className="mt-3 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-opacity"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>View Event Photos & Recaps</span>
+                      </Link>
+                    )}
                   </div>
                 )}
                 {currentEvent.ticket_tiers && currentEvent.ticket_tiers.length > 0 ? (
                   <>
                     <div className="mb-4">
-                      <label className="text-white/50 text-sm mb-3 block">
+                      <label className="text-gray-500 dark:text-white/50 text-sm mb-3 block">
                         {t('eventDetail.selectTicketType')}
                       </label>
                       <div className="space-y-3">
@@ -844,17 +855,17 @@ export default function EventDetail() {
                               onClick={() => setSelectedTierId(String(tier.id))}
                               className={`w-full p-4 rounded-xl border text-left transition-all disabled:opacity-50 ${
                                 selectedTierId === String(tier.id)
-                                  ? 'border-[#d3da0c] bg-[#d3da0c]/10'
-                                  : 'border-white/10 bg-white/5 hover:border-white/20'
+                                  ? 'border-[#020b00] dark:border-[#d3da0c] bg-[#d3da0c]/15 text-[#020b00] dark:text-white font-medium'
+                                  : 'border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-white/5 hover:border-black/20 dark:hover:border-white/20'
                               }`}
                             >
                               <div className="flex justify-between items-center mb-1">
-                                <span className="font-semibold text-white">{tier.name}</span>
-                                <span className="text-[#d3da0c] font-bold shrink-0 whitespace-nowrap">
+                                <span className="font-semibold text-[#020b00] dark:text-white">{tier.name}</span>
+                                <span className="text-[#020b00] dark:text-[#d3da0c] font-bold shrink-0 whitespace-nowrap">
                           {fmtPrice(tier.currency, typeof tier.price === 'number' ? tier.price : Number(tier.price) || 0)}
                         </span>
                               </div>
-                              <p className="text-white/50 text-xs">
+                              <p className="text-gray-500 dark:text-white/50 text-xs">
                                 {isTierClosed
                                   ? (tier.status === 'closed' || tier.status === 'ended' ? t('eventDetail.salesClosed', 'Sales Closed') : t('eventDetail.soldOut'))
                                   : currentEvent.show_remaining_tickets === false
@@ -870,10 +881,10 @@ export default function EventDetail() {
                     <button
                       disabled={isSalesClosed}
                       onClick={handleBuyTicket}
-                      className={`w-full py-4 rounded-xl font-semibold transition-colors ${
+                      className={`w-full py-4 rounded-xl font-semibold transition-all ${
                         isSalesClosed
-                          ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
-                          : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b] cursor-pointer'
+                          ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-black/5 dark:border-white/5'
+                          : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90 cursor-pointer shadow-md'
                       }`}
                     >
                       {isEventPast 
@@ -886,8 +897,8 @@ export default function EventDetail() {
                 ) : (
                   <>
                     <div className="mb-6">
-                      <p className="text-white/50 text-sm mb-2">{t('eventDetail.ticketPrice')}</p>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-gray-500 dark:text-white/50 text-sm mb-2">{t('eventDetail.ticketPrice')}</p>
+                      <p className="text-3xl font-bold text-[#020b00] dark:text-white">
                         {fmtPrice('CNY', currentEvent.ticket_price || 0)}
                       </p>
                     </div>
@@ -895,10 +906,10 @@ export default function EventDetail() {
                     <button
                       disabled={isSalesClosed}
                       onClick={handleBuyTicket}
-                      className={`w-full py-4 rounded-xl font-semibold transition-colors mb-4 ${
+                      className={`w-full py-4 rounded-xl font-semibold transition-all mb-4 ${
                         isSalesClosed
-                          ? 'bg-gray-800 text-gray-400 cursor-not-allowed border border-white/5'
-                          : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b] cursor-pointer'
+                          ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-black/5 dark:border-white/5'
+                          : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90 cursor-pointer shadow-md'
                       }`}
                     >
                       {isEventPast 
@@ -912,11 +923,11 @@ export default function EventDetail() {
 
                 {!(currentEvent.ticket_tiers && currentEvent.ticket_tiers.length > 0) && !hasQrPayment && (
                   <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                      <ShoppingCart className="w-8 h-8 text-[#d3da0c]" />
+                    <div className="w-16 h-16 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-4">
+                      <ShoppingCart className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
                     </div>
-                    <h3 className="text-white font-semibold mb-2">{t('eventDetail.ticketsComingSoon')}</h3>
-                    <p className="text-white/50 text-sm mb-6">{t('eventDetail.ticketInfoSoon')}</p>
+                    <h3 className="text-[#020b00] dark:text-white font-semibold mb-2">{t('eventDetail.ticketsComingSoon')}</h3>
+                    <p className="text-gray-500 dark:text-white/50 text-sm mb-6">{t('eventDetail.ticketInfoSoon')}</p>
                   </div>
                 )}
               </div>
@@ -927,93 +938,101 @@ export default function EventDetail() {
 
       {/* Mobile sticky purchase bar */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#111111]/95 backdrop-blur-md border-t border-white/10 px-4 pt-3"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md border-t border-black/8 dark:border-white/10 px-4 pt-3 transition-colors"
         style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-center gap-3">
           <div className="min-w-0 shrink-0">
-            <p className="text-white/50 text-[10px] uppercase tracking-wide leading-none mb-1">
+            <p className="text-gray-500 dark:text-white/50 text-[10px] uppercase tracking-wide leading-none mb-1">
               {t('eventDetail.startingFrom', 'Starting from')}
             </p>
-            <p className="text-white font-bold text-lg leading-none">
+            <p className="text-[#020b00] dark:text-white font-bold text-lg leading-none">
               {fmtPrice(minTierCurrency, minTierPrice)}
             </p>
           </div>
-          <button
-            disabled={isSalesClosed}
-            onClick={handleBuyTicket}
-            className={`flex-1 h-12 rounded-xl font-bold text-sm transition-colors ${
-              isSalesClosed
-                ? 'bg-gray-800 text-gray-400 cursor-not-allowed'
-                : 'bg-[#d3da0c] text-black active:bg-[#bbc10b]'
-            }`}
-          >
-            {isEventPast
-              ? t('eventDetail.eventEnded', 'Event Ended')
-              : isSalesClosed
+          {isEventPast ? (
+            <Link
+              to={`/recaps?event_id=${currentEvent.id}`}
+              className="flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black active:opacity-90 shadow-md"
+            >
+              <Camera className="w-4 h-4" />
+              <span>View Photos & Recaps</span>
+            </Link>
+          ) : (
+            <button
+              disabled={isSalesClosed}
+              onClick={handleBuyTicket}
+              className={`flex-1 h-12 rounded-xl font-bold text-sm transition-all shadow-md ${
+                isSalesClosed
+                  ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black active:opacity-90'
+              }`}
+            >
+              {isSalesClosed
                 ? t('eventDetail.salesClosed', 'Sales Closed')
                 : t('eventDetail.buyTicket')}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Quantity Selector Modal */}
       {showQuantityModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">{t('eventDetail.selectQuantity')}</h3>
-              <button onClick={() => { setShowQuantityModal(false); setQuantity(1); }} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
+              <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.selectQuantity')}</h3>
+              <button onClick={() => { setShowQuantityModal(false); setQuantity(1); }} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-500 dark:text-white" /></button>
             </div>
             {/* Tier info */}
             {selectedTierId && currentEvent?.ticket_tiers?.length > 0 && (
-              <div className="mb-4 p-3 bg-white/5 rounded-xl">
-                <p className="text-white font-medium">
+              <div className="mb-4 p-3 bg-neutral-50 dark:bg-white/5 rounded-xl border border-black/5 dark:border-transparent">
+                <p className="text-[#020b00] dark:text-white font-medium">
                   {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.name}
                 </p>
-                <p className="text-[#d3da0c] font-bold">
+                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold">
                   {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.currency || '¥'}
                   {currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.price || 0}
-                  <span className="text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
+                  <span className="text-gray-500 dark:text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
                 </p>
               </div>
             )}
             {!selectedTierId && (
-              <div className="mb-4 p-3 bg-white/5 rounded-xl">
-                <p className="text-white font-medium">{t('eventDetail.standardTicket')}</p>
-                <p className="text-[#d3da0c] font-bold">
+              <div className="mb-4 p-3 bg-neutral-50 dark:bg-white/5 rounded-xl border border-black/5 dark:border-transparent">
+                <p className="text-[#020b00] dark:text-white font-medium">{t('eventDetail.standardTicket')}</p>
+                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold">
                   ¥{currentEvent?.ticket_price || 0}
-                  <span className="text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
+                  <span className="text-gray-500 dark:text-white/50 text-sm font-normal"> / {t('eventDetail.ticket')}</span>
                 </p>
               </div>
             )}
             {/* Quantity */}
             <div className="mb-4">
-              <label className="text-white/60 text-sm block mb-2">{t('eventDetail.quantity')}</label>
+              <label className="text-gray-600 dark:text-white/60 text-sm block mb-2">{t('eventDetail.quantity')}</label>
               <div className="flex items-center gap-3 justify-center">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-12 h-12 rounded-xl bg-white/5 text-white hover:bg-white/10 text-xl font-bold"
+                  className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10 text-xl font-bold transition-colors"
                 >-</button>
-                <span className="text-white font-bold text-2xl w-12 text-center">{quantity}</span>
+                <span className="text-[#020b00] dark:text-white font-bold text-2xl w-12 text-center">{quantity}</span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="w-12 h-12 rounded-xl bg-white/5 text-white hover:bg-white/10 text-xl font-bold"
+                  className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10 text-xl font-bold transition-colors"
                 >+</button>
               </div>
             </div>
             {/* Total */}
-            <div className="mb-6 p-3 bg-[#d3da0c]/10 rounded-xl text-center">
-              <p className="text-white/60 text-sm">{t('eventDetail.total')}</p>
-              <p className="text-[#d3da0c] text-2xl font-bold">
+            <div className="mb-6 p-3 bg-[#d3da0c]/15 rounded-xl text-center border border-[#d3da0c]/30">
+              <p className="text-gray-600 dark:text-white/60 text-sm">{t('eventDetail.total')}</p>
+              <p className="text-[#020b00] dark:text-[#d3da0c] text-2xl font-bold">
                 ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
               </p>
             </div>
             <button
               onClick={() => { setShowQuantityModal(false); setShowQrModal(true); }}
-              className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+              className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md"
             >
               {t('eventDetail.proceedToPayment')}
             </button>
@@ -1024,13 +1043,13 @@ export default function EventDetail() {
       {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">{t('eventDetail.scanToPay')}</h3>
-              <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
+              <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.scanToPay')}</h3>
+              <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-500 dark:text-white" /></button>
             </div>
             <div className="mb-3 text-center">
-              <p className="text-white/60 text-xs">
+              <p className="text-gray-600 dark:text-white/60 text-xs">
                 {quantity > 1 ? `${quantity} × ` : ''}
                 {selectedTierId && currentEvent?.ticket_tiers
                   ? currentEvent.ticket_tiers.find((t) => String(t.id) === selectedTierId)?.name
@@ -1049,7 +1068,7 @@ export default function EventDetail() {
             />
             <button
               onClick={() => { setShowQrModal(false); setShowOrderModal(true); }}
-              className="w-full mt-4 bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+              className="w-full mt-4 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md"
             >
               {t('eventDetail.iHavePaid')}
             </button>
@@ -1060,17 +1079,17 @@ export default function EventDetail() {
       {/* Pay-return prompt - buyer came back from Alipay/WeChat */}
       {payReturnPrompt && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-[#d3da0c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Smartphone className="w-8 h-8 text-[#d3da0c]" />
+              <Smartphone className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.payReturnTitle') || 'Did you complete the payment?'}</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">{t('eventDetail.payReturnTitle') || 'Did you complete the payment?'}</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {t('eventDetail.payReturnBody') || 'If you finished paying in the app, confirm below and the organizer is notified instantly.'}
             </p>
-            <div className="p-3 bg-white/5 rounded-xl mb-4">
-              <span className="text-white/60 text-sm">{t('eventDetail.amountToPay') || 'Amount'}</span>
-              <p className="text-xl font-bold text-[#d3da0c]">
+            <div className="p-3 bg-neutral-50 dark:bg-white/5 rounded-xl mb-4 border border-black/5 dark:border-transparent">
+              <span className="text-gray-500 dark:text-white/60 text-sm">{t('eventDetail.amountToPay') || 'Amount'}</span>
+              <p className="text-xl font-bold text-[#020b00] dark:text-[#d3da0c]">
                 ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
               </p>
             </div>
@@ -1082,13 +1101,13 @@ export default function EventDetail() {
                   setShowQrModal(false);
                   setShowOrderModal(true);
                 }}
-                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+                className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md"
               >
                 {t('eventDetail.payReturnYes') || 'Yes, I Completed the Payment'}
               </button>
               <button
                 onClick={() => setPayReturnPrompt(false)}
-                className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
+                className="w-full bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white py-3 rounded-xl font-medium hover:bg-neutral-200 dark:hover:bg-white/15 transition-colors"
               >
                 {t('eventDetail.payReturnNo') || 'Not Yet'}
               </button>
@@ -1100,12 +1119,12 @@ export default function EventDetail() {
       {/* Resume unfinished payment — browser tab was discarded while paying */}
       {resumePrompt && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-amber-400" />
+              <Clock className="w-8 h-8 text-amber-500" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.resumeTitle') || 'Unfinished Payment'}</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">{t('eventDetail.resumeTitle') || 'Unfinished Payment'}</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {t('eventDetail.resumeBody') || 'You were paying for this event. If you already completed the payment in WeChat or Alipay, confirm below — you can also attach your payment screenshot.'}
             </p>
             <div className="flex flex-col gap-3">
@@ -1117,7 +1136,7 @@ export default function EventDetail() {
                   clearPendingPayment();
                   setShowOrderModal(true);
                 }}
-                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+                className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md"
               >
                 {t('eventDetail.resumeYes') || 'Yes, I Completed the Payment'}
               </button>
@@ -1127,13 +1146,13 @@ export default function EventDetail() {
                   setResumePrompt(false);
                   setShowQrModal(true);
                 }}
-                className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
+                className="w-full bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white py-3 rounded-xl font-medium hover:bg-neutral-200 dark:hover:bg-white/15 transition-colors"
               >
                 {t('eventDetail.resumeShowQr') || 'Show Payment QR Again'}
               </button>
               <button
                 onClick={() => { setResumePrompt(false); clearPendingPayment(); }}
-                className="w-full text-gray-500 py-2 text-sm hover:text-gray-300 transition-colors"
+                className="w-full text-gray-500 py-2 text-sm hover:text-[#020b00] dark:hover:text-gray-300 transition-colors"
               >
                 {t('eventDetail.resumeCancel') || 'Cancel'}
               </button>
@@ -1145,18 +1164,18 @@ export default function EventDetail() {
       {/* Order Modal */}
       {showOrderModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">{t('eventDetail.confirmPayment')}</h3>
-              <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-white" /></button>
+              <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.confirmPayment')}</h3>
+              <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-500 dark:text-white" /></button>
             </div>
             <form onSubmit={handleOrderSubmit} className="space-y-4">
               {/* Compact summary line: quantity + total */}
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                <span className="text-white/60 text-sm">
+              <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-white/5 rounded-xl border border-black/5 dark:border-transparent">
+                <span className="text-gray-600 dark:text-white/60 text-sm">
                   {quantity} {quantity === 1 ? t('eventDetail.ticket') : t('eventDetail.tickets')}
                 </span>
-                <span className="text-[#d3da0c] font-bold">
+                <span className="text-[#020b00] dark:text-[#d3da0c] font-bold">
                   ¥{((currentEvent?.ticket_tiers?.find((t) => String(t.id) === selectedTierId)?.price ?? currentEvent?.ticket_price ?? 0) * quantity).toLocaleString()}
                 </span>
               </div>
@@ -1164,12 +1183,12 @@ export default function EventDetail() {
               {/* Name only needed when we could not resolve it from the profile */}
               {!profile && (
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">{t('eventDetail.yourName')} *</label>
+                  <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('eventDetail.yourName')} *</label>
                   <input
                     type="text"
                     value={payerName}
                     onChange={(e) => setPayerName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                    className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                     placeholder={t('eventDetail.enterYourName') || 'Your name'}
                     required
                   />
@@ -1177,18 +1196,18 @@ export default function EventDetail() {
               )}
 
               <div>
-                <label className="text-white/60 text-sm block mb-2">
+                <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">
                   {t('eventDetail.paymentScreenshot')}{buyerConfirmed ? '' : ' *'}
                 </label>
                 {buyerConfirmed && (
-                  <p className="text-[#d3da0c]/80 text-xs mb-2">
+                  <p className="text-[#020b00] dark:text-[#d3da0c]/80 text-xs mb-2">
                     {t('eventDetail.screenshotOptionalHint') || 'Optional, your payment confirmation was already sent to the organizer.'}
                   </p>
                 )}
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#d3da0c]/50 transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-black/15 dark:border-white/20 rounded-xl cursor-pointer hover:border-[#020b00] dark:hover:border-[#d3da0c]/50 transition-colors bg-neutral-50 dark:bg-white/5">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 text-white/50 mb-2" />
-                    <p className="text-sm text-white/60">{screenshot ? screenshot.name : t('eventDetail.clickToUpload')}</p>
+                    <Upload className="w-8 h-8 text-gray-500 dark:text-white/50 mb-2" />
+                    <p className="text-sm text-gray-600 dark:text-white/60">{screenshot ? screenshot.name : t('eventDetail.clickToUpload')}</p>
                   </div>
                   <input
                     type="file"
@@ -1201,11 +1220,11 @@ export default function EventDetail() {
               </div>
 
               <div>
-                <label className="text-white/60 text-sm block mb-2">{t('eventDetail.notesOptional')}</label>
+                <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('eventDetail.notesOptional')}</label>
                 <textarea
                   value={payerNotes}
                   onChange={(e) => setPayerNotes(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                   placeholder={t('eventDetail.anyNotes')}
                   rows={3}
                 />
@@ -1213,7 +1232,7 @@ export default function EventDetail() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-[#d3da0c] text-black py-4 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
+                className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-4 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 shadow-md"
               >
                 {submitting ? t('eventDetail.submitting') : t('eventDetail.submitOrder')}
               </button>
@@ -1247,12 +1266,12 @@ export default function EventDetail() {
       {/* Order Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-500" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">{t('eventDetail.orderSuccessTitle')}</h3>
-            <p className="text-gray-400 text-sm mb-6">
+            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">{t('eventDetail.orderSuccessTitle')}</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
               {recentOrder?.status === 'approved' || recentOrder?.status === 'used'
                 ? t('eventDetail.orderAutoApproved')
                 : recentOrder?.status === 'pending'
@@ -1261,24 +1280,24 @@ export default function EventDetail() {
             </p>
             {recentOrder?.ticket_qr && (
               <div className="mb-6">
-                <div className="bg-white rounded-xl p-3 inline-block">
+                <div className="bg-neutral-50 dark:bg-white rounded-xl p-3 inline-block border border-black/10">
                   <img src={recentOrder.ticket_qr} alt="Ticket QR" className="w-48 h-48 object-contain" />
                 </div>
                 {recentOrder.ticket_code && (
-                  <p className="text-white/70 text-xs mt-2 font-mono">{recentOrder.ticket_code}</p>
+                  <p className="text-gray-600 dark:text-white/70 text-xs mt-2 font-mono">{recentOrder.ticket_code}</p>
                 )}
               </div>
             )}
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setShowSuccessModal(false); navigate('/tickets'); }}
-                className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors"
+                className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md"
               >
                 {t('eventDetail.viewMyTickets')}
               </button>
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="w-full bg-white/10 text-white py-3 rounded-xl font-medium hover:bg-white/15 transition-colors"
+                className="w-full bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white py-3 rounded-xl font-medium hover:bg-neutral-200 dark:hover:bg-white/15 transition-colors"
               >
                 {t('eventDetail.continueBrowsing')}
               </button>
@@ -1290,24 +1309,24 @@ export default function EventDetail() {
       {/* Auth Modal - Login / Register inline */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-6">
               <div className="flex gap-4">
                 <button
                   onClick={() => setAuthTab('login')}
-                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'login' ? 'text-[#d3da0c] border-[#d3da0c]' : 'text-white/40 border-transparent'}`}
+                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'login' ? 'text-[#020b00] dark:text-[#d3da0c] border-[#020b00] dark:border-[#d3da0c]' : 'text-gray-400 dark:text-white/40 border-transparent'}`}
                 >
                   {t('nav.login')}
                 </button>
                 <button
                   onClick={() => setAuthTab('register')}
-                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'register' ? 'text-[#d3da0c] border-[#d3da0c]' : 'text-white/40 border-transparent'}`}
+                  className={`text-lg font-semibold pb-1 border-b-2 transition-colors ${authTab === 'register' ? 'text-[#020b00] dark:text-[#d3da0c] border-[#020b00] dark:border-[#d3da0c]' : 'text-gray-400 dark:text-white/40 border-transparent'}`}
                 >
                   {t('nav.register')}
                 </button>
               </div>
-              <button onClick={() => setShowAuthModal(false)} className="p-2 hover:bg-white/10 rounded-lg">
-                <X className="w-5 h-5 text-white" />
+              <button onClick={() => setShowAuthModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg">
+                <X className="w-5 h-5 text-gray-500 dark:text-white" />
               </button>
             </div>
 
@@ -1337,35 +1356,35 @@ export default function EventDetail() {
                 }
               }} className="space-y-4">
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.emailLabel')}</label>
+                  <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('auth.login.emailLabel')}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/30" />
                     <input
                       type="email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('auth.login.emailPlaceholder')}
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.passwordLabel')}</label>
+                  <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('auth.login.passwordLabel')}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/30" />
                     <input
                       type={showAuthPassword ? 'text' : 'password'}
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('auth.login.passwordPlaceholder')}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowAuthPassword(!showAuthPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60"
                     >
                       {showAuthPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -1374,7 +1393,7 @@ export default function EventDetail() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
                 >
                   {authLoading ? <LogIn className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
                   {t('nav.login')}
@@ -1422,57 +1441,57 @@ export default function EventDetail() {
               }} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-white/60 text-sm block mb-2">{t('common.firstName') || 'First Name'} *</label>
+                    <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('common.firstName') || 'First Name'} *</label>
                     <input
                       type="text"
                       value={authFirstName}
                       onChange={(e) => setAuthFirstName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder="John"
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-white/60 text-sm block mb-2">{t('common.lastName') || 'Last Name'}</label>
+                    <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('common.lastName') || 'Last Name'}</label>
                     <input
                       type="text"
                       value={authLastName}
                       onChange={(e) => setAuthLastName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder="Doe"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.emailLabel')}</label>
+                  <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('auth.login.emailLabel')}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/30" />
                     <input
                       type="email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('auth.login.emailPlaceholder')}
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">{t('auth.login.passwordLabel')}</label>
+                  <label className="text-gray-700 dark:text-white/60 text-sm block mb-2 font-medium">{t('auth.login.passwordLabel')}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/30" />
                     <input
                       type={showAuthPassword ? 'text' : 'password'}
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('auth.login.passwordPlaceholder')}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowAuthPassword(!showAuthPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60"
                     >
                       {showAuthPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -1481,7 +1500,7 @@ export default function EventDetail() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-[#d3da0c] text-black py-3 rounded-xl font-semibold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-3 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
                 >
                   {authLoading ? <UserPlus className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
                   {t('nav.register')}

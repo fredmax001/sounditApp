@@ -10,7 +10,7 @@ export default function NotFound() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#020b00] flex items-center justify-center p-6">
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-8 md:p-12 max-w-lg w-full text-center">
         <h1 className="text-6xl font-bold text-[#d3da0c] mb-4">404</h1>
         <h2 className="text-2xl font-bold text-white mb-3">Page Not Found</h2>

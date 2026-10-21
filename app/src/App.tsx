@@ -5,13 +5,13 @@ import { Toaster } from 'sonner';
 import { chinaCities } from './data/constants';
 import { captureUtmParams } from './lib/utm';
 import { useAuthStore } from './store/authStore';
+import { useThemeStore } from './store/themeStore';
 
 // Layouts - Unified System
 import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ResponsiveLayout from './layouts/ResponsiveLayout';
 import AdminLayout from './pages/admin/AdminLayout';
-import HomeRedirect from './components/HomeRedirect';
 
 // Public Pages (eager - most visited)
 import Home from './pages/Home';
@@ -55,6 +55,7 @@ import CookieConsent from './components/CookieConsent';
 // Legal Pages
 const Press = lazy(() => import('./pages/Press'));
 const BeatzOfAfrikaRecap = lazy(() => import('./pages/BeatzOfAfrikaRecap'));
+const Recaps = lazy(() => import('./pages/Recaps'));
 const Careers = lazy(() => import('./pages/Careers'));
 const Help = lazy(() => import('./pages/Help'));
 const Terms = lazy(() => import('./pages/Terms'));
@@ -91,6 +92,7 @@ const BusinessProfile = lazy(() => import('./pages/business/Profile'));
 const BusinessCommunity = lazy(() => import('./pages/business/Community'));
 const BusinessTableReservations = lazy(() => import('./pages/business/TableReservations'));
 const BusinessTicketOrders = lazy(() => import('./pages/business/TicketOrders'));
+const BusinessFinanceWorkspace = lazy(() => import('./pages/business/FinanceWorkspace'));
 
 // Vendor Dashboard
 const VendorDashboard = lazy(() => import('./pages/vendor/Dashboard'));
@@ -156,9 +158,15 @@ const Checkout = lazy(() => import('./pages/payment/Checkout'));
 const PaymentSuccess = lazy(() => import('./pages/payment/PaymentSuccess'));
 const Cart = lazy(() => import('./pages/Cart'));
 
+// Vendor marketplace (user-facing ordering flow)
+const VendorStore = lazy(() => import('./pages/VendorStore'));
+const ProductCheckout = lazy(() => import('./pages/ProductCheckout'));
+const MyOrders = lazy(() => import('./pages/user/MyOrders'));
+const OrderTracking = lazy(() => import('./pages/user/OrderTracking'));
+
 // Simple inline fallback while lazy chunks load
 const PageLoader = () => (
-  <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+  <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
     <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
   </div>
 );
@@ -169,8 +177,12 @@ function App() {
   const [introScreen, setIntroScreen] = useState<{ enabled?: boolean; logo_url?: string; title?: string; tagline?: string } | null>(null);
   const initialize = useAuthStore((state) => state.initialize);
   const profile = useAuthStore((state) => state.profile);
+  const initTheme = useThemeStore((state) => state.initTheme);
 
   useEffect(() => {
+    // Initialize theme system
+    initTheme();
+
     // Capture UTM tracking parameters from URL
     captureUtmParams();
 
@@ -210,10 +222,10 @@ function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', checkMaintenance);
 
-    // Simulate initial loading
+    // Initial loading timer for animated intro
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 2600);
 
     return () => {
       clearTimeout(timer);
@@ -233,12 +245,12 @@ function App() {
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
   if (isLoading) {
-    return <LoadingScreen settings={introScreen} />;
+    return <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />;
   }
 
   if (maintenanceMode && !isAdminUser) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-[#d3da0c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,14 +288,7 @@ function App() {
       <Routes>
           {/* Public Routes */}
           <Route element={<MainLayout />}>
-            <Route
-              path="/"
-              element={
-                <HomeRedirect>
-                  <Home />
-                </HomeRedirect>
-              }
-            />
+            <Route path="/" element={<Home />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/artists" element={<Artists />} />
@@ -293,6 +298,7 @@ function App() {
             <Route path="/profiles/:id" element={<PublicProfile />} />
             <Route path="/city-guide" element={<CityGuide />} />
             <Route path="/discovery" element={<CityGuide />} />
+            <Route path="/recaps" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />
             <Route path="/food" element={<Food />} />
             <Route path="/community" element={<Community />} />
             <Route path="/about" element={<About />} />
@@ -310,6 +316,10 @@ function App() {
             <Route path="/cross-border-consent" element={<Suspense fallback={<PageLoader />}><CrossBorderConsent /></Suspense>} />
             <Route path="/verification-policy" element={<Suspense fallback={<PageLoader />}><VerificationPolicy /></Suspense>} />
             <Route path="/cart" element={<Suspense fallback={<PageLoader />}><Cart /></Suspense>} />
+            <Route path="/vendor-store/:vendorId" element={<Suspense fallback={<PageLoader />}><VendorStore /></Suspense>} />
+            <Route path="/checkout/vendor/:vendorId" element={<Suspense fallback={<PageLoader />}><ProductCheckout /></Suspense>} />
+            <Route path="/orders" element={<Suspense fallback={<PageLoader />}><MyOrders /></Suspense>} />
+            <Route path="/orders/:orderId" element={<Suspense fallback={<PageLoader />}><OrderTracking /></Suspense>} />
             <Route path="/checkout/:eventId" element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
             <Route path="/tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
             <Route path="/tickets/receipt/:orderId" element={<Suspense fallback={<PageLoader />}><TicketReceipt /></Suspense>} />
@@ -421,6 +431,11 @@ function App() {
             <Route path="/dashboard/business/ticket-orders" element={
               <ResponsiveLayout>
                 <Suspense fallback={<PageLoader />}><BusinessTicketOrders /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/business/finance" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><BusinessFinanceWorkspace /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/community" element={

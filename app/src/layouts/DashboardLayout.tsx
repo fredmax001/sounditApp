@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { API_BASE_URL } from '@/config/api';
 import { useSubscriptionStore, canAccessFeature, getRequiredPlan, formatPlanName } from '@/store/subscriptionStore';
+import { useThemeStore } from '@/store/themeStore';
 import UpgradeModal from '@/components/UpgradeModal';
 import {
   LayoutDashboard,
@@ -39,6 +40,7 @@ import {
   Crown,
   MessageSquare,
   Share2,
+  DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -59,6 +61,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, logout, isLoading, session } = useAuthStore();
+  const { isDark } = useThemeStore();
   const token = session?.access_token;
   const { t } = useTranslation();
 
@@ -152,6 +155,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const businessNavItems: NavItem[] = [
     { path: '/dashboard/business', label: t('nav.dashboard') || 'Dashboard Overview', icon: LayoutDashboard, locked: false },
+    { path: '/dashboard/business/finance', label: 'Finance', icon: DollarSign, locked: false },
     { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: CalendarDays, locked: false },
     { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket, locked: false },
     { path: '/dashboard/business/promoters', label: t('nav.promoters') || 'Promoters', icon: Share2, locked: false },
@@ -163,6 +167,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/dashboard/business/profile', label: t('nav.profile') || 'Community Profile', icon: Store, locked: false },
     { path: '/dashboard/business/tables', label: t('upgrade.tableReservations') || 'Table Reservations', icon: Wine, locked: true, feature: 'table_reservations' },
     { path: '/subscriptions', label: t('nav.subscriptions') || 'Subscription', icon: Crown, locked: false },
+  ];
+
+  const businessFinanceNavItems: NavItem[] = [
+    { path: '/dashboard/business/finance', label: 'Finance Workspace', icon: DollarSign, locked: false },
+    { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket, locked: false },
+    { path: '/dashboard/business/tables', label: t('upgrade.tableReservations') || 'Table Reservations', icon: Wine, locked: false },
+    { path: '/dashboard/business/payouts', label: t('upgrade.payouts') || 'Payouts', icon: Wallet, locked: false },
+    { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: false },
   ];
 
   const vendorNavItems: NavItem[] = [
@@ -205,7 +217,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/admin/api', label: t('nav.api') || 'API', icon: Globe, locked: false },
   ];
 
+  const isFinanceStaff = (profile?.staff_role || '').toLowerCase() === 'finance';
+
   const getNavItems = (): NavItem[] => {
+    if (isFinanceStaff) {
+      return businessFinanceNavItems;
+    }
     const role = profile?.role_type || profile?.role;
     switch (role) {
       case 'admin':
@@ -222,14 +239,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navItems = getNavItems();
   const role = (profile?.role_type || profile?.role || '').toLowerCase();
   const portalName =
-    (role === 'admin' || role === 'super_admin') ? 'ADMIN PORTAL' :
-      (role === 'business' || role === 'organizer') ? 'BUSINESS PORTAL' :
-        (role === 'artist' || role === 'dj') ? 'ARTIST PORTAL' :
-          role === 'vendor' ? 'VENDOR PORTAL' : 'USER PORTAL';
+    isFinanceStaff ? 'FINANCE PORTAL' :
+      (role === 'admin' || role === 'super_admin') ? 'ADMIN PORTAL' :
+        (role === 'business' || role === 'organizer') ? 'BUSINESS PORTAL' :
+          (role === 'artist' || role === 'dj') ? 'ARTIST PORTAL' :
+            role === 'vendor' ? 'VENDOR PORTAL' : 'USER PORTAL';
 
   const isActive = (path: string) => {
     if (path === '/admin') {
       return location.pathname === '/admin' || location.pathname === '/admin/';
+    }
+    if (path === '/dashboard/business') {
+      return location.pathname === '/dashboard/business' || location.pathname === '/dashboard/business/';
     }
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
@@ -249,7 +270,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Show loading state while profile is loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+      <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -262,7 +283,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // If no profile after loading, session may have expired - redirect to login
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#020b00] p-6">
         <div className="text-center max-w-sm">
           <p className="text-white text-lg font-bold mb-2">
             {t('auth.sessionExpired') || 'Session Expired'}
@@ -285,19 +306,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] text-[#020b00] dark:text-white flex transition-colors duration-200">
       {/* Sidebar */}
       <aside
-        className="bg-[#111111] border-r border-white/5 flex flex-col fixed h-full overflow-hidden"
+        className="bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/5 flex flex-col fixed h-full overflow-hidden"
         style={{ width: sidebarWidth }}
       >
         {/* Logo */}
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4 border-b border-black/8 dark:border-white/5">
           <Link to="/" className="inline-block max-w-full">
             <img
-              src="/logo-platform.png"
+              src={isDark ? "/logo-dark.png" : "/logo-light.png"}
               alt="Sound It"
-              className="h-12 w-auto max-w-full"
+              className="h-10 w-auto max-w-full object-contain"
             />
           </Link>
           <p className="text-gray-500 text-[10px] mt-1 truncate">
@@ -316,6 +337,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         )}
 
+        {/* Quick Platform Switcher */}
+        <div className="px-4 pt-3 pb-1">
+          <Link
+            to="/events"
+            className="flex items-center justify-between w-full px-3 py-2 rounded-lg bg-[#d3da0c]/15 hover:bg-[#d3da0c]/25 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30 text-xs font-semibold transition-all group"
+            title="Browse events, city guide, and buy tickets"
+          >
+            <span className="flex items-center gap-2 truncate">
+              <Globe className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+              <span className="truncate">Explore Platform</span>
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
         {/* Navigation - Scrollable */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
@@ -329,13 +365,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 to={item.path}
                 onClick={(e) => locked && handleLockedClick(e, item)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${active
-                  ? 'bg-[#d3da0c]/10 text-[#d3da0c] border border-[#d3da0c]/30'
+                  ? 'bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] font-semibold border border-[#d3da0c]/40'
                   : locked
-                    ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'text-gray-400 dark:text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-600 dark:hover:text-gray-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
                   }`}
               >
-                <Icon className={`w-5 h-5 ${active ? 'text-[#d3da0c]' : ''} ${locked ? 'opacity-50' : ''}`} />
+                <Icon className={`w-5 h-5 ${active ? 'text-[#020b00] dark:text-[#d3da0c]' : ''} ${locked ? 'opacity-50' : ''}`} />
                 <span className={`font-medium ${locked ? 'line-through opacity-60' : ''}`}>{item.label}</span>
                 {locked && (
                   <>
@@ -359,8 +395,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 mb-3">
+        <div className="p-4 border-t border-black/8 dark:border-white/5">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/5 dark:bg-white/5 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
               {profile?.avatar_url ? (
                 <img
@@ -374,7 +410,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium truncate">{profile?.display_name || profile?.first_name || 'User'}</p>
+              <p className="text-[#020b00] dark:text-white font-medium truncate">{profile?.display_name || profile?.first_name || 'User'}</p>
               <p className="text-gray-500 text-xs truncate">{user?.email}</p>
             </div>
           </div>
@@ -382,14 +418,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <div className="space-y-1">
             <Link
               to="/settings"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
             >
               <Settings className="w-4 h-4" />
               <span className="text-sm">{t('nav.settings')}</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               <span className="text-sm">{t('nav.logout')}</span>

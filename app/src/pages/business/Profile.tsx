@@ -223,13 +223,13 @@ const Profile = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-2">{t('business.profile.communityProfile')}</h2>
-          <p className="text-gray-400">{t('business.profile.editYourProfileInfo')}</p>
+          <h2 className="text-3xl font-bold text-[#020b00] dark:text-white mb-2">{t('business.profile.communityProfile')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('business.profile.editYourProfileInfo')}</p>
         </div>
         <button
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
           disabled={isUploading || isSaving}
-          className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-lg font-medium hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isSaving || isUploading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -243,12 +243,23 @@ const Profile = () => {
       </div>
 
       {/* Profile Header Card */}
-      <div className="bg-[#111111] rounded-2xl border border-white/5 overflow-hidden">
+      <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden">
         {/* Cover Image */}
-        <div
-          className="h-48 bg-gradient-to-r from-[#d3da0c]/20 via-[#FF2D8F]/20 to-[#d3da0c]/20 relative bg-cover bg-center"
-          style={profile?.banner_url ? { backgroundImage: `url(${profile.banner_url})` } : {}}
-        >
+        <div className="h-48 relative overflow-hidden bg-gradient-to-r from-[#d3da0c]/20 via-[#FF2D8F]/20 to-[#d3da0c]/20">
+          {(profile?.background_url || profile?.banner_url) ? (
+            <img
+              src={profile?.background_url || profile?.banner_url || ''}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60"
+            />
+          ) : null}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           <input
             type="file"
             ref={bannerInputRef}
@@ -259,9 +270,10 @@ const Profile = () => {
           <button
             onClick={() => bannerInputRef.current?.click()}
             disabled={isUploading}
-            className="absolute bottom-4 right-4 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors disabled:opacity-50"
+            className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 px-3 py-2 bg-black/55 backdrop-blur-md border border-white/15 rounded-lg text-white text-xs font-medium hover:bg-black/75 transition-colors disabled:opacity-50"
           >
-            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+            {isUploading ? <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" /> : <Camera className="w-4 h-4 text-[#d3da0c]" />}
+            <span>{(profile?.background_url || profile?.banner_url) ? 'Change Background' : 'Add Background'}</span>
           </button>
         </div>
 
@@ -270,7 +282,7 @@ const Profile = () => {
           {/* Avatar */}
           <div className="absolute -top-16 left-8">
             <div
-              className="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-4xl font-bold text-black border-4 border-[#111111] bg-cover bg-center overflow-hidden"
+              className="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-4xl font-bold text-black border-4 border-white dark:border-[#111111] bg-cover bg-center overflow-hidden shadow-md"
               style={profile?.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : {}}
             >
               {!profile?.avatar_url && (profileData.businessName ? profileData.businessName.charAt(0).toUpperCase() : '?')}
@@ -299,23 +311,23 @@ const Profile = () => {
                   type="text"
                   value={profileData.businessName}
                   onChange={(e) => setProfileData({ ...profileData, businessName: e.target.value })}
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-4 py-2 text-white text-2xl font-bold focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-[#020b00] dark:text-white text-2xl font-bold focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.businessNamePlaceholder')}
                 />
                 <textarea
                   value={profileData.description}
                   onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-4 py-2 text-gray-400 focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#d3da0c]"
                   rows={2}
                   placeholder={t('business.profile.descriptionPlaceholder')}
                 />
               </div>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-2xl font-bold text-[#020b00] dark:text-white">
                   {businessProfile?.business_name || t('business.profile.yourBusinessName')}
                 </h3>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                   {businessProfile?.description || t('business.profile.addDescription')}
                 </p>
               </>
@@ -324,16 +336,16 @@ const Profile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{businessProfile?.total_events || 0}</p>
-                <p className="text-gray-500 text-sm">{t('business.profile.events')}</p>
+                <p className="text-2xl font-bold text-[#020b00] dark:text-white">{businessProfile?.total_events || 0}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('business.profile.events')}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{profile?.followers_count || 0}</p>
-                <p className="text-gray-500 text-sm">{t('business.profile.followers')}</p>
+                <p className="text-2xl font-bold text-[#020b00] dark:text-white">{profile?.followers_count || 0}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('business.profile.followers')}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{galleryImages.length}</p>
-                <p className="text-gray-500 text-sm">{t('business.profile.photos')}</p>
+                <p className="text-2xl font-bold text-[#020b00] dark:text-white">{galleryImages.length}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('business.profile.photos')}</p>
               </div>
             </div>
           </div>
@@ -343,20 +355,20 @@ const Profile = () => {
       {/* Social Links & Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Contact Info */}
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+          <h4 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
             <Store className="w-5 h-5 text-[#d3da0c]" />
             {t('business.profile.businessDetails')}
           </h4>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <Globe className="w-5 h-5 text-gray-500" />
+              <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               {isEditing ? (
                 <input
                   type="text"
                   value={profileData.website}
                   onChange={(e) => setProfileData({ ...profileData, website: e.target.value })}
-                  className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.websitePlaceholder')}
                 />
               ) : (
@@ -364,45 +376,45 @@ const Profile = () => {
                   href={profileData.website ? (profileData.website.startsWith('http') ? profileData.website : `https://${profileData.website}`) : '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={profileData.website ? 'text-gray-300 hover:text-[#d3da0c]' : 'text-gray-500'}
+                  className={profileData.website ? 'text-gray-700 dark:text-gray-300 hover:text-[#d3da0c]' : 'text-gray-400 dark:text-gray-500'}
                 >
                   {profileData.website || t('business.profile.websiteNotConfigured')}
                 </a>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-gray-500" />
+              <MapPin className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               {isEditing ? (
                 <select
                   value={profileData.cityId}
                   onChange={(e) => setProfileData({ ...profileData, cityId: e.target.value })}
-                  className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                 >
                   <option value="">{t('business.profile.selectCity')}</option>
                   {chinaCities.map((city) => (
-                    <option key={city.id} value={city.id}>
+                    <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
                       {city.name}
                     </option>
                   ))}
                 </select>
               ) : (
-                <span className="text-gray-400">
+                <span className="text-gray-700 dark:text-gray-400">
                   {t('business.profile.locationLabel', { city: selectedCityName })}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <Link2 className="w-5 h-5 text-gray-500" />
+              <Link2 className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               {isEditing ? (
                 <input
                   type="text"
                   value={profileData.location}
                   onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                  className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.addressPlaceholder')}
                 />
               ) : (
-                <span className="text-gray-400">
+                <span className="text-gray-700 dark:text-gray-400">
                   {t('business.profile.addressLabel', { address: businessProfile?.address || t('business.profile.notSet') })}
                 </span>
               )}
@@ -411,8 +423,8 @@ const Profile = () => {
         </div>
 
         {/* Social Media */}
-        <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-          <h4 className="text-lg font-semibold text-white mb-4">{t('business.profile.socialMedia')}</h4>
+        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+          <h4 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4">{t('business.profile.socialMedia')}</h4>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Instagram className="w-5 h-5 text-pink-500" />
@@ -421,7 +433,7 @@ const Profile = () => {
                   type="text"
                   value={profileData.instagram}
                   onChange={(e) => setProfileData({ ...profileData, instagram: e.target.value })}
-                  className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.socialPlaceholder')}
                 />
               ) : (
@@ -429,7 +441,7 @@ const Profile = () => {
                   href={profile?.instagram ? `https://instagram.com/${profile.instagram.replace('@', '')}` : '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={profile?.instagram ? 'text-gray-300 hover:text-[#d3da0c]' : 'text-gray-500'}
+                  className={profile?.instagram ? 'text-gray-700 dark:text-gray-300 hover:text-[#d3da0c]' : 'text-gray-400 dark:text-gray-500'}
                 >
                   {profile?.instagram || t('business.profile.addInstagramHandle')}
                 </a>
@@ -442,7 +454,7 @@ const Profile = () => {
                   type="text"
                   value={profileData.twitter}
                   onChange={(e) => setProfileData({ ...profileData, twitter: e.target.value })}
-                  className="flex-1 bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.socialPlaceholder')}
                 />
               ) : (
@@ -450,7 +462,7 @@ const Profile = () => {
                   href={profile?.twitter ? `https://twitter.com/${profile.twitter.replace('@', '')}` : '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={profile?.twitter ? 'text-gray-300 hover:text-[#d3da0c]' : 'text-gray-500'}
+                  className={profile?.twitter ? 'text-gray-700 dark:text-gray-300 hover:text-[#d3da0c]' : 'text-gray-400 dark:text-gray-500'}
                 >
                   {profile?.twitter || t('business.profile.addTwitterHandle')}
                 </a>
@@ -461,10 +473,10 @@ const Profile = () => {
       </div>
 
       {/* Photo Gallery */}
-      <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
+      <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-white">{t('business.profile.eventPhotos')}</h4>
-          <span className="text-gray-500 text-sm">{galleryImages.length} / {maxGallerySlots}</span>
+          <h4 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('business.profile.eventPhotos')}</h4>
+          <span className="text-gray-500 dark:text-gray-400 text-sm">{galleryImages.length} / {maxGallerySlots}</span>
         </div>
 
         <input
@@ -478,7 +490,7 @@ const Profile = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Display existing gallery images */}
           {galleryImages.map((imageUrl, index) => (
-            <div key={index} className="aspect-square rounded-lg overflow-hidden border border-white/10 relative group">
+            <div key={index} className="aspect-square rounded-xl overflow-hidden border border-black/10 dark:border-white/10 relative group">
               <img
                 src={imageUrl}
                 alt={t('business.profile.galleryImageAlt', { number: index + 1 })}
@@ -498,12 +510,12 @@ const Profile = () => {
             <button
               onClick={() => galleryInputRef.current?.click()}
               disabled={uploadingGalleryIndex !== null}
-              className="aspect-square bg-[#0A0A0A] rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center hover:border-[#d3da0c]/50 transition-colors disabled:opacity-50"
+              className="aspect-square bg-neutral-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-black/10 dark:border-white/10 flex items-center justify-center hover:border-[#d3da0c]/50 transition-colors disabled:opacity-50"
             >
               {uploadingGalleryIndex !== null ? (
-                <Loader2 className="w-8 h-8 text-gray-600 animate-spin" />
+                <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-600 animate-spin" />
               ) : (
-                <Plus className="w-8 h-8 text-gray-600" />
+                <Plus className="w-8 h-8 text-gray-400 dark:text-gray-600" />
               )}
             </button>
           )}
@@ -512,30 +524,30 @@ const Profile = () => {
           {Array.from({ length: Math.max(0, maxGallerySlots - galleryImages.length - 1) }).map((_, index) => (
             <div
               key={`empty-${index}`}
-              className="aspect-square bg-[#0A0A0A] rounded-lg border-2 border-dashed border-white/5 flex items-center justify-center"
+              className="aspect-square bg-neutral-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-black/5 dark:border-white/5 flex items-center justify-center"
             >
-              <Camera className="w-8 h-8 text-gray-700" />
+              <Camera className="w-8 h-8 text-gray-300 dark:text-gray-700" />
             </div>
           ))}
         </div>
 
-        <p className="text-gray-500 text-sm mt-3">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-3">
           {t('business.profile.uploadPhotosHint')}
         </p>
       </div>
 
       {/* Logout Section */}
-      <div className="bg-[#111111] rounded-xl p-6 border border-white/5">
-        <h4 className="text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h4>
+      <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+        <h4 className="text-[#020b00] dark:text-white font-bold text-lg mb-4">{t('nav.account') || 'Account'}</h4>
         <button
           onClick={() => {
             logout();
             navigate('/');
           }}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors border border-red-500/20"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-colors border border-red-500/20 font-medium"
         >
           <LogOut className="w-5 h-5" />
-          <span className="font-medium">{t('nav.logout') || 'Logout'}</span>
+          <span>{t('nav.logout') || 'Logout'}</span>
         </button>
       </div>
     </motion.div>

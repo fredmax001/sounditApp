@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Smartphone, QrCode, Monitor, Check, Download } from 'lucide-react';
+import { getMediaUrl } from '@/lib/appUrl';
 
 interface MobileQrPaymentProps {
   amount?: number | null;
@@ -81,7 +82,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, wechatPa
   })();
 
   // Use current origin so QR works in local dev, preview, and production
-  const yoopayQrUrl = `${window.location.origin}${YOOPAY_QR_PATH}`;
+  const yoopayQrUrl = getMediaUrl(YOOPAY_QR_PATH);
   const hasOrganizerQr = !!wechatQrUrl || !!alipayQrUrl;
 
   const handleDownloadQr = (url: string, filename: string) => {
@@ -141,7 +142,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, wechatPa
           <div className="space-y-3">
             <div className="flex justify-center">
               <img
-                src={currentQrUrl!}
+                src={getMediaUrl(currentQrUrl)}
                 alt={`${activeTab === 'wechat' ? 'WeChat' : 'Alipay'} QR`}
                 className="w-48 h-48 object-contain rounded-lg bg-white p-2"
                 decoding="async"
@@ -151,7 +152,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, wechatPa
                   // viewer via WeixinJSBridge makes recognition reliable.
                   if (!isWechatWebview) return;
                   try {
-                    const abs = new URL(currentQrUrl!, window.location.origin).href;
+                    const abs = getMediaUrl(currentQrUrl);
                     const bridge = (window as any).WeixinJSBridge;
                     if (bridge && typeof bridge.invoke === 'function') {
                       bridge.invoke('imagePreview', { current: abs, urls: [abs] });
@@ -318,7 +319,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, wechatPa
 
         <div className="flex justify-center">
           <img
-            src={qrUrl}
+            src={getMediaUrl(qrUrl)}
             alt="YOOPAY QR"
             className="w-48 h-48 object-contain rounded-lg bg-white p-2"
             loading="lazy"

@@ -12,12 +12,45 @@
     <meta name="author" content="Sound It Entertainment" />
 
     <!-- ── Favicons ── -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="canonical" href="https://sounditent.com/" />
-    <meta name="theme-color" content="#d3da0c" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3" />
+    <link rel="shortcut icon" href="/favicon.ico?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#020b00" />
+
+    <!-- ── Anti-flash theme bootstrapper ── -->
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('theme-storage');
+          var theme = 'system';
+          if (stored) {
+            var parsed = JSON.parse(stored);
+            if (parsed && parsed.state && parsed.state.theme) {
+              theme = parsed.state.theme;
+            }
+          }
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+          var root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+            root.classList.remove('light');
+            root.style.colorScheme = 'dark';
+            root.setAttribute('data-theme', 'dark');
+          } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            root.style.colorScheme = 'light';
+            root.setAttribute('data-theme', 'light');
+          }
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', isDark ? '#020b00' : '#ffffff');
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- ── Cache control ── -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -144,25 +177,26 @@
       <!-- Branded loading screen shown while React initialises -->
       <div id="static-loader" style="
         min-height: 100vh;
-        background: #0a0a0a;
+        background: #020b00;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        position: relative;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         padding: 24px;
         box-sizing: border-box;
       ">
-        <!-- Logo -->
+        <!-- Drum Logo in the middle -->
         <img
-          src="/logo.png"
+          src="/intro_drum.png"
           alt="Sound It"
-          style="height: 56px; width: auto; margin-bottom: 24px;"
-          onerror="this.style.display='none'"
+          style="height: 100px; width: auto; object-fit: contain;"
+          onerror="this.src='/mobile-logo.png'"
         />
 
-        <!-- Spinner -->
-        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px;">
+        <!-- WeChat prompt if applicable -->
+        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px; margin-top:24px;">
           <p style="color:#999; font-size:14px; text-align:center; margin:0; line-height:1.6;">
             For the best experience, open Sound It in your default browser.
           </p>
@@ -191,7 +225,8 @@
           </p>
         </div>
 
-        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+        <!-- Loading circle at the bottom -->
+        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:12px; position:absolute; bottom:48px; left:50%; transform:translateX(-50%);">
           <div style="
             width: 36px; height: 36px;
             border: 3px solid #222;
@@ -199,7 +234,7 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
           "></div>
-          <p style="color:#555; font-size:14px; margin:0;">Loading Sound It...</p>
+          <p style="color:#555; font-size:14px; margin:0; white-space:nowrap;">Loading Sound It...</p>
         </div>
 
         <style>
@@ -240,7 +275,7 @@
     </div>
 
     <noscript>
-      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#0a0a0a;color:#e5e5e5;min-height:100vh;">
+      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#020b00;color:#e5e5e5;min-height:100vh;">
         <img src="/logo.png" alt="Sound It" style="height:48px;margin-bottom:24px;" />
         <h1 style="color:#d3da0c;">Sound It, Entertainment Platform</h1>
         <p>Sound It is an entertainment platform for the African and international community in China. Please enable JavaScript to use the full platform.</p>

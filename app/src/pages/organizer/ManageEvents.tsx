@@ -195,10 +195,10 @@ const ManageEvents = () => {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
       >
         <div>
-          <h1 className="text-3xl font-display text-white mb-2">
+          <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">
             {t('organizer.manageEvents.titlePrefix')} <span className="text-[#d3da0c]">{t('organizer.manageEvents.titleHighlight')}</span>
           </h1>
-          <p className="text-gray-400">{t('organizer.manageEvents.subtitle')}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('organizer.manageEvents.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -206,7 +206,7 @@ const ManageEvents = () => {
               setBroadcastModalEvent(null);
               setIsBroadcastOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-medium rounded-lg hover:bg-amber-500/20 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-medium rounded-xl hover:bg-amber-500/20 transition-colors"
             title="Broadcast announcement to attendees or followers"
           >
             <Megaphone className="w-5 h-5" />
@@ -215,14 +215,14 @@ const ManageEvents = () => {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing || isLoading}
-            className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{t('organizer.manageEvents.refresh')}</span>
           </button>
           <Link
             to="/dashboard/business/create-event"
-            className="flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-opacity"
           >
             <Plus className="w-5 h-5" />
             {t('organizer.manageEvents.createEvent')}
@@ -231,13 +231,13 @@ const ManageEvents = () => {
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 bg-white/5 rounded-xl p-1 w-fit">
+      <div className="flex items-center gap-1 mb-6 bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl p-1 w-fit">
         <button
           onClick={() => handleTabChange('upcoming')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             activeTab === 'upcoming'
-              ? 'bg-[#d3da0c] text-black'
-              : 'text-gray-400 hover:text-white'
+              ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+              : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -245,10 +245,10 @@ const ManageEvents = () => {
         </button>
         <button
           onClick={() => handleTabChange('past')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             activeTab === 'past'
-              ? 'bg-[#d3da0c] text-black'
-              : 'text-gray-400 hover:text-white'
+              ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+              : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
           }`}
         >
           <History className="w-4 h-4" />
@@ -261,23 +261,23 @@ const ManageEvents = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass rounded-2xl overflow-hidden"
+        className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden"
       >
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white/5">
+            <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/5 dark:border-white/5">
               <tr>
-                <th className="text-left px-6 py-4 text-gray-400 font-medium">{t('organizer.manageEvents.eventHeader')}</th>
-                <th className="text-left px-6 py-4 text-gray-400 font-medium">{t('organizer.manageEvents.dateHeader')}</th>
-                <th className="text-left px-6 py-4 text-gray-400 font-medium">{t('organizer.manageEvents.ticketsSoldHeader')}</th>
-                <th className="text-left px-6 py-4 text-gray-400 font-medium">{t('organizer.manageEvents.statusHeader')}</th>
-                <th className="text-right px-6 py-4 text-gray-400 font-medium">{t('organizer.manageEvents.actionsHeader')}</th>
+                <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">{t('organizer.manageEvents.eventHeader')}</th>
+                <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">{t('organizer.manageEvents.dateHeader')}</th>
+                <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">{t('organizer.manageEvents.ticketsSoldHeader')}</th>
+                <th className="text-left px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">{t('organizer.manageEvents.statusHeader')}</th>
+                <th className="text-right px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">{t('organizer.manageEvents.actionsHeader')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               <AnimatePresence mode="wait">
                 {events.map((event) => (
-                <tr key={event.id} className="hover:bg-white/5 transition-colors">
+                <tr key={event.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <img
@@ -289,19 +289,19 @@ const ManageEvents = () => {
                         }}
                       />
                       <div>
-                        <p className="text-white font-medium">{event.title}</p>
-                        <p className="text-gray-500 text-sm capitalize">{event.city}</p>
+                        <p className="text-[#020b00] dark:text-white font-medium">{event.title}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">{event.city}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <Calendar className="w-4 h-4 text-[#d3da0c]" />
                       {new Date(event.start_date).toLocaleDateString()}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <Users className="w-4 h-4 text-[#d3da0c]" />
                       {event.tickets_sold || 0}/{event.capacity || t('organizer.manageEvents.unlimited')}
                     </div>
@@ -312,7 +312,7 @@ const ManageEvents = () => {
                         {getStatusLabel(event.status)}
                       </span>
                       {(event as any).ticket_sales_closed && (
-                        <span className="inline-block px-2 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-semibold w-max">
+                        <span className="inline-block px-2 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-500 dark:text-red-400 font-semibold w-max">
                           Sales Closed
                         </span>
                       )}
@@ -322,7 +322,7 @@ const ManageEvents = () => {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         to={`/events/${event.id}`}
-                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                         title={t('organizer.manageEvents.viewEventTooltip')}
                       >
                         <Eye className="w-4 h-4" />
@@ -350,7 +350,7 @@ const ManageEvents = () => {
                       {event.qr_code && (
                         <button
                           onClick={() => setQrModalEvent(event)}
-                          className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-[#d3da0c] hover:bg-white/10 transition-colors"
+                          className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-[#d3da0c] hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                           title="View QR Code"
                         >
                           <QrCode className="w-4 h-4" />
@@ -361,14 +361,14 @@ const ManageEvents = () => {
                           setBroadcastModalEvent(event);
                           setIsBroadcastOpen(true);
                         }}
-                        className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 transition-colors"
+                        className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300 hover:bg-amber-500/20 transition-colors"
                         title="Broadcast Update to Attendees"
                       >
                         <Megaphone className="w-4 h-4" />
                       </button>
                       <Link
                         to={`/dashboard/business/events/${event.id}/promoters`}
-                        className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
+                        className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
                         title="Manage Promoters"
                       >
                         <Share2 className="w-4 h-4" />
@@ -398,14 +398,14 @@ const ManageEvents = () => {
                             toast.error('Failed to update ticket sales status');
                           }
                         }}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${(event as any).ticket_sales_closed ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'}`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${(event as any).ticket_sales_closed ? 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30' : 'bg-red-500/10 text-red-500 dark:text-red-400 hover:bg-red-500/20'}`}
                         title={(event as any).ticket_sales_closed ? "Re-open Ticket Sales" : "Close Ticket Sales"}
                       >
                         <Clock className="w-4 h-4" />
                       </button>
                       <Link
                         to={`/dashboard/business/events/${event.id}/edit`}
-                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                         title={t('organizer.manageEvents.editEventTooltip')}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -433,11 +433,11 @@ const ManageEvents = () => {
           {/* Empty State */}
           {events.length === 0 && !isLoading && (
             <div className="text-center py-16">
-              <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg mb-2">
+              <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-[#020b00] dark:text-gray-400 font-semibold text-lg mb-2">
                 {activeTab === 'past' ? 'No past events' : t('organizer.manageEvents.noEvents')}
               </p>
-              <p className="text-gray-500 text-sm mb-6">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
                 {activeTab === 'past'
                   ? 'Events that have ended will appear here.'
                   : t('organizer.manageEvents.noEventsDesc')}
@@ -445,7 +445,7 @@ const ManageEvents = () => {
               {activeTab === 'upcoming' && (
                 <Link
                   to="/dashboard/business/create-event"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-opacity"
                 >
                   <Plus className="w-5 h-5" />
                   {t('organizer.manageEvents.createEvent')}
@@ -460,30 +460,30 @@ const ManageEvents = () => {
       {/* QR Code Modal */}
       {qrModalEvent && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setQrModalEvent(null)}
         >
           <div
-            className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-sm w-full"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold">{qrModalEvent.title}</h3>
+              <h3 className="text-[#020b00] dark:text-white font-semibold">{qrModalEvent.title}</h3>
               <button
                 onClick={() => setQrModalEvent(null)}
-                className="p-1 text-gray-400 hover:text-white"
+                className="p-1 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex flex-col items-center gap-4">
-              <div className="bg-white rounded-xl p-4">
+              <div className="bg-neutral-50 dark:bg-white rounded-xl p-4 border border-black/5">
                 <img src={qrModalEvent.qr_code} alt="Event QR" className="w-48 h-48" />
               </div>
               <a
                 href={qrModalEvent.qr_code}
                 download={`event-${qrModalEvent.id}-qr.png`}
-                className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors text-center"
+                className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-opacity text-center"
               >
                 Download QR Code
               </a>
@@ -492,7 +492,7 @@ const ManageEvents = () => {
                   navigator.clipboard.writeText(qrModalEvent.share_url || `${WEB_ORIGIN}/events/${qrModalEvent.id}`);
                   toast.success('Link copied');
                 }}
-                className="w-full py-3 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"
+                className="w-full py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors font-medium"
               >
                 Copy Event Link
               </button>

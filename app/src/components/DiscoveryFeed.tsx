@@ -45,11 +45,11 @@ const SectionHeader = ({ title, seeAllPath }: { title: string; seeAllPath?: stri
   const navigate = useNavigate();
   return (
     <div className="flex items-center justify-between mb-3 px-4">
-      <h2 className="text-base font-semibold text-white">{title}</h2>
+      <h2 className="text-base font-semibold text-[#020b00] dark:text-white">{title}</h2>
       {seeAllPath && (
         <button
           onClick={() => navigate(seeAllPath)}
-          className="flex items-center gap-0.5 text-xs text-[#d3da0c] font-medium min-h-[32px]"
+          className="flex items-center gap-0.5 text-xs text-gray-700 dark:text-[#d3da0c] font-medium min-h-[32px] hover:underline"
         >
           {t('discovery.seeAll', 'See all')}
           <ChevronRight className="w-3.5 h-3.5" />
@@ -60,7 +60,7 @@ const SectionHeader = ({ title, seeAllPath }: { title: string; seeAllPath?: stri
 };
 
 const SkeletonCard = ({ className }: { className: string }) => (
-  <div className={`bg-[#111111] border border-white/5 rounded-2xl animate-pulse ${className}`} />
+  <div className={`bg-neutral-100 dark:bg-[#111111] border border-black/5 dark:border-white/5 rounded-2xl animate-pulse ${className}`} />
 );
 
 const DiscoveryFeed = () => {
@@ -197,18 +197,18 @@ const DiscoveryFeed = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.3) }}
                   onClick={() => navigate(`/events/${ev.id}`)}
-                  className="w-36 shrink-0 bg-[#111111] rounded-2xl overflow-hidden border border-white/5 text-left active:scale-[0.97] transition-transform"
+                  className="w-36 shrink-0 bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/5 text-left active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
                 >
-                  <div className="h-36 bg-white/5">
+                  <div className="h-36 bg-neutral-100 dark:bg-white/5">
                     {ev.flyer_image && (
                       <img src={ev.flyer_image} alt={ev.title} loading="lazy" className="w-full h-full object-cover" />
                     )}
                   </div>
                   <div className="p-2.5">
-                    <h3 className="text-white text-xs font-semibold truncate">{ev.title}</h3>
-                    <p className="text-gray-500 text-[11px] mt-1 flex items-center justify-between">
+                    <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{ev.title}</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-1 flex items-center justify-between">
                       <span>{formatDate(ev.start_date)}</span>
-                      {eventPrice(ev) && <span className="text-[#d3da0c] font-semibold">{eventPrice(ev)}</span>}
+                      {eventPrice(ev) && <span className="text-gray-900 dark:text-[#d3da0c] font-bold">{eventPrice(ev)}</span>}
                     </p>
                   </div>
                 </motion.button>
@@ -234,8 +234,8 @@ const DiscoveryFeed = () => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.3) }}
-                  onClick={() => navigate(`/artists/${artist.user_id || artist.id}`)}
-                  className="w-28 shrink-0 bg-[#111111] rounded-2xl border border-white/5 p-3 text-center active:scale-[0.97] transition-transform"
+                  onClick={() => navigate(`/artists/${artist.id}`)}
+                  className="w-28 shrink-0 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-3 text-center active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
                 >
                   <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center mb-2">
                     {artist.avatar_url ? (
@@ -244,10 +244,10 @@ const DiscoveryFeed = () => {
                       <span className="text-xl font-bold text-black">{(artist.stage_name || '?')[0].toUpperCase()}</span>
                     )}
                   </div>
-                  <h3 className="text-white text-xs font-semibold truncate">{artist.stage_name}</h3>
-                  {artist.genre && <p className="text-gray-500 text-[10px] mt-0.5 truncate">{artist.genre}</p>}
+                  <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{artist.stage_name}</h3>
+                  {artist.genre && <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 truncate">{artist.genre}</p>}
                   {(artist.followers_count ?? 0) > 0 && (
-                    <p className="text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1">
+                    <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
                       <Users className="w-3 h-3" />{artist.followers_count}
                     </p>
                   )}
@@ -270,9 +270,9 @@ const DiscoveryFeed = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.05, 0.3) }}
                 onClick={() => navigate('/discovery')}
-                className="relative w-40 shrink-0 h-36 rounded-2xl overflow-hidden border border-white/5 text-left active:scale-[0.97] transition-transform"
+                className="relative w-40 shrink-0 h-36 rounded-2xl overflow-hidden border border-black/8 dark:border-white/5 text-left active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
               >
-                <div className="absolute inset-0 bg-white/5">
+                <div className="absolute inset-0 bg-neutral-100 dark:bg-white/5">
                   {spot.image && <img src={spot.image} alt={spot.name} loading="lazy" className="w-full h-full object-cover" />}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
@@ -281,7 +281,7 @@ const DiscoveryFeed = () => {
                 </span>
                 <div className="absolute bottom-2.5 left-3 right-3">
                   <h3 className="text-white text-xs font-semibold truncate">{spot.name}</h3>
-                  {spot.address && <p className="text-gray-400 text-[10px] truncate">{spot.address}</p>}
+                  {spot.address && <p className="text-gray-300 text-[10px] truncate">{spot.address}</p>}
                 </div>
               </motion.button>
             ))}
@@ -306,20 +306,20 @@ const DiscoveryFeed = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.3) }}
                   onClick={() => navigate(`/vendors/${vendor.id}`)}
-                  className="w-44 shrink-0 bg-[#111111] rounded-2xl border border-white/5 p-3 flex items-center gap-3 text-left active:scale-[0.97] transition-transform"
+                  className="w-44 shrink-0 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-3 flex items-center gap-3 text-left active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
                 >
-                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5 flex items-center justify-center shrink-0">
                     {vendor.logo_url ? (
                       <img src={vendor.logo_url} alt={vendor.business_name || ''} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
-                      <Ticket className="w-5 h-5 text-gray-600" />
+                      <Ticket className="w-5 h-5 text-gray-500" />
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-white text-xs font-semibold truncate">{vendor.business_name}</h3>
+                    <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{vendor.business_name}</h3>
                     {(vendor.rating ?? 0) > 0 && (
-                      <p className="text-[#d3da0c] text-[11px] mt-0.5 flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-current" />{vendor.rating?.toFixed(1)}
+                      <p className="text-gray-800 dark:text-[#d3da0c] text-[11px] mt-0.5 flex items-center gap-1 font-medium">
+                        <Star className="w-3 h-3 fill-current text-[#d3da0c]" />{vendor.rating?.toFixed(1)}
                         <span className="text-gray-500">({vendor.reviews_count ?? 0})</span>
                       </p>
                     )}

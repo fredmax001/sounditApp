@@ -122,14 +122,14 @@ export default function VendorStore() {
     }
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
             {/* Banner */}
             <div className="relative h-[250px] md:h-[300px]">
                 <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{ backgroundImage: `url(${vendor.banner_url || vendor.logo_url || '/default-avatar.png'})` }}
                 >
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020b00] via-[#020b00]/60 to-transparent" />
                 </div>
                 <div className="absolute top-4 left-4">
                     <Link
@@ -145,7 +145,7 @@ export default function VendorStore() {
             {/* Profile Info */}
             <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10">
                 <div className="flex items-end gap-4 mb-4">
-                    <div className="w-24 h-24 rounded-2xl bg-gray-800 border-4 border-[#0A0A0A] overflow-hidden flex-shrink-0">
+                    <div className="w-24 h-24 rounded-2xl bg-gray-800 border-4 border-[#020b00] overflow-hidden flex-shrink-0">
                         {vendor.logo_url ? (
                             <img src={vendor.logo_url} alt={vendor.business_name} className="w-full h-full object-cover" />
                         ) : (

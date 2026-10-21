@@ -32,16 +32,24 @@ self.addEventListener('pushsubscriptionchange', (event) => {
     })()
   );
 });
-// Sound It - Service Worker for Push Notifications
+// Sound It - Service Worker for Push Notifications & PWA Cache
 // Must be at the root scope: /service-worker.js
 
-const CACHE_NAME = 'soundit-v5';
+const CACHE_NAME = 'soundit-v7';
 const urlsToCache = [
   '/',
   '/logo-platform.png',
   '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png'
+  '/android-chrome-512x512.png',
+  '/site.webmanifest',
+  '/manifest.webmanifest'
 ];
+
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting')) {
+    self.skipWaiting();
+  }
+});
 
 // ========== INSTALL & ACTIVATE ==========
 

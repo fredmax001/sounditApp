@@ -179,21 +179,21 @@ export default function Messages() {
   });
 
   return (
-    <div className="h-[calc(100vh-4rem-5rem)] sm:h-[calc(100vh-4rem)] flex flex-col md:flex-row bg-[#0A0A0A]">
+    <div className="h-[calc(100vh-4rem-5rem)] sm:h-[calc(100vh-4rem)] flex flex-col md:flex-row bg-white dark:bg-[#020b00]">
       {/* LEFT PANEL: Conversation List */}
       <div 
-        className={`w-full md:w-80 lg:w-96 border-r border-white/5 flex flex-col h-full bg-[#111111] ${activeConversation ? 'hidden md:flex' : 'flex'}`}
+        className={`w-full md:w-80 lg:w-96 border-r border-black/8 dark:border-white/5 flex flex-col h-full bg-neutral-50/50 dark:bg-[#111111] ${activeConversation ? 'hidden md:flex' : 'flex'}`}
       >
-        <div className="p-4 border-b border-white/5">
-          <h1 className="text-xl font-bold text-white mb-4">Messages</h1>
+        <div className="p-4 border-b border-black/8 dark:border-white/5">
+          <h1 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">Messages</h1>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] transition-colors"
+              className="w-full bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c] transition-colors shadow-xs dark:shadow-none"
             />
           </div>
         </div>
@@ -201,16 +201,16 @@ export default function Messages() {
         <div className="flex-1 overflow-y-auto">
           {loadingList ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-[#d3da0c]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#020b00] dark:text-[#d3da0c]" />
             </div>
           ) : filteredConversations.length > 0 ? (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-black/5 dark:divide-white/5">
               {filteredConversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => setActiveConversation(conv)}
-                  className={`w-full p-4 flex items-center gap-3 hover:bg-white/5 transition-colors text-left ${
-                    activeConversation?.id === conv.id ? 'bg-white/5 border-l-2 border-[#d3da0c]' : 'border-l-2 border-transparent'
+                  className={`w-full p-4 flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left cursor-pointer ${
+                    activeConversation?.id === conv.id ? 'bg-black/5 dark:bg-white/5 border-l-2 border-[#020b00] dark:border-[#d3da0c]' : 'border-l-2 border-transparent'
                   }`}
                 >
                   <div className="relative">
@@ -229,7 +229,7 @@ export default function Messages() {
                       )}
                     </div>
                     {conv.unread_count > 0 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#111111]">
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
                         {conv.unread_count}
                       </div>
                     )}
@@ -237,14 +237,14 @@ export default function Messages() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="text-white font-semibold text-sm truncate pr-2">
+                      <h3 className="text-[#020b00] dark:text-white font-semibold text-sm truncate pr-2">
                         {conv.other_participant?.display_name || conv.other_participant?.first_name || 'Unknown User'}
                       </h3>
-                      <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
                         {conv.last_message ? new Date(conv.last_message.created_at).toLocaleDateString() : ''}
                       </span>
                     </div>
-                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'text-white font-medium' : 'text-gray-500'}`}>
+                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'text-[#020b00] dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
                       {conv.last_message ? (
                         <>
                           {conv.last_message.sender_id.toString() === profile?.id?.toString() ? 'You: ' : ''}
@@ -260,11 +260,11 @@ export default function Messages() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
-                <MessageCircle className="w-6 h-6 text-gray-500" />
+              <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-3">
+                <MessageCircle className="w-6 h-6 text-gray-400 dark:text-gray-500" />
               </div>
-              <p className="text-gray-400 font-medium">No conversations yet</p>
-              <p className="text-xs text-gray-500 mt-1 max-w-[200px]">When users message you, they will appear here.</p>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">No conversations yet</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-[200px]">When users message you, they will appear here.</p>
             </div>
           )}
         </div>
@@ -272,15 +272,15 @@ export default function Messages() {
 
       {/* RIGHT PANEL: Active Chat */}
       <div 
-        className={`flex-1 flex flex-col h-full bg-[#0A0A0A] ${!activeConversation ? 'hidden md:flex' : 'flex'}`}
+        className={`flex-1 flex flex-col h-full bg-white dark:bg-[#020b00] ${!activeConversation ? 'hidden md:flex' : 'flex'}`}
       >
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-white/5 bg-[#111111] z-10">
+            <div className="flex items-center gap-3 p-4 border-b border-black/8 dark:border-white/5 bg-white/95 dark:bg-[#111111] backdrop-blur-md z-10">
               <button 
                 onClick={() => setActiveConversation(null)}
-                className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white"
+                className="md:hidden p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white cursor-pointer"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -300,21 +300,21 @@ export default function Messages() {
                 )}
               </div>
               <div>
-                <h2 className="text-white font-semibold">
+                <h2 className="text-[#020b00] dark:text-white font-semibold">
                   {activeConversation.other_participant?.display_name || activeConversation.other_participant?.first_name || 'Unknown User'}
                 </h2>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-neutral-50/30 dark:bg-transparent">
               {loadingChat ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0A0A0A]/50 z-10">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#d3da0c]" />
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-[#020b00]/50 z-10">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#020b00] dark:text-[#d3da0c]" />
                 </div>
               ) : messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                  <MessageCircle className="w-12 h-12 mb-3 opacity-20" />
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                  <MessageCircle className="w-12 h-12 mb-3 opacity-30" />
                   <p>Send a message to start the chat</p>
                 </div>
               ) : (
@@ -326,27 +326,27 @@ export default function Messages() {
                   return (
                     <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                       {showTime && (
-                        <div className="text-[10px] text-gray-500 mb-2 mt-4 text-center w-full">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-2 mt-4 text-center w-full">
                           {new Date(msg.created_at).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                       <div 
-                        className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-xs dark:shadow-none ${
                           isMe 
-                            ? 'bg-[#d3da0c] text-black rounded-tr-sm' 
-                            : 'bg-white/10 text-white rounded-tl-sm'
+                            ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-tr-xs font-medium' 
+                            : 'bg-white border border-black/8 dark:border-transparent dark:bg-white/10 text-[#020b00] dark:text-white rounded-tl-xs'
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                       </div>
                       <div className="flex items-center gap-1 mt-1 px-1">
-                        <span className="text-[9px] text-gray-500">
+                        <span className="text-[9px] text-gray-500 dark:text-gray-400">
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {isMe && (
                           msg.is_read ? 
-                            <CheckCheck className="w-3 h-3 text-[#d3da0c]" /> : 
-                            <Check className="w-3 h-3 text-gray-500" />
+                            <CheckCheck className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" /> : 
+                            <Check className="w-3 h-3 text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
                     </div>
@@ -357,13 +357,13 @@ export default function Messages() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-[#111111] border-t border-white/5">
+            <div className="p-4 bg-white dark:bg-[#111111] border-t border-black/8 dark:border-white/5">
               <form onSubmit={handleSendMessage} className="flex items-end gap-2">
                 <textarea
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] transition-colors resize-none min-h-[44px] max-h-32"
+                  className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c] transition-colors resize-none min-h-[44px] max-h-32"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -375,7 +375,7 @@ export default function Messages() {
                 <button
                   type="submit"
                   disabled={!newMessage.trim() || sending}
-                  className="w-11 h-11 rounded-full bg-[#d3da0c] text-black flex items-center justify-center flex-shrink-0 hover:bg-[#bbc10b] transition-colors disabled:opacity-50 touch-feedback"
+                  className="w-11 h-11 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black flex items-center justify-center flex-shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50 touch-feedback cursor-pointer shadow-xs dark:shadow-none"
                 >
                   {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
                 </button>
@@ -383,11 +383,11 @@ export default function Messages() {
             </div>
           </>
         ) : (
-          <div className="hidden md:flex h-full flex-col items-center justify-center text-gray-500">
-            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <MessageCircle className="w-10 h-10 text-gray-400" />
+          <div className="hidden md:flex h-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-4">
+              <MessageCircle className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
-            <h2 className="text-xl font-medium text-white mb-2">Your Messages</h2>
+            <h2 className="text-xl font-medium text-[#020b00] dark:text-white mb-2">Your Messages</h2>
             <p>Select a conversation from the sidebar to start chatting</p>
           </div>
         )}

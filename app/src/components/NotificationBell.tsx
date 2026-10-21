@@ -277,7 +277,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => { setOpen(!open); if (!open) fetchData(); }}
-        className={`relative ${mobile ? 'w-9 h-9 rounded-full glass-pill-premium flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform' : 'p-2 text-gray-400 hover:text-white transition-colors'}`}
+        className={`relative ${mobile ? 'w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/8 flex items-center justify-center text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white active:scale-90 transition-transform' : 'p-2 text-[#020b00] dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors'}`}
       >
         <Bell className={`${mobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
         {unreadCount > 0 && (
@@ -294,10 +294,10 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className={`absolute right-0 ${mobile ? 'top-12 w-80' : 'top-10 w-96'} bg-[#111111] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden`}
+            className={`absolute right-0 ${mobile ? 'top-12 w-80' : 'top-10 w-96'} bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden text-[#020b00] dark:text-white`}
           >
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <h3 className="text-white font-semibold">{t('notifications.title') || 'Notifications'}</h3>
+            <div className="p-4 border-b border-black/8 dark:border-white/5 flex items-center justify-between">
+              <h3 className="text-[#020b00] dark:text-white font-semibold">{t('notifications.title') || 'Notifications'}</h3>
               {unreadCount > 0 && (
                 <span className="text-xs text-[#d3da0c] font-medium">{unreadCount} {t('notifications.unread') || 'unread'}</span>
               )}
@@ -336,21 +336,21 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
 
               {/* Staff Invitations */}
               {invitations.map(invite => (
-                <div key={`invite-${invite.id}`} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors">
+                <div key={`invite-${invite.id}`} className="p-4 border-b border-black/8 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#d3da0c]/20 flex items-center justify-center shrink-0 mt-0.5">
                       <UserCheck className="w-4 h-4 text-[#d3da0c]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium">{t('notifications.staffInviteTitle') || 'Staff Invitation'}</p>
-                      <p className="text-gray-400 text-xs mt-0.5">
-                        {invite.business_name} invited you as <span className="text-[#d3da0c]">{invite.role}</span>
+                      <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('notifications.staffInviteTitle') || 'Staff Invitation'}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
+                        {invite.business_name} invited you as <span className="text-[#d3da0c] font-semibold">{invite.role}</span>
                       </p>
                       <div className="flex gap-2 mt-3">
                         <button
                           onClick={() => handleAccept(invite.id)}
                           disabled={actionId === invite.id}
-                          className="flex-1 py-1.5 bg-[#d3da0c] text-black text-xs font-medium rounded-lg hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                          className="flex-1 py-1.5 bg-[#020B00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black text-xs font-medium rounded-lg hover:bg-[#020B00]/90 dark:hover:bg-[#d3da0c]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                         >
                           {actionId === invite.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                           {t('common.accept') || 'Accept'}
@@ -358,7 +358,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                         <button
                           onClick={() => handleReject(invite.id)}
                           disabled={actionId === invite.id}
-                          className="flex-1 py-1.5 bg-white/5 border border-white/10 text-white text-xs font-medium rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                          className="flex-1 py-1.5 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white text-xs font-medium rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                         >
                           {actionId === invite.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
                           {t('common.reject') || 'Reject'}
@@ -377,17 +377,17 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                   <div
                     key={notif.id}
                     onClick={() => markAsRead(notif.id)}
-                    className={`w-full text-left p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer ${!notif.is_read ? 'bg-white/[0.02]' : ''}`}
+                    className={`w-full text-left p-4 border-b border-black/8 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${!notif.is_read ? 'bg-black/[0.02] dark:bg-white/[0.02]' : ''}`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-sm">
+                      <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-sm">
                         {getCategoryIcon(notif.type)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-white text-sm font-medium">{notif.title}</p>
-                        <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{notif.message}</p>
+                        <p className="text-[#020b00] dark:text-white text-sm font-medium">{notif.title}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5 line-clamp-2">{notif.message}</p>
                         {img && (
-                          <div className="mt-2 overflow-hidden rounded-lg border border-white/10 bg-white/5">
+                          <div className="mt-2 overflow-hidden rounded-lg border border-black/8 dark:border-white/10 bg-black/5 dark:bg-white/5">
                             <img
                               src={img}
                               alt=""
@@ -399,7 +399,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                             />
                           </div>
                         )}
-                        <p className="text-gray-600 text-[10px] mt-1">
+                        <p className="text-gray-400 dark:text-gray-500 text-[10px] mt-1">
                           {new Date(notif.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -407,7 +407,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                         {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[#d3da0c] mt-1.5" />}
                         <button
                           onClick={(e) => deleteNotification(e, notif.id)}
-                          className="p-1 text-gray-600 hover:text-red-400 transition-colors"
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                           title={t('notifications.delete') || 'Delete'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -421,17 +421,17 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="p-2 border-t border-white/5 flex items-center justify-between">
+              <div className="p-2 border-t border-black/8 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <button
                     onClick={markAllAsRead}
-                    className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+                    className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                   >
                     {t('notifications.markAllRead') || 'Mark all as read'}
                   </button>
                   <button
                     onClick={clearAllNotifications}
-                    className="px-3 py-1.5 text-xs text-gray-400 hover:text-red-400 transition-colors"
+                    className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors"
                   >
                     {t('notifications.clearAll') || 'Clear all'}
                   </button>
@@ -441,7 +441,7 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
                     setOpen(false);
                     window.location.href = '/settings';
                   }}
-                  className="p-1.5 text-gray-400 hover:text-white transition-colors"
+                  className="p-1.5 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
                   title={t('notifications.settings') || 'Notification settings'}
                 >
                   <Settings className="w-3.5 h-3.5" />

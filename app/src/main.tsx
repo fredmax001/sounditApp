@@ -9,6 +9,32 @@ import './i18n'
 import App from './App.tsx'
 import { pushManager } from './lib/pushNotifications'
 
+// ── Chunk-load failure recovery ──
+// After a deploy, hashed JS chunks change. An installed PWA can hold a stale
+// index.html that references deleted chunks → white screen. When Vite fails to
+// preload a chunk, force a network reload (once) so the fresh HTML is fetched.
+let __chunkReloaded = false
+function reloadForFreshAssets() {
+  if (__chunkReloaded) return
+  __chunkReloaded = true
+  try {
+    if ('caches' in window) {
+      caches.keys().then((names) => names.forEach((n) => caches.delete(n)))
+    }
+  } catch { /* ignore */ }
+  window.location.reload()
+}
+window.addEventListener('vite:preloadError', (e) => {
+  e.preventDefault()
+  reloadForFreshAssets()
+})
+window.addEventListener('error', (e) => {
+  const msg = String(e?.message || '')
+  if (/Loading chunk|dynamically imported module|Failed to fetch/i.test(msg)) {
+    reloadForFreshAssets()
+  }
+})
+
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com'
@@ -20,7 +46,6 @@ function CapacitorInit() {
       StatusBar.setStyle({ style: StatusBarStyle.Dark })
       StatusBar.setBackgroundColor({ color: '#000000' })
       StatusBar.setOverlaysWebView({ overlay: false })
-      SplashScreen.hide()
     }
   }, [])
   return null

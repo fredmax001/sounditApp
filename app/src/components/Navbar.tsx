@@ -29,9 +29,11 @@ import {
 import NotificationBell from '@/components/NotificationBell';
 import { useStaffStore } from '@/store/staffStore';
 import { useCartStore } from '@/store/cartStore';
+import { useThemeStore } from '@/store/themeStore';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import VerificationBadge from '@/components/VerificationBadge';
+import { Sun, Moon } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,6 +44,7 @@ const Navbar = () => {
   const { user, profile, isAuthenticated, logout, selectedCity, setSelectedCity } = useAuthStore();
   const { getTotalItems } = useCartStore();
   const { canScan, fetchMemberships } = useStaffStore();
+  const { isDark, toggleTheme } = useThemeStore();
   const isStaffScanner = canScan();
 
   useEffect(() => {
@@ -104,7 +107,7 @@ const Navbar = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? 'bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-white/5'
+          ? 'bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-xl border-b border-black/8 dark:border-white/5 shadow-xs'
           : 'bg-transparent'
           }`}
       >
@@ -113,7 +116,7 @@ const Navbar = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               <img
-                src="/logo-web.png"
+                src={isDark ? "/logo-dark.png" : "/logo-light.png"}
                 alt="SOUND IT"
                 className="h-8 lg:h-10 w-auto object-contain"
               />
@@ -127,7 +130,7 @@ const Navbar = () => {
                   to={link.path}
                   className={`relative text-sm font-medium transition-colors ${isActive(link.path)
                     ? 'text-[#d3da0c]'
-                    : 'text-gray-300 hover:text-white'
+                    : 'text-[#020b00]/80 hover:text-[#020b00] dark:text-gray-300 dark:hover:text-white'
                     }`}
                 >
                   {link.label}
@@ -146,22 +149,22 @@ const Navbar = () => {
             <div className="flex items-center gap-4">
               {/* City Selector */}
               <div className="hidden md:block relative group">
-                <button className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                  <MapPin className="w-4 h-4 text-[#d3da0c]" />
+                <button className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors">
+                  <MapPin className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                   <span>{currentCity.name}</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
 
                 {/* City Dropdown */}
-                <div className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
                   <div className="p-2 max-h-80 overflow-y-auto">
                     {chinaCities.map((city) => (
                       <button
                         key={city.id}
                         onClick={() => setSelectedCity(city.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedCity === city.id
-                          ? 'bg-[#d3da0c]/10 text-[#d3da0c]'
-                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                          ? 'bg-[#d3da0c]/15 text-[#020B00] dark:text-[#d3da0c] font-medium'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
                           }`}
                       >
                         <span className="text-sm">{city.name}</span>
@@ -176,11 +179,11 @@ const Navbar = () => {
               {isAuthenticated && (
                 <Link
                   to="/cart"
-                  className="relative p-2 text-gray-300 hover:text-[#d3da0c] transition-colors"
+                  className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-[#d3da0c] transition-colors"
                 >
                   <ShoppingCart className="w-6 h-6" />
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#111111]">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
                       {cartItemsCount}
                     </span>
                   )}
@@ -192,13 +195,13 @@ const Navbar = () => {
 
               {/* Language Selector */}
               <div className="hidden md:block relative group">
-                <button className="flex items-center gap-1 p-2 text-gray-300 hover:text-[#d3da0c] transition-colors">
+                <button className="flex items-center gap-1 p-2 text-[#020b00] dark:text-gray-300 hover:text-[#d3da0c] transition-colors" aria-label="Language selector">
                   <Globe className="w-5 h-5" />
                   <span className="text-xs font-medium uppercase">{i18n.language?.split('-')[0] || 'en'}</span>
                 </button>
 
                 {/* Language Dropdown */}
-                <div className="absolute right-0 mt-2 w-40 bg-[#111111] border border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
+                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
                   <div className="p-2">
                     {[
                       { code: 'en', label: 'English' },
@@ -209,8 +212,8 @@ const Navbar = () => {
                         key={lang.code}
                         onClick={() => changeLanguage(lang.code)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${i18n.language?.startsWith(lang.code)
-                          ? 'bg-[#d3da0c]/10 text-[#d3da0c]'
-                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                          ? 'bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] font-medium'
+                          : 'text-[#020b00]/80 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#020b00] dark:hover:text-white'
                           }`}
                       >
                         <span className="text-sm">{lang.label}</span>
@@ -223,12 +226,23 @@ const Navbar = () => {
                 </div>
               </div>
 
+              {/* Theme Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 text-[#020b00] dark:text-gray-300 hover:text-[#d3da0c] dark:hover:text-[#d3da0c] transition-colors rounded-lg"
+                aria-label={`Toggle theme (currently ${isDark ? 'Dark' : 'Light'})`}
+                title={`Theme: ${isDark ? 'Dark' : 'Light'} (click to toggle)`}
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+
               {/* Auth Buttons */}
               {isAuthenticated ? (
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                    className="flex items-center gap-2 text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
                       {profile?.avatar_url ? (
@@ -242,7 +256,7 @@ const Navbar = () => {
                         <User className="w-4 h-4 text-black" />
                       )}
                     </div>
-                    <span className="hidden sm:block text-sm">{profile?.first_name || t('nav.user') || 'User'}</span>
+                    <span className="hidden sm:block text-sm font-medium">{profile?.first_name || t('nav.user') || 'User'}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -253,7 +267,7 @@ const Navbar = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 mt-2 w-56 bg-[#111111] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50"
+                        className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 text-[#020b00] dark:text-white"
                       >
                         <div className="p-4 border-b border-white/5">
                           <div className="flex items-center gap-2">
@@ -273,45 +287,45 @@ const Navbar = () => {
                         <div className="p-2">
                           <Link
                             to="/profile"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                           >
-                            <User className="w-4 h-4" />
+                            <User className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                             <span className="text-sm">{t('nav.profile')}</span>
                           </Link>
                           <Link
                             to="/tickets"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                           >
-                            <Ticket className="w-4 h-4" />
+                            <Ticket className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                             <span className="text-sm">{t('nav.myTickets') || 'My Tickets'}</span>
                           </Link>
                           <Link
                             to="/favorites"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                           >
-                            <Heart className="w-4 h-4" />
+                            <Heart className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                             <span className="text-sm">{t('nav.favorites')}</span>
                           </Link>
                           <Link
                             to="/settings"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                           >
-                            <Settings className="w-4 h-4" />
+                            <Settings className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                             <span className="text-sm">{t('nav.settings')}</span>
                           </Link>
 
                           <Link
                             to="/dashboard"
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                           >
-                            <LayoutDashboard className="w-4 h-4" />
+                            <LayoutDashboard className="w-4 h-4 text-[#020B00] dark:text-[#d3da0c]" />
                             <span className="text-sm">{t('nav.dashboard')}</span>
                           </Link>
 
                           {profile?.role_type === 'business' && (
                             <Link
                               to="/dashboard/business"
-                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#d3da0c] hover:bg-[#d3da0c]/10 transition-colors"
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#020B00] dark:text-[#d3da0c] hover:bg-[#d3da0c]/15 transition-colors font-medium"
                             >
                               <User className="w-4 h-4" />
                               <span className="text-sm">{t('nav.businessDashboard') || 'Business Dashboard'}</span>
@@ -321,7 +335,7 @@ const Navbar = () => {
                           {isStaffScanner && (
                             <Link
                               to="/scan"
-                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#d3da0c] hover:bg-[#d3da0c]/10 transition-colors"
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#020B00] dark:text-[#d3da0c] hover:bg-[#d3da0c]/15 transition-colors font-medium"
                             >
                               <ScanLine className="w-4 h-4" />
                               <span className="text-sm">{t('nav.scan') || 'Scan Tickets'}</span>
@@ -331,7 +345,7 @@ const Navbar = () => {
                           {profile?.role_type === 'admin' && (
                             <Link
                               to="/admin/dashboard"
-                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#d3da0c] hover:bg-[#d3da0c]/10 transition-colors"
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#020B00] dark:text-[#d3da0c] hover:bg-[#d3da0c]/15 transition-colors font-medium"
                             >
                               <ShieldCheck className="w-4 h-4" />
                               <span className="text-sm">{t('nav.adminDashboard') || 'Admin Dashboard'}</span>
@@ -339,10 +353,10 @@ const Navbar = () => {
                           )}
                         </div>
 
-                        <div className="p-2 border-t border-white/5">
+                        <div className="p-2 border-t border-black/8 dark:border-white/5">
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
                             <span className="text-sm">{t('nav.logout')}</span>
@@ -356,13 +370,13 @@ const Navbar = () => {
                 <div className="hidden sm:flex items-center gap-3">
                   <Link
                     to="/login"
-                    className="text-gray-300 hover:text-white transition-colors text-sm"
+                    className="text-[#020B00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm font-medium"
                   >
                     {t('nav.signIn') || 'Sign In'}
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 btn-custom font-medium rounded-lg transition-colors text-sm"
+                    className="px-4 py-2 bg-[#020B00] text-[#d3da0c] hover:bg-[#020B00]/90 dark:bg-[#d3da0c] dark:text-black dark:hover:bg-[#bbc10b] font-medium rounded-lg transition-colors text-sm shadow-xs"
                   >
                     {t('nav.getStarted') || 'Get Started'}
                   </Link>
@@ -372,7 +386,7 @@ const Navbar = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 text-gray-300 hover:text-white transition-colors"
+                className="lg:hidden p-2 text-[#020B00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -399,7 +413,7 @@ const Navbar = () => {
 
             {/* Menu Panel */}
             <motion.div
-              className="absolute right-0 top-0 bottom-0 w-80 bg-[#111111] border-l border-white/5"
+              className="absolute right-0 top-0 bottom-0 w-80 bg-white dark:bg-[#111111] border-l border-black/8 dark:border-white/5 text-[#020B00] dark:text-white"
             >
               <div className="p-6 pt-20">
                 {/* Mobile Nav Links */}
@@ -416,11 +430,11 @@ const Navbar = () => {
                         <Link
                           to={link.path}
                           className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(link.path)
-                            ? 'bg-[#d3da0c]/10 text-[#d3da0c]'
-                            : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                            ? 'bg-[#d3da0c]/15 text-[#020B00] dark:text-[#d3da0c] font-medium'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
                             }`}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-5 h-5 text-[#020B00] dark:text-[#d3da0c]" />
                           <span className="font-medium">{link.label}</span>
                         </Link>
                       </motion.div>
@@ -430,16 +444,16 @@ const Navbar = () => {
 
                 {/* Mobile Auth */}
                 {!isAuthenticated && (
-                  <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
+                  <div className="mt-6 pt-6 border-t border-black/8 dark:border-white/5 space-y-3">
                     <Link
                       to="/login"
-                      className="block w-full px-4 py-3 text-center text-gray-300 hover:text-white transition-colors"
+                      className="block w-full px-4 py-3 text-center text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                     >
                       {t('nav.signIn') || 'Sign In'}
                     </Link>
                     <Link
                       to="/register"
-                      className="block w-full px-4 py-3 bg-[#d3da0c] text-black font-medium rounded-lg text-center hover:bg-[#bbc10b] transition-colors"
+                      className="block w-full px-4 py-3 bg-[#020B00] text-[#d3da0c] hover:bg-[#020B00]/90 dark:bg-[#d3da0c] dark:text-black font-medium rounded-lg text-center hover:bg-[#bbc10b] transition-colors"
                     >
                       {t('nav.getStarted') || 'Get Started'}
                     </Link>

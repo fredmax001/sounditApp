@@ -67,20 +67,20 @@ const ForgotPassword = () => {
   if (isSent) {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#d3da0c]/20 flex items-center justify-center">
-          <Check className="w-8 h-8 text-[#d3da0c]" />
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#020b00]/10 dark:bg-[#d3da0c]/20 flex items-center justify-center">
+          <Check className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
         </div>
-        <h2 className="text-2xl font-semibold text-white mb-2">{t('auth.forgotPassword.checkYourEmail')}</h2>
-        <p className="text-gray-400 mb-6">
+        <h2 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.forgotPassword.checkYourEmail')}</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           {t('auth.forgotPassword.resetLinkInstructions')}<br />
-          <span className="text-white">{email}</span>
+          <span className="text-[#020b00] dark:text-white font-medium">{email}</span>
         </p>
         <p className="text-gray-500 text-sm mb-6">
           {t('auth.forgotPassword.linkExpiration')}
         </p>
         <Link
           to="/login"
-          className="inline-flex items-center gap-2 text-[#d3da0c] hover:underline"
+          className="inline-flex items-center gap-2 text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('auth.forgotPassword.backToSignIn')}
@@ -93,8 +93,8 @@ const ForgotPassword = () => {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-white mb-2">{t('auth.forgotPassword.title')}</h1>
-        <p className="text-gray-400 text-sm">
+        <h1 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.forgotPassword.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           {t('auth.forgotPassword.subtitle')}
         </p>
       </div>
@@ -102,7 +102,7 @@ const ForgotPassword = () => {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-gray-400 text-sm mb-2">{t('auth.forgotPassword.emailLabel')}</label>
+          <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.forgotPassword.emailLabel')}</label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
@@ -111,7 +111,7 @@ const ForgotPassword = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('auth.forgotPassword.emailPlaceholder')}
               disabled={isLoading}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
             />
           </div>
         </div>
@@ -119,7 +119,7 @@ const ForgotPassword = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
@@ -133,8 +133,8 @@ const ForgotPassword = () => {
       </form>
 
       {/* Back Link */}
-      <p className="text-center text-gray-400 text-sm mt-6">
-        <Link to="/login" className="text-[#d3da0c] hover:underline inline-flex items-center gap-2">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
+        <Link to="/login" className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline inline-flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           {t('auth.forgotPassword.backToSignIn')}
         </Link>

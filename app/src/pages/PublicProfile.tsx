@@ -194,7 +194,7 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -202,7 +202,7 @@ export default function PublicProfile() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-400 mb-4">{error || 'Profile not found'}</p>
           <button
@@ -241,20 +241,28 @@ export default function PublicProfile() {
     false;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pb-24">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 transition-colors">
       {/* Header / Cover */}
-      <div
-        className="relative h-48 md:h-64 bg-cover bg-center"
-        style={{
-          backgroundImage: profile.background_url
-            ? `url(${profile.background_url})`
-            : 'linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#0A0A0A]" />
+      <div className="relative h-48 md:h-64 overflow-hidden bg-neutral-100 dark:bg-[#141414]">
+        {profile.background_url ? (
+          <img
+            src={profile.background_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : profile.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-[#FF2D8F]/10 to-transparent" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-white dark:to-[#020b00]" />
         <button
           onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
-          className="absolute top-4 left-4 p-2 rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 transition-colors"
+          className="absolute top-4 left-4 z-10 p-2 rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm text-gray-800 dark:text-white hover:bg-white dark:hover:bg-black/60 shadow-sm transition-all"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -263,7 +271,7 @@ export default function PublicProfile() {
       {/* Avatar & Info */}
       <div className="max-w-3xl mx-auto px-4 -mt-12 relative z-10">
         <div className="flex items-end gap-4 mb-4">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-[#0A0A0A] bg-[#1a1a1a]">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white dark:border-[#020b00] bg-neutral-100 dark:bg-[#1a1a1a] shadow-md">
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
             ) : (
@@ -274,37 +282,37 @@ export default function PublicProfile() {
           </div>
           <div className="pb-1 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl md:text-2xl font-bold text-white">{displayName}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-[#020b00] dark:text-white">{displayName}</h1>
               {isVerified && <VerificationBadge size="sm" />}
               {(profile.organizer_profile || profile.business_profile) && (
                 <button
                   onClick={handleFollowToggle}
                   disabled={followLoading}
-                  className={`ml-auto md:ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  className={`ml-auto md:ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                     isFollowing
-                      ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
-                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                      ? 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30'
+                      : 'bg-neutral-100 dark:bg-white/10 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/10 dark:border-white/10'
                   } disabled:opacity-50`}
                 >
-                  <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
+                  <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current text-pink-500' : ''}`} />
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
               )}
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-neutral-100 dark:bg-white/10 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/10 dark:border-white/10 transition-colors"
               >
-                <Share2 className="w-4 h-4 text-[#d3da0c]" />
+                <Share2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
                 <span>Share</span>
               </button>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-300 capitalize">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-700 dark:text-gray-300 font-medium capitalize">
                 {role}
               </span>
               {profile.city && (
-                <span className="flex items-center gap-1 text-xs text-gray-400">
-                  <MapPin className="w-3 h-3" />
+                <span className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <MapPin className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />
                   {profile.city}
                 </span>
               )}
@@ -314,8 +322,8 @@ export default function PublicProfile() {
 
         {/* Description */}
         {(profile.bio || profile.organizer_profile?.description || profile.business_profile?.description || profile.vendor_profile?.description) && (
-          <div className="bg-[#111111] border border-white/5 rounded-xl p-4 mb-6">
-            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+          <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 mb-6 shadow-xs dark:shadow-none">
+            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line font-medium">
               {profile.bio ||
                 profile.organizer_profile?.description ||
                 profile.business_profile?.description ||
@@ -328,7 +336,7 @@ export default function PublicProfile() {
         {profile.business_profile?.business_type && Array.isArray(profile.business_profile.business_type) && profile.business_profile.business_type.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {profile.business_profile.business_type.map((t) => (
-              <span key={t} className="text-xs px-3 py-1 rounded-full bg-[#d3da0c]/10 text-[#d3da0c] border border-[#d3da0c]/20">
+              <span key={t} className="text-xs px-3 py-1 rounded-full bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] border border-black/10 dark:border-[#d3da0c]/20 font-semibold">
                 {t}
               </span>
             ))}
@@ -338,13 +346,13 @@ export default function PublicProfile() {
         {/* Vendor Metrics */}
         {profile.vendor_profile && (
           <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
-              <Star className="w-4 h-4 text-[#d3da0c]" />
-              <span className="font-semibold">{(profile.vendor_profile.rating || 0).toFixed(1)}</span>
+            <div className="flex items-center gap-1.5 text-sm text-[#020b00] dark:text-gray-300 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 px-3 py-2 rounded-xl shadow-xs">
+              <Star className="w-4 h-4 text-amber-500 dark:text-[#d3da0c] fill-current" />
+              <span className="font-bold">{(profile.vendor_profile.rating || 0).toFixed(1)}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-1.5 text-sm text-[#020b00] dark:text-gray-300 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 px-3 py-2 rounded-xl shadow-xs">
               <Users className="w-4 h-4 text-gray-400" />
-              <span>{profile.vendor_profile.reviews_count || 0} reviews</span>
+              <span className="font-medium">{profile.vendor_profile.reviews_count || 0} reviews</span>
             </div>
           </div>
         )}
@@ -352,14 +360,14 @@ export default function PublicProfile() {
         {/* Organizer / Artist Metrics */}
         {(profile.organizer_profile || profile.artist_profile) && (
           <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
-              <Calendar className="w-4 h-4 text-[#d3da0c]" />
-              <span>{(role === 'organizer' ? events.length : profile.organizer_profile?.events_count) || profile.artist_profile?.events_count || 0} events</span>
+            <div className="flex items-center gap-1.5 text-sm text-[#020b00] dark:text-gray-300 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 px-3 py-2 rounded-xl shadow-xs">
+              <Calendar className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+              <span className="font-bold">{(role === 'organizer' ? events.length : profile.organizer_profile?.events_count) || profile.artist_profile?.events_count || 0} events</span>
             </div>
             {profile.artist_profile && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-300 bg-[#111111] border border-white/5 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-1.5 text-sm text-[#020b00] dark:text-gray-300 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 px-3 py-2 rounded-xl shadow-xs">
                 <Users className="w-4 h-4 text-gray-400" />
-                <span>{profile.artist_profile.followers_count || 0} followers</span>
+                <span className="font-bold">{profile.artist_profile.followers_count || 0} followers</span>
               </div>
             )}
           </div>
@@ -368,8 +376,8 @@ export default function PublicProfile() {
         {/* Events (for organizers) */}
         {role === 'organizer' && events.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#d3da0c]" />
+            <h2 className="text-[#020b00] dark:text-white font-bold text-lg mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
               Events
             </h2>
             {/* Event tabs */}
@@ -382,10 +390,10 @@ export default function PublicProfile() {
                 <button
                   key={tab.key}
                   onClick={() => setEventTab(tab.key)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
                     eventTab === tab.key
-                      ? 'bg-[#d3da0c] text-black'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+                      : 'bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -403,9 +411,9 @@ export default function PublicProfile() {
                     key={evt.id}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => navigate(`/events/${evt.id}`)}
-                    className="flex gap-3 p-3 bg-[#111111] border border-white/5 rounded-xl cursor-pointer hover:border-white/10 transition-colors"
+                    className="flex gap-3 p-3 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl cursor-pointer hover:border-black/20 dark:hover:border-white/10 shadow-xs dark:shadow-none transition-all"
                   >
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#1a1a1a] flex-shrink-0">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a] flex-shrink-0">
                       <img
                         src={evt.flyer_image || '/placeholder-club.jpg'}
                         alt={evt.title}
@@ -413,8 +421,8 @@ export default function PublicProfile() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-white truncate">{evt.title}</h3>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <h3 className="text-sm font-bold text-[#020b00] dark:text-white truncate">{evt.title}</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                         {new Date(evt.start_date).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -424,7 +432,7 @@ export default function PublicProfile() {
                       </p>
                       {evt.address && (
                         <p className="text-xs text-gray-500 truncate mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
+                          <MapPin className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />
                           {evt.address}
                         </p>
                       )}

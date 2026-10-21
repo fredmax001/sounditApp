@@ -99,17 +99,17 @@ const LanguageSettings = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
       onClick={() => handleSelect(lang)}
-      className={`w-full flex items-center gap-3 px-4 py-4 min-h-[44px] text-left transition-colors ${selected === lang.code ? 'bg-[#d3da0c]/10' : 'hover:bg-white/5'}`}
+      className={`w-full flex items-center gap-3 px-4 py-4 min-h-[44px] text-left transition-colors ${selected === lang.code ? 'bg-black/5 dark:bg-[#d3da0c]/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
       role="radio"
       aria-checked={selected === lang.code}
     >
-      <span className={`text-sm font-medium flex-1 ${selected === lang.code ? 'text-[#d3da0c]' : 'text-white'}`}>
+      <span className={`text-sm font-semibold flex-1 ${selected === lang.code ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-[#020b00] dark:text-white'}`}>
         {lang.nativeName}
-        <span className={`block text-[11px] font-normal ${selected === lang.code ? 'text-[#d3da0c]/70' : 'text-gray-600'}`}>{lang.englishName}</span>
+        <span className={`block text-[11px] font-normal ${selected === lang.code ? 'text-[#020b00]/70 dark:text-[#d3da0c]/70' : 'text-gray-500 dark:text-gray-400'}`}>{lang.englishName}</span>
       </span>
       {selected === lang.code && (
-        <span className="w-6 h-6 rounded-full bg-[#d3da0c] flex items-center justify-center shrink-0">
-          <Check className="w-4 h-4 text-black" />
+        <span className="w-6 h-6 rounded-full bg-[#020b00] dark:bg-[#d3da0c] flex items-center justify-center shrink-0 shadow-xs">
+          <Check className="w-4 h-4 text-[#d3da0c] dark:text-black" />
         </span>
       )}
     </motion.button>
@@ -119,18 +119,18 @@ const LanguageSettings = () => {
   const all = LANGUAGES.filter(l => !l.suggested);
 
   return (
-    <div className="min-h-screen pb-12">
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/settings')}
             aria-label={t('kit.common.back')}
-            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white flex-1">{t('kit.language.title')}</h1>
-          {isSaving && <Loader2 className="w-4 h-4 text-[#d3da0c] animate-spin" />}
+          <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white flex-1">{t('kit.language.title')}</h1>
+          {isSaving && <Loader2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] animate-spin" />}
         </div>
       </section>
 
@@ -138,23 +138,23 @@ const LanguageSettings = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
           role="radiogroup"
           aria-label={t('kit.language.title')}
         >
-          <h2 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('kit.language.suggested')}</h2>
-          <div className="divide-y divide-white/5">{suggested.map(renderRow)}</div>
+          <h2 className="px-4 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('kit.language.suggested')}</h2>
+          <div className="divide-y divide-black/5 dark:divide-white/5">{suggested.map(renderRow)}</div>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
           role="radiogroup"
           aria-label={t('kit.language.title')}
         >
-          <div className="divide-y divide-white/5">{all.map((lang, i) => renderRow(lang, i + suggested.length))}</div>
+          <div className="divide-y divide-black/5 dark:divide-white/5">{all.map((lang, i) => renderRow(lang, i + suggested.length))}</div>
         </motion.div>
       </div>
     </div>

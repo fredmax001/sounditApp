@@ -54,16 +54,16 @@ export default function Vendors() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-display text-white">
+              <h1 className="text-2xl font-display text-[#020b00] dark:text-white">
                 {t('vendors.title') || 'Vendors'}
               </h1>
-              <p className="text-gray-400 text-sm hidden md:block mt-1 max-w-2xl">
+              <p className="text-gray-600 dark:text-gray-400 text-sm hidden md:block mt-1 max-w-2xl">
                 {t('vendors.subtitle') || 'Discover vendors and merchants for your events.'}
               </p>
             </div>
@@ -74,7 +74,7 @@ export default function Vendors() {
                 placeholder={t('vendors.searchPlaceholder') || 'Search vendors...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                className="w-full bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ export default function Vendors() {
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white/5 rounded-2xl h-80 animate-pulse" />
+                <div key={i} className="bg-neutral-100 dark:bg-white/5 rounded-2xl h-80 animate-pulse" />
               ))}
             </div>
           ) : filteredVendors.length > 0 ? (
@@ -96,9 +96,9 @@ export default function Vendors() {
                 <Link
                   key={vendor.id}
                   to={`/vendors/${vendor.id}`}
-                  className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-[#d3da0c]/30 transition-all"
+                  className="group bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[#020b00]/30 dark:hover:border-[#d3da0c]/30 transition-all shadow-sm dark:shadow-none"
                 >
-                  <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
+                  <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
                     {vendor.logo_url ? (
                       <img
                         src={vendor.logo_url}
@@ -107,7 +107,7 @@ export default function Vendors() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Store className="w-16 h-16 text-white/20" />
+                        <Store className="w-16 h-16 text-gray-400 dark:text-white/20" />
                       </div>
                     )}
                     {vendor.is_featured && (
@@ -119,11 +119,11 @@ export default function Vendors() {
 
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold truncate">{vendor.business_name}</h3>
+                      <h3 className="text-[#020b00] dark:text-white font-semibold truncate">{vendor.business_name}</h3>
                       {vendor.is_verified && <VerificationBadge size="sm" />}
                     </div>
 
-                    <p className="text-gray-400 text-sm line-clamp-2 mb-3">{vendor.description}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">{vendor.description}</p>
 
                     <div className="flex items-center gap-3 text-sm">
                       {vendor.city && (
@@ -133,7 +133,7 @@ export default function Vendors() {
                         </span>
                       )}
                       {vendor.rating > 0 && (
-                        <span className="flex items-center gap-1 text-yellow-400">
+                        <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 font-medium">
                           <Star className="w-3.5 h-3.5 fill-current" />
                           {vendor.rating.toFixed(1)}
                         </span>
@@ -145,11 +145,11 @@ export default function Vendors() {
             </div>
           ) : (
             <div className="text-center py-24">
-              <Store className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <Store className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">
                 {t('vendors.noResults') || 'No vendors found'}
               </h3>
-              <p className="text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 {t('vendors.tryDifferentSearch') || 'Try a different search term.'}
               </p>
             </div>

@@ -32,7 +32,7 @@ export default function Navigation() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || !isLandingPage
-        ? 'bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5'
+        ? 'bg-[#020b00]/95 backdrop-blur-md border-b border-white/5'
         : 'bg-transparent'
         }`}
     >
@@ -120,7 +120,7 @@ export default function Navigation() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#0A0A0A]/98 backdrop-blur-md border-t border-white/5">
+        <div className="md:hidden bg-[#020b00]/98 backdrop-blur-md border-t border-white/5">
           <div className="px-4 py-6 space-y-4">
             {navLinks.map((link) => (
               <Link

@@ -4,10 +4,10 @@ const SimpleTest = () => {
   const { t } = useTranslation();
   // Removed console.log for production
   return (
-    <div className="p-8 text-white">
+    <div className="p-8 text-[#020b00] dark:text-white">
       <h1 className="text-2xl font-bold mb-4">{t('admin.simpleTest.title')}</h1>
       <p>{t('admin.simpleTest.description')}</p>
-      <p className="mt-4 text-gray-400">{t('admin.simpleTest.hint')}</p>
+      <p className="mt-4 text-gray-600 dark:text-gray-400">{t('admin.simpleTest.hint')}</p>
     </div>
   );
 };

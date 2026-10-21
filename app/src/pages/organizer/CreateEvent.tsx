@@ -56,7 +56,7 @@ const EVENT_TYPES = ['Party', 'Concert', 'Festival', 'Day Party', 'Rooftop Party
 const REFUND_POLICIES = ['Non-refundable', 'Full refund', 'Partial refund', 'Exchange only'];
 
 const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-[#111111] border border-white/10 rounded-2xl p-6 ${className}`}>
+  <div className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-6 shadow-xs dark:shadow-none ${className}`}>
     {children}
   </div>
 );
@@ -64,12 +64,12 @@ const SectionCard = ({ children, className = '' }: { children: React.ReactNode; 
 const SectionTitle = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
   <div className="flex items-center gap-2 mb-4">
     <Icon className="w-5 h-5 text-[#d3da0c]" />
-    <h3 className="text-white font-semibold text-lg">{title}</h3>
+    <h3 className="text-[#020b00] dark:text-white font-semibold text-lg">{title}</h3>
   </div>
 );
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
-  <label className="block text-gray-400 text-sm mb-2">
+  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
     {children}
     {required && <span className="text-red-500 ml-1">*</span>}
   </label>
@@ -78,21 +78,21 @@ const Label = ({ children, required }: { children: React.ReactNode; required?: b
 const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
     {...props}
-    className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors ${props.className || ''}`}
+    className={`w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors ${props.className || ''}`}
   />
 );
 
 const TextArea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea
     {...props}
-    className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors resize-none ${props.className || ''}`}
+    className={`w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors resize-none ${props.className || ''}`}
   />
 );
 
 const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
   <select
     {...props}
-    className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer ${props.className || ''}`}
+    className={`w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer ${props.className || ''}`}
     style={{
       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
       backgroundRepeat: 'no-repeat',
@@ -566,21 +566,21 @@ const CreateEvent = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <div className="sticky top-20 z-30 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-20 z-30 bg-white/95 dark:bg-[#020b00]/90 backdrop-blur-md border-b border-black/8 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/dashboard/business/events')}
-                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
               >
-                <ChevronLeft className="w-6 h-6 text-white" />
+                <ChevronLeft className="w-6 h-6 text-[#020b00] dark:text-white" />
               </button>
               <div>
-                <h1 className="text-xl font-bold text-white">
+                <h1 className="text-xl font-bold text-[#020b00] dark:text-white">
                   {formData.title || t('organizer.createEvent.newEvent')}
                 </h1>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {formData.city ? `${formData.city} • ` : ''}
                   {formData.date || t('organizer.createEvent.draft')}
                 </p>
@@ -590,21 +590,21 @@ const CreateEvent = () => {
               <button
                 onClick={() => navigate('/dashboard/business/events')}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleSubmit('draft')}
                 disabled={isSubmitting || !businessProfile}
-                className="px-5 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50 font-medium"
+                className="px-5 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 font-medium"
               >
                 Save Draft
               </button>
               <button
                 onClick={() => handleSubmit('approved')}
                 disabled={isSubmitting || !businessProfile}
-                className="px-6 py-2 bg-[#d3da0c] text-black rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 font-semibold"
+                className="px-6 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black rounded-lg hover:bg-black dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50 font-semibold shadow-xs"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -631,8 +631,8 @@ const CreateEvent = () => {
             <Upload className="w-5 h-5 text-[#d3da0c]" />
           </div>
           <div>
-            <h3 className="text-white font-medium">{t('organizer.createEvent.createEventFaster')}</h3>
-            <p className="text-gray-400 text-sm">{t('organizer.createEvent.createEventFasterDesc')}</p>
+            <h3 className="text-[#020b00] dark:text-white font-medium">{t('organizer.createEvent.createEventFaster')}</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">{t('organizer.createEvent.createEventFasterDesc')}</p>
           </div>
         </motion.div>
 
@@ -654,7 +654,7 @@ const CreateEvent = () => {
                 {!formData.image ? (
                   <label
                     htmlFor="flyer-upload"
-                    className="flex flex-col items-center justify-center gap-4 p-12 border-2 border-dashed border-white/20 rounded-xl text-gray-400 hover:border-[#d3da0c] hover:text-[#d3da0c] cursor-pointer transition-colors"
+                    className="flex flex-col items-center justify-center gap-4 p-12 border-2 border-dashed border-black/20 dark:border-white/20 rounded-xl text-gray-500 dark:text-gray-400 hover:border-[#d3da0c] hover:text-[#d3da0c] cursor-pointer transition-colors"
                   >
                     {isUploadingImage ? (
                       <Loader2 className="w-10 h-10 animate-spin" />
@@ -662,14 +662,14 @@ const CreateEvent = () => {
                       <Upload className="w-10 h-10" />
                     )}
                     <div className="text-center">
-                      <p className="text-white font-medium mb-1">
+                      <p className="text-[#020b00] dark:text-white font-medium mb-1">
                         {isUploadingImage ? t('organizer.createEvent.uploading') : t('organizer.createEvent.uploadFlyerHint')}
                       </p>
                       <p className="text-sm text-gray-500">JPEG or PNG, max 5MB</p>
                     </div>
                   </label>
                 ) : (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10">
+                  <div className="relative rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
                     <img
                       src={formData.image}
                       alt={t('organizer.createEvent.flyerAlt')}
@@ -721,9 +721,9 @@ const CreateEvent = () => {
                   <div>
                     <Label>{t('organizer.createEvent.eventType')}</Label>
                     <Select name="eventType" value={formData.eventType} onChange={handleChange}>
-                      <option value="" className="bg-[#111111]">{t('organizer.createEvent.selectType')}</option>
+                      <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('organizer.createEvent.selectType')}</option>
                       {EVENT_TYPES.map(type => (
-                        <option key={type} value={type} className="bg-[#111111]">{type}</option>
+                        <option key={type} value={type} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{type}</option>
                       ))}
                     </Select>
                   </div>
@@ -731,7 +731,7 @@ const CreateEvent = () => {
                     <Label>{t('organizer.createEvent.refundPolicy')}</Label>
                     <Select name="refundPolicy" value={formData.refundPolicy} onChange={handleChange}>
                       {REFUND_POLICIES.map(policy => (
-                        <option key={policy} value={policy} className="bg-[#111111]">{policy}</option>
+                        <option key={policy} value={policy} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{policy}</option>
                       ))}
                     </Select>
                   </div>
@@ -741,11 +741,11 @@ const CreateEvent = () => {
                       name="refundsAllowed"
                       checked={formData.refundsAllowed}
                       onChange={handleChange}
-                      className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                      className="mt-1 w-5 h-5 rounded border-black/20 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
                     />
                     <div>
-                      <p className="text-white text-sm font-medium">{t('organizer.createEvent.allowRefunds', 'Allow cancellations & refunds')}</p>
-                      <p className="text-gray-400 text-xs">{t('organizer.createEvent.allowRefundsDesc', 'Buyers can cancel their orders and request refunds')}</p>
+                      <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('organizer.createEvent.allowRefunds', 'Allow cancellations & refunds')}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">{t('organizer.createEvent.allowRefundsDesc', 'Buyers can cancel their orders and request refunds')}</p>
                     </div>
                   </div>
                 </div>
@@ -779,9 +779,9 @@ const CreateEvent = () => {
                   <div>
                     <Label required>City</Label>
                     <Select name="city" value={formData.city} onChange={handleChange}>
-                      <option value="" disabled className="bg-[#1a1a1a] text-gray-500">Select a city</option>
+                      <option value="" disabled className="bg-white dark:bg-[#1a1a1a] text-gray-500">Select a city</option>
                       {['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu', 'Hangzhou', 'Ningbo', 'Yiwu', 'Nanjing', 'Wuhan', "Xi'an", 'Chongqing', 'Suzhou', 'Tianjin', 'Qingdao', 'Dalian', 'Xiamen', 'Kunming', 'Changsha', 'Zhengzhou'].map(city => (
-                        <option key={city} value={city} className="bg-[#1a1a1a] text-white">{city}</option>
+                        <option key={city} value={city} className="bg-white dark:bg-[#1a1a1a] text-[#020b00] dark:text-white">{city}</option>
                       ))}
                     </Select>
                   </div>
@@ -796,12 +796,12 @@ const CreateEvent = () => {
                       onChange={(e) => setNewTag(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                       placeholder={t('organizer.createEvent.addTag')}
-                      className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                      className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
                     />
                     <button
                       onClick={handleAddTag}
                       disabled={!newTag.trim()}
-                      className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+                      className="px-4 py-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -810,10 +810,10 @@ const CreateEvent = () => {
                     {formData.tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-[#d3da0c]/20 text-[#d3da0c] text-sm rounded-full"
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-[#d3da0c]/20 text-[#d3da0c] text-sm rounded-full font-medium"
                       >
                         #{tag}
-                        <button onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} className="hover:text-white transition-colors">
+                        <button onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} className="hover:text-[#020b00] dark:hover:text-white transition-colors">
                           <X className="w-3 h-3" />
                         </button>
                       </span>
@@ -915,7 +915,7 @@ const CreateEvent = () => {
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                           formData.tags.includes(style)
                             ? 'bg-[#d3da0c] text-black font-medium'
-                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                            : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
                         }`}
                       >
                         {style}
@@ -935,7 +935,7 @@ const CreateEvent = () => {
                         value={djSearch}
                         onChange={(e) => setDjSearch(e.target.value)}
                         placeholder="Search DJs..."
-                        className="w-full px-4 py-2 mb-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#d3da0c] focus:outline-none transition-colors"
+                        className="w-full px-4 py-2 mb-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none transition-colors placeholder-gray-400 dark:placeholder-gray-500"
                       />
                       <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
                         {artists
@@ -958,7 +958,7 @@ const CreateEvent = () => {
                                 className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
                                   isSelected
                                     ? 'bg-[#d3da0c] text-black font-medium'
-                                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                    : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
                                 }`}
                               >
                                 {isSelected && <Check className="w-3.5 h-3.5" />}
@@ -983,7 +983,7 @@ const CreateEvent = () => {
               <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.photos')} />
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {galleryPreviews.map((preview, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-white/10">
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
                     <img src={preview} alt="" className="w-full h-full object-cover" />
                     <button
                       onClick={() => removeGalleryImage(index)}
@@ -993,7 +993,7 @@ const CreateEvent = () => {
                     </button>
                   </div>
                 ))}
-                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#d3da0c] transition-colors">
+                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-black/20 dark:border-white/20 rounded-lg cursor-pointer hover:border-[#d3da0c] transition-colors">
                   <Plus className="w-6 h-6 text-gray-500" />
                   <input
                     type="file"
@@ -1011,17 +1011,17 @@ const CreateEvent = () => {
               <SectionTitle icon={Ticket} title={t('organizer.createEvent.tickets')} />
               <div className="space-y-4">
                 {ticketTiers.map((tier, index) => (
-                  <div key={tier.id} className="p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <div key={tier.id} className="p-4 bg-neutral-50/80 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <Ticket className="w-4 h-4 text-[#d3da0c]" />
-                        <span className="text-white font-medium">{tier.name || `${t('organizer.createEvent.ticket')} ${index + 1}`}</span>
+                        <span className="text-[#020b00] dark:text-white font-medium">{tier.name || `${t('organizer.createEvent.ticket')} ${index + 1}`}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => removeTicketTier(tier.id)}
                           disabled={ticketTiers.length <= 1}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30"
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-30"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1088,7 +1088,7 @@ const CreateEvent = () => {
                 <button
                   onClick={addTicketTier}
                   disabled={ticketTiers.length >= 4}
-                  className="w-full py-3 border-2 border-dashed border-white/20 rounded-xl text-gray-400 hover:border-[#d3da0c] hover:text-[#d3da0c] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 border-2 border-dashed border-black/20 dark:border-white/20 rounded-xl text-gray-600 dark:text-gray-400 hover:border-[#d3da0c] hover:text-[#d3da0c] transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
                 >
                   <Plus className="w-5 h-5" />
                   {t('organizer.createEvent.addTicketCategory')}
@@ -1101,34 +1101,34 @@ const CreateEvent = () => {
           <div className="space-y-6">
             {/* Preview Card */}
             <SectionCard className="sticky top-24">
-              <h3 className="text-white font-semibold mb-4">{t('organizer.createEvent.eventPreview')}</h3>
-              <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0A0A0A]">
+              <h3 className="text-[#020b00] dark:text-white font-semibold mb-4">{t('organizer.createEvent.eventPreview')}</h3>
+              <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-[#020b00]">
                 {formData.image ? (
                   <img src={formData.image} alt="" className="w-full h-40 object-cover" />
                 ) : (
-                  <div className="w-full h-40 bg-white/5 flex items-center justify-center">
-                    <ImageIcon className="w-10 h-10 text-white/20" />
+                  <div className="w-full h-40 bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                    <ImageIcon className="w-10 h-10 text-black/20 dark:text-white/20" />
                   </div>
                 )}
                 <div className="p-4">
-                  <h4 className="text-white font-semibold mb-2 line-clamp-1">
+                  <h4 className="text-[#020b00] dark:text-white font-semibold mb-2 line-clamp-1">
                     {formData.title || t('organizer.createEvent.eventTitle')}
                   </h4>
                   {formatPreviewDate() && (
-                    <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-2">
                       <Calendar className="w-4 h-4 text-[#d3da0c]" />
                       {formatPreviewDate()}
                     </div>
                   )}
                   {(formData.venue || formData.city) && (
-                    <div className="flex items-center gap-2 text-gray-400 text-sm mb-3">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-3">
                       <MapPin className="w-4 h-4 text-[#d3da0c]" />
                       {formData.venue}{formData.city ? `, ${formData.city}` : ''}
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2">
                     {formData.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="px-2 py-1 bg-white/5 text-gray-400 text-xs rounded">
+                      <span key={tag} className="px-2 py-1 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-xs rounded">
                         {tag}
                       </span>
                     ))}
@@ -1163,11 +1163,11 @@ const CreateEvent = () => {
                   name="requireId"
                   checked={formData.requireId}
                   onChange={handleChange}
-                  className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                  className="mt-1 w-5 h-5 rounded border-black/20 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
                 />
                 <div>
-                  <p className="text-white text-sm font-medium">{t('organizer.createEvent.requireIdDocument')}</p>
-                  <p className="text-gray-400 text-xs">{t('organizer.createEvent.requireIdDescription')}</p>
+                  <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('organizer.createEvent.requireIdDocument')}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">{t('organizer.createEvent.requireIdDescription')}</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 cursor-pointer mt-4">
@@ -1176,11 +1176,11 @@ const CreateEvent = () => {
                   name="showRemainingTickets"
                   checked={formData.showRemainingTickets}
                   onChange={handleChange}
-                  className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
+                  className="mt-1 w-5 h-5 rounded border-black/20 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
                 />
                 <div>
-                  <p className="text-white text-sm font-medium">{t('organizer.createEvent.showTicketsRemaining')}</p>
-                  <p className="text-gray-400 text-xs">{t('organizer.createEvent.showTicketsRemainingDescription')}</p>
+                  <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('organizer.createEvent.showTicketsRemaining')}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">{t('organizer.createEvent.showTicketsRemainingDescription')}</p>
                 </div>
               </label>
             </SectionCard>
@@ -1189,9 +1189,9 @@ const CreateEvent = () => {
             <SectionCard className="border-[#d3da0c]/30 bg-[#d3da0c]/5">
               <div className="flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5 text-[#d3da0c]" />
-                <h3 className="text-white font-semibold text-lg">{t('organizer.createEvent.paymentSetup')}</h3>
+                <h3 className="text-[#020b00] dark:text-white font-semibold text-lg">{t('organizer.createEvent.paymentSetup')}</h3>
               </div>
-              <p className="text-gray-400 text-sm mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 {t('organizer.createEvent.paymentSetupDescription')}
               </p>
               <div className="space-y-4">
@@ -1225,17 +1225,17 @@ const CreateEvent = () => {
                     />
                     <label
                       htmlFor="wechat-qr-upload"
-                      className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+                      className="flex items-center gap-3 p-4 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                     >
                       {wechatQrPreview ? (
                         <img src={wechatQrPreview} alt="WeChat QR" className="w-16 h-16 object-contain rounded-lg" />
                       ) : (
-                        <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center">
+                        <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-lg flex items-center justify-center">
                           <QrCode className="w-6 h-6 text-gray-500" />
                         </div>
                       )}
                       <div>
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-[#020b00] dark:text-white text-sm font-medium">
                           {wechatQrPreview ? t('organizer.createEvent.changeQr') : t('organizer.createEvent.uploadQr')}
                         </p>
                         <p className="text-gray-500 text-xs">PNG, JPG up to 2MB</p>
@@ -1257,17 +1257,17 @@ const CreateEvent = () => {
                     />
                     <label
                       htmlFor="alipay-qr-upload"
-                      className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+                      className="flex items-center gap-3 p-4 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 border-dashed rounded-xl cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                     >
                       {alipayQrPreview ? (
                         <img src={alipayQrPreview} alt="Alipay QR" className="w-16 h-16 object-contain rounded-lg" />
                       ) : (
-                        <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center">
+                        <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-lg flex items-center justify-center">
                           <QrCode className="w-6 h-6 text-gray-500" />
                         </div>
                       )}
                       <div>
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-[#020b00] dark:text-white text-sm font-medium">
                           {alipayQrPreview ? t('organizer.createEvent.changeQr') : t('organizer.createEvent.uploadQr')}
                         </p>
                         <p className="text-gray-500 text-xs">PNG, JPG up to 2MB</p>
@@ -1293,9 +1293,9 @@ const CreateEvent = () => {
             <SectionCard className="border-purple-500/20 bg-purple-500/5">
               <div className="flex items-center gap-2 mb-4">
                 <Share2 className="w-5 h-5 text-purple-400" />
-                <h3 className="text-white font-semibold text-lg">{t('organizer.createEvent.promoterSettings') || 'Promoter & Referral'}</h3>
+                <h3 className="text-[#020b00] dark:text-white font-semibold text-lg">{t('organizer.createEvent.promoterSettings') || 'Promoter & Referral'}</h3>
               </div>
-              <p className="text-gray-400 text-sm mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 {t('organizer.createEvent.promoterSettingsDescription') || 'Enable promoters to sell tickets and earn commissions'}
               </p>
               <div className="space-y-4">
@@ -1305,11 +1305,11 @@ const CreateEvent = () => {
                     name="promoterEnabled"
                     checked={formData.promoterEnabled}
                     onChange={handleChange}
-                    className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500"
+                    className="mt-1 w-5 h-5 rounded border-black/20 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-purple-500 focus:ring-purple-500"
                   />
                   <div>
-                    <p className="text-white text-sm font-medium">{t('organizer.createEvent.enablePromoters') || 'Enable Promoter Program'}</p>
-                    <p className="text-gray-400 text-xs">{t('organizer.createEvent.enablePromotersDescription') || 'Allow promoters to share your event and earn commissions'}</p>
+                    <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('organizer.createEvent.enablePromoters') || 'Enable Promoter Program'}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">{t('organizer.createEvent.enablePromotersDescription') || 'Allow promoters to share your event and earn commissions'}</p>
                   </div>
                 </label>
 
@@ -1390,18 +1390,18 @@ const CreateEvent = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl"
           >
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-[#d3da0c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check className="w-8 h-8 text-[#d3da0c]" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-1">{t('organizer.createEvent.eventCreated')}</h2>
-              <p className="text-gray-400 text-sm">{t('organizer.createEvent.eventCreatedDesc')}</p>
+              <h2 className="text-2xl font-bold text-[#020b00] dark:text-white mb-1">{t('organizer.createEvent.eventCreated')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{t('organizer.createEvent.eventCreatedDesc')}</p>
             </div>
 
             {/* Event Preview */}
-            <div className="rounded-xl overflow-hidden border border-white/10 mb-6">
+            <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 mb-6 bg-neutral-50 dark:bg-transparent">
               {createdEvent.flyer_image ? (
                 <img
                   src={createdEvent.flyer_image}
@@ -1409,20 +1409,20 @@ const CreateEvent = () => {
                   className="w-full h-40 object-cover"
                 />
               ) : (
-                <div className="w-full h-40 bg-white/5 flex items-center justify-center">
-                  <ImageIcon className="w-10 h-10 text-white/20" />
+                <div className="w-full h-40 bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                  <ImageIcon className="w-10 h-10 text-black/20 dark:text-white/20" />
                 </div>
               )}
               <div className="p-4">
-                <h3 className="text-white font-semibold line-clamp-1">{createdEvent.title}</h3>
+                <h3 className="text-[#020b00] dark:text-white font-semibold line-clamp-1">{createdEvent.title}</h3>
               </div>
             </div>
 
             {/* QR Code */}
             {createdEvent.qr_code && (
               <div className="mb-6 text-center">
-                <p className="text-gray-400 text-sm mb-3">{t('organizer.createEvent.shareEvent')}</p>
-                <div className="bg-white rounded-xl p-4 inline-block">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">{t('organizer.createEvent.shareEvent')}</p>
+                <div className="bg-white rounded-xl p-4 inline-block border border-black/10">
                   <img src={createdEvent.qr_code} alt="QR" className="w-40 h-40" />
                 </div>
               </div>
@@ -1430,13 +1430,13 @@ const CreateEvent = () => {
 
             {/* Share Link */}
             <div className="mb-6">
-              <label className="block text-gray-400 text-sm mb-2">{t('organizer.createEvent.eventLink')}</label>
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('organizer.createEvent.eventLink')}</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   readOnly
                   value={createdEvent.share_url || `${WEB_ORIGIN}/events/${createdEvent.id}`}
-                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
+                  className="flex-1 px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm"
                 />
                 <button
                   onClick={() => {
@@ -1446,9 +1446,9 @@ const CreateEvent = () => {
                     toast.success(t('organizer.createEvent.linkCopied'));
                     setTimeout(() => setLinkCopied(false), 2000);
                   }}
-                  className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
+                  className="px-4 py-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
                 >
-                  {linkCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  {linkCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {t('organizer.createEvent.copyLink')}
                 </button>
               </div>
@@ -1460,7 +1460,7 @@ const CreateEvent = () => {
                 <a
                   href={createdEvent.qr_code}
                   download={`event-${createdEvent.id}-qr.png`}
-                  className="w-full py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium"
+                  className="w-full py-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium"
                 >
                   <QrCode className="w-4 h-4" />
                   {t('organizer.createEvent.downloadQrCode')}
@@ -1490,20 +1490,20 @@ const CreateEvent = () => {
                     setSelectedDjs([]);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors font-medium"
+                  className="py-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors font-medium"
                 >
                   {t('organizer.createEvent.createAnotherEvent')}
                 </button>
                 <button
                   onClick={() => navigate('/dashboard/business/events')}
-                  className="py-3 bg-[#d3da0c] text-black rounded-lg hover:bg-[#bbc10b] transition-colors font-semibold"
+                  className="py-3 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black rounded-lg hover:bg-black dark:hover:bg-[#bbc10b] transition-colors font-semibold shadow-xs"
                 >
                   {t('organizer.createEvent.goToMyEvents')}
                 </button>
               </div>
               <button
                 onClick={() => navigate(`/events/${createdEvent.id}`)}
-                className="w-full py-3 text-gray-400 hover:text-white transition-colors text-sm"
+                className="w-full py-3 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors text-sm"
               >
                 {t('organizer.createEvent.viewEvent')}
               </button>

@@ -460,6 +460,7 @@ from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 @app.get("/api/v1/download/android")
 def download_android_apk():
     import glob
+    import re
     search_dirs = [
         "static/downloads",
         "/var/www/soundit/current/static/downloads",
@@ -469,7 +470,12 @@ def download_android_apk():
     for d in search_dirs:
         apks.extend(glob.glob(os.path.join(d, "SoundIt-Android-release-*.apk")))
     if apks:
-        apks.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        def _apk_sort_key(p: str):
+            m = re.search(r"v(\d+)\.(\d+)(?:\.(\d+))?", os.path.basename(p))
+            ver = (int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)) if m else (0, 0, 0)
+            return (ver, os.path.getmtime(p))
+
+        apks.sort(key=_apk_sort_key, reverse=True)
         latest_apk = apks[0]
         filename = os.path.basename(latest_apk)
         return FileResponse(
@@ -481,7 +487,7 @@ def download_android_apk():
                 "Cache-Control": "no-cache",
             }
         )
-    return RedirectResponse(url="/static/downloads/SoundIt-Android-release-v1.3.apk")
+    return RedirectResponse(url="/static/downloads/SoundIt-Android-release-v1.5.apk")
 
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")

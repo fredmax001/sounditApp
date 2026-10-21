@@ -129,6 +129,10 @@ export interface Profile {
   twitter?: string;
   wechat_id?: string;
   website?: string;
+  staff_id?: number | null;
+  staff_role?: string | null;
+  staff_permissions?: Record<string, boolean> | null;
+  business_name?: string | null;
 }
 
 export interface BusinessProfile {
@@ -345,8 +349,9 @@ export const useAuthStore = create<AuthState>()(
                   last_name: backendUser.last_name,
                   display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
                   username: backendUser.username || null,
-                  avatar_url: backendUser.avatar_url,
-                  banner_url: backendUser.background_url,
+                  avatar_url: backendUser.avatar_url || backendUser.vendor_profile?.logo_url || null,
+                  banner_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
+                  background_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
                   bio: backendUser.bio,
                   city_id: backendUser.preferred_city,
                   city: city,
@@ -364,6 +369,10 @@ export const useAuthStore = create<AuthState>()(
                   instagram: backendUser.instagram,
                   twitter: backendUser.twitter,
                   wechat_id: backendUser.wechat_id,
+                  staff_id: backendUser.staff_id ?? null,
+                  staff_role: backendUser.staff_role ?? null,
+                  staff_permissions: backendUser.staff_permissions ?? null,
+                  business_name: backendUser.business_name ?? null,
                 };
 
                 const session: Session = {
@@ -565,7 +574,8 @@ export const useAuthStore = create<AuthState>()(
             display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
             username: backendUser.username || null,
             avatar_url: backendUser.avatar_url,
-            banner_url: null,
+            banner_url: backendUser.background_url || null,
+            background_url: backendUser.background_url || null,
             bio: backendUser.bio,
             city_id: backendUser.preferred_city,
             city: city,
@@ -583,6 +593,10 @@ export const useAuthStore = create<AuthState>()(
             instagram: backendUser.instagram,
             twitter: backendUser.twitter,
             wechat_id: backendUser.wechat_id,
+            staff_id: backendUser.staff_id ?? null,
+            staff_role: backendUser.staff_role ?? null,
+            staff_permissions: backendUser.staff_permissions ?? null,
+            business_name: backendUser.business_name ?? null,
           };
 
           // Basic emulation of session
@@ -778,8 +792,9 @@ export const useAuthStore = create<AuthState>()(
             display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
             username: backendUser.username || null,
             bio: backendUser.bio,
-            avatar_url: backendUser.avatar_url,
-            banner_url: backendUser.background_url,
+            avatar_url: backendUser.avatar_url || backendUser.vendor_profile?.logo_url || null,
+            banner_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
+            background_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
             phone: backendUser.phone,
             city_id: backendUser.preferred_city,
             city: city,
@@ -885,8 +900,8 @@ export const useAuthStore = create<AuthState>()(
         if (!file.type.startsWith('image/')) {
           throw new Error('Please select a valid image file');
         }
-        if (file.size > 5 * 1024 * 1024) { // 5MB
-          throw new Error('Image size must be less than 5MB');
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+          throw new Error('Image size must be less than 10MB');
         }
 
         const formData = new FormData();
@@ -937,7 +952,7 @@ export const useAuthStore = create<AuthState>()(
           // Update local profile state
           const { profile } = get();
           if (profile) {
-            set({ profile: { ...profile, background_url: bannerUrl } });
+            set({ profile: { ...profile, background_url: bannerUrl, banner_url: bannerUrl } });
           }
 
           return bannerUrl;
@@ -1109,8 +1124,9 @@ export const useAuthStore = create<AuthState>()(
                   last_name: backendUser.last_name,
                   display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
                   username: backendUser.username || null,
-                  avatar_url: backendUser.avatar_url,
-                  banner_url: backendUser.background_url,
+                  avatar_url: backendUser.avatar_url || backendUser.vendor_profile?.logo_url || null,
+                  banner_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
+                  background_url: backendUser.background_url || backendUser.vendor_profile?.banner_url || null,
                   bio: backendUser.bio,
                   city_id: backendUser.preferred_city,
                   city: city,

@@ -246,7 +246,7 @@ const ScanPage = () => {
   return (
     <div className="min-h-screen bg-black flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border-b border-white/10 z-10">
+      <div className="flex items-center justify-between p-4 bg-[#020b00] border-b border-white/10 z-10">
         <button
           onClick={() => {
             if (window.history.length > 1) navigate(-1);
@@ -437,7 +437,7 @@ const ScanPage = () => {
               </div>
 
               {/* Bottom Controls */}
-              <div className="bg-[#0A0A0A] border-t border-white/10 p-4 pb-safe">
+              <div className="bg-[#020b00] border-t border-white/10 p-4 pb-safe">
                 {cameraError && (
                   <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                     <p className="text-yellow-400 text-sm text-center">{cameraError}</p>

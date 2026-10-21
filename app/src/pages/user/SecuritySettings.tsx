@@ -191,9 +191,9 @@ const SecuritySettings = () => {
         value={passwordData[key]}
         onChange={e => setPasswordData(prev => ({ ...prev, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none pr-10"
+        className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none pr-10"
       />
-      <button onClick={() => setShowPasswords(prev => ({ ...prev, [showKey]: !prev[showKey] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" aria-label={placeholder}>
+      <button onClick={() => setShowPasswords(prev => ({ ...prev, [showKey]: !prev[showKey] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#020b00] dark:hover:text-white" aria-label={placeholder}>
         {showPasswords[showKey] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
       </button>
     </div>
@@ -207,7 +207,7 @@ const SecuritySettings = () => {
       value={pinForm[key]}
       onChange={e => setPinForm(prev => ({ ...prev, [key]: numeric ? e.target.value.replace(/\D/g, '') : e.target.value }))}
       placeholder={placeholder}
-      className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+      className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
     />
   );
 
@@ -217,7 +217,7 @@ const SecuritySettings = () => {
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className={`bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border max-h-[85vh] overflow-y-auto ${danger ? 'border-red-500/20' : 'border-white/10'}`}
+        className={`bg-white dark:bg-[#111111] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border max-h-[85vh] overflow-y-auto shadow-2xl ${danger ? 'border-red-500/30' : 'border-black/10 dark:border-white/10'}`}
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -226,40 +226,40 @@ const SecuritySettings = () => {
     document.body);
 
   const StatusBadge = ({ enabled }: { enabled: boolean }) => (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${enabled ? 'bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30' : 'bg-white/5 text-gray-500 border border-white/10'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${enabled ? 'bg-black/5 text-[#020b00] border border-black/10 dark:bg-[#d3da0c]/15 dark:text-[#d3da0c] dark:border-[#d3da0c]/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 border border-black/10 dark:border-white/10'}`}>
       {enabled ? t('kit.security.statusEnabled') : t('kit.security.statusDisabled')}
     </span>
   );
 
   return (
-    <div className="min-h-screen pb-12">
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
-          <button onClick={() => navigate('/settings')} aria-label={t('kit.common.back')} className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors">
+          <button onClick={() => navigate('/settings')} aria-label={t('kit.common.back')} className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white">{t('kit.security.title')}</h1>
+          <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white">{t('kit.security.title')}</h1>
         </div>
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {/* Two-Factor Auth */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-2xl p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-[#d3da0c]" />
+            <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-white">{t('kit.security.twoFactor')}</p>
+                <p className="text-sm font-semibold text-[#020b00] dark:text-white">{t('kit.security.twoFactor')}</p>
                 <StatusBadge enabled={twoFaEnabled} />
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">{t('kit.security.twoFactorDesc')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">{t('kit.security.twoFactorDesc')}</p>
             </div>
             <button
               onClick={() => { setCode(''); twoFaEnabled ? setModal({ kind: '2fa-disable' }) : open2faSetup(); }}
               disabled={isSaving}
-              className={`px-4 min-h-[40px] rounded-xl text-xs font-bold transition-colors disabled:opacity-50 ${twoFaEnabled ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b]'}`}
+              className={`px-4 min-h-[40px] rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${twoFaEnabled ? 'bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20' : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90'}`}
             >
               {twoFaEnabled ? t('kit.security.disable') : t('kit.security.enable')}
             </button>
@@ -267,29 +267,29 @@ const SecuritySettings = () => {
         </motion.div>
 
         {/* Quick Login PIN */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="bg-[#111111] border border-white/5 rounded-2xl p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-              <KeyRound className="w-5 h-5 text-[#d3da0c]" />
+            <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+              <KeyRound className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-white">{t('kit.security.pin')}</p>
+                <p className="text-sm font-semibold text-[#020b00] dark:text-white">{t('kit.security.pin')}</p>
                 <StatusBadge enabled={pinEnabled} />
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">{t('kit.security.pinDesc')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">{t('kit.security.pinDesc')}</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => { setPinForm({ password: '', currentPin: '', newPin: '', confirmPin: '' }); setShowPins(false); setModal({ kind: pinEnabled ? 'pin-change' : 'pin-set' }); }}
-                className="px-4 min-h-[40px] rounded-xl bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] transition-colors"
+                className="px-4 min-h-[40px] rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-all shadow-sm"
               >
                 {pinEnabled ? t('kit.security.pinChangeTitle') : t('kit.security.pinSetTitle')}
               </button>
               {pinEnabled && (
                 <button
                   onClick={() => { setPinForm({ password: '', currentPin: '', newPin: '', confirmPin: '' }); setModal({ kind: 'pin-disable' }); }}
-                  className="px-3 min-h-[40px] rounded-xl bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/30 hover:bg-red-500/20 transition-colors"
+                  className="px-3 min-h-[40px] rounded-xl bg-red-500/10 text-red-500 text-xs font-semibold border border-red-500/30 hover:bg-red-500/20 transition-colors"
                 >
                   {t('kit.security.disable')}
                 </button>
@@ -299,25 +299,25 @@ const SecuritySettings = () => {
         </motion.div>
 
         {/* Change password */}
-        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }} onClick={() => setModal({ kind: 'password' })} className="w-full flex items-center gap-3 bg-[#111111] border border-white/5 rounded-2xl p-4 text-left active:border-[#d3da0c]/30 transition-colors min-h-[44px]">
-          <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-            <Lock className="w-5 h-5 text-[#d3da0c]" />
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }} onClick={() => setModal({ kind: 'password' })} className="w-full flex items-center gap-3 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 text-left hover:border-black/20 dark:hover:border-[#d3da0c]/30 shadow-xs dark:shadow-none transition-all min-h-[44px]">
+          <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+            <Lock className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white">{t('kit.security.changePassword')}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{t('kit.security.changePasswordDesc')}</p>
+            <p className="text-sm font-semibold text-[#020b00] dark:text-white">{t('kit.security.changePassword')}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">{t('kit.security.changePasswordDesc')}</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-500 shrink-0" />
+          <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
         </motion.button>
 
         {/* Delete account */}
-        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }} onClick={() => setModal({ kind: 'delete' })} className="w-full flex items-center gap-3 bg-[#111111] border border-red-500/15 rounded-2xl p-4 text-left active:border-red-500/30 transition-colors min-h-[44px]">
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }} onClick={() => setModal({ kind: 'delete' })} className="w-full flex items-center gap-3 bg-white dark:bg-[#111111] border border-red-500/20 rounded-2xl p-4 text-left hover:border-red-500/40 shadow-xs dark:shadow-none transition-all min-h-[44px]">
           <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
             <Trash2 className="w-5 h-5 text-red-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-red-400">{t('kit.security.deleteAccount')}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{t('kit.security.deleteAccountDesc')}</p>
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400">{t('kit.security.deleteAccount')}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">{t('kit.security.deleteAccountDesc')}</p>
           </div>
           <ChevronRight className="w-5 h-5 text-red-500/60 shrink-0" />
         </motion.button>
@@ -327,8 +327,8 @@ const SecuritySettings = () => {
       {modal?.kind === 'password' && (
         <ModalShell>
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-white">{t('kit.security.changePassword')}</h3>
-            <button onClick={() => setModal(null)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('kit.security.changePassword')}</h3>
+            <button onClick={() => setModal(null)} className="p-1.5 bg-black/5 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"><X className="w-4 h-4" /></button>
           </div>
           <div className="space-y-3">
             {passwordInput('currentPassword', 'current', t('settings.currentPassword', 'Current Password'))}
@@ -336,8 +336,8 @@ const SecuritySettings = () => {
             {passwordInput('confirmPassword', 'confirm', t('settings.confirmPassword', 'Confirm New Password'))}
           </div>
           <div className="flex gap-3 mt-5">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button onClick={handleChangePassword} disabled={isSaving || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword} className="flex-1 min-h-[44px] bg-[#d3da0c] text-black text-sm font-semibold rounded-xl hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            <button onClick={handleChangePassword} disabled={isSaving || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword} className="flex-1 min-h-[44px] bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {t('kit.security.changePassword')}
             </button>
@@ -349,25 +349,25 @@ const SecuritySettings = () => {
       {modal?.kind === '2fa-setup' && (
         <ModalShell>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">{t('kit.security.setupTitle')}</h3>
-            <button onClick={() => setModal(null)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('kit.security.setupTitle')}</h3>
+            <button onClick={() => setModal(null)} className="p-1.5 bg-black/5 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"><X className="w-4 h-4" /></button>
           </div>
-          <p className="text-sm text-gray-400 mb-4">{t('kit.security.setupDesc')}</p>
-          <div className="bg-white rounded-2xl p-4 w-fit mx-auto mb-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('kit.security.setupDesc')}</p>
+          <div className="bg-white rounded-2xl p-4 w-fit mx-auto mb-3 border border-black/10 shadow-xs">
             <QRCodeSVG value={modal.otpauthUrl} size={180} level="M" />
           </div>
-          <p className="text-center text-[11px] text-gray-500 font-mono break-all mb-4">{modal.secret}</p>
+          <p className="text-center text-[11px] text-gray-600 dark:text-gray-400 font-mono break-all mb-4">{modal.secret}</p>
           <input
             type="text"
             inputMode="numeric"
             value={code}
             onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder={t('kit.security.codeLabel')}
-            className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-lg tracking-[0.5em] placeholder-gray-600 placeholder:text-sm placeholder:tracking-normal focus:border-[#d3da0c] focus:outline-none mb-4"
+            className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-center text-lg tracking-[0.5em] placeholder-gray-400 dark:placeholder-gray-600 placeholder:text-sm placeholder:tracking-normal focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none mb-4"
           />
           <div className="flex gap-3">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button onClick={enable2fa} disabled={isSaving || code.length !== 6} className="flex-1 min-h-[44px] bg-[#d3da0c] text-black text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            <button onClick={enable2fa} disabled={isSaving || code.length !== 6} className="flex-1 min-h-[44px] bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {t('kit.security.enable')}
             </button>
@@ -379,21 +379,21 @@ const SecuritySettings = () => {
       {modal?.kind === '2fa-disable' && (
         <ModalShell danger>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">{t('kit.security.disableTitle')}</h3>
-            <button onClick={() => setModal(null)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('kit.security.disableTitle')}</h3>
+            <button onClick={() => setModal(null)} className="p-1.5 bg-black/5 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"><X className="w-4 h-4" /></button>
           </div>
-          <p className="text-sm text-gray-400 mb-4">{t('kit.security.disableDesc')}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('kit.security.disableDesc')}</p>
           <input
             type="text"
             inputMode="numeric"
             value={code}
             onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder={t('kit.security.codeLabel')}
-            className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-lg tracking-[0.5em] placeholder-gray-600 placeholder:text-sm placeholder:tracking-normal focus:border-[#d3da0c] focus:outline-none mb-4"
+            className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-center text-lg tracking-[0.5em] placeholder-gray-400 dark:placeholder-gray-600 placeholder:text-sm placeholder:tracking-normal focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none mb-4"
           />
           <div className="flex gap-3">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button onClick={disable2fa} disabled={isSaving || code.length !== 6} className="flex-1 min-h-[44px] bg-red-500 text-white text-sm font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            <button onClick={disable2fa} disabled={isSaving || code.length !== 6} className="flex-1 min-h-[44px] bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {t('kit.security.disable')}
             </button>
@@ -405,10 +405,10 @@ const SecuritySettings = () => {
       {(modal?.kind === 'pin-set' || modal?.kind === 'pin-change' || modal?.kind === 'pin-disable') && (
         <ModalShell danger={modal.kind === 'pin-disable'}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">
+            <h3 className="text-lg font-bold text-[#020b00] dark:text-white">
               {modal.kind === 'pin-set' ? t('kit.security.pinSetTitle') : modal.kind === 'pin-change' ? t('kit.security.pinChangeTitle') : t('kit.security.pinDisableTitle')}
             </h3>
-            <button onClick={() => setModal(null)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <button onClick={() => setModal(null)} className="p-1.5 bg-black/5 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"><X className="w-4 h-4" /></button>
           </div>
 
           <div className="space-y-3">
@@ -422,17 +422,17 @@ const SecuritySettings = () => {
             )}
           </div>
 
-          <label className="flex items-center gap-2 mt-3 text-xs text-gray-500">
-            <input type="checkbox" checked={showPins} onChange={e => setShowPins(e.target.checked)} className="accent-[#d3da0c]" />
+          <label className="flex items-center gap-2 mt-3 text-xs text-gray-600 dark:text-gray-400">
+            <input type="checkbox" checked={showPins} onChange={e => setShowPins(e.target.checked)} className="accent-[#020b00] dark:accent-[#d3da0c]" />
             <span className="flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />{t('settings.showPasswords', 'Show')}</span>
           </label>
 
           <div className="flex gap-3 mt-4">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
             <button
               onClick={() => submitPin(modal.kind as 'pin-set' | 'pin-change' | 'pin-disable')}
               disabled={isSaving}
-              className={`flex-1 min-h-[44px] text-sm font-bold rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2 ${modal.kind === 'pin-disable' ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b]'}`}
+              className={`flex-1 min-h-[44px] text-sm font-bold rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm ${modal.kind === 'pin-disable' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90'}`}
             >
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {modal.kind === 'pin-disable' ? t('kit.security.disable') : modal.kind === 'pin-change' ? t('kit.security.pinChangeTitle') : t('kit.security.pinSetTitle')}
@@ -447,18 +447,18 @@ const SecuritySettings = () => {
           <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="w-6 h-6 text-red-500" />
           </div>
-          <h3 className="text-lg font-bold text-white text-center mb-1">{t('kit.security.deleteConfirmTitle')}</h3>
-          <p className="text-gray-400 text-sm text-center mb-4">{t('kit.security.deleteConfirmDesc')}</p>
+          <h3 className="text-lg font-bold text-[#020b00] dark:text-white text-center mb-1">{t('kit.security.deleteConfirmTitle')}</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-4">{t('kit.security.deleteConfirmDesc')}</p>
           <input
             type="text"
             value={deleteConfirmText}
             onChange={e => setDeleteConfirmText(e.target.value)}
             placeholder="DELETE"
-            className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-600 focus:border-red-500 focus:outline-none mb-4"
+            className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-red-500/30 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-600 focus:border-red-500 focus:outline-none mb-4"
           />
           <div className="flex gap-3">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-white/5 text-white text-sm rounded-xl hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button onClick={handleDeleteAccount} disabled={isSaving || deleteConfirmText !== 'DELETE'} className="flex-1 min-h-[44px] bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            <button onClick={handleDeleteAccount} disabled={isSaving || deleteConfirmText !== 'DELETE'} className="flex-1 min-h-[44px] bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {t('kit.security.deleteAccount')}
             </button>

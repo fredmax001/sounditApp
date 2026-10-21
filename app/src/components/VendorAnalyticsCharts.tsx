@@ -60,20 +60,20 @@ export default function VendorAnalyticsCharts({ data }: { data: AnalyticsData })
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className="bg-white/5 border border-white/10 rounded-xl p-4"
+                        className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <stat.icon className="w-4 h-4 text-[#d3da0c]" />
-                            <span className="text-gray-400 text-xs">{stat.label}</span>
+                            <span className="text-gray-600 dark:text-gray-400 text-xs">{stat.label}</span>
                         </div>
-                        <p className="text-white text-xl font-bold">{stat.value}</p>
+                        <p className="text-[#020b00] dark:text-white text-xl font-bold">{stat.value}</p>
                     </motion.div>
                 ))}
             </div>
 
             {/* Revenue Chart */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-4">Daily Revenue (Last 30 Days)</h3>
+            <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-semibold mb-4">Daily Revenue (Last 30 Days)</h3>
                 <ResponsiveContainer width="100%" height={250}>
                     <AreaChart data={sales_trend.daily}>
                         <defs>
@@ -82,11 +82,11 @@ export default function VendorAnalyticsCharts({ data }: { data: AnalyticsData })
                                 <stop offset="95%" stopColor="#d3da0c" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="date" stroke="#666" fontSize={12} tickFormatter={(v) => v?.slice(5) || ''} />
-                        <YAxis stroke="#666" fontSize={12} tickFormatter={(v) => `¥${v}`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(150,150,150,0.15)" />
+                        <XAxis dataKey="date" stroke="#888" fontSize={12} tickFormatter={(v) => v?.slice(5) || ''} />
+                        <YAxis stroke="#888" fontSize={12} tickFormatter={(v) => `¥${v}`} />
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                            contentStyle={{ backgroundColor: '#020b00', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                             labelStyle={{ color: '#fff' }}
                             formatter={(value: number) => [`¥${value.toFixed(2)}`, 'Revenue']}
                         />
@@ -96,22 +96,22 @@ export default function VendorAnalyticsCharts({ data }: { data: AnalyticsData })
             </div>
 
             {/* Best Sellers */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-4">Best Selling Products</h3>
+            <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
+                <h3 className="text-[#020b00] dark:text-white font-semibold mb-4">Best Selling Products</h3>
                 {best_sellers.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No sales data yet.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">No sales data yet.</p>
                 ) : (
                     <div className="space-y-3">
                         {best_sellers.slice(0, 5).map((item, i) => (
                             <div key={item.product_id} className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-[#d3da0c]/10 flex items-center justify-center text-[#d3da0c] font-bold text-sm">
+                                <div className="w-8 h-8 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c]/10 dark:text-[#d3da0c] flex items-center justify-center font-bold text-sm">
                                     {i + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-white text-sm truncate">{item.product_name}</p>
-                                    <p className="text-gray-500 text-xs">{item.total_sold} sold</p>
+                                    <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">{item.product_name}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs">{item.total_sold} sold</p>
                                 </div>
-                                <span className="text-[#d3da0c] font-medium text-sm">¥{item.total_revenue.toFixed(0)}</span>
+                                <span className="text-[#020b00] dark:text-[#d3da0c] font-bold text-sm">¥{item.total_revenue.toFixed(0)}</span>
                             </div>
                         ))}
                     </div>

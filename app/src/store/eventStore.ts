@@ -172,6 +172,7 @@ export interface EventFilters {
   featured?: boolean;
   category?: string;
   search?: string;
+  includePast?: boolean;
 }
 
 export interface CreateEventData {
@@ -216,6 +217,7 @@ export const useEventStore = create<EventState>((set, get) => ({
       if (filters?.status) params.status = filters.status;
       if (filters?.category) params.category = filters.category;
       if (filters?.search) params.search = filters.search;
+      if (filters?.includePast) params.include_past = true;
 
       const response = await axios.get(`${API_URL}/events`, { params });
       set({ events: response.data || [], isLoading: false });

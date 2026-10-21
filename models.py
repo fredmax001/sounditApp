@@ -1815,6 +1815,19 @@ class PushSubscription(Base):
     user = relationship("User", back_populates="push_subscriptions")
 
 
+class NativePushToken(Base):
+    """APNs device tokens registered by native iOS app installs."""
+    __tablename__ = "native_push_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token = Column(String(512), nullable=False, unique=True)
+    platform = Column(String(20), nullable=False, default="ios")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
 class NotificationPreference(Base):
     __tablename__ = "notification_preferences"
     
@@ -2357,6 +2370,7 @@ class SubscriptionPlanConfig(Base):
     id = Column(Integer, primary_key=True, index=True)
     plan_type = Column(Enum(SubscriptionPlan), nullable=False)
     role = Column(Enum(UserRole), nullable=False)  # business, vendor, artist
+    billing_period = Column(String(20), default="monthly")  # monthly | yearly
     price = Column(Float, nullable=False)
     duration_days = Column(Integer, default=30)
     features = Column(JSON, default=list)  # List of feature keys
@@ -2381,6 +2395,7 @@ class Subscription(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     plan_type = Column(Enum(SubscriptionPlan), nullable=False)
+    billing_period = Column(String(20), nullable=True)  # monthly | yearly | lifetime (admin-granted)
     price = Column(Float, nullable=False)
     status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.PENDING)
     
@@ -2631,7 +2646,7 @@ class TableOrder(Base):
     special_requests = Column(Text, nullable=True)
     
     # Payment
-    payment_screenshot = Column(String(500), nullable=False)
+    payment_screenshot = Column(String(500), nullable=True)
     payment_amount = Column(Float, nullable=False)
     payment_notes = Column(Text, nullable=True)
     payment_proof_hash = Column(String(64), nullable=True, index=True)

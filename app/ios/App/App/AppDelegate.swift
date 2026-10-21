@@ -2,7 +2,7 @@ import UIKit
 import Capacitor
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
@@ -44,6 +44,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
+    // MARK: - UISceneSession Lifecycle (required by iOS 26+ SDK)
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        // The window is created automatically from the Main storyboard.
+        guard let _ = (scene as? UIWindowScene) else { return }
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        // Forward URL opens (deep links, OAuth callbacks) to Capacitor plugins
+        for context in URLContexts {
+            ApplicationDelegateProxy.shared.application(UIApplication.shared, open: context.url, options: [
+                .openInPlace: context.options.openInPlace,
+                .sourceApplication: context.options.sourceApplication as Any
+            ])
+        }
+    }
+
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        // Forward Universal Links to Capacitor plugins
+        ApplicationDelegateProxy.shared.application(UIApplication.shared, continue: userActivity) { _ in }
     }
 
 }

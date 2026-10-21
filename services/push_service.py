@@ -8,7 +8,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from models import PushSubscription, Notification
+from models import PushSubscription, NativePushToken, Notification
 from config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -28,15 +28,16 @@ class PushService:
         self.db = db
     
     def send_notification(self, notification: Notification) -> bool:
-        """Send push notification to all active devices for this user."""
+        """Send push notification to active web and native devices for this user."""
+        native_sent = self._send_apns(notification)
         
         if not _PYWEBPUSH_AVAILABLE:
             logger.warning("pywebpush not available, skipping push delivery")
-            return False
+            return native_sent
         
         if not settings.VAPID_PRIVATE_KEY or not settings.VAPID_PUBLIC_KEY:
             logger.warning("VAPID keys not configured, skipping push delivery")
-            return False
+            return native_sent
         
         subscriptions = self.db.query(PushSubscription).filter(
             PushSubscription.user_id == notification.user_id,
@@ -45,7 +46,7 @@ class PushService:
         
         if not subscriptions:
             logger.info(f"No active push subscriptions for user {notification.user_id}")
-            return False
+            return native_sent
         
         # Build payload
         img_url = getattr(notification, "image_url", None) or (
@@ -93,7 +94,7 @@ class PushService:
             ]
         
         payload_json = json.dumps(payload)
-        any_success = False
+        any_success = native_sent
         
         for sub in subscriptions:
             try:
@@ -130,6 +131,57 @@ class PushService:
         
         self.db.commit()
         return any_success
+
+    def _send_apns(self, notification: Notification) -> bool:
+        """Send an APNs alert when credentials and the optional httpx/jwt libs exist."""
+        tokens = self.db.query(NativePushToken).filter(
+            NativePushToken.user_id == notification.user_id,
+            NativePushToken.is_active == True,
+        ).all()
+        if not tokens:
+            return False
+        if not (settings.APNS_KEY_ID and settings.APNS_TEAM_ID and settings.APNS_AUTH_KEY):
+            logger.warning("APNs credentials are not configured; native push delivery skipped")
+            return False
+        try:
+            import time
+            from jose import jwt
+            import httpx
+            key = settings.APNS_AUTH_KEY.replace('\\n', '\n')
+            bearer = jwt.encode(
+                {"iss": settings.APNS_TEAM_ID, "iat": int(time.time())},
+                key, algorithm="ES256", headers={"kid": settings.APNS_KEY_ID},
+            )
+        except Exception:
+            logger.exception("APNs JWT dependencies or credentials are invalid")
+            return False
+
+        host = "https://api.sandbox.push.apple.com" if settings.APNS_USE_SANDBOX else "https://api.push.apple.com"
+        payload = {"aps": {"alert": {"title": notification.title, "body": notification.message}, "sound": "default", "badge": self._unread_count(notification.user_id)}}
+        sent = False
+        with httpx.Client(http2=True, timeout=10) as client:
+            for row in tokens:
+                try:
+                    response = client.post(
+                        f"{host}/3/device/{row.token}", json=payload,
+                        headers={"authorization": f"bearer {bearer}", "apns-topic": settings.APNS_BUNDLE_ID, "apns-push-type": "alert", "apns-priority": "10"},
+                    )
+                    if response.status_code == 200:
+                        sent = True
+                    elif response.status_code == 410:
+                        row.is_active = False
+                    else:
+                        logger.warning("APNs rejected token id=%s status=%s body=%s", row.id, response.status_code, response.text[:300])
+                except Exception:
+                    logger.exception("APNs delivery failed for native token id=%s", row.id)
+        self.db.commit()
+        return sent
+
+    def _unread_count(self, user_id: int) -> int:
+        from sqlalchemy import func
+        return self.db.query(func.count(Notification.id)).filter(
+            Notification.user_id == user_id, Notification.is_read == False
+        ).scalar() or 0
     
     def subscribe(self, user_id: int, subscription_data: dict) -> PushSubscription:
         """Register a new push subscription from a device."""

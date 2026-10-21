@@ -2,11 +2,13 @@ import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useThemeStore } from '@/store/themeStore';
 
 const AuthLayout = () => {
   useAnalytics();
+  const { isDark } = useThemeStore();
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative flex items-center justify-center overflow-hidden transition-colors duration-200">
       {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Animated Grid */}
@@ -58,7 +60,11 @@ const AuthLayout = () => {
           className="text-center mb-8 hidden md:block"
         >
           <Link to="/" className="inline-block">
-            <img src="/logo-web.png" alt="Sound It" className="h-12 md:h-20 w-auto mx-auto object-contain" />
+            <img
+              src={isDark ? "/logo-dark.png" : "/logo-light.png"}
+              alt="Sound It"
+              className="h-12 md:h-16 w-auto mx-auto object-contain"
+            />
           </Link>
           <p className="text-gray-500 text-sm mt-2 tracking-wider">
             5 YEARS OF EXCELLENCE IN ENTERTAINMENT
@@ -70,7 +76,7 @@ const AuthLayout = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="glass rounded-2xl p-8"
+          className="bg-white/95 dark:bg-[#111111]/90 backdrop-blur-xl border border-black/8 dark:border-white/10 rounded-2xl p-8 shadow-xl dark:shadow-none"
         >
           <Outlet />
         </motion.div>

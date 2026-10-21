@@ -18,6 +18,7 @@ import {
   Heart,
   Map as MapIcon,
   ChevronDown,
+  ChevronLeft,
   X,
   ExternalLink,
 } from 'lucide-react';
@@ -376,17 +377,24 @@ const CityGuide = () => {
   const hasMap = mapReady && !mapError && GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY !== 'your_maps_key';
 
   return (
-    <div className="min-h-screen pt-16 pb-24 md:pt-20 md:pb-24 bg-[#0A0A0A]">
+    <div className="min-h-screen pt-0 pb-24 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-3 md:py-4">
-          {/* Title row */}
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-2xl font-display text-white">
-                {t('discovery.title') || 'Discovery'} <span className="text-[#d3da0c]">{t('discovery.hub') || 'Hub'}</span>
+          {/* Title row with back button */}
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+              aria-label="Go back"
+              className="w-10 h-10 -ml-1 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-display text-[#020b00] dark:text-white">
+                {t('discovery.title') || 'Discovery'} <span className="text-[#020b00] dark:text-[#d3da0c] font-bold">{t('discovery.hub') || 'Hub'}</span>
               </h1>
-              <p className="text-gray-400 text-sm hidden md:block mt-1">
+              <p className="text-gray-600 dark:text-gray-400 text-xs hidden md:block mt-0.5">
                 {t('discovery.subtitle') || 'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
               </p>
             </div>
@@ -394,7 +402,7 @@ const CityGuide = () => {
             {/* Mobile Search Icon Button */}
             <button 
               onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-              className="md:hidden p-2 bg-white/5 rounded-full text-white/70 hover:text-white"
+              className="md:hidden p-2 bg-neutral-100 dark:bg-white/5 rounded-full text-gray-700 dark:text-white/70 hover:text-[#020b00] dark:hover:text-white"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -409,7 +417,7 @@ const CityGuide = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('discovery.searchPlaceholder') || 'Search artists, vendors, venues, events...'}
-                className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-neutral-100 dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-sm text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -431,8 +439,8 @@ const CityGuide = () => {
                   onClick={() => { setActiveTab(tab.key); setSelectedItem(null); }}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                     active
-                      ? 'bg-[#d3da0c] text-black'
-                      : 'bg-[#111111] text-gray-400 border border-white/10 hover:text-white'
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
+                      : 'bg-neutral-100 dark:bg-[#111111] text-gray-700 dark:text-gray-400 border border-black/8 dark:border-white/10 hover:text-[#020b00] dark:hover:text-white'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -445,14 +453,14 @@ const CityGuide = () => {
       </section>
 
       {/* New discovery feed: Pick For You + Top sections */}
-      <div className="pt-4">
+      <div className="pt-1">
         <DiscoveryFeed />
       </div>
 
       {/* Featured Section */}
       {activeTab === 'all' && featuredItems.length > 0 && (
         <section className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-4">
-          <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-[#020b00] dark:text-white mb-3 flex items-center gap-2">
             <Star className="w-4 h-4 text-[#d3da0c]" />
             {t('discovery.featured') || 'Featured'}
           </h2>
@@ -473,7 +481,7 @@ const CityGuide = () => {
                 }}
                 className="flex-shrink-0 w-28 cursor-pointer"
               >
-                <div className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a] mb-1.5">
+                <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a] mb-1.5 border border-black/5 dark:border-transparent">
                   <img
                     src={item.image || (item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg')}
                     alt={item.name}
@@ -481,7 +489,7 @@ const CityGuide = () => {
                     onError={(e) => { (e.target as HTMLImageElement).src = item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg'; }}
                   />
                 </div>
-                <p className="text-xs font-medium text-white truncate">{item.name}</p>
+                <p className="text-xs font-medium text-[#020b00] dark:text-white truncate">{item.name}</p>
                 <EntityBadge type={item.type} />
               </motion.div>
             ))}
@@ -494,10 +502,10 @@ const CityGuide = () => {
         <div className={`flex ${hasMap ? 'flex-col lg:flex-row' : 'flex-col'} gap-4`}>
           {/* Map - stacked on top for mobile when active tab is mappable */}
           {hasMap && (activeTab === 'all' || MAPPABLE_TYPES.has(activeTab)) && (
-            <div className="w-full lg:w-[55%] h-[45vh] lg:h-[calc(100vh-220px)] min-h-[280px] rounded-2xl overflow-hidden border border-white/10 relative bg-[#111111]">
+            <div className="w-full lg:w-[55%] h-[45vh] lg:h-[calc(100vh-220px)] min-h-[280px] rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 relative bg-neutral-100 dark:bg-[#111111] shadow-sm dark:shadow-none">
               <div ref={mapRef} className="w-full h-full" />
               {!mapReady && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#111111]">
+                <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 dark:bg-[#111111]">
                   <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                 </div>
               )}
@@ -514,8 +522,8 @@ const CityGuide = () => {
 
             {!isLoading && displayItems.length === 0 && (
               <div className="text-center py-12">
-                <MapPin className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">{t('discovery.noItemsFound') || 'No places found for this city.'}</p>
+                <MapPin className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t('discovery.noItemsFound') || 'No places found for this city.'}</p>
               </div>
             )}
 
@@ -528,11 +536,20 @@ const CityGuide = () => {
                     : item.type === 'business'
                       ? (Number(meta.events_count) > 0 ? t('discovery.eventsCount', { count: meta.events_count }) || `${meta.events_count} events` : undefined)
                       : (Number(meta.rating) > 0 ? t('discovery.ratingLabel', { rating: meta.rating }) || `★ ${meta.rating}` : undefined);
-                  const dummyUser = {
-                    id: Number(item.user_id || item.id),
+                  const targetPath = item.type === 'artist'
+                    ? `/artists/${item.id}`
+                    : item.type === 'vendor'
+                      ? `/vendors/${item.id}`
+                      : `/profiles/${item.user_id || item.id}`;
+
+                  const cardUser = {
+                    id: Number(item.id),
                     user_id: item.user_id ? Number(item.user_id) : undefined,
+                    artist_id: item.type === 'artist' ? Number(item.id) : undefined,
+                    vendor_id: item.type === 'vendor' ? Number(item.id) : undefined,
                     role: item.type,
                     first_name: item.name,
+                    name: item.name,
                     avatar_url: item.image,
                     is_verified: item.meta?.is_verified,
                   };
@@ -543,7 +560,7 @@ const CityGuide = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(index * 0.02, 0.3) }}
                     >
-                      <DiscoveryResultCard user={dummyUser as any} subtitle={subtitle} />
+                      <DiscoveryResultCard user={cardUser as any} subtitle={subtitle} linkPath={targetPath} />
                     </motion.div>
                   );
                 }
@@ -563,11 +580,11 @@ const CityGuide = () => {
                     }}
                     className={`group flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer ${
                       selectedItem?.id === item.id && selectedItem?.type === item.type
-                        ? 'bg-[#d3da0c]/10 border-[#d3da0c]/40'
-                        : 'bg-[#1A1A1A] border-white/5 hover:border-white/15'
+                        ? 'bg-[#d3da0c]/15 border-[#d3da0c]'
+                        : 'bg-white dark:bg-[#1A1A1A] border-black/8 dark:border-white/5 hover:border-black/15 dark:hover:border-white/15 shadow-sm dark:shadow-none'
                     }`}
                   >
-                    <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-[#1a1a1a]">
+                    <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a]">
                       <img
                         src={item.image || '/placeholder-club.jpg'}
                         alt={item.name}
@@ -579,13 +596,13 @@ const CityGuide = () => {
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                         <EntityBadge type={item.type} />
                       </div>
-                    <h3 className="text-sm md:text-base font-semibold text-white truncate">{item.name}</h3>
+                    <h3 className="text-sm md:text-base font-semibold text-[#020b00] dark:text-white truncate">{item.name}</h3>
 
                     {/* Event-specific: clickable address + venue info */}
                     {item.type === 'event' ? (
                       <div className="mt-1 space-y-0.5">
                         {item.meta.venue_name && (
-                          <p className="text-xs text-gray-400 truncate">{String(item.meta.venue_name)}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{String(item.meta.venue_name)}</p>
                         )}
                         {item.address && (
                           <button
@@ -593,7 +610,7 @@ const CityGuide = () => {
                               e.stopPropagation();
                               openDirections(item.lat, item.lng, item.name);
                             }}
-                            className="inline-flex items-center gap-1 text-xs text-[#d3da0c] hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 text-xs text-gray-800 dark:text-[#d3da0c] hover:text-[#020b00] dark:hover:text-white transition-colors font-medium"
                           >
                             <MapPin className="w-3 h-3" />
                             <span className="truncate max-w-[160px] md:max-w-[200px]">{item.address}</span>
@@ -601,7 +618,7 @@ const CityGuide = () => {
                           </button>
                         )}
                         {item.meta.start_date && (
-                          <p className="text-[11px] text-gray-500">
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
                             {new Date(String(item.meta.start_date)).toLocaleDateString(undefined, {
                               month: 'short',
                               day: 'numeric',
@@ -612,12 +629,10 @@ const CityGuide = () => {
                         )}
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-400 truncate mt-0.5">{item.address || item.description || ''}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{item.address || item.description || ''}</p>
                     )}
 
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-
-
                       {/* Directions button for mappable items (non-events handled here, events have address link above) */}
                       {item.type !== 'event' && MAPPABLE_TYPES.has(item.type) && (
                         <button
@@ -625,7 +640,7 @@ const CityGuide = () => {
                             e.stopPropagation();
                             openDirections(item.lat, item.lng, item.name);
                           }}
-                          className="inline-flex items-center gap-1 text-[11px] font-medium text-[#d3da0c] hover:text-white transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-800 dark:text-[#d3da0c] hover:text-[#020b00] dark:hover:text-white transition-colors"
                         >
                           <Navigation className="w-3 h-3" />
                           {t('cityGuide.getDirections') || 'Directions'}

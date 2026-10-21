@@ -56,13 +56,13 @@ export default function VendorAnalytics() {
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00]">
             <div className="max-w-4xl mx-auto px-4">
                 <div className="flex items-center gap-3 mb-6">
-                    <Link to="/dashboard/vendor" className="p-2 text-gray-400 hover:text-white">
+                    <Link to="/dashboard/vendor" className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-white text-2xl font-bold">Analytics</h1>
+                    <h1 className="text-[#020b00] dark:text-white text-2xl font-bold">Analytics</h1>
                 </div>
 
                 {isLoading ? (
@@ -72,7 +72,7 @@ export default function VendorAnalytics() {
                 ) : data ? (
                     <VendorAnalyticsCharts data={data} />
                 ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                         <p>No analytics data available yet.</p>
                     </div>
                 )}

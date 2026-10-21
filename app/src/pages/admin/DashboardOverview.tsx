@@ -26,13 +26,13 @@ const StatCard = ({ title, value, icon: Icon, onClick, loading, color }: StatCar
   <motion.div
     whileHover={{ y: -2 }}
     onClick={onClick}
-    className={`bg-[#111111] border border-white/10 rounded-xl p-6 ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50' : ''}`}
+    className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50' : ''}`}
   >
     <div className="flex items-start justify-between">
       <div className="flex-1">
-        <p className="text-gray-400 text-sm">{title}</p>
-        <h3 className="text-2xl lg:text-3xl font-bold text-white mt-2">
-          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : value}
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+        <h3 className="text-2xl lg:text-3xl font-bold text-[#020b00] dark:text-white mt-2">
+          {loading ? <Loader2 className="w-6 h-6 animate-spin text-[#d3da0c]" /> : value}
         </h3>
       </div>
       <div className={`p-3 rounded-xl ${color || 'bg-[#d3da0c]/10'}`}>
@@ -162,19 +162,19 @@ const DashboardOverview = () => {
     <div className="space-y-6">
       {/* Role Workspace Banner for non-system roles */}
       {isCustomRole && (
-        <div className="bg-gradient-to-r from-[#d3da0c]/15 via-black to-[#111111] border border-[#d3da0c]/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-[#d3da0c]/15 via-black/5 to-transparent dark:from-[#d3da0c]/15 dark:via-black dark:to-[#111111] border border-[#d3da0c]/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-[#d3da0c] text-black rounded-xl font-bold shadow-lg shadow-[#d3da0c]/20">
+            <div className="p-3 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black rounded-xl font-bold shadow-lg shadow-[#d3da0c]/20">
               <Shield className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white">{roleInfo.role_name} Workspace</h2>
-                <span className="px-2 py-0.5 bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-bold rounded-full border border-[#d3da0c]/30">
+                <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{roleInfo.role_name} Workspace</h2>
+                <span className="px-2 py-0.5 bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold rounded-full border border-[#d3da0c]/30">
                   Active Role
                 </span>
               </div>
-              <p className="text-gray-400 text-sm mt-0.5">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-0.5">
                 Logged in as {profile?.first_name || profile?.email}. Your dashboard is customized for {roleInfo.role_name} management.
               </p>
             </div>
@@ -182,9 +182,9 @@ const DashboardOverview = () => {
           <button
             onClick={loadDashboardData}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white text-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm transition-all"
           >
-            {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#d3da0c]" />}
+            {refreshing ? <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" /> : <Sparkles className="w-4 h-4 text-[#d3da0c]" />}
             Sync Data
           </button>
         </div>
@@ -193,7 +193,7 @@ const DashboardOverview = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">
             {isFinance ? 'Finance & Revenue Workspace' :
              isMarketing ? 'Marketing & Campaigns Hub' :
              isModerator ? 'Content Moderation Workspace' :
@@ -201,7 +201,7 @@ const DashboardOverview = () => {
              isSupport ? 'Support & Verification Desk' :
              t('admin.dashboardOverview.title')}
           </h1>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             {isFinance ? 'Track platform revenue, ticket volume, subscriptions, and withdrawals' :
              isMarketing ? 'Manage promotional campaigns, ads, push notifications, and audience reach' :
              isModerator ? 'Review user reports, moderate community posts, recaps, and content' :
@@ -214,9 +214,9 @@ const DashboardOverview = () => {
           <button
             onClick={loadDashboardData}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-50 transition-all font-medium"
           >
-            {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.dashboardOverview.refresh')}
+            {refreshing ? <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" /> : t('admin.dashboardOverview.refresh')}
           </button>
         )}
       </div>
@@ -455,11 +455,11 @@ const DashboardOverview = () => {
       )}
 
       {/* Pending Actions */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="font-semibold text-white">{t('admin.dashboardOverview.pendingActionsTitle')}</h3>
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl shadow-xs dark:shadow-none">
+        <div className="p-4 border-b border-black/8 dark:border-white/10 flex items-center justify-between">
+          <h3 className="font-semibold text-[#020b00] dark:text-white">{t('admin.dashboardOverview.pendingActionsTitle')}</h3>
           {pendingActions.length > 0 && (
-            <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full font-bold">
+            <span className="bg-red-500/20 text-red-500 dark:text-red-400 text-xs px-2 py-1 rounded-full font-bold">
               {pendingActions.length}
             </span>
           )}
@@ -475,17 +475,17 @@ const DashboardOverview = () => {
             </div>
           ) : (
             pendingActions.slice(0, 6).map((action) => (
-              <div key={action.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+              <div key={action.id} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <AlertCircle className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <AlertCircle className="w-5 h-5 text-yellow-500 dark:text-yellow-400 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{action.title}</p>
+                    <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">{action.title}</p>
                     <p className="text-gray-500 text-xs truncate">{action.description}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => navigate(action.action_url)}
-                  className="text-[#d3da0c] text-sm hover:underline flex items-center gap-1 font-semibold shrink-0 ml-3"
+                  className="text-[#020b00] dark:text-[#d3da0c] text-sm hover:underline flex items-center gap-1 font-semibold shrink-0 ml-3"
                 >
                   {t('admin.dashboardOverview.review')} <ChevronRight className="w-4 h-4" />
                 </button>
@@ -498,67 +498,67 @@ const DashboardOverview = () => {
       {/* Quick Action Links - Tailored to Role */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {isFinance ? [
-          { label: 'Financial Control', path: '/admin/financial', color: 'bg-green-500/10 text-green-400' },
-          { label: 'Subscriptions', path: '/admin/subscriptions', color: 'bg-purple-500/10 text-purple-400' },
-          { label: 'Withdrawal Requests', path: '/admin/withdrawals', color: 'bg-yellow-500/10 text-yellow-400' },
-          { label: 'Platform Analytics', path: '/admin/analytics', color: 'bg-blue-500/10 text-blue-400' },
+          { label: 'Financial Control', path: '/admin/financial', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+          { label: 'Subscriptions', path: '/admin/subscriptions', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+          { label: 'Withdrawal Requests', path: '/admin/withdrawals', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+          { label: 'Platform Analytics', path: '/admin/analytics', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
         ].map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-white/5`}
+            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none`}
           >
             <p className="font-semibold text-sm">{link.label}</p>
           </button>
         )) : isMarketing ? [
-          { label: 'Ads Manager', path: '/admin/ads', color: 'bg-pink-500/10 text-pink-400' },
-          { label: 'Notification Center', path: '/admin/notifications', color: 'bg-purple-500/10 text-purple-400' },
-          { label: 'Platform Analytics', path: '/admin/analytics', color: 'bg-blue-500/10 text-blue-400' },
-          { label: 'Featured Events', path: '/admin/events', color: 'bg-green-500/10 text-green-400' },
+          { label: 'Ads Manager', path: '/admin/ads', color: 'bg-pink-500/10 text-pink-600 dark:text-pink-400' },
+          { label: 'Notification Center', path: '/admin/notifications', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+          { label: 'Platform Analytics', path: '/admin/analytics', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+          { label: 'Featured Events', path: '/admin/events', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
         ].map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-white/5`}
+            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none`}
           >
             <p className="font-semibold text-sm">{link.label}</p>
           </button>
         )) : isModerator || isCommunity ? [
-          { label: 'Community Hub', path: '/admin/community', color: 'bg-blue-500/10 text-blue-400' },
-          { label: 'Reports & Moderation', path: '/admin/reports', color: 'bg-red-500/10 text-red-400' },
-          { label: 'Event Recaps', path: '/admin/recaps', color: 'bg-yellow-500/10 text-yellow-400' },
-          { label: 'CMS Pages', path: '/admin/cms', color: 'bg-green-500/10 text-green-400' },
+          { label: 'Community Hub', path: '/admin/community', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+          { label: 'Reports & Moderation', path: '/admin/reports', color: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+          { label: 'Event Recaps', path: '/admin/recaps', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+          { label: 'CMS Pages', path: '/admin/cms', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
         ].map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-white/5`}
+            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none`}
           >
             <p className="font-semibold text-sm">{link.label}</p>
           </button>
         )) : isSupport ? [
-          { label: 'Verification Center', path: '/admin/verification-center', color: 'bg-yellow-500/10 text-yellow-400' },
-          { label: 'User Directory', path: '/admin/users', color: 'bg-blue-500/10 text-blue-400' },
-          { label: 'Reports & Moderation', path: '/admin/reports', color: 'bg-red-500/10 text-red-400' },
-          { label: 'Community Inquiries', path: '/admin/community', color: 'bg-green-500/10 text-green-400' },
+          { label: 'Verification Center', path: '/admin/verification-center', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+          { label: 'User Directory', path: '/admin/users', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+          { label: 'Reports & Moderation', path: '/admin/reports', color: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+          { label: 'Community Inquiries', path: '/admin/community', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
         ].map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-white/5`}
+            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none`}
           >
             <p className="font-semibold text-sm">{link.label}</p>
           </button>
         )) : [
-          { label: 'Manage Users', path: '/admin/users', color: 'bg-blue-500/10 text-blue-400' },
-          { label: 'Manage Events', path: '/admin/events', color: 'bg-green-500/10 text-green-400' },
-          { label: 'Financial Control', path: '/admin/financial', color: 'bg-yellow-500/10 text-yellow-400' },
-          { label: 'Roles & Invites', path: '/admin/roles', color: 'bg-purple-500/10 text-purple-400' },
+          { label: 'Manage Users', path: '/admin/users', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+          { label: 'Manage Events', path: '/admin/events', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+          { label: 'Financial Control', path: '/admin/financial', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+          { label: 'Roles & Invites', path: '/admin/roles', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
         ].map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-white/5`}
+            className={`p-4 rounded-xl ${link.color} hover:opacity-80 transition-all text-left border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none`}
           >
             <p className="font-semibold text-sm">{link.label}</p>
           </button>

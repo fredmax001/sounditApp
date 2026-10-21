@@ -221,42 +221,42 @@ const ReviewEvents = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display text-white mb-2">{t('admin.reviewEvents.title')}</h1>
-                    <p className="text-gray-400">{t('admin.reviewEvents.subtitle')}</p>
+                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.reviewEvents.title')}</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{t('admin.reviewEvents.subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-blue-400" />
-                        <span className="text-white text-xs font-bold">{t('admin.reviewEvents.featuredCount', { count: featuredIds.size })}</span>
+                        <TrendingUp className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                        <span className="text-[#020b00] dark:text-white text-xs font-bold">{t('admin.reviewEvents.featuredCount', { count: featuredIds.size })}</span>
                     </div>
                 </div>
             </div>
 
             <div className="flex gap-4">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <input
                         type="text"
                         placeholder={t('admin.reviewEvents.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full pl-10 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
                     />
                 </div>
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
-                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    className="px-4 py-3 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                 >
-                    <option value="all" className="bg-[#111111]">{t('admin.reviewEvents.allStatus')}</option>
-                    <option value="pending" className="bg-[#111111]">{t('admin.reviewEvents.statusPending')}</option>
-                    <option value="approved" className="bg-[#111111]">{t('admin.reviewEvents.statusApproved')}</option>
-                    <option value="rejected" className="bg-[#111111]">{t('admin.reviewEvents.statusRejected')}</option>
+                    <option value="all">{t('admin.reviewEvents.allStatus')}</option>
+                    <option value="pending">{t('admin.reviewEvents.statusPending')}</option>
+                    <option value="approved">{t('admin.reviewEvents.statusApproved')}</option>
+                    <option value="rejected">{t('admin.reviewEvents.statusRejected')}</option>
                 </select>
                 <button
                     onClick={loadEvents}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm hover:bg-white/10 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
                 >
                     <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                     {t('admin.reviewEvents.refresh')}
@@ -269,11 +269,11 @@ const ReviewEvents = () => {
                 </div>
             ) : filteredEvents.length === 0 ? (
                 <div className="text-center py-20">
-                    <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-white font-semibold text-lg mb-2">
+                    <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-[#020b00] dark:text-white font-semibold text-lg mb-2">
                         {searchQuery || statusFilter !== 'all' ? t('admin.reviewEvents.noMatchingEvents') : t('admin.reviewEvents.noEventsFound')}
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 dark:text-gray-400">
                         {searchQuery || statusFilter !== 'all' ? t('admin.reviewEvents.tryAdjustingFilters') : t('admin.reviewEvents.eventsWillAppearHere')}
                     </p>
                 </div>
@@ -287,7 +287,7 @@ const ReviewEvents = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className={`glass rounded-2xl p-4 flex flex-col md:flex-row items-center gap-6 border transition-all ${isDisabled(event.id) ? 'border-red-500/30 opacity-60 grayscale' : 'border-white/5'
+                                className={`bg-white dark:bg-[#111111] rounded-2xl p-4 flex flex-col md:flex-row items-center gap-6 border transition-all shadow-xs dark:shadow-none ${isDisabled(event.id) ? 'border-red-500/30 opacity-60 grayscale' : 'border-black/8 dark:border-white/5'
                                     }`}
                             >
                                 <div className="relative">
@@ -296,7 +296,7 @@ const ReviewEvents = () => {
                                         alt={event.title}
                                         className="w-24 h-24 rounded-xl object-cover"
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = '/placeholder-event.jpg';
+                                             (e.target as HTMLImageElement).src = '/placeholder-event.jpg';
                                         }}
                                     />
                                     {isFeatured(event.id) && (
@@ -308,8 +308,8 @@ const ReviewEvents = () => {
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-white font-semibold truncate text-lg">{event.title}</h3>
-                                        <ArrowUpRight className="w-4 h-4 text-gray-600" />
+                                        <h3 className="text-[#020b00] dark:text-white font-semibold truncate text-lg">{event.title}</h3>
+                                        <ArrowUpRight className="w-4 h-4 text-gray-400 dark:text-gray-600" />
                                     </div>
                                     <div className="flex items-center gap-4 text-gray-500 text-xs">
                                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {event.city}</span>
@@ -324,16 +324,16 @@ const ReviewEvents = () => {
                                             {t(`admin.reviewEvents.status.${event.status || 'draft'}`)}
                                         </span>
                                         <span className="text-gray-500 text-[10px] flex items-center gap-1">
-                                            {t('admin.reviewEvents.organizedByLabel')} <span className="text-white font-medium">{event.business?.business_name || t('admin.reviewEvents.unknown')}</span>
+                                            {t('admin.reviewEvents.organizedByLabel')} <span className="text-[#020b00] dark:text-white font-medium">{event.business?.business_name || t('admin.reviewEvents.unknown')}</span>
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 border-l border-white/5 pl-6">
+                                <div className="flex items-center gap-2 border-l border-black/10 dark:border-white/5 pl-6">
                                     <button
                                         onClick={() => handleFeatureEvent(event.id)}
                                         disabled={actionLoading === `feature-${event.id}`}
-                                        className={`p-3 rounded-xl transition-all disabled:opacity-50 ${isFeatured(event.id) ? 'bg-[#d3da0c] text-black shadow-[0_0_15px_rgba(211, 218, 12,0.3)]' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-[#d3da0c]'
+                                        className={`p-3 rounded-xl transition-all disabled:opacity-50 ${isFeatured(event.id) ? 'bg-[#d3da0c] text-black shadow-[0_0_15px_rgba(211,218,12,0.3)]' : 'bg-neutral-100 dark:bg-white/5 text-gray-500 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-[#020b00] dark:hover:text-[#d3da0c]'
                                             }`}
                                         title={t('admin.reviewEvents.featureOnHomepageTitle')}
                                     >
@@ -347,7 +347,7 @@ const ReviewEvents = () => {
                                     <button
                                         onClick={() => handleToggleVisibility(event.id)}
                                         disabled={actionLoading === `visibility-${event.id}`}
-                                        className={`p-3 rounded-xl transition-all disabled:opacity-50 ${isDisabled(event.id) ? 'bg-red-500 text-white' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'
+                                        className={`p-3 rounded-xl transition-all disabled:opacity-50 ${isDisabled(event.id) ? 'bg-red-500 text-white' : 'bg-neutral-100 dark:bg-white/5 text-gray-500 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-[#020b00] dark:hover:text-white'
                                             }`}
                                         title={isDisabled(event.id) ? t('admin.reviewEvents.showEventTitle') : t('admin.reviewEvents.hideEventTitle')}
                                     >
@@ -358,7 +358,7 @@ const ReviewEvents = () => {
                                         )}
                                     </button>
 
-                                    <div className="h-10 w-px bg-white/5 mx-2" />
+                                    <div className="h-10 w-px bg-black/10 dark:bg-white/5 mx-2" />
 
                                     <div className="flex gap-2">
                                         {event.status !== 'approved' && (

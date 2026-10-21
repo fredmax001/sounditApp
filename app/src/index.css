@@ -6,7 +6,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 4%;
+  --background: 109 100% 2%;
   --foreground: 0 0% 100%;
   --card: 0 0% 7%;
   --card-foreground: 0 0% 100%;
@@ -40,22 +40,31 @@
 }
 
 /* Light Mode Variables */
-:root.light {
+:root.light,
+html.light {
   --background: 0 0% 100%;
-  --foreground: 0 0% 4%;
+  --foreground: 109 100% 2%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 4%;
+  --card-foreground: 109 100% 2%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 4%;
-  --muted: 0 0% 95%;
+  --popover-foreground: 109 100% 2%;
+  --primary: 109 100% 2%;
+  --primary-foreground: 62 90% 45%;
+  --secondary: 62 90% 45%;
+  --secondary-foreground: 109 100% 2%;
+  --muted: 0 0% 96%;
   --muted-foreground: 0 0% 40%;
   --border: 0 0% 90%;
   --input: 0 0% 90%;
+  --ring: 62 90% 45%;
+  --logo: #020b00;
+  --logo-hover: #111111;
+  --logo-glow: rgba(2, 11, 0, 0.15);
 }
 
 /* Support for class-based dark mode (Tailwind) */
 .dark {
-  --background: 0 0% 4%;
+  --background: 109 100% 2%;
   --foreground: 0 0% 100%;
   --card: 0 0% 7%;
   --card-foreground: 0 0% 100%;
@@ -104,7 +113,7 @@ html {
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #0A0A0A;
+  background-color: #020b00;
   color: #FFFFFF;
   overflow-x: hidden;
   /* Support for mobile safe areas */
@@ -112,6 +121,13 @@ body {
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.light body,
+:root.light body {
+  background-color: #FFFFFF;
+  color: #020B00;
 }
 
 .font-display {
@@ -145,7 +161,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #020b00;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F1F1F1;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -153,8 +173,16 @@ body {
   border-radius: 3px;
 }
 
+html.light ::-webkit-scrollbar-thumb {
+  background: #020B00;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #bbc10b;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #1A1A1A;
 }
 
 /* Acid Lime Glow */
@@ -687,9 +715,9 @@ input, textarea, select, button {
 
 :root {
   /* Deep Space Backgrounds */
-  --bg-deep: #050505;
-  --bg-surface: #0A0A0F;
-  --bg-elevated: #12121A;
+  --bg-deep: #020b00;
+  --bg-surface: #020b00;
+  --bg-elevated: #051401;
   
   /* Brand Palette */
   --brand-lime: #d3da0c;
@@ -727,6 +755,40 @@ input, textarea, select, button {
   /* Transitions */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root.light,
+html.light {
+  /* Light Mode Backgrounds */
+  --bg-deep: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F8F9FA;
+  
+  /* Brand Palette */
+  --brand-lime: #d3da0c;
+  --brand-lime-glow: rgba(211, 218, 12, 0.3);
+  --brand-gold: #C8A000;
+  --brand-pink: #FF2D8F;
+  --brand-cyan: #00E5FF;
+  
+  /* Glassmorphism Tokens */
+  --glass-bg-light: rgba(0, 0, 0, 0.03);
+  --glass-bg-medium: rgba(0, 0, 0, 0.06);
+  --glass-bg-dark: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-strong: rgba(0, 0, 0, 0.15);
+  --glass-blur: blur(24px) saturate(180%);
+  --glass-blur-heavy: blur(40px) saturate(200%);
+  
+  /* Typography */
+  --text-primary: #020B00;
+  --text-secondary: rgba(2, 11, 0, 0.70);
+  --text-tertiary: rgba(2, 11, 0, 0.45);
+  
+  /* Shadows */
+  --shadow-float: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-glow-lime: 0 0 20px rgba(211, 218, 12, 0.25), 0 0 60px rgba(211, 218, 12, 0.08);
+  --shadow-glow-pink: 0 0 20px rgba(255, 45, 143, 0.25), 0 0 60px rgba(255, 45, 143, 0.08);
 }
 
 /* ============================================

@@ -206,8 +206,8 @@ export default function CommunityDashboard({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">{title}</h2>
-          <p className="text-gray-400 text-sm sm:text-base">{subtitle}</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#020b00] dark:text-white mb-1 sm:mb-2">{title}</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">{subtitle}</p>
         </div>
         <Button onClick={handleOpenCreate} className="gap-2 w-fit">
           <Plus className="w-4 h-4" />
@@ -240,16 +240,16 @@ export default function CommunityDashboard({
       </div>
 
       {/* Posts */}
-      <div className="bg-[#111111] rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-3 sm:p-4 border-b border-white/5">
-          <h3 className="text-base sm:text-lg font-semibold text-white">
+      <div className="bg-white dark:bg-[#111111] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden">
+        <div className="p-3 sm:p-4 border-b border-black/8 dark:border-white/5">
+          <h3 className="text-base sm:text-lg font-semibold text-[#020b00] dark:text-white">
             {t('dashboard.community.posts')}
           </h3>
         </div>
         {isLoading ? (
           <div className="p-12 text-center">
-            <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">{t('common.loading')}</p>
+            <Loader2 className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c] animate-spin mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
           </div>
         ) : posts.length > 0 ? (
           <>
@@ -257,49 +257,49 @@ export default function CommunityDashboard({
             <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/5 hover:bg-transparent">
-                    <TableHead className="text-gray-400">
+                  <TableRow className="border-black/8 dark:border-white/5 hover:bg-transparent">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('dashboard.community.postTitle')}
                     </TableHead>
-                    <TableHead className="text-gray-400">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('dashboard.community.section')}
                     </TableHead>
-                    <TableHead className="text-gray-400">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('community.likes')}
                     </TableHead>
-                    <TableHead className="text-gray-400">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('community.comments')}
                     </TableHead>
-                    <TableHead className="text-gray-400">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('community.views')}
                     </TableHead>
-                    <TableHead className="text-gray-400">
+                    <TableHead className="text-gray-500 dark:text-gray-400">
                       {t('dashboard.community.created')}
                     </TableHead>
-                    <TableHead className="text-gray-400 text-right">
+                    <TableHead className="text-gray-500 dark:text-gray-400 text-right">
                       {t('dashboard.community.actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {posts.map((post) => (
-                    <TableRow key={post.id} className="border-white/5 hover:bg-white/[0.02]">
-                      <TableCell className="text-white font-medium max-w-xs truncate">
+                    <TableRow key={post.id} className="border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                      <TableCell className="text-[#020b00] dark:text-white font-medium max-w-xs truncate">
                         {post.title || t('dashboard.community.untitled')}
                       </TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-gray-600 dark:text-gray-400">
                         {post.section?.name || '-'}
                       </TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-gray-600 dark:text-gray-400">
                         {post.likes_count || 0}
                       </TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-gray-600 dark:text-gray-400">
                         {post.comments_count || 0}
                       </TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-gray-600 dark:text-gray-400">
                         {post.view_count || 0}
                       </TableCell>
-                      <TableCell className="text-gray-400">
+                      <TableCell className="text-gray-600 dark:text-gray-400">
                         {new Date(post.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
@@ -315,7 +315,7 @@ export default function CommunityDashboard({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10"
                             onClick={() => handleDelete(post)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -330,15 +330,15 @@ export default function CommunityDashboard({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden divide-y divide-white/5">
+            <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
               {posts.map((post) => (
                 <div key={post.id} className="p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-white font-medium text-sm truncate">
+                      <p className="text-[#020b00] dark:text-white font-medium text-sm truncate">
                         {post.title || t('dashboard.community.untitled')}
                       </p>
-                      <p className="text-gray-500 text-xs mt-0.5">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
                         {post.section?.name || '-'} · {new Date(post.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -354,16 +354,16 @@ export default function CommunityDashboard({
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="h-8 w-8 p-0 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10"
                         onClick={() => handleDelete(post)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
-                      <Heart className="w-3 h-3" />
+                      <Heart className="w-3 h-3 text-red-500" />
                       {post.likes_count || 0}
                     </span>
                     <span className="flex items-center gap-1">
@@ -381,11 +381,11 @@ export default function CommunityDashboard({
           </>
         ) : (
           <div className="p-8 sm:p-12 text-center">
-            <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-base sm:text-lg mb-2">
+            <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-[#020b00] dark:text-white font-medium text-base sm:text-lg mb-2">
               {t('community.noPostsYet')}
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               {t('dashboard.community.noPostsHint')}
             </p>
           </div>
@@ -400,9 +400,9 @@ export default function CommunityDashboard({
           setIsModalOpen(open);
         }}
       >
-        <DialogContent className="bg-[#111111] border-white/10 text-white max-w-lg">
+        <DialogContent className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white max-w-lg shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#020b00] dark:text-white">
               {editingPost
                 ? t('dashboard.community.editPost')
                 : t('dashboard.community.createPost')}
@@ -410,7 +410,7 @@ export default function CommunityDashboard({
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('dashboard.community.postTitle')}
               </label>
               <Input
@@ -419,11 +419,11 @@ export default function CommunityDashboard({
                   setForm({ ...form, title: e.target.value })
                 }
                 placeholder={t('community.postTitle') || ''}
-                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                className="bg-neutral-50 dark:bg-white/5 border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('dashboard.community.section')}
               </label>
               <Select
@@ -432,10 +432,10 @@ export default function CommunityDashboard({
                   setForm({ ...form, section_id: val === 'none' ? '' : val })
                 }
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white w-full">
+                <SelectTrigger className="bg-neutral-50 dark:bg-white/5 border-black/10 dark:border-white/10 text-[#020b00] dark:text-white w-full">
                   <SelectValue placeholder={t('community.selectSection') || ''} />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                <SelectContent className="bg-white dark:bg-[#1a1a1a] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white">
                   <SelectItem value="none">{t('common.none') || 'None'}</SelectItem>
                   {sections.map((s) => (
                     <SelectItem key={s.id} value={String(s.id)}>
@@ -446,7 +446,7 @@ export default function CommunityDashboard({
               </Select>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('dashboard.community.content')}
               </label>
               <Textarea
@@ -456,19 +456,19 @@ export default function CommunityDashboard({
                 }
                 placeholder={t('community.shareExperiencePlaceholder') || ''}
                 rows={4}
-                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                className="bg-neutral-50 dark:bg-white/5 border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('dashboard.community.imageUpload')}
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {form.images.map((url) => (
                   <div
                     key={url}
-                    className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10"
+                    className="relative w-16 h-16 rounded-lg overflow-hidden border border-black/10 dark:border-white/10"
                   >
                     <img
                       src={url}
@@ -478,15 +478,15 @@ export default function CommunityDashboard({
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(url)}
-                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
+                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
                 <label
-                  className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
-                    uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
+                  className={`w-16 h-16 rounded-lg border border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer bg-neutral-50 dark:bg-transparent ${
+                    uploading ? 'opacity-50' : 'hover:border-[#020b00] dark:hover:border-[#d3da0c]/50 hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   {uploading ? (
@@ -506,28 +506,28 @@ export default function CommunityDashboard({
               </div>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('dashboard.community.videoUpload')}
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {form.videos.map((url) => (
                   <div
                     key={url}
-                    className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10"
+                    className="relative w-24 h-16 rounded-lg overflow-hidden border border-black/10 dark:border-white/10"
                   >
                     <video src={url} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemoveVideo(url)}
-                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl"
+                      className="absolute top-0 right-0 p-1 bg-black/60 text-white rounded-bl cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
                 <label
-                  className={`w-16 h-16 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer ${
-                    uploading ? 'opacity-50' : 'hover:border-[#d3da0c]/50 hover:bg-white/5'
+                  className={`w-16 h-16 rounded-lg border border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer bg-neutral-50 dark:bg-transparent ${
+                    uploading ? 'opacity-50' : 'hover:border-[#020b00] dark:hover:border-[#d3da0c]/50 hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   {uploading ? (
@@ -578,12 +578,12 @@ function MetricCard({
   value: number;
 }) {
   return (
-    <div className="bg-[#111111] rounded-xl p-3 sm:p-5 border border-white/5">
+    <div className="bg-white dark:bg-[#111111] rounded-xl p-3 sm:p-5 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
       <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#d3da0c]" />
-        <span className="text-gray-400 text-xs sm:text-sm">{label}</span>
+        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#020b00] dark:text-[#d3da0c]" />
+        <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-bold text-white">{value.toLocaleString()}</p>
+      <p className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{value.toLocaleString()}</p>
     </div>
   );
 }

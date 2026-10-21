@@ -129,7 +129,7 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 right-0 md:bottom-24 md:right-6 z-[95] w-full md:w-[420px] h-[80vh] md:h-[600px] bg-[#0A0A0A] border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-0 right-0 md:bottom-24 md:right-6 z-[95] w-full md:w-[420px] h-[80vh] md:h-[600px] bg-[#020b00] border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#111111]">

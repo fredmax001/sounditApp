@@ -67,8 +67,8 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#020b00] dark:border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -78,12 +78,12 @@ const Analytics = () => {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">{t('artist.analytics.title')}</h1>
-          <p className="text-gray-400 mt-1 text-sm sm:text-base">{t('artist.analytics.subtitle')}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{t('artist.analytics.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">{t('artist.analytics.subtitle')}</p>
         </div>
         <button
           onClick={loadAnalytics}
-          className="px-3 py-2 sm:px-4 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors text-sm sm:text-base flex-shrink-0"
+          className="px-3 py-2 sm:px-4 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-opacity text-sm sm:text-base flex-shrink-0 cursor-pointer shadow-xs dark:shadow-none"
         >
           {t('artist.analytics.refresh')}
         </button>
@@ -94,90 +94,90 @@ const Analytics = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none"
         >
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#d3da0c]" />
-            <span className="text-gray-400 text-xs sm:text-sm">{t('artist.analytics.followers')}</span>
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#020b00] dark:text-[#d3da0c]" />
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{t('artist.analytics.followers')}</span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white">{artistStats?.followers || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{artistStats?.followers || 0}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none"
         >
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <Music className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
-            <span className="text-gray-400 text-xs sm:text-sm">{t('artist.analytics.totalGigs')}</span>
+            <Music className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{t('artist.analytics.totalGigs')}</span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white">{artistStats?.total_gigs || acceptedBookings.length}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{artistStats?.total_gigs || acceptedBookings.length}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none"
         >
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-            <span className="text-gray-400 text-xs sm:text-sm">{t('artist.analytics.earnings')}</span>
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-green-400" />
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{t('artist.analytics.earnings')}</span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white">¥{(artistStats?.earnings || totalEarnings).toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">¥{(artistStats?.earnings || totalEarnings).toLocaleString()}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none"
         >
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
-            <span className="text-gray-400 text-xs sm:text-sm">{t('artist.analytics.rating')}</span>
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-yellow-400" />
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{t('artist.analytics.rating')}</span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white">{artistStats?.rating?.toFixed(1) || '0.0'}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{artistStats?.rating?.toFixed(1) || '0.0'}</p>
         </motion.div>
       </div>
 
       {/* Monthly Overview */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6">{t('artist.analytics.monthlyOverview')}</h2>
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none">
+        <h2 className="text-base sm:text-lg font-bold text-[#020b00] dark:text-white mb-4 sm:mb-6">{t('artist.analytics.monthlyOverview')}</h2>
         <div className="space-y-3 sm:space-y-4">
           {monthlyData.map((data, index) => (
             <div key={data.month} className="flex items-center gap-2 sm:gap-4">
-              <span className="text-gray-400 text-xs sm:text-sm w-10 sm:w-12 flex-shrink-0">{data.month}</span>
-              <div className="flex-1 h-6 sm:h-8 bg-white/5 rounded-full overflow-hidden">
+              <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm w-10 sm:w-12 flex-shrink-0">{data.month}</span>
+              <div className="flex-1 h-6 sm:h-8 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(data.earnings / 8000) * 100}%` }}
+                  animate={{ width: `${Math.min((data.earnings / 8000) * 100, 100)}%` }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className="h-full bg-gradient-to-r from-[#d3da0c] to-[#d3da0c]/50 rounded-full"
+                  className="h-full bg-[#020b00] dark:bg-gradient-to-r dark:from-[#d3da0c] dark:to-[#d3da0c]/50 rounded-full"
                 />
               </div>
-              <span className="text-white font-bold text-xs sm:text-sm w-16 sm:w-20 text-right flex-shrink-0">¥{data.earnings.toLocaleString()}</span>
+              <span className="text-[#020b00] dark:text-white font-bold text-xs sm:text-sm w-16 sm:w-20 text-right flex-shrink-0">¥{data.earnings.toLocaleString()}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">{t('artist.analytics.recentBookings')}</h2>
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none">
+        <h2 className="text-base sm:text-lg font-bold text-[#020b00] dark:text-white mb-3 sm:mb-4">{t('artist.analytics.recentBookings')}</h2>
         {acceptedBookings.length > 0 ? (
           <div className="space-y-2 sm:space-y-3">
             {acceptedBookings.slice(0, 5).map((booking: Booking) => (
-              <div key={booking.id} className="flex items-center justify-between p-3 sm:p-4 bg-white/5 rounded-xl gap-3">
+              <div key={booking.id} className="flex items-center justify-between p-3 sm:p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl gap-3">
                 <div className="min-w-0">
-                  <p className="text-white font-bold text-sm sm:text-base truncate">{booking.event_name}</p>
-                  <p className="text-gray-400 text-xs sm:text-sm">
+                  <p className="text-[#020b00] dark:text-white font-bold text-sm sm:text-base truncate">{booking.event_name}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                     {new Date(booking.proposed_date || booking.event_date).toLocaleDateString()}
                   </p>
                 </div>
-                <span className="text-[#d3da0c] font-bold text-sm sm:text-base flex-shrink-0">¥{(booking.agreed_price || booking.budget || 0).toLocaleString()}</span>
+                <span className="text-[#020b00] dark:text-[#d3da0c] font-bold text-sm sm:text-base flex-shrink-0">¥{(booking.agreed_price || booking.budget || 0).toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -187,15 +187,15 @@ const Analytics = () => {
       </div>
 
       {/* Genre Performance */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">{t('artist.analytics.genrePerformance')}</h2>
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 sm:p-6 shadow-xs dark:shadow-none">
+        <h2 className="text-base sm:text-lg font-bold text-[#020b00] dark:text-white mb-3 sm:mb-4">{t('artist.analytics.genrePerformance')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {(artistProfile?.genres || []).map((genre: string) => {
             const genreGigs = completedBookings.filter((b: Booking) => b.event_name?.toLowerCase().includes(genre.toLowerCase())).length;
             return (
-              <div key={genre} className="bg-white/5 rounded-xl p-3 sm:p-4 text-center">
-                <p className="text-white font-bold text-sm sm:text-base">{genre}</p>
-                <p className="text-gray-400 text-xs sm:text-sm mt-1">{t('artist.analytics.gigCount', { count: genreGigs })}</p>
+              <div key={genre} className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 sm:p-4 text-center">
+                <p className="text-[#020b00] dark:text-white font-bold text-sm sm:text-base">{genre}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1">{t('artist.analytics.gigCount', { count: genreGigs })}</p>
               </div>
             );
           })}

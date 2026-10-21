@@ -196,32 +196,32 @@ const NotificationCenter = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.notificationCenter.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.notificationCenter.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.notificationCenter.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.notificationCenter.subtitle')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Send Notification Form */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
               <Send className="w-5 h-5 text-[#d3da0c]" />
             </div>
-            <h2 className="text-lg font-semibold text-white">{t('admin.notificationCenter.composeNotification')}</h2>
+            <h2 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('admin.notificationCenter.composeNotification')}</h2>
           </div>
 
           <form onSubmit={handleSend} className="space-y-4">
             <div>
-              <label className="block text-gray-400 text-sm mb-2">{t('admin.notificationCenter.notificationType')}</label>
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.notificationCenter.notificationType')}</label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setNotification({ ...notification, type: 'both' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
                     notification.type === 'both'
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
-                      : 'border-white/10 text-gray-400 hover:border-white/20'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]'
+                      : 'border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-black/20 dark:hover:border-white/20 bg-neutral-50 dark:bg-transparent'
                   }`}
                 >
                   <Layers className="w-4 h-4 mx-auto mb-1" />
@@ -232,8 +232,8 @@ const NotificationCenter = () => {
                   onClick={() => setNotification({ ...notification, type: 'push' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
                     notification.type === 'push'
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
-                      : 'border-white/10 text-gray-400 hover:border-white/20'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]'
+                      : 'border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-black/20 dark:hover:border-white/20 bg-neutral-50 dark:bg-transparent'
                   }`}
                 >
                   <Bell className="w-4 h-4 mx-auto mb-1" />
@@ -244,8 +244,8 @@ const NotificationCenter = () => {
                   onClick={() => setNotification({ ...notification, type: 'email' })}
                   className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
                     notification.type === 'email'
-                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
-                      : 'border-white/10 text-gray-400 hover:border-white/20'
+                      ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]'
+                      : 'border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-black/20 dark:hover:border-white/20 bg-neutral-50 dark:bg-transparent'
                   }`}
                 >
                   <Mail className="w-4 h-4 mx-auto mb-1" />
@@ -255,64 +255,64 @@ const NotificationCenter = () => {
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">{t('admin.notificationCenter.targetAudience')}</label>
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.notificationCenter.targetAudience')}</label>
               <select
                 value={notification.target_role}
                 onChange={(e) => setNotification({ ...notification, target_role: e.target.value })}
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
               >
-                <option value="all">{t('admin.notificationCenter.audienceAll')}</option>
-                <option value="user">{t('admin.notificationCenter.audienceUser')}</option>
-                <option value="business">{t('admin.notificationCenter.audienceBusiness')}</option>
-                <option value="artist">{t('admin.notificationCenter.audienceArtist')}</option>
-                <option value="vendor">{t('admin.notificationCenter.audienceVendor')}</option>
-                <option value="admin">{t('admin.notificationCenter.audienceAdmin')}</option>
+                <option value="all" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceAll')}</option>
+                <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceUser')}</option>
+                <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceBusiness')}</option>
+                <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceArtist')}</option>
+                <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceVendor')}</option>
+                <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.notificationCenter.audienceAdmin')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">{t('admin.notificationCenter.titleLabel')}</label>
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.notificationCenter.titleLabel')}</label>
               <input
                 type="text"
                 value={notification.title}
                 onChange={(e) => setNotification({ ...notification, title: e.target.value })}
                 placeholder={t('admin.notificationCenter.titlePlaceholder')}
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">{t('admin.notificationCenter.messageLabel')}</label>
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.notificationCenter.messageLabel')}</label>
               <textarea
                 value={notification.message}
                 onChange={(e) => setNotification({ ...notification, message: e.target.value })}
                 placeholder={t('admin.notificationCenter.messagePlaceholder')}
                 rows={4}
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none resize-none"
+                className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none resize-none"
                 required
               />
             </div>
 
             {/* Image Attachment */}
             <div>
-              <label className="block text-gray-400 text-sm mb-2">
+              <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">
                 {t('admin.notificationCenter.imageAttachment') || 'Image Attachment (Optional)'}
               </label>
 
               {notification.image_url ? (
-                <div className="relative border border-white/10 rounded-lg p-3 bg-white/5 flex items-center gap-4">
+                <div className="relative border border-black/10 dark:border-white/10 rounded-lg p-3 bg-neutral-50 dark:bg-white/5 flex items-center gap-4">
                   <img
                     src={resolveImageUrl(notification.image_url)}
                     alt="Preview"
-                    className="w-16 h-16 object-cover rounded-lg border border-white/10 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-16 h-16 object-cover rounded-lg border border-black/10 dark:border-white/10 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setPreviewImage(resolveImageUrl(notification.image_url))}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">
+                    <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">
                       {notification.image_url.split('/').pop() || 'image.png'}
                     </p>
-                    <p className="text-gray-400 text-xs mt-0.5 truncate">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 truncate">
                       {notification.image_url}
                     </p>
                   </div>
@@ -320,7 +320,7 @@ const NotificationCenter = () => {
                     <button
                       type="button"
                       onClick={() => setPreviewImage(resolveImageUrl(notification.image_url))}
-                      className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white bg-neutral-100 dark:bg-white/5 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
                       title={t('common.preview') || 'Preview'}
                     >
                       <Eye className="w-4 h-4" />
@@ -328,7 +328,7 @@ const NotificationCenter = () => {
                     <button
                       type="button"
                       onClick={() => setNotification(prev => ({ ...prev, image_url: '' }))}
-                      className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors"
+                      className="p-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors"
                       title={t('common.remove') || 'Remove'}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -337,7 +337,7 @@ const NotificationCenter = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <label className="border-2 border-dashed border-white/10 hover:border-[#d3da0c]/50 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white/[0.02] hover:bg-white/[0.04]">
+                  <label className="border-2 border-dashed border-black/15 dark:border-white/10 hover:border-[#d3da0c]/50 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-neutral-50/50 dark:bg-white/[0.02] hover:bg-neutral-100/50 dark:hover:bg-white/[0.04]">
                     <input
                       type="file"
                       accept="image/*"
@@ -349,19 +349,19 @@ const NotificationCenter = () => {
                       className="hidden"
                     />
                     {uploadingImage ? (
-                      <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm py-2">
                         <Loader2 className="w-5 h-5 text-[#d3da0c] animate-spin" />
                         <span>{t('admin.notificationCenter.uploadingImage') || 'Uploading image...'}</span>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center text-center">
-                        <div className="p-2 bg-white/5 rounded-full mb-2">
+                        <div className="p-2 bg-neutral-100 dark:bg-white/5 rounded-full mb-2">
                           <ImageIcon className="w-5 h-5 text-[#d3da0c]" />
                         </div>
-                        <span className="text-sm text-gray-300 font-medium">
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                           {t('admin.notificationCenter.clickToUploadImage') || 'Click or drag image to upload'}
                         </span>
-                        <span className="text-xs text-gray-500 mt-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           PNG, JPG, WEBP, GIF up to 10MB
                         </span>
                       </div>
@@ -375,7 +375,7 @@ const NotificationCenter = () => {
                       value={notification.image_url}
                       onChange={(e) => setNotification(prev => ({ ...prev, image_url: e.target.value }))}
                       placeholder={t('admin.notificationCenter.imageUrlPlaceholder') || 'Or paste external image URL (https://...)'}
-                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+                      className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-xs placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -385,7 +385,7 @@ const NotificationCenter = () => {
             <button
               type="submit"
               disabled={actionLoading || uploadingImage}
-              className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               {t('admin.notificationCenter.sendNow')}
@@ -394,12 +394,12 @@ const NotificationCenter = () => {
         </div>
 
         {/* Notification History */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Clock className="w-5 h-5 text-blue-400" />
+              <Clock className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             </div>
-            <h2 className="text-lg font-semibold text-white">{t('admin.notificationCenter.recentNotifications')}</h2>
+            <h2 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('admin.notificationCenter.recentNotifications')}</h2>
           </div>
 
           {loading ? (
@@ -409,7 +409,7 @@ const NotificationCenter = () => {
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-auto">
               {history.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-400 dark:text-gray-500">
                   <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p>{t('admin.notificationCenter.noNotifications') || 'No notifications yet'}</p>
                 </div>
@@ -420,14 +420,14 @@ const NotificationCenter = () => {
                     <div
                       key={`${item.source || 'legacy'}-${item.id}`}
                       onClick={() => setViewing(item)}
-                      className="p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/[0.08] transition-colors"
+                      className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-lg cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className={`p-2 rounded-lg shrink-0 ${
-                            item.type === 'push' ? 'bg-[#d3da0c]/10 text-[#d3da0c]' :
-                            item.type === 'email' ? 'bg-blue-500/10 text-blue-400' :
-                            'bg-purple-500/10 text-purple-400'
+                            item.type === 'push' ? 'bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]' :
+                            item.type === 'email' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                            'bg-purple-500/10 text-purple-600 dark:text-purple-400'
                           }`}>
                             {item.type === 'push' ? <Bell className="w-4 h-4" /> :
                              item.type === 'email' ? <Mail className="w-4 h-4" /> :
@@ -437,7 +437,7 @@ const NotificationCenter = () => {
                             <img
                               src={itemImg}
                               alt=""
-                              className="w-10 h-10 object-cover rounded-lg border border-white/10 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                              className="w-10 h-10 object-cover rounded-lg border border-black/10 dark:border-white/10 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                               onClick={() => setPreviewImage(itemImg)}
                               onError={(e) => {
                                 (e.currentTarget as HTMLElement).style.display = 'none';
@@ -445,10 +445,10 @@ const NotificationCenter = () => {
                             />
                           )}
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-white font-medium text-sm truncate">{item.title || t('admin.notificationCenter.untitled')}</h4>
-                            <p className="text-gray-500 text-xs mt-0.5 truncate">{(item.message || '')}</p>
+                            <h4 className="text-[#020b00] dark:text-white font-medium text-sm truncate">{item.title || t('admin.notificationCenter.untitled')}</h4>
+                            <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5 truncate">{(item.message || '')}</p>
                             <div className="flex items-center gap-2 mt-2">
-                              <span className="text-gray-500 text-xs">
+                              <span className="text-gray-500 dark:text-gray-400 text-xs">
                                 {t('admin.notificationCenter.toLabel', {
                                   role: item.target_role === 'all' || !item.target_role
                                     ? t('admin.notificationCenter.audienceAll')
@@ -464,33 +464,33 @@ const NotificationCenter = () => {
                                   defaultValue: `To: ${item.target_role || 'All'}`
                                 })}
                               </span>
-                              <span className="text-gray-600">•</span>
-                              <span className="text-gray-500 text-xs">
+                              <span className="text-gray-400 dark:text-gray-600">•</span>
+                              <span className="text-gray-500 dark:text-gray-400 text-xs">
                                 {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
                               </span>
                             </div>
                           </div>
                         </div>
                         <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${
-                          item.status === 'sent' ? 'bg-green-500/20 text-green-400' :
-                          item.status === 'scheduled' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-gray-500/20 text-gray-400'
+                          item.status === 'sent' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                          item.status === 'scheduled' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
+                          'bg-gray-500/20 text-gray-600 dark:text-gray-400'
                         }`}>
                           {item.status ? t(`admin.notificationCenter.status.${item.status}`) : t('admin.notificationCenter.status.sent')}
                         </span>
                       </div>
                       {item.status === 'scheduled' && (
-                        <span className="mt-2 text-xs text-gray-500 block">
+                        <span className="mt-2 text-xs text-gray-500 dark:text-gray-400 block">
                           {t('admin.notificationCenter.scheduledLabel')}
                         </span>
                       )}
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-[11px] text-gray-500">
+                        <span className="text-[11px] text-gray-500 dark:text-gray-400">
                           {t('admin.notificationCenter.tapToView') || 'Click to view details'}
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleResend(item); }}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-[#d3da0c] bg-[#d3da0c]/10 rounded-md hover:bg-[#d3da0c]/20 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-[#020b00] dark:text-[#d3da0c] bg-[#d3da0c]/20 dark:bg-[#d3da0c]/10 rounded-md hover:bg-[#d3da0c]/30 dark:hover:bg-[#d3da0c]/20 transition-colors"
                         >
                           <RotateCcw className="w-3 h-3" />
                           {t('admin.notificationCenter.resend') || 'Resend'}
@@ -508,20 +508,20 @@ const NotificationCenter = () => {
       {/* Notification Detail Modal */}
       {viewing && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setViewing(null)}
         >
           <div
-            className="relative max-w-lg w-full bg-[#111111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+            className="relative max-w-lg w-full bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-white font-semibold text-sm">
+            <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <h3 className="text-[#020b00] dark:text-white font-semibold text-sm">
                 {t('admin.notificationCenter.details') || 'Notification Details'}
               </h3>
               <button
                 onClick={() => setViewing(null)}
-                className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -529,12 +529,12 @@ const NotificationCenter = () => {
             <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
-                  viewing.type === 'push' ? 'bg-[#d3da0c]/10 text-[#d3da0c]' :
-                  viewing.type === 'email' ? 'bg-blue-500/10 text-blue-400' :
-                  'bg-purple-500/10 text-purple-400'
+                  viewing.type === 'push' ? 'bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]' :
+                  viewing.type === 'email' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                  'bg-purple-500/10 text-purple-600 dark:text-purple-400'
                 }`}>
                   {viewing.type === 'push' ? <Bell className="w-3 h-3" /> :
-                   viewing.type === 'email' ? <Mail className="w-3 h-3" /> :
+                   viewing.type === 'email' ? <Mail className="w-4 h-4" /> :
                    <Layers className="w-3 h-3" />}
                   {viewing.type === 'both'
                     ? (t('admin.notificationCenter.typeBoth') || 'Both')
@@ -542,13 +542,13 @@ const NotificationCenter = () => {
                     ? (t('admin.notificationCenter.typeEmail') || 'Email')
                     : (t('admin.notificationCenter.typePush') || 'Push')}
                 </span>
-                <span className="text-gray-500 text-xs">
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
                   {viewing.created_at ? new Date(viewing.created_at).toLocaleString() : '-'}
                 </span>
               </div>
 
-              <h4 className="text-white font-semibold">{viewing.title || t('admin.notificationCenter.untitled')}</h4>
-              <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{viewing.message || ''}</p>
+              <h4 className="text-[#020b00] dark:text-white font-semibold">{viewing.title || t('admin.notificationCenter.untitled')}</h4>
+              <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{viewing.message || ''}</p>
 
               {(() => {
                 const img = resolveImageUrl(viewing.image_url);
@@ -556,52 +556,52 @@ const NotificationCenter = () => {
                   <img
                     src={img}
                     alt=""
-                    className="w-full max-h-56 object-cover rounded-lg border border-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-full max-h-56 object-cover rounded-lg border border-black/10 dark:border-white/10 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setPreviewImage(img)}
                     onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                   />
                 ) : null;
               })()}
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-xs">
-                <div className="text-gray-500">{t('admin.notificationCenter.targetAudience')}</div>
-                <div className="text-gray-300 text-right">{viewing.target_role || 'all'}</div>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5 text-xs">
+                <div className="text-gray-500 dark:text-gray-400">{t('admin.notificationCenter.targetAudience')}</div>
+                <div className="text-[#020b00] dark:text-gray-300 text-right">{viewing.target_role || 'all'}</div>
                 {typeof viewing.total_recipients === 'number' && (
                   <>
-                    <div className="text-gray-500">{t('admin.notificationCenter.recipients') || 'Recipients'}</div>
-                    <div className="text-gray-300 text-right">{viewing.total_recipients}</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('admin.notificationCenter.recipients') || 'Recipients'}</div>
+                    <div className="text-[#020b00] dark:text-gray-300 text-right">{viewing.total_recipients}</div>
                   </>
                 )}
                 {typeof viewing.in_app_sent === 'number' && viewing.in_app_sent > 0 && (
                   <>
-                    <div className="text-gray-500">{t('admin.notificationCenter.inAppDelivered') || 'In-app delivered'}</div>
-                    <div className="text-gray-300 text-right">{viewing.in_app_sent}</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('admin.notificationCenter.inAppDelivered') || 'In-app delivered'}</div>
+                    <div className="text-[#020b00] dark:text-gray-300 text-right">{viewing.in_app_sent}</div>
                   </>
                 )}
                 {typeof viewing.push_sent === 'number' && viewing.push_sent > 0 && (
                   <>
-                    <div className="text-gray-500">{t('admin.notificationCenter.pushDelivered') || 'Push delivered'}</div>
-                    <div className="text-gray-300 text-right">{viewing.push_sent}</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('admin.notificationCenter.pushDelivered') || 'Push delivered'}</div>
+                    <div className="text-[#020b00] dark:text-gray-300 text-right">{viewing.push_sent}</div>
                   </>
                 )}
                 {typeof viewing.email_sent === 'number' && (viewing.email_sent > 0 || typeof viewing.email_failed === 'number') && (
                   <>
-                    <div className="text-gray-500">{t('admin.notificationCenter.emailsDelivered') || 'Emails delivered / failed'}</div>
-                    <div className="text-gray-300 text-right">{viewing.email_sent} / {viewing.email_failed || 0}</div>
+                    <div className="text-gray-500 dark:text-gray-400">{t('admin.notificationCenter.emailsDelivered') || 'Emails delivered / failed'}</div>
+                    <div className="text-[#020b00] dark:text-gray-300 text-right">{viewing.email_sent} / {viewing.email_failed || 0}</div>
                   </>
                 )}
               </div>
             </div>
-            <div className="p-3 bg-white/5 border-t border-white/10 flex justify-end gap-2">
+            <div className="p-3 bg-neutral-50 dark:bg-white/5 border-t border-black/10 dark:border-white/10 flex justify-end gap-2">
               <button
                 onClick={() => setViewing(null)}
-                className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white bg-neutral-200/60 dark:bg-white/5 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
               >
                 {t('common.close') || 'Close'}
               </button>
               <button
                 onClick={() => handleResend(viewing)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-black bg-[#d3da0c] rounded-lg hover:bg-[#bbc10b] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#d3da0c] dark:text-black bg-[#020b00] dark:bg-[#d3da0c] rounded-lg hover:bg-neutral-900 dark:hover:bg-[#bbc10b] transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 {t('admin.notificationCenter.resend') || 'Resend'}
@@ -613,15 +613,15 @@ const NotificationCenter = () => {
 
       {/* Image Preview Modal */}
       {previewImage && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative max-w-3xl w-full bg-[#111111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-white font-semibold text-sm">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative max-w-3xl w-full bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <h3 className="text-[#020b00] dark:text-white font-semibold text-sm">
                 {t('admin.notificationCenter.imagePreview') || 'Image Preview'}
               </h3>
               <button
                 onClick={() => setPreviewImage(null)}
-                className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -633,13 +633,13 @@ const NotificationCenter = () => {
                 className="max-w-full max-h-[60vh] object-contain rounded-lg"
               />
             </div>
-            <div className="p-3 bg-white/5 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+            <div className="p-3 bg-neutral-50 dark:bg-white/5 border-t border-black/10 dark:border-white/10 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
               <span className="truncate max-w-md">{previewImage}</span>
               <a
                 href={previewImage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#d3da0c] hover:underline"
+                className="text-[#020b00] dark:text-[#d3da0c] font-medium hover:underline"
               >
                 {t('common.openOriginal') || 'Open Original'}
               </a>

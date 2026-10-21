@@ -117,11 +117,20 @@ async def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         # Attach staff info to user for downstream use
+        biz_name = (
+            (user.business_profile.business_name if user.business_profile and user.business_profile.business_name else None)
+            or (user.organizer_profile.organization_name if user.organizer_profile and user.organizer_profile.organization_name else None)
+            or f"{user.first_name or ''} {user.last_name or ''}".strip()
+            or user.email
+        )
         user._staff_context = {
             "staff_id": staff.id,
             "staff_name": staff.full_name,
+            "staff_email": staff.email,
+            "staff_phone": staff.phone,
             "staff_role": staff.role,
             "staff_permissions": staff.permissions or {},
+            "business_name": biz_name,
             "event_id": payload.get("event_id"),
         }
         return user
@@ -161,6 +170,17 @@ async def get_optional_user(
     if user_id is None:
         return None
     
+    if isinstance(user_id, str) and user_id.startswith("staff:"):
+        from models import StaffMember
+        staff_id = int(user_id.split(":")[1])
+        staff = db.query(StaffMember).filter(StaffMember.id == staff_id).first()
+        if not staff or staff.status != "Active":
+            return None
+        user = db.query(User).filter(User.id == staff.business_id).first()
+        if user is None or user.status != UserStatus.ACTIVE:
+            return None
+        return user
+
     user = db.query(User).filter(User.id == int(user_id)).first()
     
     if user is None or user.status != UserStatus.ACTIVE:

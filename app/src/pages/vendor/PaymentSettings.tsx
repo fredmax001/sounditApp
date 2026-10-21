@@ -107,19 +107,19 @@ export default function VendorPaymentSettings() {
     }
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00]">
             <div className="max-w-2xl mx-auto px-4">
                 <div className="flex items-center gap-3 mb-6">
-                    <Link to="/dashboard/vendor" className="p-2 text-gray-400 hover:text-white">
+                    <Link to="/dashboard/vendor" className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-white text-2xl font-bold">Payment Settings</h1>
+                    <h1 className="text-[#020b00] dark:text-white text-2xl font-bold">Payment Settings</h1>
                 </div>
 
                 <div className="space-y-6">
                     {/* Preferred Method */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                        <label className="text-white font-medium block mb-3">Display Preference</label>
+                    <div className="bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
+                        <label className="text-[#020b00] dark:text-white font-medium block mb-3">Display Preference</label>
                         <div className="grid grid-cols-3 gap-3">
                             {(['wechat_only', 'alipay_only', 'both'] as const).map((m) => (
                                 <button
@@ -127,8 +127,8 @@ export default function VendorPaymentSettings() {
                                     onClick={() => setForm((f) => ({ ...f, preferred_method: m }))}
                                     className={`p-3 rounded-xl border text-center transition-colors ${
                                         form.preferred_method === m
-                                            ? 'border-[#d3da0c] bg-[#d3da0c]/10 text-[#d3da0c]'
-                                            : 'border-white/10 text-gray-400 hover:border-white/20'
+                                            ? 'border-[#020b00] bg-[#020b00] text-[#d3da0c] dark:border-[#d3da0c] dark:bg-[#d3da0c]/10 dark:text-[#d3da0c]'
+                                            : 'border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-black/20 dark:hover:border-white/20'
                                     }`}
                                 >
                                     <CreditCard className="w-5 h-5 mx-auto mb-1" />
@@ -139,13 +139,13 @@ export default function VendorPaymentSettings() {
                     </div>
 
                     {/* WeChat Pay */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                        <h2 className="text-white font-medium mb-3">WeChat Pay</h2>
+                    <div className="bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
+                        <h2 className="text-[#020b00] dark:text-white font-medium mb-3">WeChat Pay</h2>
                         <input
                             value={form.wechat_display_name}
                             onChange={(e) => setForm((f) => ({ ...f, wechat_display_name: e.target.value }))}
                             placeholder="Display Name (e.g., Your WeChat Name)"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:border-[#d3da0c]/40 focus:outline-none mb-3"
+                            className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-600 focus:border-[#d3da0c] focus:outline-hidden mb-3"
                         />
                         <input
                             ref={wechatInputRef}
@@ -159,7 +159,7 @@ export default function VendorPaymentSettings() {
                         />
                         <div
                             onClick={() => wechatInputRef.current?.click()}
-                            className="border-2 border-dashed border-white/20 rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer hover:border-green-400/40 transition-colors"
+                            className="border-2 border-dashed border-black/15 dark:border-white/20 bg-neutral-50/50 dark:bg-white/[0.02] rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer hover:border-green-500/50 transition-colors"
                         >
                             {settings.wechat_qr_url && !wechatPreview ? (
                                 <img src={settings.wechat_qr_url} alt="WeChat QR" className="w-32 h-32 object-contain" />
@@ -167,21 +167,21 @@ export default function VendorPaymentSettings() {
                                 <img src={wechatPreview} alt="WeChat QR Preview" className="w-32 h-32 object-contain" />
                             ) : (
                                 <>
-                                    <ImageIcon className="w-8 h-8 text-gray-500" />
-                                    <span className="text-gray-400 text-sm">Upload WeChat Pay QR Code</span>
+                                    <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Upload WeChat Pay QR Code</span>
                                 </>
                             )}
                         </div>
                     </div>
 
                     {/* Alipay */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                        <h2 className="text-white font-medium mb-3">Alipay</h2>
+                    <div className="bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
+                        <h2 className="text-[#020b00] dark:text-white font-medium mb-3">Alipay</h2>
                         <input
                             value={form.alipay_display_name}
                             onChange={(e) => setForm((f) => ({ ...f, alipay_display_name: e.target.value }))}
                             placeholder="Display Name (e.g., Your Alipay Name)"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:border-[#d3da0c]/40 focus:outline-none mb-3"
+                            className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-600 focus:border-[#d3da0c] focus:outline-hidden mb-3"
                         />
                         <input
                             ref={alipayInputRef}
@@ -195,7 +195,7 @@ export default function VendorPaymentSettings() {
                         />
                         <div
                             onClick={() => alipayInputRef.current?.click()}
-                            className="border-2 border-dashed border-white/20 rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer hover:border-blue-400/40 transition-colors"
+                            className="border-2 border-dashed border-black/15 dark:border-white/20 bg-neutral-50/50 dark:bg-white/[0.02] rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer hover:border-blue-500/50 transition-colors"
                         >
                             {settings.alipay_qr_url && !alipayPreview ? (
                                 <img src={settings.alipay_qr_url} alt="Alipay QR" className="w-32 h-32 object-contain" />
@@ -203,8 +203,8 @@ export default function VendorPaymentSettings() {
                                 <img src={alipayPreview} alt="Alipay QR Preview" className="w-32 h-32 object-contain" />
                             ) : (
                                 <>
-                                    <ImageIcon className="w-8 h-8 text-gray-500" />
-                                    <span className="text-gray-400 text-sm">Upload Alipay QR Code</span>
+                                    <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Upload Alipay QR Code</span>
                                 </>
                             )}
                         </div>
@@ -213,7 +213,7 @@ export default function VendorPaymentSettings() {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#c4cb0b] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                     >
                         {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                         Save Settings

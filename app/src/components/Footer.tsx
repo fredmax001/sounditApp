@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Instagram, Twitter, Youtube, Mail, MapPin, Phone } from 'lucide-react';
+import { Instagram, Twitter, Youtube, Mail, MapPin, Phone, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useThemeStore } from '@/store/themeStore';
 
 const Footer = () => {
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
   const currentYear = new Date().getFullYear();
 
   const TikTokIcon = ({ className }: { className?: string }) => (
@@ -33,6 +35,17 @@ const Footer = () => {
       ],
     },
     {
+      title: 'Ecosystem',
+      links: [
+        { label: 'Sound It DJ', path: 'https://sounditdj.cloud/' },
+        { label: 'Sound It Tech', path: 'https://www.soundit.tech/#' },
+        { label: 'BOA Festival', path: 'https://boa.sounditent.com/' },
+        { label: 'RNB & Slow Sessions', path: 'https://rnbnslowsessions.com/' },
+        { label: 'Deck Salone', path: 'https://www.decksalone.com/' },
+        { label: 'Fred Max Hub', path: 'https://fredmax.sounditent.com/' },
+      ],
+    },
+    {
       title: t('footer.company.title') || 'Company',
       links: [
         { label: t('footer.company.aboutUs') || 'About Us', path: '/about' },
@@ -43,50 +56,48 @@ const Footer = () => {
       ],
     },
     {
-      title: t('footer.support.title') || 'Support',
+      title: t('footer.support.title') || 'Support & Legal',
       links: [
         { label: t('footer.support.helpCenter') || 'Help Center', path: '/help' },
-        { label: t('footer.support.terms') || 'Terms', path: '/terms' },
-        { label: t('footer.support.privacy') || 'Privacy', path: '/privacy' },
+        { label: t('footer.support.terms') || 'Terms of Service', path: '/terms' },
+        { label: t('footer.support.privacy') || 'Privacy Policy', path: '/privacy' },
         { label: t('footer.support.refundPolicy') || 'Refund Policy', path: '/refund-policy' },
-      ],
-    },
-    {
-      title: t('footer.legal.title') || 'Legal',
-      links: [
         { label: t('footer.support.userAgreement') || 'User Agreement', path: '/user-agreement' },
         { label: t('footer.support.organizerAgreement') || 'Organizer Agreement', path: '/organizer-agreement' },
-        { label: t('footer.support.verificationPolicy') || 'Verification Policy', path: '/verification-policy' },
       ],
     },
   ];
 
   return (
-    <footer className="bg-[#0A0A0A] border-t border-white/5 hidden md:block">
+    <footer className="bg-neutral-50 dark:bg-[#020b00] border-t border-black/8 dark:border-white/5 hidden md:block text-[#020b00] dark:text-white transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
         {/* Main Footer Grid */}
         <div className="grid grid-cols-12 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-12 lg:col-span-4">
             <Link to="/" className="inline-block mb-5">
-              <img src="/logo-web.png" alt="SOUND IT" className="h-9 w-auto object-contain" />
+              <img
+                src={isDark ? "/logo-dark.png" : "/logo-light.png"}
+                alt="SOUND IT"
+                className="h-9 w-auto object-contain"
+              />
             </Link>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
+            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
               {t('footer.tagline') || 'Your gateway to the best nightlife, events, and culture in China.'}
             </p>
 
             {/* Contact */}
             <div className="space-y-2.5">
-              <a href="mailto:support@sounditent.com" className="flex items-center gap-2.5 text-gray-400 hover:text-[#d3da0c] transition-colors text-sm">
-                <Mail className="w-4 h-4 shrink-0" />
+              <a href="mailto:support@sounditent.com" className="flex items-center gap-2.5 text-gray-600 dark:text-gray-400 hover:text-[#d3da0c] transition-colors text-sm">
+                <Mail className="w-4 h-4 shrink-0 text-[#020b00] dark:text-[#d3da0c]" />
                 <span>support@sounditent.com</span>
               </a>
-              <a href="tel:+8619121317942" className="flex items-center gap-2.5 text-gray-400 hover:text-[#d3da0c] transition-colors text-sm">
-                <Phone className="w-4 h-4 shrink-0" />
+              <a href="tel:+8619121317942" className="flex items-center gap-2.5 text-gray-600 dark:text-gray-400 hover:text-[#d3da0c] transition-colors text-sm">
+                <Phone className="w-4 h-4 shrink-0 text-[#020b00] dark:text-[#d3da0c]" />
                 <span>+86 191 2131 7942</span>
               </a>
-              <div className="flex items-center gap-2.5 text-gray-400 text-sm">
-                <MapPin className="w-4 h-4 shrink-0" />
+              <div className="flex items-center gap-2.5 text-gray-600 dark:text-gray-400 text-sm">
+                <MapPin className="w-4 h-4 shrink-0 text-[#020b00] dark:text-[#d3da0c]" />
                 <span>Shanghai, China</span>
               </div>
             </div>
@@ -95,18 +106,33 @@ const Footer = () => {
           {/* Link Columns */}
           {linkGroups.map((group) => (
             <div key={group.title} className="col-span-6 sm:col-span-3 lg:col-span-2">
-              <h3 className="text-white font-semibold text-sm mb-4">{group.title}</h3>
+              <h3 className="text-[#020b00] dark:text-white font-semibold text-sm mb-4">{group.title}</h3>
               <ul className="space-y-2.5">
-                {group.links.map((link) => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-400 hover:text-[#d3da0c] transition-colors text-sm"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {group.links.map((link) => {
+                  const isExternal = link.path.startsWith('http');
+                  return (
+                    <li key={link.path}>
+                      {isExternal ? (
+                        <a
+                          href={link.path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-600 dark:text-gray-400 hover:text-[#d3da0c] dark:hover:text-[#d3da0c] transition-colors text-sm inline-flex items-center gap-1 group/item"
+                        >
+                          <span>{link.label}</span>
+                          <ExternalLink className="w-3 h-3 opacity-50 group-hover/item:opacity-100 transition-opacity" />
+                        </a>
+                      ) : (
+                        <Link
+                          to={link.path}
+                          className="text-gray-600 dark:text-gray-400 hover:text-[#d3da0c] dark:hover:text-[#d3da0c] transition-colors text-sm"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

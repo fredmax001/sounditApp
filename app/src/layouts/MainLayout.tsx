@@ -14,7 +14,7 @@ const MainLayout = () => {
   useAnalytics();
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative transition-colors duration-200">
       {/* Global Background Effects */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Subtle Noise Texture */}

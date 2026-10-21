@@ -119,13 +119,13 @@ const ResetPassword = () => {
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/20 flex items-center justify-center">
           <Lock className="w-8 h-8 text-red-500" />
         </div>
-        <h2 className="text-2xl font-semibold text-white mb-2">{t('auth.resetPassword.invalidLinkTitle')}</h2>
-        <p className="text-gray-400 mb-6">
+        <h2 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.resetPassword.invalidLinkTitle')}</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           {error || t('auth.resetPassword.invalidLinkMessage')}
         </p>
         <Link
           to="/forgot-password"
-          className="inline-flex items-center gap-2 text-[#d3da0c] hover:underline"
+          className="inline-flex items-center gap-2 text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('auth.resetPassword.requestNewLink')}
@@ -138,11 +138,11 @@ const ResetPassword = () => {
   if (isSuccess) {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#d3da0c]/20 flex items-center justify-center">
-          <Check className="w-8 h-8 text-[#d3da0c]" />
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#020b00]/10 dark:bg-[#d3da0c]/20 flex items-center justify-center">
+          <Check className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
         </div>
-        <h2 className="text-2xl font-semibold text-white mb-2">{t('auth.resetPassword.successTitle')}</h2>
-        <p className="text-gray-400 mb-2">
+        <h2 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.resetPassword.successTitle')}</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
           {t('auth.resetPassword.successMessage')}
         </p>
         <p className="text-gray-500 text-sm mb-6">
@@ -150,7 +150,7 @@ const ResetPassword = () => {
         </p>
         <Link
           to="/login"
-          className="inline-flex items-center gap-2 text-[#d3da0c] hover:underline"
+          className="inline-flex items-center gap-2 text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('auth.resetPassword.goToLogin')}
@@ -163,8 +163,8 @@ const ResetPassword = () => {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-white mb-2">{t('auth.resetPassword.title')}</h1>
-        <p className="text-gray-400 text-sm">
+        <h1 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.resetPassword.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           {t('auth.resetPassword.subtitle')}
         </p>
       </div>
@@ -173,7 +173,7 @@ const ResetPassword = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* New Password */}
         <div>
-          <label className="block text-gray-400 text-sm mb-2">{t('auth.resetPassword.newPasswordLabel')}</label>
+          <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.resetPassword.newPasswordLabel')}</label>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
@@ -182,12 +182,12 @@ const ResetPassword = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
               disabled={isLoading}
-              className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full pl-12 pr-12 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#020b00] dark:hover:text-white"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -196,7 +196,7 @@ const ResetPassword = () => {
 
         {/* Confirm Password */}
         <div>
-          <label className="block text-gray-400 text-sm mb-2">{t('auth.resetPassword.confirmPasswordLabel')}</label>
+          <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.resetPassword.confirmPasswordLabel')}</label>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
@@ -205,12 +205,12 @@ const ResetPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
               disabled={isLoading}
-              className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full pl-12 pr-12 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#020b00] dark:hover:text-white"
             >
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -218,11 +218,11 @@ const ResetPassword = () => {
         </div>
 
         {/* Password Requirements */}
-        <div className="text-xs text-gray-500 space-y-1">
-          <p className={password.length >= 6 ? 'text-green-500' : ''}>
+        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          <p className={password.length >= 6 ? 'text-green-600 dark:text-green-500' : ''}>
             {password.length >= 6 ? t('auth.resetPassword.requirementOk') : '•'} {t('auth.resetPassword.atLeast6Chars')}
           </p>
-          <p className={password === confirmPassword && password !== '' ? 'text-green-500' : ''}>
+          <p className={password === confirmPassword && password !== '' ? 'text-green-600 dark:text-green-500' : ''}>
             {password === confirmPassword && password !== '' ? t('auth.resetPassword.requirementOk') : '•'} {t('auth.resetPassword.passwordsMatch')}
           </p>
         </div>
@@ -230,7 +230,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           disabled={isLoading || password.length < 6 || password !== confirmPassword}
-          className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
@@ -244,8 +244,8 @@ const ResetPassword = () => {
       </form>
 
       {/* Back Link */}
-      <p className="text-center text-gray-400 text-sm mt-6">
-        <Link to="/login" className="text-[#d3da0c] hover:underline inline-flex items-center gap-2">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
+        <Link to="/login" className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline inline-flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           {t('auth.resetPassword.backToSignIn')}
         </Link>

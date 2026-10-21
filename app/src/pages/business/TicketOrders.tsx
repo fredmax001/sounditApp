@@ -249,20 +249,20 @@ const TicketOrdersPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-6 lg:p-10">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] p-6 lg:p-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display text-white mb-1 flex items-center gap-3">
+          <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-1 flex items-center gap-3">
             <Ticket className="w-8 h-8 text-[#d3da0c]" />
             {t('business.dashboard.ticketOrders') || 'Ticket Orders'}
           </h1>
-          <p className="text-gray-400">{t('business.dashboard.manageTicketOrders') || 'Manage and approve ticket orders for your events.'}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('business.dashboard.manageTicketOrders') || 'Manage and approve ticket orders for your events.'}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => { setShowGuestModal(true); fetchEvents(); }}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-semibold rounded-lg hover:opacity-90 transition-colors"
           >
             <UserPlus className="w-4 h-4" />
             {t('business.ticketOrders.addGuestTicket') || 'Add Guest Ticket'}
@@ -274,7 +274,7 @@ const TicketOrdersPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('common.search') || 'Search orders...'}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64 text-sm"
+              className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-64 text-sm"
             />
           </div>
           <div className="relative">
@@ -282,7 +282,7 @@ const TicketOrdersPage = () => {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none text-sm"
+              className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-40 appearance-none text-sm"
             >
               <option value="all">{t('business.dashboard.all') || 'All'}</option>
               <option value="pending">{t('business.dashboard.pending') || 'Pending'}</option>
@@ -296,7 +296,7 @@ const TicketOrdersPage = () => {
             <select
               value={eventFilter}
               onChange={(e) => setEventFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="bg-[#111111] border border-white/10 text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-52 appearance-none text-sm"
+              className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:border-[#d3da0c] w-full sm:w-52 appearance-none text-sm"
             >
               <option value="all">{t('business.dashboard.allEvents') || 'All Events'}</option>
               {uniqueEvents.map((ev) => (
@@ -309,20 +309,20 @@ const TicketOrdersPage = () => {
 
       {/* Guest Order Modal */}
       {showGuestModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-[#020b00] dark:text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#d3da0c]" />
                 {t('business.ticketOrders.addGuestTicket') || 'Add Guest Ticket'}
               </h2>
-              <button onClick={() => setShowGuestModal(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                <X className="w-5 h-5 text-gray-400" />
+              <button onClick={() => setShowGuestModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500 dark:text-gray-400">
+                <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.event') || 'Event'} *</label>
+                <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.event') || 'Event'} *</label>
                 <select
                   value={guestForm.event_id}
                   onChange={(e) => {
@@ -330,7 +330,7 @@ const TicketOrdersPage = () => {
                     setGuestForm({ ...guestForm, event_id: val, ticket_tier_id: '' });
                     if (val) fetchTicketTiers(Number(val));
                   }}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                 >
                   <option value="">{t('business.ticketOrders.selectEvent') || 'Select event...'}</option>
                   {events.map((ev) => (
@@ -339,53 +339,53 @@ const TicketOrdersPage = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestName') || 'Guest Name'} *</label>
+                <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestName') || 'Guest Name'} *</label>
                 <input
                   type="text"
                   value={guestForm.guest_name}
                   onChange={(e) => setGuestForm({ ...guestForm, guest_name: e.target.value })}
                   placeholder="John Doe"
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestEmail') || 'Guest Email'} *</label>
+                <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestEmail') || 'Guest Email'} *</label>
                 <input
                   type="email"
                   value={guestForm.guest_email}
                   onChange={(e) => setGuestForm({ ...guestForm, guest_email: e.target.value })}
                   placeholder="john@example.com"
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestPhone') || 'Guest Phone'}</label>
+                <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.guestPhone') || 'Guest Phone'}</label>
                 <input
                   type="tel"
                   value={guestForm.guest_phone}
                   onChange={(e) => setGuestForm({ ...guestForm, guest_phone: e.target.value })}
                   placeholder="+86138xxxx"
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.quantity') || 'Quantity'} *</label>
+                  <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.quantity') || 'Quantity'} *</label>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={guestForm.quantity}
                     onChange={(e) => setGuestForm({ ...guestForm, quantity: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1">{t('business.ticketOrders.ticketTier') || 'Ticket Tier'}</label>
+                  <label className="block text-gray-600 dark:text-gray-400 text-xs mb-1">{t('business.ticketOrders.ticketTier') || 'Ticket Tier'}</label>
                   <select
                     value={guestForm.ticket_tier_id}
                     onChange={(e) => setGuestForm({ ...guestForm, ticket_tier_id: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d3da0c]"
                   >
                     <option value="">{t('business.ticketOrders.default') || 'Default'}</option>
                     {ticketTiers.map((t) => (
@@ -398,14 +398,14 @@ const TicketOrdersPage = () => {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowGuestModal(false)}
-                className="flex-1 py-2.5 bg-white/5 text-white text-sm font-bold rounded-lg hover:bg-white/10 transition-colors"
+                className="flex-1 py-2.5 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white text-sm font-semibold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleCreateGuestOrder}
                 disabled={isSubmittingGuest}
-                className="flex-1 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmittingGuest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {t('business.ticketOrders.pay') || 'Pay'}
@@ -421,15 +421,15 @@ const TicketOrdersPage = () => {
           <Loader2 className="w-10 h-10 animate-spin text-[#d3da0c] mx-auto" />
         </div>
       ) : filteredOrders.length === 0 ? (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center text-gray-400">
-          <Ticket className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-          <p className="text-lg font-medium text-white mb-1">{t('business.dashboard.noTicketOrders') || 'No ticket orders found'}</p>
+        <div className="bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl p-12 text-center text-gray-500 dark:text-gray-400 shadow-xs dark:shadow-none">
+          <Ticket className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
+          <p className="text-lg font-medium text-[#020b00] dark:text-white mb-1">{t('business.dashboard.noTicketOrders') || 'No ticket orders found'}</p>
           <p className="text-sm">{t('business.dashboard.noTicketOrdersHint') || 'Orders will appear here once customers purchase tickets.'}</p>
         </div>
       ) : (
-        <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none">
           {/* Desktop Header */}
-          <div className="hidden lg:grid grid-cols-12 gap-2 px-4 py-3 bg-white/5 text-gray-400 text-xs font-medium border-b border-white/5">
+          <div className="hidden lg:grid grid-cols-12 gap-2 px-4 py-3 bg-neutral-100/60 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-xs font-medium border-b border-black/5 dark:border-white/5">
             <div className="col-span-2">{t('business.dashboard.name') || 'Name'}</div>
             <div className="col-span-2">{t('business.dashboard.email') || 'Email'}</div>
             <div className="col-span-1">{t('business.dashboard.mobile') || 'Mobile'}</div>
@@ -440,7 +440,7 @@ const TicketOrdersPage = () => {
             <div className="col-span-2 text-right">{t('common.actions') || 'Actions'}</div>
           </div>
 
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-black/5 dark:divide-white/5">
             {filteredOrders.map((order, idx) => {
               const status = statusConfig[order.status] || statusConfig.pending;
               const StatusIcon = status.icon;
@@ -461,14 +461,14 @@ const TicketOrdersPage = () => {
                   {/* Desktop Row - single straight line, compact */}
                   <div className="hidden lg:grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-2">
-                      <p className="text-white text-xs font-medium truncate flex items-center gap-1">
+                      <p className="text-[#020b00] dark:text-white text-xs font-medium truncate flex items-center gap-1">
                         {order.payer_name || order.user?.name || '-'}
                         {order.is_guest_order && (
-                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase">Guest</span>
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase">Guest</span>
                         )}
                         {order.buyer_confirmed && (
                           <span
-                            className="px-1.5 py-0.5 rounded bg-[#d3da0c]/15 text-[#d3da0c] text-[9px] font-bold uppercase"
+                            className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-[9px] font-bold uppercase"
                             title={t('business.ticketOrders.buyerConfirmedHint') || 'Buyer confirmed payment in the app'}
                           >
                             {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
@@ -477,43 +477,43 @@ const TicketOrdersPage = () => {
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-300 text-xs truncate">{order.user?.email || '-'}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs truncate">{order.user?.email || '-'}</p>
                     </div>
                     <div className="col-span-1">
-                      <p className="text-gray-300 text-xs truncate">{order.user?.phone || '-'}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs truncate">{order.user?.phone || '-'}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-300 text-xs truncate">{order.event?.title || '-'}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs truncate">{order.event?.title || '-'}</p>
                     </div>
                     <div className="col-span-1">
-                      <p className="text-gray-300 text-xs truncate">{order.ticket_tier?.name || '-'}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs truncate">{order.ticket_tier?.name || '-'}</p>
                     </div>
                     <div className="col-span-1 flex justify-center">
                       {isFullyUsed ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
                           <CheckCircle2 className="w-3 h-3" />
                           {t('business.dashboard.in') || 'In'}
                         </span>
                       ) : isPartiallyUsed ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
                           <CheckCircle2 className="w-3 h-3" />
                           {usedCount}/{totalCount}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gray-500/10 text-gray-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gray-500/10 text-gray-500 dark:text-gray-400 text-xs font-medium">
                           <Clock className="w-3 h-3" />
                           {t('business.dashboard.out') || 'Out'}
                         </span>
                       )}
                     </div>
                     <div className="col-span-1 text-center">
-                      <p className="text-gray-300 text-xs">¥{order.payment_amount?.toLocaleString?.() || order.payment_amount}</p>
+                      <p className="text-[#020b00] dark:text-gray-300 text-xs font-medium">¥{order.payment_amount?.toLocaleString?.() || order.payment_amount}</p>
                     </div>
                     <div className="col-span-2 flex items-center justify-end gap-1">
                       {order.payment_screenshot && (
                         <button
                           onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                          className="px-1.5 py-1 rounded bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          className="px-1.5 py-1 rounded bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-1"
                           title={t('business.tableReservations.viewPaymentProof') || 'Proof'}
                         >
                           <Eye className="w-3 h-3" />
@@ -522,7 +522,7 @@ const TicketOrdersPage = () => {
                       {order.tickets && order.tickets.length > 0 && (
                         <button
                           onClick={() => setSelectedOrderTickets(order)}
-                          className="px-1.5 py-1 rounded bg-white/5 text-gray-300 text-xs hover:bg-white/10 transition-colors flex items-center gap-1"
+                          className="px-1.5 py-1 rounded bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-1"
                           title={`${order.tickets.length} ticket(s)`}
                         >
                           <QrCode className="w-3 h-3" />
@@ -534,21 +534,21 @@ const TicketOrdersPage = () => {
                           <button
                             onClick={() => handleApprove(order.id)}
                             disabled={processingId === order.id}
-                            className="px-1.5 py-1 rounded bg-green-500/10 text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                            className="px-1.5 py-1 rounded bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
                           >
                             {processingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : (t('business.dashboard.approve') || 'Ok')}
                           </button>
                           <button
                             onClick={() => handleReject(order.id)}
                             disabled={processingId === order.id}
-                            className="px-1.5 py-1 rounded bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                            className="px-1.5 py-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
                           >
                             {t('business.dashboard.reject') || 'No'}
                           </button>
                         </>
                       )}
                       {order.status !== 'pending' && (
-                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${isPartiallyUsed ? 'bg-purple-500/10 text-purple-400' : status.color}`}>
+                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${isPartiallyUsed ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : status.color}`}>
                           <StatusIcon className="w-3 h-3" />
                           {isPartiallyUsed ? `${usedCount}/${totalCount} Used` : status.label}
                         </span>
@@ -560,20 +560,20 @@ const TicketOrdersPage = () => {
                   <div className="lg:hidden">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <p className="text-white font-semibold flex items-center gap-1">
+                        <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-1">
                           {order.payer_name || order.user?.name || '-'}
                           {order.is_guest_order && (
-                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase">Guest</span>
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase">Guest</span>
                           )}
                           {order.buyer_confirmed && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/15 text-[#d3da0c] text-[10px] font-bold uppercase">
+                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase">
                               {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
                             </span>
                           )}
                         </p>
-                        <p className="text-gray-400 text-sm">{order.user?.email || '-'}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{order.user?.email || '-'}</p>
                         {order.user?.phone && (
-                          <p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5">
+                          <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
                             <Smartphone className="w-3 h-3" /> {order.user.phone}
                           </p>
                         )}
@@ -584,17 +584,17 @@ const TicketOrdersPage = () => {
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                      <div className="bg-white/5 rounded-lg p-2">
-                        <p className="text-gray-500 text-xs mb-0.5">{t('business.dashboard.eventName') || 'Event'}</p>
-                        <p className="text-gray-300 truncate">{order.event?.title || '-'}</p>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-2">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">{t('business.dashboard.eventName') || 'Event'}</p>
+                        <p className="text-[#020b00] dark:text-gray-300 font-medium truncate">{order.event?.title || '-'}</p>
                       </div>
-                      <div className="bg-white/5 rounded-lg p-2">
-                        <p className="text-gray-500 text-xs mb-0.5">{t('business.dashboard.ticketType') || 'Ticket Type'}</p>
-                        <p className="text-gray-300 truncate">{order.ticket_tier?.name || '-'}</p>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-2">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">{t('business.dashboard.ticketType') || 'Ticket Type'}</p>
+                        <p className="text-[#020b00] dark:text-gray-300 font-medium truncate">{order.ticket_tier?.name || '-'}</p>
                       </div>
-                      <div className="bg-white/5 rounded-lg p-2">
-                        <p className="text-gray-500 text-xs mb-0.5">{t('business.dashboard.checkIn') || 'Check In'}</p>
-                        <p className={`text-xs font-medium ${isFullyUsed ? 'text-green-400' : isPartiallyUsed ? 'text-amber-400' : 'text-gray-400'}`}>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-2">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">{t('business.dashboard.checkIn') || 'Check In'}</p>
+                        <p className={`text-xs font-medium ${isFullyUsed ? 'text-green-600 dark:text-green-400' : isPartiallyUsed ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-400'}`}>
                           {isFullyUsed
                             ? (t('business.dashboard.checkedIn') || 'Checked In')
                             : isPartiallyUsed
@@ -607,16 +607,16 @@ const TicketOrdersPage = () => {
                           )}
                         </p>
                       </div>
-                      <div className="bg-white/5 rounded-lg p-2">
-                        <p className="text-gray-500 text-xs mb-0.5">{t('business.dashboard.amount') || 'Amount'}</p>
-                        <p className="text-gray-300 truncate">¥{order.payment_amount?.toLocaleString?.() || order.payment_amount}</p>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-2">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">{t('business.dashboard.amount') || 'Amount'}</p>
+                        <p className="text-[#020b00] dark:text-gray-300 font-medium truncate">¥{order.payment_amount?.toLocaleString?.() || order.payment_amount}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {order.payment_screenshot && (
                         <button
                           onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                          className="px-3 py-2 rounded-lg bg-white/5 text-gray-300 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                          className="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
                         >
                           <Eye className="w-4 h-4" />
                           {t('business.tableReservations.viewPaymentProof') || 'Proof'}
@@ -625,7 +625,7 @@ const TicketOrdersPage = () => {
                       {order.tickets && order.tickets.length > 0 && (
                         <button
                           onClick={() => setSelectedOrderTickets(order)}
-                          className="px-3 py-2 rounded-lg bg-white/5 text-gray-300 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                          className="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
                         >
                           <QrCode className="w-4 h-4" />
                           {order.tickets.length} {order.tickets.length === 1 ? 'Ticket' : 'Tickets'}
@@ -636,14 +636,14 @@ const TicketOrdersPage = () => {
                           <button
                             onClick={() => handleApprove(order.id)}
                             disabled={processingId === order.id}
-                            className="px-3 py-2 rounded-lg bg-green-500/10 text-green-400 text-sm font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                            className="px-3 py-2 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
                           >
                             {processingId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('business.dashboard.approve') || 'Approve')}
                           </button>
                           <button
                             onClick={() => handleReject(order.id)}
                             disabled={processingId === order.id}
-                            className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                            className="px-3 py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
                           >
                             {t('business.dashboard.reject') || 'Reject'}
                           </button>
@@ -661,10 +661,10 @@ const TicketOrdersPage = () => {
       {/* Screenshot Modal */}
       {selectedScreenshot && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedScreenshot(null)}
         >
-          <div className="bg-[#141414] rounded-2xl p-4 max-w-2xl w-full border border-white/10">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-4 max-w-2xl w-full border border-black/10 dark:border-white/10 shadow-2xl">
             <img
               src={selectedScreenshot}
               alt="Payment proof"
@@ -674,7 +674,7 @@ const TicketOrdersPage = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setSelectedScreenshot(null)}
-                className="px-4 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
+                className="px-4 py-2 rounded-lg bg-black/5 dark:bg-white/10 text-[#020b00] dark:text-white text-sm hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
               >
                 {t('common.close') || 'Close'}
               </button>
@@ -686,24 +686,24 @@ const TicketOrdersPage = () => {
       {/* QR Modal */}
       {selectedQr && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedQr(null)}
         >
-          <div className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 text-center">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 shadow-2xl text-center">
             <img src={selectedQr} alt="Ticket QR" className="w-48 h-48 mx-auto rounded-xl" />
-            <p className="text-gray-400 text-sm mt-4">{t('business.dashboard.ticketQrCode') || 'Ticket QR Code'}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-4">{t('business.dashboard.ticketQrCode') || 'Ticket QR Code'}</p>
             <div className="flex justify-center gap-3 mt-4">
               <a
                 href={selectedQr}
                 download
-                className="px-4 py-2 rounded-lg bg-[#d3da0c] text-black text-sm font-medium hover:bg-[#bbc10b] flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 {t('common.download') || 'Download'}
               </a>
               <button
                 onClick={() => setSelectedQr(null)}
-                className="px-4 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
+                className="px-4 py-2 rounded-lg bg-black/5 dark:bg-white/10 text-[#020b00] dark:text-white text-sm hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
               >
                 {t('common.close') || 'Close'}
               </button>
@@ -715,25 +715,25 @@ const TicketOrdersPage = () => {
       {/* Individual Tickets Modal - for organizer check-in scanning */}
       {selectedOrderTickets && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedOrderTickets(null)}
         >
           <div
-            className="bg-[#141414] rounded-2xl p-6 max-w-2xl w-full border border-white/10 max-h-[85vh] overflow-y-auto"
+            className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-2xl w-full border border-black/10 dark:border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">
                   {selectedOrderTickets.payer_name || selectedOrderTickets.user?.name || 'Guest'}
                 </h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   {selectedOrderTickets.event?.title} · {selectedOrderTickets.quantity} ticket(s)
                 </p>
               </div>
               <button
                 onClick={() => setSelectedOrderTickets(null)}
-                className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
               >
                 ✕
               </button>
@@ -743,10 +743,10 @@ const TicketOrdersPage = () => {
               {selectedOrderTickets.tickets?.map((ticket, idx) => (
                 <div
                   key={ticket.id}
-                  className={`bg-white rounded-xl p-4 text-center ${ticket.is_used ? 'opacity-50' : ''}`}
+                  className={`bg-neutral-50 dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-xl p-4 text-center ${ticket.is_used ? 'opacity-50' : ''}`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-black font-bold text-sm">#{idx + 1}</span>
+                    <span className="text-[#020b00] dark:text-white font-bold text-sm">#{idx + 1}</span>
                     {ticket.is_used ? (
                       <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
                         USED
@@ -764,11 +764,11 @@ const TicketOrdersPage = () => {
                       className="w-full h-auto rounded-lg"
                     />
                   ) : (
-                    <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-black text-xs">
+                    <div className="w-full aspect-square bg-gray-200 dark:bg-white/10 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">
                       No QR
                     </div>
                   )}
-                  <p className="text-black text-[10px] font-mono mt-2 truncate">
+                  <p className="text-[#020b00] dark:text-white text-[10px] font-mono mt-2 truncate">
                     {ticket.ticket_number}
                   </p>
                 </div>
@@ -778,7 +778,7 @@ const TicketOrdersPage = () => {
             <div className="flex justify-center mt-6">
               <button
                 onClick={() => setSelectedOrderTickets(null)}
-                className="px-6 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20"
+                className="px-6 py-2 rounded-lg bg-black/5 dark:bg-white/10 text-[#020b00] dark:text-white text-sm hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
               >
                 {t('common.close') || 'Close'}
               </button>

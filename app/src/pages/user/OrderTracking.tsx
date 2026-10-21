@@ -77,18 +77,18 @@ export default function OrderTracking() {
     }
 
     return (
-        <div className="min-h-screen pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
             {/* Header */}
-            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+            <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
                 <div className="max-w-lg mx-auto px-4 py-4">
                     <div className="flex items-center gap-3">
-                        <Link to="/my-orders" className="p-1 -ml-1 text-gray-400 hover:text-white">
+                        <Link to="/my-orders" className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-display text-white">Order #{order.id}</h1>
+                            <h1 className="text-2xl font-bold font-display text-[#020b00] dark:text-white">Order #{order.id}</h1>
                             {order.vendor_name && (
-                                <p className="text-gray-500 text-sm">{order.vendor_name}</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{order.vendor_name}</p>
                             )}
                         </div>
                     </div>
@@ -98,26 +98,26 @@ export default function OrderTracking() {
             <div className="max-w-lg mx-auto px-4 pt-6">
 
                 {/* Status Tracker */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 mb-6 shadow-xs dark:shadow-none">
                     <OrderStatusTracker status={order.status} />
                 </div>
 
                 {/* Order Details */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
-                    <h2 className="text-white font-semibold mb-3">Order Details</h2>
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 mb-6 shadow-xs dark:shadow-none">
+                    <h2 className="text-[#020b00] dark:text-white font-bold text-lg mb-3">Order Details</h2>
                     <div className="space-y-3">
                         {order.items.map((item) => (
                             <div key={item.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-gray-400 text-sm">{item.quantity}x</span>
-                                    <span className="text-white text-sm">{item.product_name}</span>
+                                    <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">{item.quantity}x</span>
+                                    <span className="text-[#020b00] dark:text-white text-sm font-semibold">{item.product_name}</span>
                                 </div>
-                                <span className="text-gray-300 text-sm">¥{item.subtotal.toFixed(2)}</span>
+                                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">¥{item.subtotal.toFixed(2)}</span>
                             </div>
                         ))}
-                        <div className="border-t border-white/10 pt-3 flex items-center justify-between">
-                            <span className="text-white font-medium">Total</span>
-                            <span className="text-[#d3da0c] font-bold text-lg">
+                        <div className="border-t border-black/8 dark:border-white/10 pt-3 flex items-center justify-between">
+                            <span className="text-[#020b00] dark:text-white font-bold">Total</span>
+                            <span className="text-[#020b00] dark:text-[#d3da0c] font-bold text-lg">
                                 ¥{order.total_amount.toFixed(2)}
                             </span>
                         </div>
@@ -125,15 +125,15 @@ export default function OrderTracking() {
                 </div>
 
                 {/* Customer Info */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <h2 className="text-white font-semibold mb-3">Customer</h2>
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
+                    <h2 className="text-[#020b00] dark:text-white font-bold text-lg mb-3">Customer</h2>
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-gray-400 text-sm">
-                            <User className="w-4 h-4" />
-                            <span>{order.customer_name}</span>
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
+                            <User className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+                            <span className="text-[#020b00] dark:text-white font-medium">{order.customer_name}</span>
                         </div>
                     </div>
-                    <p className="text-gray-600 text-xs mt-3">
+                    <p className="text-gray-500 text-xs mt-3">
                         Ordered on {new Date(order.created_at).toLocaleString()}
                     </p>
                 </div>

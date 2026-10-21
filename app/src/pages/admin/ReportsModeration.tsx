@@ -120,54 +120,54 @@ const ReportsModeration = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.reportsModeration.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.reportsModeration.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.reportsModeration.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.reportsModeration.subtitle')}</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-500/10 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
+              <AlertTriangle className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.reportsModeration.pendingReports')}</p>
-              <p className="text-white font-bold text-xl">{stats.pending || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.reportsModeration.pendingReports')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.pending || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
               <Flag className="w-5 h-5 text-[#d3da0c]" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.reportsModeration.totalReports')}</p>
-              <p className="text-white font-bold text-xl">{stats.total || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.reportsModeration.totalReports')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.total || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/10 rounded-lg">
-              <Check className="w-5 h-5 text-green-400" />
+              <Check className="w-5 h-5 text-green-500 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.reportsModeration.resolvedToday')}</p>
-              <p className="text-white font-bold text-xl">{stats.resolved_today || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.reportsModeration.resolvedToday')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.resolved_today || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Shield className="w-5 h-5 text-orange-400" />
+              <Shield className="w-5 h-5 text-orange-500 dark:text-orange-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.reportsModeration.autoModerated')}</p>
-              <p className="text-white font-bold text-xl">{stats.auto_moderated || 0}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.reportsModeration.autoModerated')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.auto_moderated || 0}</p>
             </div>
           </div>
         </div>
@@ -176,19 +176,19 @@ const ReportsModeration = () => {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.reportsModeration.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
         >
           <option value="">{t('admin.reportsModeration.allTypes')}</option>
           <option value="event">{t('admin.reportsModeration.typeEvent')}</option>
@@ -199,7 +199,7 @@ const ReportsModeration = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
         >
           <option value="">{t('admin.reportsModeration.allStatus')}</option>
           <option value="pending">{t('admin.reportsModeration.statusPending')}</option>
@@ -222,7 +222,7 @@ const ReportsModeration = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-[#111111] border border-white/10 rounded-xl p-4"
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -231,22 +231,22 @@ const ReportsModeration = () => {
                       report.severity === 'medium' ? 'bg-yellow-500/20' : 'bg-blue-500/20'
                     }`}>
                       <AlertOctagon className={`w-6 h-6 ${
-                        report.severity === 'high' ? 'text-red-400' :
-                        report.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+                        report.severity === 'high' ? 'text-red-500 dark:text-red-400' :
+                        report.severity === 'medium' ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-500 dark:text-blue-400'
                       }`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-white font-semibold capitalize">{t('admin.reportsModeration.reportOfType', { type: report.type })}</h3>
+                        <h3 className="text-[#020b00] dark:text-white font-semibold capitalize">{t('admin.reportsModeration.reportOfType', { type: report.type })}</h3>
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          report.severity === 'high' ? 'bg-red-500/20 text-red-400' :
-                          report.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-blue-500/20 text-blue-400'
+                          report.severity === 'high' ? 'bg-red-500/20 text-red-500 dark:text-red-400' :
+                          report.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-500 dark:text-yellow-400' :
+                          'bg-blue-500/20 text-blue-500 dark:text-blue-400'
                         }`}>
                           {t(`admin.reportsModeration.severity.${report.severity}`)}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-sm mt-1">{report.reason}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{report.reason}</p>
                       <div className="flex items-center gap-4 text-gray-500 text-xs mt-2">
                         <span className="flex items-center gap-1">
                           <User className="w-3 h-3" /> {t('admin.reportsModeration.reportedBy', { name: report.reporter_name })}
@@ -262,7 +262,7 @@ const ReportsModeration = () => {
                       <>
                         <button
                           onClick={() => alert(`${t('admin.reportsModeration.reason') || 'Reason'}: ${report.reason}\n${t('admin.reportsModeration.reporter') || 'Reporter'}: ${report.reporter_name}`)}
-                          className="p-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10"
+                          className="p-2 bg-neutral-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
                           title={t('admin.reportsModeration.viewDetailsTitle')}
                         >
                           <Eye className="w-4 h-4" />
@@ -270,23 +270,23 @@ const ReportsModeration = () => {
                         <button
                           onClick={() => handleResolve(report.id, 'remove')}
                           disabled={actionLoading === `resolve-${report.id}`}
-                          className="px-3 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 text-sm font-medium"
+                          className="px-3 py-2 bg-red-500/10 text-red-500 dark:text-red-400 rounded-lg hover:bg-red-500/20 text-sm font-medium transition-colors"
                         >
                           {actionLoading === `resolve-${report.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.reportsModeration.removeButton')}
                         </button>
                         <button
                           onClick={() => handleDismiss(report.id)}
                           disabled={actionLoading === `dismiss-${report.id}`}
-                          className="px-3 py-2 bg-gray-500/10 text-gray-400 rounded-lg hover:bg-gray-500/20 text-sm font-medium"
+                          className="px-3 py-2 bg-neutral-100 dark:bg-gray-500/10 text-gray-700 dark:text-gray-400 rounded-lg hover:bg-neutral-200 dark:hover:bg-gray-500/20 text-sm font-medium transition-colors"
                         >
                           {actionLoading === `dismiss-${report.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.reportsModeration.dismissButton')}
                         </button>
                       </>
                     )}
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      report.status === 'resolved' ? 'bg-green-500/20 text-green-400' :
-                      report.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-gray-500/20 text-gray-400'
+                      report.status === 'resolved' ? 'bg-green-500/20 text-green-500 dark:text-green-400' :
+                      report.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500 dark:text-yellow-400' :
+                      'bg-gray-500/20 text-gray-600 dark:text-gray-400'
                     }`}>
                       {t(`admin.reportsModeration.status.${report.status}`)}
                     </span>

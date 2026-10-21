@@ -236,7 +236,7 @@ export default function BusinessPromoters() {
   const totalRevenue = enabledEvents.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.revenue_generated || 0), 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-6 pb-4 px-4 lg:p-10">
+    <div className="min-h-screen bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

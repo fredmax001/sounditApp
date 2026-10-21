@@ -3,18 +3,19 @@ import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
-const GOOGLE_CLIENT_ID =
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+const WEB_GOOGLE_CLIENT_ID =
   '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com';
+
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID || WEB_GOOGLE_CLIENT_ID;
 let nativeGoogleInitialization: Promise<void> | undefined;
 
 const initializeNativeGoogle = () => {
-  if (!GOOGLE_CLIENT_ID) {
-    return Promise.reject(new Error('Google sign-in is not configured.'));
-  }
+  // Android Credential Manager ALWAYS requires the Web OAuth 2.0 Client ID (type 3) as webClientId
+  const clientId = WEB_GOOGLE_CLIENT_ID;
 
   nativeGoogleInitialization ??= SocialLogin.initialize({
-    google: { webClientId: GOOGLE_CLIENT_ID },
+    google: { webClientId: clientId },
   }).catch((error: unknown) => {
     nativeGoogleInitialization = undefined;
     throw error;
@@ -71,10 +72,14 @@ const GoogleAuthButton = ({ text, buttonLabel, onToken, onError }: GoogleAuthBut
           filterByAuthorizedAccounts: false,
         },
       });
-      if (result.responseType !== 'online' || !result.idToken) {
-        throw new Error('Google did not return an ID token.');
+      const token =
+        (result as any)?.idToken ||
+        (result as any)?.accessToken?.token ||
+        (typeof (result as any)?.accessToken === 'string' ? (result as any).accessToken : '');
+      if (!token) {
+        throw new Error('Google did not return an authentication token.');
       }
-      await onToken(result.idToken);
+      await onToken(token);
     } catch (error) {
       console.error('Native Google sign-in failed:', error);
       onError(error);

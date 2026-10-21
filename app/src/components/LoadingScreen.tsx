@@ -1,14 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Pre-defined orb configurations to avoid Math.random during render
-const ORB_CONFIGS = [
-  { width: 180, height: 220, left: '15%', top: '20%', duration: 6, xOffset: -30, yOffset: 40 },
-  { width: 150, height: 180, left: '75%', top: '15%', duration: 7, xOffset: 40, yOffset: -20 },
-  { width: 200, height: 250, left: '60%', top: '65%', duration: 8, xOffset: -50, yOffset: 30 },
-  { width: 120, height: 150, left: '25%', top: '70%', duration: 5, xOffset: 30, yOffset: -40 },
-  { width: 170, height: 200, left: '80%', top: '50%', duration: 6.5, xOffset: -20, yOffset: 50 },
-];
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 interface IntroSettings {
   enabled?: boolean;
@@ -17,193 +10,150 @@ interface IntroSettings {
   tagline?: string;
 }
 
-const LoadingScreen = ({ settings }: { settings?: IntroSettings | null }) => {
-  const [progress, setProgress] = useState(0);
+interface LoadingScreenProps {
+  settings?: IntroSettings | null;
+  onFinish?: () => void;
+}
 
-  const logoSrc = settings?.logo_url || '/logo-platform.png';
-  const tagline = settings?.tagline || '5 years of Excellence in Entertainment';
-  const title = settings?.title || '';
+const LoadingScreen = ({ settings: _settings, onFinish }: LoadingScreenProps) => {
+  const [phase, setPhase] = useState<'drum' | 'full' | 'exit'>('drum');
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + Math.random() * 15;
+    // Keep iOS's static launch screen up until this animated intro is ready.
+    // The launch artwork matches the intro's opening frame to avoid a second splash.
+    if (Capacitor.isNativePlatform()) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          SplashScreen.hide().catch(() => undefined);
+        });
       });
-    }, 100);
+    }
 
-    return () => clearInterval(interval);
-  }, []);
+    // Phase 1: Drum appears and pulses with musical energy
+    // Phase 2: At 650ms, "SOUND It" drops in with neon energy
+    const t1 = setTimeout(() => {
+      setPhase('full');
+    }, 650);
+
+    // Phase 3: At 2200ms, initiate smooth fadeout into the app
+    const t2 = setTimeout(() => {
+      setPhase('exit');
+    }, 2200);
+
+    // Phase 4: At 2500ms, invoke onFinish
+    const t3 = setTimeout(() => {
+      onFinish?.();
+    }, 2500);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [onFinish]);
+
+  const handleSkip = () => {
+    setPhase('exit');
+    setTimeout(() => {
+      onFinish?.();
+    }, 180);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A]">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Animated Grid */}
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(211, 218, 12, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(211, 218, 12, 0.3) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-            animation: 'gridMove 20s linear infinite',
+    <div
+      onClick={handleSkip}
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020b00] select-none overflow-hidden transition-opacity duration-300 cursor-pointer ${
+        phase === 'exit' ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+    >
+      {/* Ambient background pulse */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [0.9, 1.25, 0.9],
+            opacity: [0.1, 0.22, 0.1],
           }}
+          transition={{
+            duration: 2.2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-[#d3da0c] blur-[100px]"
         />
-        
-        {/* Floating Orbs */}
-        {ORB_CONFIGS.map((orb, i) => (
+      </div>
+
+      {/* Center Animated Logo Lockup */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-6">
+        {/* Animated Drum Icon */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.65, y: -15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          className="relative flex items-center justify-center mb-5"
+        >
+          {/* Subtle neon glow ring */}
           <motion.div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: orb.width,
-              height: orb.height,
-              background: i % 2 === 0 
-                ? 'radial-gradient(circle, rgba(211, 218, 12, 0.15) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(211, 218, 12, 0.1) 0%, transparent 70%)',
-              left: orb.left,
-              top: orb.top,
-            }}
             animate={{
-              x: [0, orb.xOffset, 0],
-              y: [0, orb.yOffset, 0],
-              scale: [1, 1.2, 1],
+              boxShadow: [
+                '0 0 0px rgba(211,218,12,0)',
+                '0 0 35px rgba(211,218,12,0.45)',
+                '0 0 15px rgba(211,218,12,0.2)',
+              ],
+            }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-0 rounded-full"
+          />
+
+          <motion.img
+            src="/intro_drum.png"
+            alt="Sound It Drum"
+            animate={{
+              scale: [1, 1.04, 1],
             }}
             transition={{
-              duration: orb.duration,
+              duration: 1.6,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
+            className="h-28 sm:h-32 w-auto object-contain drop-shadow-[0_0_18px_rgba(211,218,12,0.4)]"
           />
-        ))}
-      </div>
+        </motion.div>
 
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Logo Animation */}
+        {/* Animated "SOUND It" Typography */}
         <AnimatePresence>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <div className="relative">
-              {/* Glow Effect Behind Logo */}
-              <div className="absolute inset-0 blur-3xl scale-110">
-                <img 
-                  src={logoSrc} 
-                  alt=""
-                  className="max-w-64 max-h-64 w-auto h-auto opacity-50 object-contain"
-                  style={{ filter: 'brightness(1.5)' }}
-                />
-              </div>
-              
-              {/* Logo Image */}
-              <motion.img 
-                src={logoSrc}
-                alt="Sound It"
-                className="relative max-w-64 max-h-64 w-auto h-auto object-contain"
-                animate={{
-                  filter: [
-                    'drop-shadow(0 0 20px rgba(211, 218, 12, 0.5))',
-                    'drop-shadow(0 0 40px rgba(211, 218, 12, 0.8))',
-                    'drop-shadow(0 0 20px rgba(211, 218, 12, 0.5))',
-                  ],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Title (optional, admin-configured) */}
-        {title ? (
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="text-white text-xl sm:text-2xl font-extrabold tracking-wide mb-3 text-center px-4"
-          >
-            {title}
-          </motion.h1>
-        ) : null}
-
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-[#d3da0c] text-sm tracking-[0.3em] uppercase mb-12 font-medium text-center px-4"
-        >
-          {tagline}
-        </motion.p>
-
-        {/* Progress Bar */}
-        <div className="w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-[#d3da0c]"
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(progress, 100)}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-
-        {/* Progress Text */}
-        <motion.p
-          className="mt-4 text-[#d3da0c] font-mono text-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {Math.min(Math.round(progress), 100)}%
-        </motion.p>
-
-        {/* Loading Dots */}
-        <div className="flex gap-2 mt-8">
-          {[0, 1, 2].map((i) => (
+          {phase !== 'drum' && (
             <motion.div
-              key={i}
-              className="w-2 h-2 rounded-full bg-[#d3da0c]"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
+              initial={{ opacity: 0, y: 16, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{
-                duration: 0.6,
-                repeat: Infinity,
-                delay: i * 0.2,
+                duration: 0.5,
+                ease: [0.22, 1, 0.36, 1],
               }}
-            />
-          ))}
-        </div>
+              className="flex items-center justify-center"
+            >
+              <img
+                src="/intro_sound.png"
+                alt="Sound It"
+                className="h-14 sm:h-16 w-auto object-contain drop-shadow-[0_0_22px_rgba(211,218,12,0.45)]"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Corner Decorations */}
-      <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-[#d3da0c]/30" />
-      <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-[#d3da0c]/30" />
-      <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-[#d3da0c]/30" />
-      <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-[#d3da0c]/30" />
-
-      <style>{`
-        @keyframes gridMove {
-          0% {
-            transform: translate(0, 0);
-          }
-          100% {
-            transform: translate(50px, 50px);
-          }
-        }
-      `}</style>
+      {/* Loading Circle at the Bottom (Preserved as requested) */}
+      <div
+        className="flex flex-col items-center gap-3 absolute bottom-12 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div
+          className="w-9 h-9 rounded-full border-[3px] border-[#222222] border-t-[#d3da0c] animate-spin"
+          style={{ animationDuration: '0.8s' }}
+        />
+        <p className="text-[#555555] text-sm font-sans m-0 whitespace-nowrap tracking-wide">
+          Loading Sound It...
+        </p>
+      </div>
     </div>
   );
 };

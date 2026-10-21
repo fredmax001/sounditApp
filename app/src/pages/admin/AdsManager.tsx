@@ -158,11 +158,11 @@ const AdsManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-400';
-      case 'paused': return 'bg-yellow-500/20 text-yellow-400';
-      case 'expired': return 'bg-gray-500/20 text-gray-400';
-      case 'scheduled': return 'bg-blue-500/20 text-blue-400';
-      default: return 'bg-gray-500/20 text-gray-400';
+      case 'active': return 'bg-green-500/15 text-green-700 dark:text-green-400';
+      case 'paused': return 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400';
+      case 'expired': return 'bg-gray-500/15 text-gray-700 dark:text-gray-400';
+      case 'scheduled': return 'bg-blue-500/15 text-blue-700 dark:text-blue-400';
+      default: return 'bg-gray-500/15 text-gray-700 dark:text-gray-400';
     }
   };
 
@@ -171,8 +171,8 @@ const AdsManager = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.adsManager.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.adsManager.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.adsManager.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.adsManager.subtitle')}</p>
         </div>
         <button
           onClick={() => {
@@ -186,7 +186,7 @@ const AdsManager = () => {
             });
             setShowEditor(true);
           }}
-          className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-white transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           {t('admin.adsManager.newAd')}
@@ -195,47 +195,47 @@ const AdsManager = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
               <Megaphone className="w-5 h-5 text-[#d3da0c]" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.adsManager.totalAds')}</p>
-              <p className="text-white font-bold text-xl">{ads.length}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.adsManager.totalAds')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{ads.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Eye className="w-5 h-5 text-blue-400" />
+              <Eye className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.adsManager.totalImpressions')}</p>
-              <p className="text-white font-bold text-xl">{totalImpressions.toLocaleString()}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.adsManager.totalImpressions')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{totalImpressions.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/10 rounded-lg">
-              <Target className="w-5 h-5 text-green-400" />
+              <Target className="w-5 h-5 text-green-500 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.adsManager.totalClicks')}</p>
-              <p className="text-white font-bold text-xl">{totalClicks.toLocaleString()}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.adsManager.totalClicks')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{totalClicks.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/10 rounded-lg">
-              <BarChart3 className="w-5 h-5 text-purple-400" />
+              <BarChart3 className="w-5 h-5 text-purple-500 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs">{t('admin.adsManager.ctr')}</p>
-              <p className="text-white font-bold text-xl">{ctr}%</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs">{t('admin.adsManager.ctr')}</p>
+              <p className="text-[#020b00] dark:text-white font-bold text-xl">{ctr}%</p>
             </div>
           </div>
         </div>
@@ -244,19 +244,19 @@ const AdsManager = () => {
       {/* Filters */}
       <div className="flex gap-4 flex-wrap">
         <div className="flex-1 relative min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.adsManager.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
         <select
           value={positionFilter}
           onChange={(e) => setPositionFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
         >
           <option value="">{t('admin.adsManager.allPositions')}</option>
           <option value="homepage_hero">{t('admin.adsManager.positionHomepageHero') || 'Homepage Hero'}</option>
@@ -268,7 +268,7 @@ const AdsManager = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white"
+          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
         >
           <option value="">{t('admin.adsManager.allStatus')}</option>
           <option value="active">{t('admin.adsManager.statusActive')}</option>
@@ -278,28 +278,28 @@ const AdsManager = () => {
       </div>
 
       {/* Ads Table */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-white/5">
+            <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.ad')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.position')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.status')}</th>
-                <th className="text-left text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.performance')}</th>
-                <th className="text-right text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.actions')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.ad')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.position')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.status')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.performance')}</th>
+                <th className="text-right text-gray-600 dark:text-gray-400 text-sm font-medium p-4">{t('admin.adsManager.actions')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {filteredAds.map((ad) => (
-                <tr key={ad.id} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={ad.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#d3da0c] to-[#bbc10b] rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#d3da0c] to-[#bbc10b] rounded-lg flex items-center justify-center shrink-0">
                         {ad.image_url ? (
                           <img src={ad.image_url} alt={ad.title} className="w-full h-full object-cover rounded-lg" />
                         ) : (
@@ -307,13 +307,13 @@ const AdsManager = () => {
                         )}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{ad.title}</p>
-                        <p className="text-gray-500 text-sm truncate max-w-xs">{ad.description || t('admin.adsManager.noDescription')}</p>
+                        <p className="text-[#020b00] dark:text-white font-medium">{ad.title}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm truncate max-w-xs">{ad.description || t('admin.adsManager.noDescription')}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className="px-2 py-1 bg-white/10 rounded text-gray-400 text-sm capitalize">
+                    <span className="px-2 py-1 bg-neutral-100 dark:bg-white/10 rounded text-gray-700 dark:text-gray-300 text-sm capitalize">
                       {ad.position}
                     </span>
                   </td>
@@ -324,8 +324,8 @@ const AdsManager = () => {
                   </td>
                   <td className="p-4">
                     <div className="text-sm">
-                      <p className="text-gray-400">{ad.impressions?.toLocaleString() || 0} {t('admin.adsManager.impressions')}</p>
-                      <p className="text-gray-400">{ad.clicks?.toLocaleString() || 0} {t('admin.adsManager.clicks')}</p>
+                      <p className="text-gray-600 dark:text-gray-400">{ad.impressions?.toLocaleString() || 0} {t('admin.adsManager.impressions')}</p>
+                      <p className="text-gray-600 dark:text-gray-400">{ad.clicks?.toLocaleString() || 0} {t('admin.adsManager.clicks')}</p>
                     </div>
                   </td>
                   <td className="p-4">
@@ -333,7 +333,7 @@ const AdsManager = () => {
                       <button
                         onClick={() => handleToggleStatus(ad)}
                         disabled={actionLoading === `status-${ad.id}`}
-                        className={`p-2 hover:bg-white/10 rounded-lg ${ad.status === 'active' ? 'text-yellow-400' : 'text-green-400'}`}
+                        className={`p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${ad.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}
                         title={ad.status === 'active' ? t('admin.adsManager.pause') : t('admin.adsManager.activate')}
                       >
                         {actionLoading === `status-${ad.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : 
@@ -344,7 +344,7 @@ const AdsManager = () => {
                           setEditingAd(ad);
                           setShowEditor(true);
                         }}
-                        className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
+                        className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-blue-600 dark:text-blue-400 transition-colors"
                         title={t('admin.adsManager.edit')}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -352,7 +352,7 @@ const AdsManager = () => {
                       <button
                         onClick={() => handleDeleteAd(ad.id)}
                         disabled={actionLoading === `delete-${ad.id}`}
-                        className="p-2 hover:bg-white/10 rounded-lg text-red-400"
+                        className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-red-600 dark:text-red-400 transition-colors"
                         title={t('admin.adsManager.delete')}
                       >
                         {actionLoading === `delete-${ad.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -363,7 +363,7 @@ const AdsManager = () => {
               ))}
               {filteredAds.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                  <td colSpan={5} className="p-8 text-center text-gray-400 dark:text-gray-500">
                     <Megaphone className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>{t('admin.adsManager.noAdsFound')}</p>
                   </td>
@@ -376,10 +376,10 @@ const AdsManager = () => {
 
       {/* Ad Editor Modal */}
       {showEditor && editingAd && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-auto shadow-2xl">
+            <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#020b00] dark:text-white">
                 {editingAd.id ? t('admin.adsManager.editAd') : t('admin.adsManager.newAd')}
               </h2>
               <button
@@ -387,38 +387,38 @@ const AdsManager = () => {
                   setShowEditor(false);
                   setEditingAd(null);
                 }}
-                className="p-2 hover:bg-white/10 rounded-lg"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSaveAd} className="p-6 space-y-4">
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.titleLabel')} *</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.titleLabel')} *</label>
                 <input
                   type="text"
                   value={editingAd.title || ''}
                   onChange={(e) => setEditingAd({ ...editingAd, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.description')}</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.description')}</label>
                 <textarea
                   value={editingAd.description || ''}
                   onChange={(e) => setEditingAd({ ...editingAd, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.position')}</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.position')}</label>
                   <select
                     value={editingAd.position || 'homepage_hero'}
                     onChange={(e) => setEditingAd({ ...editingAd, position: e.target.value as Ad['position'] })}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                   >
                     <option value="homepage_hero">{t('admin.adsManager.positionHomepageHero') || 'Homepage Hero'}</option>
                     <option value="homepage_sidebar">{t('admin.adsManager.positionHomepageSidebar') || 'Homepage Sidebar'}</option>
@@ -428,11 +428,11 @@ const AdsManager = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.status')}</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.status')}</label>
                   <select
                     value={editingAd.status || 'paused'}
                     onChange={(e) => setEditingAd({ ...editingAd, status: e.target.value as Ad['status'] })}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                   >
                     <option value="active">{t('admin.adsManager.statusActive')}</option>
                     <option value="paused">{t('admin.adsManager.statusPaused')}</option>
@@ -440,60 +440,60 @@ const AdsManager = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.imageUrl')}</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.imageUrl')}</label>
                 <input
                   type="url"
                   value={editingAd.image_url || ''}
                   onChange={(e) => setEditingAd({ ...editingAd, image_url: e.target.value })}
                   placeholder={t('admin.adsManager.urlPlaceholder')}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.linkUrl')}</label>
+                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.linkUrl')}</label>
                 <input
                   type="url"
                   value={editingAd.link_url || ''}
                   onChange={(e) => setEditingAd({ ...editingAd, link_url: e.target.value })}
                   placeholder={t('admin.adsManager.urlPlaceholder')}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.startDate')}</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.startDate')}</label>
                   <input
                     type="date"
                     value={editingAd.start_date?.split('T')[0] || ''}
                     onChange={(e) => setEditingAd({ ...editingAd, start_date: e.target.value })}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">{t('admin.adsManager.endDate')}</label>
+                  <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.adsManager.endDate')}</label>
                   <input
                     type="date"
                     value={editingAd.end_date?.split('T')[0] || ''}
                     onChange={(e) => setEditingAd({ ...editingAd, end_date: e.target.value })}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-black/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => {
                     setShowEditor(false);
                     setEditingAd(null);
                   }}
-                  className="px-4 py-2 border border-white/10 text-white rounded-lg hover:bg-white/5"
+                  className="px-4 py-2 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
                 >
                   {t('admin.adsManager.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === 'save'}
-                  className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-white disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-white disabled:opacity-50 flex items-center gap-2 transition-colors"
                 >
                   {actionLoading === 'save' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {t('admin.adsManager.saveAd')}

@@ -37,7 +37,7 @@ const DownloadPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-[#020b00] text-white">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <img src="/logo.png" alt="SOUND IT" className="h-12 w-auto object-contain mx-auto mb-6" />
@@ -60,7 +60,7 @@ const DownloadPage = () => {
                   {t('download.android.title', 'Android App')}
                 </h2>
                 <p className="text-gray-400 text-sm">
-                  {t('download.android.version', 'Version {{v}} ({{size}} MB)', { v: '1.3', size: '18' })}
+                  {t('download.android.version', 'Version {{v}} ({{size}} MB)', { v: '1.5', size: '14' })}
                 </p>
               </div>
             </div>

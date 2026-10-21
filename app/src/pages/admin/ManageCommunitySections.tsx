@@ -159,10 +159,10 @@ const ManageCommunitySections = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('admin.manageCommunitySections.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('admin.manageCommunitySections.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageCommunitySections.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageCommunitySections.subtitle')}</p>
         </div>
-        <div className="flex bg-white/5 p-1 rounded-xl w-fit">
+        <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/10 p-1 rounded-xl w-fit">
           {[
             { id: 'metrics', label: t('admin.communityMetrics.tabMetrics'), path: '/admin/community' },
             { id: 'sections', label: t('admin.communityMetrics.tabSections'), path: '/admin/community/sections' },
@@ -172,7 +172,7 @@ const ManageCommunitySections = () => {
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname === tab.path ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname === tab.path ? 'bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'}`}
             >
               {tab.label}
             </button>
@@ -183,18 +183,18 @@ const ManageCommunitySections = () => {
       {/* Filters & Actions */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="flex-1 relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.manageCommunitySections.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
           />
         </div>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2"
+          className="px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4" />
           {t('admin.manageCommunitySections.createSection')}
@@ -202,7 +202,7 @@ const ManageCommunitySections = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-xs dark:shadow-none">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
@@ -210,18 +210,18 @@ const ManageCommunitySections = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-white/5">
+              <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
                 <tr>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.name')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.slug')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.description')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.sortOrder')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.active')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.postCount')}</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs font-medium uppercase tracking-wide text-right">{t('admin.manageCommunitySections.actions')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.name')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.slug')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide">{t('admin.manageCommunitySections.description')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.sortOrder')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.active')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide text-center">{t('admin.manageCommunitySections.postCount')}</th>
+                  <th className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wide text-right">{t('admin.manageCommunitySections.actions')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 <AnimatePresence>
                   {filteredSections.map((section) => (
                     <motion.tr
@@ -229,29 +229,29 @@ const ManageCommunitySections = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="hover:bg-white/[0.02]"
+                      className="hover:bg-neutral-50/70 dark:hover:bg-white/[0.02]"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {section.icon && <span className="text-[#d3da0c]">{section.icon}</span>}
-                          <span className="text-white font-medium text-sm">{section.name}</span>
+                          <span className="text-[#020b00] dark:text-white font-medium text-sm">{section.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-sm">{section.slug}</td>
-                      <td className="px-4 py-3 text-gray-400 text-sm max-w-xs truncate">{section.description || '-'}</td>
-                      <td className="px-4 py-3 text-center text-gray-400 text-sm">{section.sort_order}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">{section.slug}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm max-w-xs truncate">{section.description || '-'}</td>
+                      <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 text-sm">{section.sort_order}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${section.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${section.is_active ? 'bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400' : 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400'}`}>
                           {section.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-gray-400 text-sm">{section.post_count}</td>
+                      <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 text-sm">{section.post_count}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => openEditModal(section)}
                             disabled={actionLoading === `edit-${section.id}`}
-                            className="p-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white"
+                            className="p-2 bg-neutral-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-[#020b00] dark:hover:text-white"
                             title={t('admin.manageCommunitySections.edit')}
                           >
                             <Pencil className="w-4 h-4" />
@@ -259,7 +259,7 @@ const ManageCommunitySections = () => {
                           <button
                             onClick={() => handleDelete(section.id)}
                             disabled={actionLoading === `delete-${section.id}`}
-                            className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
+                            className="p-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20"
                             title={t('admin.manageCommunitySections.delete')}
                           >
                             {actionLoading === `delete-${section.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -271,7 +271,7 @@ const ManageCommunitySections = () => {
                 </AnimatePresence>
                 {filteredSections.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">
+                    <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400 text-sm">
                       {t('admin.manageCommunitySections.noSectionsFound')}
                     </td>
                   </tr>
@@ -284,72 +284,72 @@ const ManageCommunitySections = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-lg"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-lg shadow-2xl"
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-black/10 dark:border-white/10">
+              <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">
                 {editingSection ? t('admin.manageCommunitySections.editSection') : t('admin.manageCommunitySections.createSection')}
               </h3>
               <button
                 onClick={() => { setShowModal(false); resetForm(); }}
-                className="p-2 hover:bg-white/10 rounded-lg"
+                className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-gray-400 text-sm mb-1.5">{t('admin.manageCommunitySections.name')}</label>
+                <label className="block text-gray-700 dark:text-gray-300 text-sm mb-1.5">{t('admin.manageCommunitySections.name')}</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-1.5">{t('admin.manageCommunitySections.slug')}</label>
+                <label className="block text-gray-700 dark:text-gray-300 text-sm mb-1.5">{t('admin.manageCommunitySections.slug')}</label>
                 <input
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                   required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
                 <p className="text-gray-500 text-xs mt-1">{t('admin.manageCommunitySections.slugHint')}</p>
               </div>
               <div>
-                <label className="block text-gray-400 text-sm mb-1.5">{t('admin.manageCommunitySections.description')}</label>
+                <label className="block text-gray-700 dark:text-gray-300 text-sm mb-1.5">{t('admin.manageCommunitySections.description')}</label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-1.5">{t('admin.manageCommunitySections.icon')}</label>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm mb-1.5">{t('admin.manageCommunitySections.icon')}</label>
                   <input
                     type="text"
                     value={formData.icon}
                     onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
                     placeholder={t('admin.manageCommunitySections.iconPlaceholder')}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-sm mb-1.5">{t('admin.manageCommunitySections.sortOrder')}</label>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm mb-1.5">{t('admin.manageCommunitySections.sortOrder')}</label>
                   <input
                     type="number"
                     value={formData.sort_order}
                     onChange={(e) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value || '0', 10) }))}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                   />
                 </div>
               </div>
@@ -361,20 +361,20 @@ const ManageCommunitySections = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
                   className="w-4 h-4 accent-[#d3da0c]"
                 />
-                <label htmlFor="is_active" className="text-gray-300 text-sm">{t('admin.manageCommunitySections.isActive')}</label>
+                <label htmlFor="is_active" className="text-gray-700 dark:text-gray-300 text-sm">{t('admin.manageCommunitySections.isActive')}</label>
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => { setShowModal(false); resetForm(); }}
-                  className="flex-1 py-2.5 bg-white/5 text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
+                  className="flex-1 py-2.5 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white font-medium rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors border border-black/10 dark:border-white/10"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={!!actionLoading}
-                  className="flex-1 py-2.5 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-900 dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   {editingSection ? t('common.save') : t('common.create')}

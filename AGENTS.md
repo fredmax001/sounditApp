@@ -5,7 +5,631 @@
 ---
 
 ## Last Updated
-2026-10-15
+2026-10-21
+
+---
+
+### 125. iPad Successful Installation & Developer Trust Authorization (2026-10-21)
+- **Status & Actions**:
+  - Once Developer Mode was enabled by the user and the iPad restarted, `devicectl` confirmed `developerModeStatus: enabled`.
+  - Executed `xcodebuild -project app/ios/App/App.xcodeproj -scheme App -configuration Debug -destination "id=9e35290fe12decf9593f1521094fed227fd78903" -allowProvisioningUpdates build` to register the iPad's UDID (`9e35290fe12decf9593f1521094fed227fd78903`) with Apple Developer and generate the updated provisioning profile (`5f0d4641-c2a4-4c96-b984-a516b4fce0b5`).
+  - Successfully installed the app package onto the iPad via `xcrun devicectl device install app`:
+    - Bundle ID: `com.sounditent.app`
+    - Version: `1.0 (1)`
+    - Install URL: `/private/var/containers/Bundle/Application/C07A22DA-5C08-4DD6-BA27-9B15CA32EAAB/App.app/`
+    - Exit Code: `0` (Success).
+  - First-time launch requirement: As standard for development sideloading on personal Apple IDs, the certificate must be trusted in:
+    `Settings` → `General` → `VPN & Device Management` → tap `djfredmax221@gmail.com` → `Trust`.
+
+### 124. iPad Installation Diagnostics, Personal Team Entitlement Fix & Developer Mode Requirement (2026-10-21)
+- **Problem & Diagnosis**:
+  - The user connected an iPad (7th generation, iPadOS 18.7.10, UDID `9e35290fe12decf9593f1521094fed227fd78903`) but attempts to install the app failed.
+  - Diagnostics with `xcrun devicectl` and `xcodebuild` revealed two issues:
+    1. **Personal Team Provisioning Rejection**:
+       - `CODE_SIGN_ENTITLEMENTS = App/App.entitlements` was added to `App.xcodeproj`, declaring `aps-environment` (Push Notifications).
+       - Because the signing identity is a free Personal Apple ID team (`X3269MPCLZ` / "Fred Max"), Apple provisioning rejected the build: *"Personal development teams do not support the Push Notifications capability"*.
+       - Fix: Removed `CODE_SIGN_ENTITLEMENTS` from `Debug` and `Release` build configurations in `project.pbxproj`.
+       - Re-compiled cleanly targeting both iPhone and iPad (`TARGETED_DEVICE_FAMILY = "1,2"`), generating signed `App.app` in `build/Build/Products/Debug-iphoneos/App.app`.
+    2. **iPad Developer Mode Disabled**:
+       - `xcrun devicectl device install app` returned:
+         `ERROR: Developer mode is not enabled on device: 0xe800011c (kAMDMobileImageMounterDiskImageRestricted)`.
+       - iPadOS 16/17/18 strictly blocks Developer Disk Image (DDI) mounting and app installation until the user toggles Developer Mode in:
+         `Settings` → `Privacy & Security` → `Developer Mode` → `ON` → Restart → `Turn On`.
+
+### 123. PWA Cache Invalidation, Manifest Sync & Production Deployment (2026-10-21)
+- **Objective & Actions**:
+  - The user requested syncing recent changes to the PWA so that all installed instances and mobile browsers immediately reflect the latest updates without stale asset caching.
+  - **Service Worker (`app/public/service-worker.js`)**:
+    - Bumped cache version from `soundit-v6` to `soundit-v7` to purge outdated browser caches.
+    - Added `urlsToCache` coverage for `/site.webmanifest` and `/manifest.webmanifest`.
+    - Added `message` event handler for `SKIP_WAITING` support.
+  - **PWA Manifests (`site.webmanifest` & `manifest.webmanifest`)**:
+    - Synchronized `manifest.webmanifest` with `site.webmanifest` (`background_color: "#020b00"`, `theme_color: "#d3da0c"`, description, identity, and maskable icons).
+    - Bumped cache-busting queries in `app/index.html` (`/site.webmanifest?v=3`, `apple-touch-icon.png?v=3`, `favicon*.png?v=3`).
+  - **Push Notification / PWA Update Trigger (`app/src/lib/pushNotifications.ts`)**:
+    - Added proactive `registration.update()` call on reload to trigger immediate service worker checks against the server.
+  - **Capacitor Mobile Sync**:
+    - Executed `npx cap copy` to synchronize web distribution assets to Android (`android/app/src/main/assets/public`) and iOS (`ios/App/App/public`).
+  - **Build & Production Verification**:
+    - Compiled frontend with zero errors (`npm run build`, exit code 0) producing bundle `index-C1KpkwMy.js`.
+    - Synced `app/dist/` with `--delete` to production server (`72.62.254.251`).
+    - Verified live:
+      - `https://sounditent.com/` returns bundle `index-C1KpkwMy.js` (HTTP 200).
+      - `https://sounditent.com/service-worker.js` contains `soundit-v7`.
+      - `https://sounditent.com/site.webmanifest` and `/manifest.webmanifest` return `#020b00`.
+      - `https://sounditent.com/health` returns `{"status":"healthy"}`.
+
+### 122. Mobile Header DJ Hub Removal, Nav Pill Fix, Favorites-Style Back Buttons & Filter Modal Sticky Actions (2026-10-21)
+- **User Feedback & Problem Analysis**:
+  1. **Redundant DJ Hub in Mobile Header**: A `[ ⊞ DJ Hub ]` quick-link button in the mobile header crowded the top bar. The profile avatar menu already provides a direct link to the DJ Dashboard, rendering the extra header button superfluous.
+  2. **Discovery Page Back Button & Spacing**:
+     - No back button existed before the `DISCOVERY HUB` title on `/discovery`.
+     - An excessive gap existed between the header and the content caused by `pt-16` on inner wrappers compounding with layout header padding.
+  3. **Displaced Yellow Shadow on Discovery Tab**:
+     - The bottom nav bar rendered an off-center yellow pill shadow next to the Discovery icon due to Framer Motion's `layoutId="nav-active-pill"` coordinate computation. Active tabs already highlight icon & text in Sound It yellow (`#d3da0c`).
+  4. **Missing Back Buttons on My Tickets and Profile**:
+     - My Tickets (`/tickets`) and Profile (`/profile`) lacked a back button. The user praised the clean implementation on Favorites (`/favorites`) (`w-10 h-10` rounded button with `ChevronLeft` and subtle border) and requested the identical treatment.
+  5. **Events / Search Page Filter Knob vs. Redundant Pills & Modal Cutoff**:
+     - The search bar on `/events` already includes a filter knob. The 2 rows of filter pills underneath were redundant clutter.
+     - Inside the filter sheet modal, the "Reset" and "Apply Filters" action buttons were obscured and cut off behind the mobile bottom navigation dock.
+- **Resolutions & Implementation**:
+  - `app/src/components/MobileHeader.tsx`:
+    - Removed the role portal pill button (`[ DJ Hub ]`, `[ Vendor ]`, `[ Business ]`), restoring clean spacing and prioritizing the hamburger menu and avatar.
+  - `app/src/components/MobileBottomNav.tsx`:
+    - Removed the displaced `motion.div layoutId="nav-active-pill"` background shadow. Active tabs now cleanly and accurately highlight their icon and label in `#d3da0c`.
+  - `app/src/pages/CityGuide.tsx` (Discovery):
+    - Added the Favorites-style `ChevronLeft` back button (`w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center`) before the title.
+    - Reduced inner padding from `pt-16 md:pt-20` to `pt-3 md:pt-6`, eliminating the dead gap under the header.
+  - `app/src/pages/user/Tickets.tsx` (My Tickets):
+    - Added the Favorites-style `ChevronLeft` back button before the `My Tickets` header.
+  - `app/src/pages/user/Profile.tsx` (Profile):
+    - Added top navigation row with Favorites-style `ChevronLeft` back button and `Profile` title.
+    - Reduced top padding from `pt-16 md:pt-0` to `pt-3 md:pt-6` for consistent visual alignment.
+  - `app/src/pages/Events.tsx` (Search & Events):
+    - Added Favorites-style `ChevronLeft` back button before `Search` title.
+    - Removed redundant double filter pills under the search bar.
+    - Added an active filter chips banner that only renders when a filter is applied, with quick 1-tap clear actions.
+    - Filter Sheet Modal:
+      - Elevated wrapper `z-index` to `z-[70]` to sit cleanly above `MobileBottomNav`'s `z-50`.
+      - Refactored modal into a flex layout (`flex flex-col max-h-[85vh]`) with `flex-1 overflow-y-auto` content.
+      - Made bottom footer action buttons sticky with backdrop blur and border, guaranteeing 100% visibility for "Reset" and "Apply Filters".
+
+### 121. Navigation Header & Back Button Restoration, Event Timeline Simplification & Past Events Recaps Integration (2026-10-21)
+- **Problem & User Feedback**:
+  1. **DJ Dashboard Button Overlap & Header Restoration**: The temporary "Explore Events" button placed inside `ArtistDashboard.tsx` (`absolute top-4 left-4`) overlapped Fred Max's profile image and stage name. Furthermore, `hideHeader = location.pathname === '/dashboard/artist'` in `MobileLayout.tsx` had completely eliminated the top header bar on the DJ Dashboard, removing the 🔙 back button and the ☰ hamburger drawer button that lists all sections.
+  2. **Event Filter Fragmentation ("Today / Tomorrow / This Week / Weekend")**: Granular day-by-day tabs frequently showed empty states on a growing platform where events are spaced across weeks and months. The user requested simplifying to:
+     - **Current Events** (live now or starting today)
+     - **Upcoming Events** (scheduled future events)
+     - **Past Events** (archive of past/completed events)
+  3. **Past Event Media (Photos & Videos)**: Users had no way to browse photos, videos, or highlights from past events. A full recaps engine already existed at `app/src/pages/Recaps.tsx` and `api/recaps.py`, but the public `/recaps` route was unregistered in `App.tsx`, past events were excluded from the event feed, and event cards lacked direct links to media recaps.
+- **Resolutions & Changes**:
+  - `app/src/pages/artist/Dashboard.tsx`:
+    - Removed the overlapping absolute pill button from the hero banner.
+    - Adjusted top spacing from `pt-20` to `pt-6` so the hero sits naturally below the restored app bar.
+  - `app/src/layouts/MobileLayout.tsx`:
+    - Removed `hideHeader = location.pathname === '/dashboard/artist'`. The native top bar is now consistently rendered across all roles and pages.
+    - Header left navigation: uses `ChevronLeft` 🔙 (`window.history.length > 1 ? navigate(-1) : navigate('/')`).
+    - Header right navigation: includes an explicit ☰ `Menu` hamburger button next to the avatar pill, opening the section drawer.
+    - Added **Event Recaps** (`/recaps`, `Camera` icon) to the drawer menu for all roles (users, artists, vendors, and businesses).
+  - `app/src/components/ui/MobileFilterPills.tsx`:
+    - Updated `DateFilter` type to: `'all' | 'current' | 'upcoming' | 'past'`.
+    - Updated `DATE_PILLS` array to:
+      - `{ id: 'all', label: 'All Events' }`
+      - `{ id: 'current', label: 'Current Events' }`
+      - `{ id: 'upcoming', label: 'Upcoming Events' }`
+      - `{ id: 'past', label: 'Past Events' }`
+  - `app/src/pages/Events.tsx`:
+    - Updated `fetchEvents` call to `fetchEvents({ city: selectedCity, includePast: true })`.
+    - Rewrote `filteredEvents` matching logic:
+      - `current`: start date is today OR event is live/ongoing (`eventDate <= now && eventEnd >= now`).
+      - `upcoming`: future events (`eventDate > now` and not today and not completed).
+      - `past`: completed/ended events (`event.status === 'completed' || eventEnd < now`).
+      - `all`: all active (current + upcoming) events.
+    - Filter sheet modal updated to reflect the new 4-tier timeline filters.
+    - When `dateFilter === 'past'`, added an eye-catching photo vault banner linking to `/recaps` ("Looking for event photos & videos? Explore moments, crowd pictures, and live recaps from past events →").
+  - `app/src/pages/Home.tsx`:
+    - Updated `filteredMobileEvents` to use `current`, `upcoming`, and `past` timeline logic.
+    - Added a **"Past Events & Recaps"** photo and video vault card on mobile home linking to `/recaps`.
+    - Added a **"Past Events Recaps"** pill button on desktop home next to "View All Events".
+  - `app/src/App.tsx`:
+    - Registered lazy route `<Route path="/recaps" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />` under `MainLayout`.
+  - `app/src/pages/Recaps.tsx`:
+    - Full theme-awareness overhaul matching Sound It brand tokens (`bg-white dark:bg-[#020b00]`, text, cards, buttons).
+    - Added `?event_id=` query param support with active filter pill and auto-open behavior when arriving from a specific past event.
+    - Added "Back to Events" quick link.
+  - `app/src/components/ui/MobileEventCard.tsx` & `MobileListRow.tsx`:
+    - Automatically detects ended/past events (`isPast`).
+    - Displays an `ENDED · RECAP` badge and `View Recap →` pill button.
+  - `app/src/pages/EventDetail.tsx`:
+    - When an event is ended (`isEventPast`), displays a direct **"View Event Photos & Recaps"** button linking to `/recaps?event_id=${currentEvent.id}` on both desktop ticket selector and the mobile bottom action bar.
+- **Production Build & Deployment**:
+  - Frontend compiled cleanly with zero errors (`npm run build`, exit code 0) producing bundle `index-yi35LCed.js`.
+  - Rsynced `app/dist/` with `--delete` to production server (`root@72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live:
+    - `https://sounditent.com/` returns bundle `index-yi35LCed.js` (`HTTP/2 200`).
+    - `https://sounditent.com/health` returns `{"status":"healthy"}`.
+    - Route `/recaps` is publicly accessible.
+
+---
+
+### 120. DJ, Vendor & Business Full Platform Access, Ticket Purchasing & Favicon Cache-Bust (2026-10-21)
+- **Problem & Root Cause**:
+  - DJs, artists, vendors, and businesses were locked out from exploring the public platform on phone and desktop.
+  - Specifically:
+    1. `HomeRedirect.tsx` was wrapping `<Home />` at `/` in `App.tsx`. Any attempt by an artist, DJ, vendor, or business to visit `sounditent.com/` (e.g. clicking the Sound It logo or visiting home) immediately forced them back to their dashboard (`/dashboard/artist`, etc.), creating an inescapable loop.
+    2. In `MobileBottomNav.tsx`, the bottom dock was hardcoded by role (`isDashboardRole`), forcing the operational dock (`Dashboard | Bookings | Messages | Gigs | Profile`) on ALL screens, meaning DJs had no Home, Discover, Events, or Tickets tabs while browsing the site.
+    3. `ArtistDashboard.tsx` had a full-screen hero that hid the MobileLayout top bar (`hideHeader = true`) with zero links or buttons to return to the public platform or explore events.
+    4. In `Profile.tsx`, "My Tickets", "Favorites", and "Table Bookings" were only rendered for the `user` role, preventing artists, vendors, and businesses from viewing or managing tickets they bought for themselves or friends.
+    5. Favicons were cached by browsers due to long `immutable` cache headers without version query strings.
+- **Resolutions & Changes**:
+  - `app/src/App.tsx`:
+    - Removed `HomeRedirect` wrapper from route `/`. Login already directs users to their respective dashboard on initial sign-in (`Login.tsx:getRedirectPath()`). Once logged in, the Home page (`/`) and all platform pages are fully open to all roles.
+  - `app/src/components/MobileBottomNav.tsx`:
+    - Decoupled dock logic by active route:
+      - **Public/Platform routes** (`!isDashboardRoute`): Renders the full 5-tab Eventix-style platform navigation for EVERYONE (including DJs, vendors, and businesses): `Home (/)`, `Discover (/discovery)`, `Tickets (/tickets)`, `Saved (/favorites)`, `Profile (/profile)`.
+      - **Dashboard operational routes** (`isDashboardRoute`): Retains operational tools for each role, with the 5th tab dedicated to **`Explore`** (`/events`), allowing 1-tap exit to the public platform.
+  - `app/src/components/MobileHeader.tsx`:
+    - Added a quick **"DJ Hub"** / **"Vendor"** / **"Business"** portal pill right in the header bar for quick 1-tap switching back to their workspace.
+    - Updated avatar menu to prioritize their role dashboard at the top of the drawer.
+  - `app/src/pages/artist/Dashboard.tsx`:
+    - Added an eye-catching **"Explore Events"** pill button at the top-left of the hero banner, linking directly to `/events` so DJs on their phone can browse events and buy tickets with 1 click.
+  - `app/src/layouts/MobileLayout.tsx`:
+    - Added `Explore Events` (`/events`), `Discovery & Venues` (`/discovery`), and `My Tickets` (`/tickets`) directly into the mobile drawer for business, artist, and vendor roles.
+  - `app/src/layouts/DashboardLayout.tsx`:
+    - Added a prominent **"Explore Platform"** quick-switcher button in the desktop sidebar under the portal header.
+  - `app/src/pages/user/Profile.tsx`:
+    - Added `My Bought Tickets` (`/tickets`), `Favorites` (`/favorites`), and `Table Bookings` (`/table-bookings`) to the menu for artists, vendors, and businesses, alongside a direct link to their Dashboard.
+  - `app/index.html`:
+    - Added `?v=2` cache-busting query parameter to all favicon declarations (`favicon.ico?v=2`, `favicon-32x32.png?v=2`, `favicon-16x16.png?v=2`, `apple-touch-icon.png?v=2`, `site.webmanifest?v=2`) to force instant browser cache invalidation.
+- **Production Build & Deployment**:
+  - Build compiled cleanly with 0 errors (`npm run build`, exit code 0) producing bundle `index-DXJ50uJd.js`.
+  - Rsynced `app/dist/` with `--delete` to production server (`root@72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live:
+    - `https://sounditent.com/` returns bundle `index-DXJ50uJd.js` and favicon `?v=2` links.
+    - `https://sounditent.com/health` returns `{"status":"healthy"}`.
+
+---
+
+### 119. Sound It Ecosystem Expansion — Sound It DJ & Sound It Tech Integration (2026-10-19)
+- **Requirement & Objectives**:
+  - Add two new live Sound It ecosystem platforms:
+    1. `https://sounditdj.cloud/` (Sound It DJ)
+    2. `https://www.soundit.tech/#` (Sound It Tech)
+  - Seamlessly integrate them across the Home landing page, the About page Brand Entities, and the site Footer.
+  - Create accurate, high-fidelity brand descriptions based on live site meta, branding, and services.
+- **Visual Assets Generated**:
+  - Captured crisp high-resolution screenshots for both platforms:
+    - `app/public/web-hero/site-sounditdj.png` (1440x900, dark navy/gold palette, waveform/intelligence preview)
+    - `app/public/web-hero/site-soundittech.png` (1440x900, cyan/dark tech palette, hero UI preview)
+- **Pages & Components Updated**:
+  - `app/src/pages/Home.tsx`:
+    - Expanded `liveEcosystemSites` array from 4 to 6 platforms:
+      - **Sound It DJ**: Tagline: *"Professional DJ Library & Mix Intelligence"*, Description: *"Import, analyze, and export your music across all DJ platforms. AI-powered mix analysis, visualizer creation, and USB export for CDJs."*, domain `sounditdj.cloud`, accent `#EDC61E`, badge `DJ Intelligence & Cloud`.
+      - **Sound It Tech**: Tagline: *"Building the Future of Technology & Innovation"*, Description: *"Full-stack software engineering, mobile & web applications, WeChat mini programs, computer sales & repair, and enterprise IT solutions."*, domain `www.soundit.tech`, accent `#00E5FF`, badge `Tech & IT Solutions`.
+    - Updated layout grid from 4 columns (`lg:grid-cols-4`) to a balanced 2x3 grid (`lg:grid-cols-3 gap-5`).
+  - `app/src/pages/About.tsx`:
+    - Updated `entities` array:
+      - Marked **Sound It DJ** as `Active`, added URL `https://sounditdj.cloud/`, and updated description to reflect its live intelligence platform.
+      - Updated **Sound It Tech** with URL `https://www.soundit.tech/#` and comprehensive service descriptions.
+      - Attached active links to **Sound It Events** (`/events`), **RNB & Slow Sessions** (`https://rnbnslowsessions.com/`), **BOA Festival** (`https://boa.sounditent.com/`), **Sound It Platform** (`/`), and **Deck Salone** (`https://www.decksalone.com/`).
+    - Enhanced Brand Entities cards with interactive link wrappers, hover lift, external link indicators, and "Visit Platform" action pills.
+  - `app/src/components/Footer.tsx`:
+    - Added dedicated **Ecosystem** navigation column containing all 6 platforms (`Sound It DJ`, `Sound It Tech`, `BOA Festival`, `RNB & Slow Sessions`, `Deck Salone`, `Fred Max Hub`).
+    - Handled external link targets (`target="_blank" rel="noopener noreferrer"`) with subtle `ExternalLink` icon indicators.
+- **Production Build & Deployment**:
+  - Compiled frontend with zero errors (`npm run build`, exit code 0) producing bundle `index-C4fUJaQ_.js`.
+  - Rsynced `app/dist/` with `--delete` to production server (`root@72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live:
+    - `https://sounditent.com/web-hero/site-sounditdj.png` -> `HTTP/2 200` (141 KB)
+    - `https://sounditent.com/web-hero/site-soundittech.png` -> `HTTP/2 200` (746 KB)
+    - `https://sounditent.com/health` -> `{"status":"healthy"}`
+    - `https://sounditent.com/` index bundle `index-C4fUJaQ_.js` active.
+
+---
+
+### 118. iOS App Crash on Launch — Scene Lifecycle Adoption Fix (2026-10-19)
+- **Problem**: The Capacitor iOS app (`app/ios/App`) crashed instantly on launch on a physical device (iPhone 14 Pro Max, iOS 27). Crash logs showed `EXC_BREAKPOINT` in `___UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption_block_invoke` — apps built with the iOS 26+ SDK **must** declare a `UIApplicationSceneManifest` even when using a plain `UIApplicationDelegate` + storyboard.
+- **Root Cause**: The project still used the pre-Capacitor-8 app template (no scene manifest, no `UIWindowSceneDelegate`).
+- **Fix (`app/ios/App/App/`)**:
+  - `Info.plist`: Added `UIApplicationSceneManifest` → single `UIWindowSceneSessionRoleApplication` configuration using `UISceneDelegateClassName = $(PRODUCT_MODULE_NAME).AppDelegate` and `UISceneStoryboardFile = Main`.
+  - `AppDelegate.swift`: Conformed `AppDelegate` to `UIWindowSceneDelegate`; added `scene(_:willConnectTo:options:)` (no-op, storyboard builds the window), `scene(_:openURLContexts:)` and `scene(_:continue:)` both forwarding to `ApplicationDelegateProxy.shared` (keeps deep links / Google & Facebook OAuth callbacks working in scene mode). No new files added, so the Xcode project file was untouched.
+- **Build/Install**: `npm run build` → `npx cap sync ios` → `xcodebuild ... DEVELOPMENT_TEAM=X3269MPCLZ -allowProvisioningUpdates` (team ID `X3269MPCLZ`, signing identity `Apple Development: djfredmax221@gmail.com (SB3SHS3WG9)`) → installed & launched on device UDID `00008120-0018305C3C10C01E` via `xcrun devicectl`. Verified: no new crash logs, app runs.
+- **Note**: The `.pbxproj` still has **no `DEVELOPMENT_TEAM` set** — Xcode's Run button needs the team selected in Signing & Capabilities, or keep passing `DEVELOPMENT_TEAM=X3269MPCLZ` on the xcodebuild command line.
+
+---
+
+### 117. Discovery Contact Card Entity Route ID Mismatch Fix (2026-10-19)
+- **Root Cause & Diagnosis**:
+  - In `CityGuide.tsx` and `DiscoveryResultCard.tsx`, contact cards in discovery were computing target profile links with `user.user_id || user.id`.
+  - For artists (`/artists/:id`) and vendors (`/vendors/:id`), the routes and backend endpoints expect the entity's profile ID (`ArtistProfile.id` and `VendorProfile.id`), NOT the `User.id`.
+  - In `CityGuide.tsx`, `dummyUser` was overriding `id` with `Number(item.user_id || item.id)`. For example:
+    - Fred Max: `ArtistProfile.id = 1`, `User.id = 4`.
+    - `dummyUser.id` and `dummyUser.user_id` were set to `4`.
+    - Clicking Fred Max opened `/artists/4`, which resolved to Chucky Traub (`ArtistProfile.id = 4`).
+    - Clicking Westcape Business Consulting (`VendorProfile.id = 2`, `User.id = 91`) routed to `/vendors/91` (404 Not Found).
+- **Frontend Resolution**:
+  - `CityGuide.tsx`:
+    - Updated entity card construction to explicitly generate `targetPath` based on entity type:
+      - Artist: `/artists/${item.id}`
+      - Vendor: `/vendors/${item.id}`
+      - Business: `/profiles/${item.user_id || item.id}`
+    - Passed `linkPath={targetPath}` directly to `<DiscoveryResultCard>`.
+    - Preserved exact IDs on `cardUser`: `id: Number(item.id)`, `user_id: item.user_id`, `artist_id`, `vendor_id`.
+  - `DiscoveryResultCard.tsx`:
+    - Added `linkPath?: string` prop to `DiscoveryResultCardProps`.
+    - Updated fallback link resolution:
+      - `isArtist ? /artists/${user.artist_id || user.id}`
+      - `isVendor ? /vendors/${user.vendor_id || user.id}`
+      - `isBusiness ? /profiles/${user.user_id || user.id}`
+    - Updated `displayName` to support `user.name` fallback.
+  - `DiscoveryFeed.tsx`:
+    - Fixed artist click handler: changed `/artists/${artist.user_id || artist.id}` to `/artists/${artist.id}`.
+- **Backend Hardening**:
+  - `api/vendors.py`:
+    - Added fallback in `get_vendor` endpoint (`GET /vendors/{vendor_id}`): if `VendorProfile.id == vendor_id` is not found, falls back to `VendorProfile.user_id == vendor_id`.
+  - `api/profiles.py`:
+    - Added fallback in `get_public_profile` endpoint (`GET /profiles/{user_id}`): if `User.id == user_id` is not found, falls back to finding the user via `OrganizerProfile.id` or `BusinessProfile.id`.
+- **Production Build & Verification**:
+  - Built frontend with zero errors (`npm run build`, exit code 0) producing bundle `index-BYslyPpI.js`.
+  - Synced backend `api/` and frontend `app/dist/` to production server (`72.62.254.251`).
+  - Verified live:
+    - Fred Max (`/artists/1`) -> Fred Max
+    - GerryBeatz (`/artists/12`) -> GerryBeatz
+    - Panashe BriaN (`/artists/13`) -> Panashe BriaN
+    - ARYA (`/artists/6`) -> ARYA
+    - Doctor Ocean (`/artists/10`) -> Doctor Ocean
+    - Westcape Business Consulting (`/vendors/2`) -> Westcape Business Consulting Co. LTD
+    - Sound Events (`/profiles/3`) -> Sound Events
+    - Chale's Business (`/profiles/90`) -> Chale's Business
+
+### 116. Complete Platform-Wide Light Mode, Dark Mode & System Theme Overhaul (2026-10-19)
+- **Comprehensive Audit & Architecture Across All Roles**:
+  - Executed a complete overhaul across 100% of the application's views, covering ordinary users, artists, vendors, businesses/organizers, and platform administrators.
+  - Full consistency with Sound It brand tokens:
+    - Primary background: `#FFFFFF` (Light), `#020B00` (Dark)
+    - Primary text: `#020B00` (Light), `#FFFFFF` (Dark)
+    - Subtitle / secondary text: `text-gray-600 dark:text-gray-400`
+    - Accent / highlights: `#D3DA0C`
+    - Primary action buttons: `bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black hover:bg-neutral-900 dark:hover:bg-[#bbc10b]`
+    - Secondary buttons / filter pills: `bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white border border-black/5 dark:border-white/10`
+    - Card surfaces: `bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl shadow-xs dark:shadow-none`
+    - Form inputs / dropdowns: `bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500`
+    - Tables: Header `bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10`, Rows `divide-y divide-black/5 dark:divide-white/5 hover:bg-neutral-50/70 dark:hover:bg-white/5`
+- **Portals & Role-Specific Pages Overhauled**:
+  - **Admin Control Center**:
+    - `AdminLayout.tsx`: Theme-aware sidebar (`bg-white dark:bg-[#111111]`), active pills, navigation headers, and collapse states.
+    - `DashboardOverview.tsx`: Stats KPI cards, quick actions, role switchers, activity feeds, and recent transactions.
+    - `FinancialControl.tsx`, `WithdrawalRequests.tsx`, `Payments.tsx`: Financial summary cards, withdrawal review tables, status badges, bank transfer modals, and transaction history.
+    - `ManageUsers.tsx`, `ManageEvents.tsx`, `ManageArtists.tsx`, `ManageVendors.tsx`, `ManageBusinesses.tsx`, `ReviewEvents.tsx`: Management tables, approval queues, status pills, filter bars, action menus, and edit/detail modals.
+    - `RolePermissions.tsx`, `SecurityLogs.tsx`, `SystemSettings.tsx`, `VerificationCenter.tsx`, `ReportsModeration.tsx`: Permission matrix, audit log tables, configuration inputs, verification document previews, and moderation reports.
+    - `NotificationCenter.tsx`, `ManageBookings.tsx`, `ManageRecaps.tsx`, `CMSContent.tsx`, `IntroScreen.tsx`, `APIIntegrations.tsx`, `AdsManager.tsx`, `AdminSubscriptions.tsx`: Notification composer/history, booking management cards, photo recap galleries, CMS section editors, webhook tables, ad campaign tables, and pricing configurations.
+    - `CommunityMetrics.tsx`, `ManageCommunitySections.tsx`, `ManageCommunityPosts.tsx`, `ManageCommunityComments.tsx`: Forum sub-navigation tabs, section management tables/modals, post approval cards/modals, and comment moderation lists.
+  - **Business & Organizer Portals**:
+    - `FinanceWorkspace.tsx`: Business finance overview, KPI stats, payouts history, and table/ticket order approval queue.
+    - `TableReservations.tsx`, `TicketOrders.tsx`, `Promoters.tsx`, `Staff.tsx`: Table booking list, ticket tier orders, promoter commission trackers, and staff access control.
+    - `CreateEvent.tsx`, `EditEvent.tsx`, `ManageEvents.tsx`, `EventPromoters.tsx`, `Scanner.tsx`: Event setup wizard, ticket tiers, promoter assignments, and QR check-in scanner.
+  - **Artist & Vendor Portals**:
+    - `Dashboard.tsx`, `Bookings.tsx`, `Performances.tsx`, `Recaps.tsx`, `Messages.tsx`: Artist booking requests, performance calendars, fan message threads, and recap uploads.
+    - `Dashboard.tsx`, `Orders.tsx`, `Products.tsx`, `MenuImport.tsx`, `Earnings.tsx`, `PaymentSettings.tsx`: Vendor food & merchandise order management, product catalog, smart menu import, and settlement details.
+  - **User & Customer Portals**:
+    - `Tickets.tsx`, `TicketReceipt.tsx`, `MyOrders.tsx`, `OrderTracking.tsx`, `TableBookings.tsx`: Customer ticket cards, receipt view, food order tracker, and table booking passes.
+    - `Profile.tsx`, `EditProfile.tsx`, `Favorites.tsx`, `Followers.tsx`, `InviteFriends.tsx`, `LanguageSettings.tsx`, `SecuritySettings.tsx`, `NotificationSettings.tsx`: User profile hero, settings controls, preferences, and social sharing.
+  - **Public Discovery & Checkout**:
+    - `Events.tsx`, `EventDetail.tsx`, `Artists.tsx`, `ArtistDetail.tsx`, `Vendors.tsx`, `VendorDetail.tsx`, `VendorStore.tsx`, `Food.tsx`, `Marketplace.tsx`, `Community.tsx`, `CityGuide.tsx`, `About.tsx`: Discovery grids, detail views, sticky action bars, tab bars, filter pills, and review sections.
+    - `Cart.tsx`, `Checkout.tsx`, `ProductCheckout.tsx`: Cart drawers, order summaries, payment gateway selectors, and confirmation modals.
+- **Production Verification**:
+  - Built frontend with zero errors (`npm run build`, exit code 0) producing bundle `index-qD939gDc.js` and stylesheet `index-CvZo7PXq.css`.
+  - Deployed cleanly via rsync to production server (`root@72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `/health` (`{"status":"healthy"}`), bundle `index-qD939gDc.js` (`HTTP/2 200`), stylesheet `index-CvZo7PXq.css` (`HTTP/2 200`), and inline anti-flash script active on `https://sounditent.com`.
+
+### 115. Functional Light Mode, Dark Mode & System Theme Implementation (2026-10-19)
+- **Theme Modes & Behavior Specification**:
+  - Implemented 3 theme modes: `system` (default), `light`, and `dark` in `app/src/store/themeStore.ts`.
+  - Default behavior on fresh installs or when no preference exists: `system`.
+  - In `system` mode, dynamically responds to OS `prefers-color-scheme: dark` / `prefers-color-scheme: light` via active media query listeners without requiring a reload.
+  - In `light` or `dark` mode, persists user preference in `localStorage` under `theme-storage` and preserves user selection across restarts, refreshes, and OS changes.
+- **Pre-Hydration Anti-Flash Script (`app/index.html`)**:
+  - Added synchronous inline script in `<head>` inspecting `localStorage.getItem('theme-storage')` and `matchMedia('(prefers-color-scheme: dark)')` to apply `.dark` or `.light`, `root.style.colorScheme`, `data-theme`, and `meta[name="theme-color"]` (`#020b00` vs `#ffffff`) before first paint, eliminating theme flashes.
+- **Theme-Aware Official Logos (`app/public/`, `app/android/app/src/main/assets/public/`)**:
+  - Web Mode: Theme-aware full logo switching between `logo-light.png` (`#020B00` on transparent) and `logo-dark.png` (`#D3DA0C` on transparent).
+  - Mobile & App: Theme-aware drum totem icon switching between `logo-icon-light.png` (`#020B00` on transparent) and `logo-icon-dark.png` (`#D3DA0C` on transparent).
+- **Official Brand Palette Tokens (`app/src/index.css`, `app/src/components/ui/button-variants.ts`)**:
+  - Primary background: `#FFFFFF` (Light), `#020B00` (Dark).
+  - Primary text: `#020B00` (Light), `#FFFFFF` (Dark).
+  - Secondary text and accent: `#D3DA0C`.
+  - Primary buttons: `#020B00` background with `#D3DA0C` text (Light), `#D3DA0C` background with `#020B00` text (Dark).
+  - Secondary buttons: `#D3DA0C` background with `#020B00` text (Light), `bg-white/10` with white text (Dark).
+  - Icons: `#020B00` in Light Mode and `#D3DA0C` in Dark Mode, unless a component requires contrasting color for accessibility.
+- **Layouts & Shell Components Adapted**:
+  - `Navbar.tsx`: Theme toggle button, theme-aware scrolled header (`bg-white/95 dark:bg-[#020b00]/95`), city selector & dropdown, cart indicator, mobile drawer, and logo switching (`logo-dark.png` vs `logo-light.png`).
+  - `Footer.tsx`: Theme-aware logo (`logo-dark.png` vs `logo-light.png`), light background (`bg-neutral-50 dark:bg-[#020b00]`), and icon colors (`text-[#020b00] dark:text-[#d3da0c]`).
+  - `MobileHeader.tsx`: Theme-aware header glass, city dropdown, cart & notification pills, and logo icon switching (`logo-icon-dark.png` vs `logo-icon-light.png`).
+  - `MobileBottomNav.tsx`: 5-tab dock styled with light glass (`rgba(255,255,255,0.95)` with `text-[#020b00]/60` inactive, `text-[#020b00]` active) and dark glass (`rgba(2,11,0,0.95)` with `text-white/35` inactive, `text-[#d3da0c]` active).
+  - `MainLayout.tsx`, `MobileLayout.tsx`, `DashboardLayout.tsx`, `AuthLayout.tsx`: All updated with `bg-white dark:bg-[#020b00]` / `bg-neutral-50 dark:bg-[#020b00]` and theme-aware cards and drawers.
+- **Settings 3-Mode Segmented Control (`app/src/pages/user/Settings.tsx`)**:
+  - Replaced former non-functional toggle with a clean 3-option segmented control (`System`, `Light`, `Dark`) with real-time selection and resolved status indicator.
+  - Dialogs and buttons updated with light/dark neutral surfaces.
+- **Core Mobile Components Updated**:
+  - `Home.tsx`: Search bar (`bg-neutral-100 dark:bg-[#1A1A1A]`), headline (`text-[#020b00] dark:text-white`).
+  - `MobileFilterPills.tsx`: Inactive pills `bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 border-black/8 dark:border-white/8`.
+  - `MobileSectionHeader.tsx`: Title `text-[#020b00] dark:text-white`.
+  - `MobileListRow.tsx`: Container `bg-white dark:bg-[#111111] border-black/8 dark:border-white/5 text-[#020b00] dark:text-white`.
+  - `EventCard.tsx`: Card `bg-white dark:bg-[#111111] border-black/8 dark:border-white/5 text-[#020b00] dark:text-white`.
+  - `ArtistCard.tsx`: Text `text-[#020b00] dark:text-white`.
+  - `NotificationBell.tsx`: Theme-aware bell icon button, dropdown sheet, and action buttons.
+- **Production Deployment & Live Verification**:
+  - Built cleanly (`npm run build`, exit code 0) producing bundle `index-BITkdWft.js` and stylesheet `index-g-wREIRR.css`.
+  - Rsynced `app/dist/` with `--delete` to production server (`72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `/logo-light.png` (`200 OK`), `/logo-dark.png` (`200 OK`), `/logo-icon-light.png` (`200 OK`), `/logo-icon-dark.png` (`200 OK`), anti-flash script active, and `/health` returning `{"status":"healthy"}`.
+
+### 114. New PWA Favicon, App Icons & Manifest Alignment (#020b00) (2026-10-18)
+- **New Master Drum Totem Icon Asset**:
+  - Integrated the newly uploaded golden drum totem emblem on brand forest black (`#020b00`) as the official master icon (`favicon-source.png`, 1024x1024).
+  - Cleaned JPEG quantization noise along the canvas background to ensure 100% pure `#020b00` (RGB: 2, 11, 0).
+  - Verified safe-zone compliance for W3C PWA maskable icons (the 551px high totem emblem is well within the 80% inner circular radius `409.6px`, guaranteeing zero cutoff on circular or squircle app launchers).
+- **Favicons & PWA Icon Suite Generated (`app/public/`, `app/android/app/src/main/assets/public/`)**:
+  - `favicon.ico`: Multi-resolution ICO containing 16x16, 32x32, and 48x48.
+  - `favicon-32x32.png` (32x32) & `favicon-16x16.png` (16x16) for desktop & mobile browser tabs.
+  - `apple-touch-icon.png` (180x180) & `bookmark-icon.jpg` (180x180) for iOS Safari home screen.
+  - `android-chrome-192x192.png` (192x192) & `android-chrome-512x512.png` (512x512) for Android PWA install prompts.
+  - Manifest WebP icons (`assets/icons/`): `icon-48.webp`, `icon-72.webp`, `icon-96.webp`, `icon-128.webp`, `icon-192.webp`, `icon-256.webp`, `icon-512.webp`.
+- **Android Native Launcher Adaptive Icons (`app/android/app/src/main/res/mipmap-*/`)**:
+  - Updated legacy icons (`ic_launcher.png`, `ic_launcher_round.png`) across all densities (`ldpi`, `mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`).
+  - Updated adaptive icons: `ic_launcher_background.png` set to `#020b00` and `ic_launcher_foreground.png` updated with the transparent drum totem emblem.
+- **HTML & Manifest Updates (`app/index.html`, `app/public/site.webmanifest`, `app/public/manifest.webmanifest`)**:
+  - In `app/index.html`: Added `<link rel="icon" href="/favicon.ico" sizes="any" />`.
+  - In `app/public/site.webmanifest`: Updated `"background_color": "#020b00"` and verified theme color.
+  - In `app/public/manifest.webmanifest`: Fixed icon mime-types to `"image/webp"`.
+- **Production Build & Verification**:
+  - Built frontend (`npm run build`, exit code 0).
+  - Rsynced `app/dist/` with `--delete` to production server (`72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `favicon.ico` (`200 OK`), `favicon-32x32.png` (`200 OK`), `android-chrome-192x192.png` (`200 OK`), `apple-touch-icon.png` (`200 OK`), `site.webmanifest` (`200 OK`), and `assets/icons/icon-512.webp` (`200 OK`).
+
+### 113. Lightweight React & Framer Motion Custom Animated Intro Replacing MP4 (2026-10-18)
+- **Problem & Root Cause**:
+  - The intro MP4 video (`intro.mp4`, 440 KB) introduced video buffer latency and was blocked by strict mobile/PWA autoplay and network policies, causing the PWA and mobile layout to stall or fail to load.
+- **Custom In-Code Animation Implementation (`app/src/components/LoadingScreen.tsx`)**:
+  - Completely discarded `intro.mp4` video playback in favor of a 0ms buffer, 100% reliable Framer Motion + CSS sequence using two cropped, high-res transparent PNGs (~150 KB combined):
+    1. **`intro_drum.png`** (99 KB): African drum emblem with authentic patterns.
+    2. **`intro_sound.png`** (52 KB): Signature "SOUND It" typography.
+  - **Replicated Video Choreography**:
+    - **Phase 1 (0–650ms)**: Drum emblem drops in with physics bounce (`scale: 0.65 -> 1`, `opacity: 0 -> 1`), accompanied by an ambient pulsing lime (`#d3da0c`) back-glow.
+    - **Phase 2 (650–2200ms)**: "SOUND It" typography logo animates in smoothly below the drum with spring physics (`y: 16 -> 0`, `opacity: 0 -> 1`, `scale: 0.92 -> 1`).
+    - **Phase 3 (2200–2500ms)**: Smooth 300ms fadeout transition into the home feed.
+  - **Preserved Loading Indicator**:
+    - Retained the signature animated spinning ring (`w-9 h-9 border-[3px] border-[#222222] border-t-[#d3da0c] animate-spin`) with "Loading Sound It..." text at bottom-12 with safe area padding on `#020b00` background.
+    - Added tap-to-skip support on screen (`onClick={handleSkip}`) and cleaned unmount handlers.
+- **Application Startup & HTML Synchronization (`app/src/App.tsx`, `app/index.html`)**:
+  - In `App.tsx`: Updated loader timeout to 2600ms matching the custom animation timeline, with instant `onFinish={() => setIsLoading(false)}` completion.
+  - In `index.html`: Removed video preload tag and updated `#static-loader` with `<img src="/intro_drum.png" ...>` and spinner.
+  - Synced assets into Android native assets (`app/android/app/src/main/assets/public/`).
+- **Production Build & Deployment**:
+  - Built frontend cleanly (`npm run build`, exit code 0) producing bundle `index-DCf3w4LD.js` and stylesheet `index-CkYSOUOL.css`.
+  - Rsynced `app/dist/` with `--delete` to production server (`72.62.254.251:/var/www/soundit/current/app/dist/`), cleanly removing remote `intro.mp4`.
+  - Verified live: `/intro_drum.png` (`200 OK`), `/intro_sound.png` (`200 OK`), index bundle `index-DCf3w4LD.js` active, and backend `/health` returning `{"status":"healthy"}`.
+
+### 112. MP4 Intro Animation Video on Mobile Layout & App with Preserved Loading Circle (2026-10-18)
+- **New Intro Video Asset (`/intro.mp4`, `app/public/intro.mp4`)**:
+  - Integrated `intro.mp4` (436 KB, H.264 portrait 2160x3840 9:16, 4.03s duration) with animated Sound It drum and typography reveal on `#020b00` background.
+  - Copied to `app/public/intro.mp4` and synced into Android native assets (`app/android/app/src/main/assets/public/intro.mp4`).
+  - Added `<link rel="preload" href="/intro.mp4" as="video" type="video/mp4" />` in `app/index.html` `<head>` for instant playback without buffer stutter.
+- **Dynamic Intro Component (`app/src/components/LoadingScreen.tsx`)**:
+  - Replaced the previous static logo with an inline autoplaying, muted, playsinline video element scaled with `object-contain` (max height `100dvh`, max width `500px`), perfectly matching mobile screens and Capacitor webview.
+  - Preserved the animated loading spinner at the bottom (`w-9 h-9 border-[3px] border-[#222222] border-t-[#d3da0c] animate-spin`) with "Loading Sound It..." text, positioned with safe area padding.
+  - Added `onEnded` handler with a smooth 350ms opacity fadeout into the application once the 4-second animation finishes.
+  - Added tap-to-skip on screen (`onClick={handleComplete}`) and fallback to static logo if autoplay is blocked or video fails (`onError`).
+- **Application Startup Synchronization (`app/src/App.tsx`, `app/index.html`)**:
+  - In `App.tsx`: Updated initial loading timeout to 4500ms to allow the 4.03s video animation to complete, and wired `onFinish={() => setIsLoading(false)}` callback from `<LoadingScreen>`.
+  - In `index.html`: Updated `#static-loader` with `<video src="/intro.mp4" ...>` and image fallback.
+- **Build & Production Deployment**:
+  - Built cleanly (`npm run build`, exit code 0) producing bundle `index-BPMXPSrz.js` and stylesheet `index-BQ9XhgDE.css`.
+  - Rsynced `app/dist/` to production server (`72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `https://sounditent.com/intro.mp4` returns `HTTP/2 200` with `content-type: video/mp4` and `accept-ranges: bytes` (`446,274 bytes`).
+
+### 111. Global Background Color Updated to Brand Forest Black (#020b00) (2026-10-18)
+- **Global Theme & Layout Updates (`app/src/index.css`, `app/tailwind.config.js`, `app/index.html`)**:
+  - Replaced former `#0A0A0A` default dark background across the entire platform with signature `#020b00` (deep forest black-green):
+    - `app/src/index.css`: Updated `body { background-color: #020b00; }`, `:root` & `.dark` `--background: 109 100% 2%;`, and Design System tokens `--bg-deep: #020b00;`, `--bg-surface: #020b00;`, `--bg-elevated: #051401;`.
+    - `app/tailwind.config.js`: Updated `"soundit-black": "#020b00"`.
+    - `app/index.html`: Updated static pre-loader and noscript background to `#020b00` and meta `theme-color` to `#020b00`.
+- **Layouts & Shell Components (`app/src/layouts/`, `app/src/components/`)**:
+  - Updated all core application layouts to `#020b00`: `MainLayout.tsx`, `MobileLayout.tsx` (and sticky header `bg-[#020b00]/95`), `DashboardLayout.tsx`, `AuthLayout.tsx`, `AdminLayout.tsx`.
+  - Updated shell components: `Navbar.tsx` (`bg-[#020b00]/90`), `Footer.tsx` (`bg-[#020b00]`), `MobileBottomNav.tsx` (gradient & border), `MobileHeader.tsx`, `Navigation.tsx`, `LoadingScreen.tsx`, `ErrorBoundary.tsx`, and `ProtectedRoute.tsx`.
+- **All Pages & About Page Sections (`app/src/pages/About.tsx`, `app/src/pages/`)**:
+  - Updated 90 page and view files replacing all hardcoded `bg-[#0A0A0A]` / `bg-[#0a0a0a]` container and sticky header classes with `bg-[#020b00]` and `bg-[#020b00]/95`.
+  - In `About.tsx`: Root container set to `bg-[#020b00]`, Hero bottom gradient set to `from-[#020b00] to-[#020b00]`, and all sections (including "International Collaborations", "Mission & Vision", "Logo Story", "Values", "Leadership Team") updated to `bg-[#020b00]`, alongside collaborator cards, gradients, and artist info modals.
+- **Build & Production Deployment**:
+  - Frontend built cleanly (`npm run build`, exit code 0) producing bundle `index-OR1rkrAY.js` and stylesheet `index-Y7jHqxzq.css`.
+  - Rsynced `app/dist/` to production server (`72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `https://sounditent.com` serves `background: #020b00;`, CSS bundle contains 22 `#020b00` declarations, and `/health` returns `200 OK`.
+
+### 110. International Collaborations 2026 BOA Headliners & 3-in-a-Row Grid with Info Modal (2026-10-18)
+- **New 2026 BOA Festival Headline Acts (`app/src/pages/About.tsx`, `app/public/`)**:
+  - Added 4 international headliners for the **2026 BOA Festival By Sound It Entertainment**:
+    1. **Babalwa M** (`/collab_babalwa_m.jpg`) — South African Vocalist & Songwriter, "Queen of Private School Amapiano".
+    2. **Funky QLA** (`/collab_funky_qla.jpg`) — Electronic Music Producer & DJ, Durban Gqom Pioneer.
+    3. **ChisWay** (`/collab_chisway.jpg`) — Afro-Fusion Sensation & Live Performer.
+    4. **DJ Melzi** (`/collab_dj_melzi.jpg`) — International DJ & Multi-Platinum Amapiano Producer.
+- **3-in-a-Row Responsive Layout**:
+  - Replaced the previous single-column stacked card list with a clean responsive 3-in-a-row layout (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8`), presenting all 9 international acts (4 new 2026 BOA Headliners + DJ Akio, Eva Modika, DJ Kaywise, Master Wen, DJ Neptune) across exactly 3 uniform rows of 3.
+  - Each card features a portrait view (`aspect-[4/5]`) with gradient overlays, glowing `2026 BOA HEADLINER` badge (or year badge), collaborator title, event preview, and interactive "Click to view info" prompt.
+- **Click-to-View Interactive Artist Bio Modal**:
+  - Clicking on any artist card opens an expanded modal dialog (`AnimatePresence` with backdrop blur, ESC key dismiss, and scroll lock) displaying:
+    - High-resolution artist portrait.
+    - Official headliner / collaborator badge.
+    - Full artist name & genre/role subtitle.
+    - Event Hosted / Headline card ("2026 BOA Festival By Sound It Entertainment" / anniversary showcase).
+    - Comprehensive artist description/bio.
+    - Cultural impact & milestone tags.
+- **Build & Production Deployment**:
+  - Tested frontend build with TypeScript validation (`npm run build`, exit code 0).
+  - Deployed `app/dist/` (including all 4 new images and updated bundle `index-BoQRqoZF.js`) to production (`72.62.254.251:/var/www/soundit/current/app/dist/`).
+  - Verified live: `/collab_babalwa_m.jpg` (`200 OK`), `/collab_funky_qla.jpg` (`200 OK`), `/collab_chisway.jpg` (`200 OK`), `/collab_dj_melzi.jpg` (`200 OK`), and `/health` (`{"status":"healthy"}`).
+
+### 109. Business Finance Staff Role & Dedicated Finance Portal Workspace (2026-10-17)
+- **Business Staff Management (`app/src/pages/business/Staff.tsx`, `api/business.py`)**:
+  - Added the **`Finance`** role (`Manager`, `Finance`, `Cashier`, `Guest Check-In`, `Scanner`) with a dedicated **"Add Finance Staff"** quick button, role preset toggles, and staff edit modal (`PUT /api/v1/business/staff/{staff_id}`).
+  - Added granular Finance permissions: **`financials`** (Finance & Revenue Analytics + CSV export), **`ordersApproval`** (Ticket & VIP Table payment approvals), and **`payouts`** (Payouts & Withdrawals), automatically enabled when selecting the `Finance` or `Manager` role.
+- **Dedicated Business Finance & Revenue Workspace (`app/src/pages/business/FinanceWorkspace.tsx`, `GET /api/v1/business/finance/overview`)**:
+  - Modeled after the Sound It platform's Finance role (`Admin/DashboardOverview.tsx` + `FinancialControl.tsx`), featuring the `Finance & Revenue Workspace` role banner, `Export CSV` & `Sync Data` actions, 6 KPI cards (Gross Revenue, Net Earnings, Available Balance, Event Ticket Sales, VIP Table Revenue, Pending Approvals), Revenue by Category progress bars, Event-by-Event financial breakdown table, in-page **Payment Approvals Queue** (approve/reject pending ticket & VIP table orders), and **Payouts & Settlement History** tab.
+- **Direct Login & Scoped Finance Portal Navigation (`auth.py`, `api/auth.py`, `schemas.py`, `app/src/store/authStore.ts`, `app/src/pages/auth/Login.tsx`, `app/src/layouts/DashboardLayout.tsx`, `app/src/layouts/MobileLayout.tsx`)**:
+  - Finance staff can log in directly at `/login` using their staff email/login/phone + password (or via their linked platform user account) and are automatically routed to `/dashboard/business/finance`.
+  - When logged in as a `Finance` staff member, `DashboardLayout.tsx` and `MobileLayout.tsx` render a scoped **`FINANCE PORTAL`** navigation (`Finance Workspace`, `Ticket Orders`, `Table Reservations`, `Payouts`, `Analytics`).
+- **Production Deploy**: Deployed updated backend (`schemas.py`, `auth.py`, `api/auth.py`, `api/business.py`) and frontend (`app/dist/`) to `sounditent.com` (`72.62.254.251`) and verified `soundit` service is `active`.
+
+### 108. New Platform Logo (SOUND.svg) — Desktop Web Layout ONLY (2026-10-17)
+- **SCOPE RULE (user-mandated)**: the new logo applies ONLY to the desktop web layout (`Navbar.tsx` + `Footer.tsx`, rendered when `!isMobile` in `MainLayout.tsx`). Do NOT change the PWA / mobile header / APK / AAB / intro (LoadingScreen) / dashboard / auth / favicon / og:image logos.
+- Source `~/Downloads/SOUND.svg` cropped (root `viewBox` → `83 148 228 80`) and saved as `app/public/logo.svg`; `Navbar.tsx` and `Footer.tsx` use `/logo.svg`.
+- A first pass wrongly applied it everywhere (overwrote `logo.png`/`logo-web.png`/`logo-platform.png`, and changed MobileHeader, DashboardLayout, LoadingScreen, AuthLayout, Navigation, About, Download, UniversalShareModal, index.html, SW v7). All of that was reverted: original PNGs restored (MD5-verified from brain scratch `old-logos/`), SW back to `soundit-v6`.
+- **Production Deploy & Verification**: Deployed `app/dist/` to `sounditent.com` (`72.62.254.251:/var/www/soundit/current/app/dist/`). Verified live: `/logo.svg` (`200 OK`, MD5 `1675e5048088951f397dc97fa87a19d5`), `/logo-platform.png` (`200 OK`, MD5 `fb5518e84560c7602c9359621b341960` — original restored), `/logo-web.png` (`200 OK`, MD5 `b16c73a74e4d3aa65e62944c9d8818ed` — original restored), `/logo.png` (`200 OK`, MD5 `1540e6543bd779d9c6e025044db3d2af` — original restored), entry bundle `index-jRbwr_RV.js`, and `/health` (`200 OK`).
+
+### 107. Profile Hero Background Image & Blurred Profile Image Fallback Across All Roles (2026-10-16)
+- **Marked Hero Space Background Image + Blurred Avatar Fallback (`app/src/pages/user/Profile.tsx`, `app/src/pages/user/EditProfile.tsx`)**:
+  - Updated the hero space on `/profile` (`user/Profile.tsx`) behind the avatar, display name, `@username`, role badge, and bio to display the user's background image (`background_url` / `banner_url`).
+  - **Automatic Blurred Profile Image Fallback**: When a User, Business, Artist, or Vendor has not uploaded a background image yet, their profile image (`avatar_url` / `logo_url`) is automatically rendered blurred (`scale-125 blur-2xl opacity-60`) in the background with a smooth dark gradient fade into `#0A0A0A`.
+  - **One-Tap Background Upload for All Roles**: Added a camera button in the top-right corner of the hero card on both `/profile` (`user/Profile.tsx`) and `/profile/edit` (`user/EditProfile.tsx`) so Users, Businesses, Artists, and Vendors can upload or change their background image directly.
+- **Role Dashboards & Public Profiles (`app/src/pages/artist/Dashboard.tsx`, `app/src/pages/vendor/Profile.tsx`, `app/src/pages/business/Profile.tsx`, `app/src/pages/PublicProfile.tsx`, `app/src/pages/ArtistDetail.tsx`, `app/src/pages/VendorDetail.tsx`)**:
+  - Added cover/background image upload controls (`uploadBanner`) and blurred avatar/logo fallbacks across the Artist Dashboard hero header (`artist/Dashboard.tsx`), Vendor Profile page (`vendor/Profile.tsx`), and Business Profile page (`business/Profile.tsx`).
+  - Updated `PublicProfile.tsx` (`/profiles/:id`), `ArtistDetail.tsx` (`/artists/:id`), and `VendorDetail.tsx` (`/vendors/:id`) to show the custom background/banner image when set, or the blurred profile/logo image when no background image is set.
+- **Auth Store & Backend Sync (`app/src/store/authStore.ts`, `api/auth.py`, `api/bookings.py`, `api/profiles.py`, `api/vendors.py`)**:
+  - Populated both `background_url` and `banner_url` consistently across all `authStore` profile hydration and update paths (`initialize`, `updateProfile`, `uploadBanner`, `refreshSession`).
+  - Synced `User.background_url` and `VendorProfile.banner_url` bidirectionally in `api/auth.py`, `api/vendors.py`, and `api/profiles.py`, and exposed `background_url` on `GET /api/v1/bookings/artists/{id}/profile`.
+
+### 106. Event-Day Table Bookings & Drink Selections PDF Export (2026-10-16)
+- **Backend PDF Generator & Endpoint (`utils/table_orders_pdf.py`, `api/table_reservations.py`)**:
+  - Created `utils/table_orders_pdf.py` to generate print-ready multi-page A4 PDFs (`150 DPI`) with full English + Chinese (CJK) glyph support using Pillow (`PIL.Image` / `ImageDraw` / `ImageFont`).
+  - Added `GET /api/v1/tables/business/orders/export-pdf` supporting optional `event_id`, `status` (`active`, `approved`, `pending`, `all`), and single-booking `order_id` query parameters.
+  - Each exported PDF includes:
+    1. **Event Header Banner & Summary KPIs** (Total Tables, Approved/Pending counts, Total Guest Tickets, Total Package Revenue).
+    2. **Bar & Floor Prep Summary Box** aggregating total bottles/drinks and total mixers to prep across all active table bookings, plus any upgrade requests.
+    3. **Detailed Table-by-Table Cards** with booking ID, package name & price, status + buyer payment confirmation badge, customer contact info (name, phone, email), guest ticket count & ticket codes, selected drinks & mixer quantities, upgrade requests, special requests/notes, and event-day staff check-in checkboxes (`[ ] Guest Checked In`, `[ ] Bottles & Mixers Delivered`, `[ ] Upgrade Settled`, `Table #: _____`).
+- **Organizer Dashboard UI (`app/src/pages/business/TableReservations.tsx`)**:
+  - Added an **Event & Status filter bar** and **"Download Event Day PDF (Requests & Drinks)"** button in the Bookings (`orders`) tab (plus a quick **"Download Event PDF"** button in the top header and a per-booking **"Download Booking PDF"** button inside each expanded booking card).
+
+### 105. We Bar Liquor Prices, 4 Mixers Included & Inline Row Editing (2026-10-16)
+- **We Bar Liquor Prices & 4 Mixers Included (`scripts/seed_laburg_menu.py`, `api/drinks.py`)**:
+  - Updated all liquor bottle prices in the master drink menu to match the **We bar** menu (Vodka: SKYY ¥680, Absolut ¥680, Grey Goose ¥1180; Gin: Bombay Sapphire ¥680, Hendrick's Gin ¥880, Gordon's ¥680; Rum: Myers's Dark Rum ¥680, Zacapa 23 ¥1480, Captain Morgan ¥680; Whisky & Single Malt: Johnnie Walker Black Label ¥680, Jameson ¥780, Chivas 12Y ¥680, Red Label ¥680, Gold Label ¥1380, Blue Label ¥2580, Talisker 10Y ¥980, Jura 10Y ¥980, Glenfiddich 12Y ¥1080, Laphroaig 10Y ¥1180, Macallan 12Y ¥1280, Glenlivet 12Y ¥1280, Auchentoshan 18Y ¥1680, Glenmorangie 12Y ¥980, Glenfarclas 12Y 1L ¥980, Dalmore 12Y ¥1680, Ardbeg 10Y ¥1280, Balvenie DoubleWood 12Y ¥1580, Balvenie Single Barrel 12Y ¥2680, Balvenie Sherry Cask 15Y ¥3880; Bourbon: Jack Daniel's ¥680, Wild Turkey ¥780, Maker's Mark ¥980, Jim Beam ¥680; Japanese Whisky: Yamazaki 1923 ¥2880, Hibiki ¥2680; Brandy: Hennessy VSOP ¥1280, Hennessy XO ¥3980, Martell Cordon Bleu ¥2800, Martell Noblige ¥1380, Martell XO ¥3880, KWV 5Y ¥680, KWV 10Y ¥780; Tequila: Olmeca Golden ¥680, 1800 Silver ¥780, 1800 Gold ¥780, Jose Cuervo ¥680, Camino Real ¥680; Liqueurs: Jägermeister ¥680, Amarula ¥680, Baileys ¥680).
+  - Configured **every liquor bottle** across all liquor categories (`vodka`, `gin`, `rum`, `brandy`, `whiskey`, `bourbon`, `japanese_whiskey`, `tequila`, `liqueur`) with `supports_mixers=True` and `mixer_included_qty=4` (`["Red Bull", "Tonic Water", "Cola", "Soda Water", "Juice"]`).
+- **Inline Edit Right Next to Price (`app/src/components/business/DrinkMenuManager.tsx`)**:
+  - Replaced the top-of-page edit form with **inline row editing** right on the drink card where the Edit button (`<Pencil />`) or Price is clicked, with an auto-focused `¥` price input and `Save` / `Cancel` buttons right next to the price, plus full item/mixer controls directly inside that row — eliminating scrolling back and forth to the top of the page.
+  - Updated `TableBooking.tsx` mixer selector so buyers can select up to 4 included mixers per bottle across any combination of mixers.
+
+### 104. Google Sign-In Fix for Android APK/AAB & Backend Token/Session Hardening (2026-10-16)
+- **Root Cause (`v1.2` working vs `v1.3` broken)**:
+  - Inspecting `assets/capacitor.config.json` inside `SoundIt-Android-release-v1.2.apk` (Oct 16 14:47) vs `SoundIt-Android-release-v1.3.apk` (Oct 16 18:32) revealed that `v1.3` had replaced the Web OAuth 2.0 Client ID (`247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com`) with the Android OAuth Client ID (`247782235504-v65bs2rl21kt1ovb3vrglskndf276li9.apps.googleusercontent.com`) in `app/capacitor.config.ts`, `app/.env`, `app/src/main.tsx`, and `app/src/components/GoogleAuthButton.tsx`.
+  - On Android, Google Credential Manager (`GetGoogleIdOption.Builder().setServerClientId(webClientId)`) requires a **Web** OAuth 2.0 Client ID (Type 3) to mint an ID token after the user picks their Google account. Passing an Android Client ID (Type 1) lets the account picker open normally, then fails post-selection with `GetCredentialCancellationException` ("activity is cancelled by the user"), which `Login.tsx` silently ignored because the error message contained `"cancel"`.
+- **Frontend & Native Fixes**:
+  - Restored `webClientId: '247782235504-cn5jtjv983t1i1isied107dlrgf1vifs.apps.googleusercontent.com'` in `app/capacitor.config.ts`, `app/src/main.tsx`, `app/.env`, and `.env`.
+  - Hardcoded `WEB_GOOGLE_CLIENT_ID` in `app/src/components/GoogleAuthButton.tsx` (`initializeNativeGoogle()`) so native Android Credential Manager always initializes with the Web Client ID regardless of `.env` overrides, and added fallback token extraction (`result.idToken || result.accessToken?.token`).
+  - Updated `handleGoogleSuccess` in `app/src/pages/auth/Login.tsx` and `app/src/pages/auth/Register.tsx` to call `await loginWithEmail(data.user?.email || '', '', data)` so the Zustand auth store (`role_type`, `display_name`, `refresh-token`, `permissions`, etc.) is hydrated identically to email login.
+- **Backend Hardening (`api/auth.py`, `schemas.py`)**:
+  - Relaxed `GoogleAuthRequest.role` to `Optional[str] = "user"` with case-insensitive role normalization (`"USER"`, `"user"`, `"artist_dj"`, `"organizer"`, `""`, `None`) so Pydantic never rejects role strings with HTTP 422.
+  - Added fallback token verification via `https://www.googleapis.com/oauth2/v3/userinfo` in case a native client passes an OAuth2 `access_token` instead of an `id_token`, and accepted any `aud`/`azp` matching project `247782235504-`.
+  - Made email lookup case-insensitive (`User.email.ilike(email)`) and raised the `/auth/google/login` rate limit from `5/minute` to `30/minute`.
+  - Extended `SignupRedirectResponse` and `SimpleUserResponse` in `schemas.py` with `refresh_token` and full user profile fields.
+- **Build & Deploy**:
+  - Rebuilt web bundle (`npm run build`), synced Capacitor (`npx cap sync android`), and rebuilt signed `SoundIt-Android-release-v1.3.apk` (18 MB) and `SoundIt-Android-release-v1.3.aab` (17 MB).
+  - Deployed backend (`api/auth.py`, `schemas.py`), frontend (`app/dist/`), and downloadable APK (`static/downloads/SoundIt-Android-release-v1.3.apk`) to `sounditent.com`.
+
+### 103. Default LA BURG Drink Menu for All Table Bookings, Category Grouping & QR Modal Cleanup (2026-10-16)
+- **Default Drink Menu (`scripts/seed_laburg_menu.py`, `api/drinks.py`)**:
+  - Merged both LA BURG menus into a single 83-item master drink menu with zero duplicates (Jägermeister listed once under `liqueur`).
+  - Seeded master items for main organizer `user_id=3` (`sounditmusic232@gmail.com`) in addition to `user_id=90` (`eclipselegend@hotmail.com`).
+  - Updated `GET /tables/events/{event_id}/drinks` in `api/drinks.py` to automatically fall back to the platform's default master drink menu when an event's organizer has no custom drinks configured yet — ensuring every event with table packages shows the full drink picker.
+  - Updated `GET /tables/business/drinks` in `api/drinks.py` to auto-populate an organizer's master drink list from the default menu on first visit so organizers can immediately edit prices or add more drinks in the Dashboard → Table Reservations → Drinks tab.
+- **Category Grouping (`app/src/components/TableBooking.tsx`, `app/src/components/business/DrinkMenuManager.tsx`)**:
+  - Added missing categories (`shot`, `beer_draft`, `champagne`, `liqueur`, `wine`) and bilingual `CATEGORY_LABELS` (`Cocktails 鸡尾酒`, `Shots 一口酒`, `Beers 啤酒`, `Draft Beers 生啤`, `Cognac & Brandy 白兰地`, `Whisky 威士忌`, `Gin 金酒`, `Tequila 龙舌兰`, `Rum 朗姆`, `Champagne 香槟`, `Liqueurs 力娇酒`, `Wine 葡萄酒`, `Soft Drinks & Water 饮料`, `Coffee & Tea 咖啡`, `Tea 茶`).
+  - Grouped drinks under category section headers in both the user-facing table booking drink picker (`TableBooking.tsx`) and the organizer drink manager (`DrinkMenuManager.tsx`).
+- **Removed "I Have Paid" from Scan-to-Pay Modal (`app/src/components/TableBooking.tsx`)**:
+  - Removed the manual `"I Have Paid"` button from the Step 2 QR modal so payment confirmation is handled via the `visibilitychange` return prompt and unfinished-payment resume prompt.
+- **Production Deploy & Verification**:
+  - Deployed release `20261016182618` + `api/drinks.py` fallback to `sounditent.com`.
+  - Verified `GET /api/v1/tables/events/13/drinks` and `GET /api/v1/tables/events/9/drinks` both return 83 categorized items, and `/health` returns 200 OK.
+
+### 102. Role-Based Profile Page — Artist / Vendor / Business / Admin Menus & Stats (2026-10-16)
+- **Problem**: the mobile kit Profile page (`app/src/pages/user/Profile.tsx`) showed user-only menu items (My Tickets, Favorites, Table Bookings) to every account role. All roles shared the same profile.
+- **Fix**: rewrote `Profile.tsx` with a role switch (`getRoleKey` from `profile.role_type`/`role` → user | artist | vendor | business | admin) driving both the menu list and the 3-stat row. Same visual design (avatar ring, stat row, icon menu, logout, share modal).
+  - **Artist**: Edit Profile, Bookings (`/dashboard/artist/bookings`), Performances, Analytics, Messages, Followers, Settings. Stats: bookings count (GET `/artist/bookings`), followers, following.
+  - **Vendor**: Edit Profile, My Orders (`/dashboard/vendor/orders`), Products & Menu, Earnings, Analytics, Messages, Settings. Stats: orders count (GET `/vendor-orders/vendor/orders`), followers, following.
+  - **Business**: Edit Profile, My Events (`/dashboard/business/events`), Ticket Orders, Staff, Table Reservations, Payouts, Analytics, Settings. Stats: events (GET `/events/me`), ticket orders (GET `/tickets/business/tickets`), followers.
+  - **Admin/Super Admin**: Edit Profile, Admin Dashboard, Manage Users, Manage Events, Financials, Settings. Stats: total users + total events (GET `/admin/dashboard`), followers.
+  - User role unchanged (tickets/favorites/table bookings). Added a small translated role badge under the name.
+- **i18n**: added 21 new keys under `kit.profile.*` (menu labels, stat labels, `role.{user,artist,vendor,business,admin}`) to en/zh/fr.
+- **Verification**: `npm run build` passes (tsc clean); dist rsynced to prod with `--delete`; live site serves the new entry bundle (`index-BFw2-aqC.js`). All target routes pre-exist in App.tsx; all stat endpoints pre-exist on the backend (no backend changes needed).
+
+### 101. Subscription Monthly/Yearly Billing, Vendor Order Flow Routes, Food Section Fix (2026-10-16)
+- **Problem** (3 user-reported issues): (1) vendor/artist subscription plans were effectively lifetime-only — needed monthly and yearly billing with admin-only lifetime grants; (2) users could not place orders with vendors — the store/checkout/orders pages existed but had no routes and no entry points; (3) the Food section showed nothing (`food_spots` table was empty and Food.tsx only read `/foodspots`).
+- **Fix 1 — Subscriptions monthly/yearly (`models.py`, `services/subscription_service.py`, `api/subscriptions.py`)**:
+  - Added `SubscriptionPlanConfig.billing_period` (default "monthly") and `Subscription.billing_period` (nullable) columns. Prod Postgres migrated with `ADD COLUMN IF NOT EXISTS` (both succeeded).
+  - `create_subscription(..., billing_period="monthly")` matches config by (role, plan_type, billing_period, is_active) with fallbacks; duration = 365 days if yearly else 30. `activate_subscription` uses the sub's billing_period; "lifetime" → 36500 days.
+  - `GET /subscriptions/plans?role=X` now groups DB configs by plan_type returning `monthly_price` / `yearly_price` (+duration_days), filling a missing yearly period as monthly×10.
+  - Admin plan-config GET/PUT keyed by (role, plan_type, billing_period); new `POST /subscriptions/admin/grant-lifetime` {user_id, plan_type, notes} — admin-only, expires active subs, creates ACTIVE sub with billing_period="lifetime", end_date = now+100y, price 0, sends notification + push.
+  - Frontend `Subscriptions.tsx`: Monthly/Yearly toggle, sends `billing_period` in subscribe body, per-period price display, "Lifetime access" status. `AdminSubscriptions.tsx`: plan editor keyed by role:plan_type:billing_period with Monthly/Yearly badges, new "Grant Lifetime Subscription" panel, billing_period badge in subscription table.
+  - Prod data: 10 config rows (BUSINESS basic/pro/premium 100/200/400 monthly + 1000/2000/4000 yearly; ARTIST premium 99/990; VENDOR premium 150/1500). Yearly = 10× monthly (2 months free) was the default — admin can edit prices in Admin → Subscriptions.
+- **Fix 2 — Vendor order flow (`app/src/App.tsx`, `Marketplace.tsx`, `VendorDetail.tsx`)**:
+  - Root cause: `VendorStore`, `ProductCheckout`, `MyOrders`, `OrderTracking` pages existed but had NO routes; cart navigated to unrouted `/checkout/vendor/:id`.
+  - Added lazy imports + routes: `/vendor-store/:vendorId`, `/checkout/vendor/:vendorId`, `/orders`, `/orders/:orderId` (placed before `/checkout/:eventId`; React Router ranks static segment higher — safe).
+  - `Marketplace.tsx` store link `/store/:id` → `/vendor-store/:id`. `VendorDetail.tsx` added "Order Now" button (ShoppingBag icon) → `/vendor-store/:id` when vendor has products. Backend `POST /vendor-orders/` was fine all along.
+- **Fix 3 — Food section (`api/vendors.py`, `api/drinks.py`, `app/src/pages/Food.tsx`)**:
+  - `api/vendors.py` list_vendors gained `food: Optional[bool]` query param (filters vendors with active products in food/drink/snack/beverage/meal/dessert categories).
+  - New public `GET /tables/food/directory` in `api/drinks.py` returns `{spots, vendors, businesses}` — vendors link `/vendor-store/:id`; businesses with active master `drink_items` link `/profiles/:id` with item_count. First deploy crashed with `name 'Product' is not defined` → fixed models import (`Product, VendorProfile, UserStatus`); note `User` has `status == UserStatus.ACTIVE` (no `is_active`), `first_name/last_name/username` (no `full_name`), `BusinessProfile.gallery_images` (no `logo_url`).
+  - Food.tsx rewritten to consume the directory (spots + vendors + businesses sections).
+- **Verification**: `npm run build` passes (tsc clean); all backend files compiled (`py_compile`); deployed to prod (72.62.254.251), `systemctl restart soundit` (note: 4 uvicorn workers need ~10-15s boot — an immediate health check can 502). Live checks: `https://sounditent.com/api/v1/tables/food/directory` → vendors:1 (Westcape, /vendor-store/2), businesses:1 (user 90, /profiles/90, 83 LA BURG menu items); `/subscriptions/plans` → 401 (auth-required, not 500); `/health` → 200.
+
+### 100. Mobile UI-Kit Layout Revamp — Audit & Deploy (2026-10-16)
+- **Spec**: `/Users/djfredmax/Downloads/Sound_It_UI_Kit_Layout_Prompt.md` (mobile/PWA/APK only, kit layouts + Sound It dark/neon-yellow theme, no red-marked screens).
+- **Finding**: the full Section-2 revamp was already implemented in `app/src/pages/user/*` (committed `e8c88a2`, 2026-10-15): Favorites (tabs/grid/list/remove sheet), Tickets (Upcoming/Completed/Cancellation tabs with live counts, View Ticket / Leave a Review / Cancel Booking actions), Leave-a-Review modal (POST `/events/{id}/reviews`), Cancel flow (confirm → reason radio list + Other free-text → success modal, POST `/tickets/my-orders/{id}/cancel`), Profile (avatar ring + 3-stat row + menu), EditProfile, NotificationSettings (real PUT persistence + push permission), SecuritySettings (2FA/PIN/password flows vs `/auth/2fa`, `/auth/pin`), LanguageSettings, InviteFriends (Contact Picker API + `navigator.share` fallback), Settings (dark-mode toggle, red Log Out with confirmation dialog).
+- **Verified**: `kit.*` translation keys 100% present in en/zh/fr (0 missing); backend endpoints exist (`api/event_reviews.py` POST `/events/{id}/reviews`, `api/tickets.py:382` cancel, notification settings PUT); `npm run build` passes; dist deployed (same sync as entry 99); headless mobile-UA render of `/tickets` shows the kit layout live (accent tab underline, dark theme). No red-marked screens built.
+- **Omitted per spec (backend doesn't support)**: kit rows with no backing endpoint were not added (e.g., Face ID/Biometric rows in Security — only 2FA/PIN/password exist; per-platform payment rows — excluded screen anyway).
+- **Note**: screenshots taken headless are in `/tmp/kitshots/` (ephemeral).
+
+### 99. LA BURG Master Drink Menu Seed + PWA White-Screen Self-Healing Fix (2026-10-16)
+- **LA BURG menu seed**: `scripts/seed_laburg_menu.py` (new, untracked) inserts a merged LA BURG drink menu into `drink_items` as master items (`event_id=NULL`). Synced to prod, dry-run then real run against business user id=90 (eclipselegend@hotmail.com). Result: **83 items inserted, 0 skipped** (before 0 → after 83 master items for business_id=90). Categories: cocktail_classic, shot, beer_bottle, beer_draft, brandy, whiskey, gin, tequila, rum, champagne, liqueur, soft, coffee, tea, wine. Note: `drink_items` uses `business_id` (NOT `user_id`) as the owner FK to `users.id`.
+- **PWA white screen**: verified server-side build was complete (all 6 entry assets + all 107 lazy chunks return HTTP 200; fresh headless Chrome renders with desktop and mobile UA; SW has no fetch handler so it never served stale documents; index.html served with `no-store`). Cause class: installed PWA holding a stale shell that references chunks replaced by a deploy → white screen with no recovery.
+- **Fix applied**:
+  - `app/src/main.tsx`: added chunk-load failure recovery — listens for `vite:preloadError` and window `error` (Loading chunk / dynamically imported module / Failed to fetch), clears `caches`, then force-reloads once (`__chunkReloaded` guard).
+  - `app/public/service-worker.js`: bumped `CACHE_NAME` `soundit-v5` → `soundit-v6` (forces stale cache purge on activate).
+  - Rebuilt (`npm run build`), rsynced `dist/` to prod with `--delete`, verified live: new entry `index-D6Qwq_qy.js` served, recovery handler present in bundle, SW v6 live, headless render OK.
+- **Verify note**: if a user still sees white screen, it should self-heal on next open; worst case clear site data / reinstall PWA.
+
+### 98. Table Booking 1:1 Payment System Parity with Event Tickets (2026-10-16)
+- **Full multi-step payment parity matching regular event tickets**:
+  - **Step 1 (Package Customization Modal)**: User selects package, customizes drinks, adds special requests/notes, fills contact details (name + phone required). Bottom CTA: `"Proceed to Payment"`.
+  - **Step 2 (Scan / Deep-Link Payment Modal)**: Shows header `"Scan to Pay"`, package name & `¥price`, `MobileQrPayment` with "Open Alipay to Pay ¥...", WeChat QR / Alipay QR tabs, "Download QR Code to Pay", and YooPay fallback. Tapping a deep link sets `leftForPaymentAt`. Bottom CTA: `"I Have Paid"`.
+  - **Pay-Return Prompt**: When returning from WeChat or Alipay app (`visibilitychange` away > 2500ms), displays `"Did you complete the payment?"` with package price. Clicking `"Yes, I Completed the Payment"` sets `buyerConfirmed = true` and opens the order confirmation modal.
+  - **Unfinished Payment Resume Prompt**: If the browser tab was discarded or refreshed while paying in WeChat/Alipay, on reload the user is greeted with `"Unfinished Payment"` dialog offering `"Yes, I Completed the Payment"` (restores table session & opens confirmation modal), `"Show Payment QR Again"`, or `"Cancel"`.
+  - **Step 3 (Order Confirmation Modal)**: Summary with package price and included guest tickets, contact info review, and Payment Screenshot upload:
+    - If `buyerConfirmed`: labeled `"Payment Screenshot (Optional)"` with `"Optional, your payment confirmation was already sent to the organizer."` (`required={false}`).
+    - If not confirmed: labeled `"Payment Screenshot *"` and required.
+    - Submit CTA: `"Submit Booking"`.
+  - **Step 4 (Success Modal)**: Checkmark icon, `"Table Booking Submitted!"`, with `"View My Bookings"` (`/table-bookings`) and `"Done"` buttons.
+- **My Bookings (`/table-bookings`)**: Pending table orders now explicitly show `"Pending Approval"` status badge in amber (`t('user.tickets.statusPendingApproval')`).
+- **Organizer Dashboard (`TableReservations.tsx`)**: Orders display the `"Confirmed"` badge (`order.buyer_confirmed_at`), and organizer receives push notification `"Payment Reported: Approve Now"`.
+- **Production Deploy**:
+  - Release `20261016122313` deployed live to `sounditent.com`.
+  - Health check verified: `GET https://sounditent.com/health` returns `{"status":"healthy"}` (HTTP 200).
+
+---
+
+### 97. Table Booking Payment System Alignment & UI Cleanup (2026-10-16)
+- **Red markings removed**:
+  - Removed yellow guest tickets info box (`Guest tickets included: N...`).
+  - Removed mandatory payment screenshot upload input, payment reference input, and payment notes input.
+- **Payment system aligned with regular tickets**:
+  - `MobileQrPayment` in `TableBooking.tsx` now receives `wechatQrUrl`, `alipayQrUrl`, `wechatPayUrl`, `alipayPayUrl`, `paymentInstructions`, and `hideYoopay={!!wechatQrUrl || !!alipayQrUrl}` (matching `EventDetail.tsx` regular ticket payment flow).
+  - Users can now use WeChat/Alipay deep-link buttons directly on mobile or scan QR codes, with YooPay as an automatic fallback when no custom organizer QR is uploaded.
+  - Pre-fills contact details from `profile` / `session`.
+  - Replaced screenshot requirement with "I Have Paid — Submit Booking" button that is enabled immediately when contact details are present.
+- **Stacking context & layout fix**:
+  - Rendered `TableBooking` modals via `createPortal(..., document.body)` with `z-[70]` so the fixed mobile bottom bar (`Buy Ticket`, `z-40`) no longer overlaps or traps the booking modal.
+  - Added order success modal with "View My Bookings" button (`/table-bookings`) and "Done" button.
+- **Backend**:
+  - `TableOrder.payment_screenshot` made nullable in `models.py` (`Column(String(500), nullable=True)`).
+  - `api/table_reservations.py`: `payment_screenshot: Optional[UploadFile] = File(None)`, optional file hashing/storage, removed single-booking block when previous booking was pending.
+  - `scripts/migrate_all_missing_columns.py`: added `ALTER TABLE table_orders ALTER COLUMN payment_screenshot DROP NOT NULL` for PostgreSQL.
+- **Production deploy**:
+  - Release `20261016114850` deployed live to `sounditent.com`.
+  - Verified `https://sounditent.com/health` returns `{"status":"healthy"}` and `app/dist/index.html` MD5 matches `6923312db89b89801f94860e8b0f47b8`.
 
 ---
 
@@ -153,6 +777,21 @@
 - **Change**: Owner supplied `SIE-.png` (elegant serif "SOUND IT" wordmark with emblem as the O, 1080×1080 transparent). Cropped to content (568×210) and saved as `app/public/logo-web.png`. Swapped into the web layout chrome: `Navbar.tsx` (h-8 lg:h-10), `Navigation.tsx` (h-10 lg:h-12), `Footer.tsx` (h-9), `AuthLayout.tsx` (h-12 md:h-20). Mobile header and dashboard sidebar keep the owner's `logo-platform.png` emblem; `/logo.png` blocky wordmark remains on About/Download pages and OG fallback.
 - **Verification**: build passes; deployed; index.html + logo-web.png MD5s match server; `/health` OK; `logo-web.png` HTTP 200.
 - **Follow-up**: Owner supplied bolder variant `SIE 2.png` (filled SOUND + handwritten "it", 1080×1080 transparent) — cropped to 752×269 and overwrote `app/public/logo-web.png` (same references, no code changes). Redeployed; MD5 verified.
+
+### 88. Vendor Operations Fix Pack — Stock, Edit, Images, Menu OCR, Order Subscription Gate, Admin Pricing (2026-10-16)
+- **Problems**: Imported menu items were created with `stock_quantity=0` (unsellable — users couldn't order and items showed "Stock: 0"); Products page "Edit" buttons linked to `/dashboard/vendor?tab=products&edit=<id>` but Dashboard never read query params so edit silently did nothing; OCR'd names kept trailing "–"/dashes; menu image OCR had no preprocessing; no admin UI to edit subscription plan prices; vendors could accept orders without any subscription.
+- **Backend fixes**:
+  - `api/vendors.py` `bulk_import_products`: default stock 100 (per-item `stock_quantity` override supported), strip trailing/leading separator dashes from names, skip names < 2 chars.
+  - `services/menu_import_service.py`: `_clean_name` now strips trailing separator runs and collapses whitespace; `parse_image_menu` preprocesses (EXIF transpose, upscale to 1600px, grayscale, 1.6× contrast) before OCR.
+  - `api/vendor_orders.py` `/{order_id}/accept` and `api/product_orders.py` `/{order_id}/approve`: require an active subscription (403 "An active subscription is required to accept orders. Please subscribe to continue.") — admins exempt.
+  - `api/subscriptions.py`: new `GET /subscriptions/admin/plan-configs` (DB prices merged over hardcoded matrix) and `PUT /subscriptions/admin/plan-configs` (upsert price by role+plan_type). Yoopay payment flow untouched.
+- **Frontend fixes**:
+  - `vendor/Dashboard.tsx`: reads `?tab=` and `?edit=<id>` via `useSearchParams` — opens the products tab with the edit form pre-filled (fixes Products-page Edit), then cleans the URL. Blank quantity now defaults to 100 (was 0 = unsellable) on create and update.
+  - `admin/AdminSubscriptions.tsx`: new "Subscription Plan Pricing" section — card per role/plan with inline price edit calling the new PUT endpoint.
+  - Order accept/approve error toasts already surface `error.detail` (subscription message shows to vendor).
+- **Prod data fix**: `UPDATE products SET stock_quantity=100 WHERE stock_quantity<=0 AND status='active'` (14 rows); trimmed trailing separators from 13 product names (e.g. "Garlic Cucumber –" → "Garlic Cucumber").
+- **Verification**: `py_compile` passes; `npm run build` passes; deployed 5 backend files + dist (index.html MD5 matches); service restarted, `/health` healthy; `/subscriptions/admin/plan-configs` returns 401 unauthenticated (route live, admin-gated).
+- **Still open from owner (2026-10-14)**: Mobile/PWA/APK UI-kit layout revamp (`Sound_It_UI_Kit_Layout_Prompt.md`) — not yet started.
 
 ### 87. Home Hero 4-Image Slideshow (2026-10-13)
 - **Change**: Owner supplied 4 Beatz of Afrika event photos (2738×1825 each). Resized to 1920×1280 q80 (~400 KB each) as `app/public/hero-slide-{1..4}.jpg`. `Home.tsx` desktop hero: replaced the single `/hero-event.jpg` Ken Burns background with a crossfading 4-slide slideshow (6 s per slide, 1.4 s opacity crossfade, Ken Burns scale/x loop on the active slide, parallax `heroY` preserved on all slides) plus a small slide-indicator pill row at the hero bottom. Mobile hero (`MobileHeroCarousel`) unchanged — it shows live event flyers.

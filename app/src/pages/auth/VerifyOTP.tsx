@@ -151,10 +151,10 @@ const VerifyOTP = () => {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-white mb-2">{t('auth.verifyOTP.title')}</h1>
-        <p className="text-gray-400 text-sm">
+        <h1 className="text-2xl font-semibold text-[#020b00] dark:text-white mb-2">{t('auth.verifyOTP.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           {t('auth.verifyOTP.instructions')}<br />
-          <span className="text-white">{phone}</span>
+          <span className="text-[#020b00] dark:text-white font-medium">{phone}</span>
         </p>
       </div>
 
@@ -170,7 +170,7 @@ const VerifyOTP = () => {
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-12 h-14 text-center text-2xl font-semibold bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none transition-colors"
+            className="w-12 h-14 text-center text-2xl font-semibold bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
           />
         ))}
       </div>
@@ -179,7 +179,7 @@ const VerifyOTP = () => {
       <button
         onClick={() => handleVerify(otp.join(''))}
         disabled={isLoading || otp.some(d => !d)}
-        className="w-full py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
@@ -192,7 +192,7 @@ const VerifyOTP = () => {
       </button>
 
       {/* Resend */}
-      <p className="text-center text-gray-400 text-sm mt-6">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
         {t('auth.verifyOTP.didntReceiveCode')}{' '}
         {resendTimer > 0 ? (
           <span className="text-gray-500">
@@ -201,7 +201,7 @@ const VerifyOTP = () => {
         ) : (
           <button
             onClick={handleResend}
-            className="text-[#d3da0c] hover:underline"
+            className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline"
           >
             {t('auth.verifyOTP.resendButton')}
           </button>
@@ -209,10 +209,10 @@ const VerifyOTP = () => {
       </p>
 
       {/* Back Link */}
-      <p className="text-center text-gray-400 text-sm mt-4">
+      <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4">
         <button
           onClick={() => navigate(isRegistration ? '/register' : '/login')}
-          className="text-[#d3da0c] hover:underline inline-flex items-center gap-2"
+          className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline inline-flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('auth.verifyOTP.backTo', { page: isRegistration ? t('auth.verifyOTP.signUp') : t('auth.verifyOTP.signIn') })}
@@ -220,9 +220,9 @@ const VerifyOTP = () => {
       </p>
 
       {/* Info */}
-      <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
-        <p className="text-gray-400 text-xs text-center">
-          ðŸ“± {t('auth.verifyOTP.infoLine1')}<br />
+      <div className="mt-6 p-4 bg-neutral-100 dark:bg-white/5 rounded-lg border border-black/10 dark:border-white/10">
+        <p className="text-gray-600 dark:text-gray-400 text-xs text-center">
+          📱 {t('auth.verifyOTP.infoLine1')}<br />
           {t('auth.verifyOTP.infoLine2')}
         </p>
       </div>

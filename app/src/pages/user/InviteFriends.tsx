@@ -122,28 +122,28 @@ const InviteFriends = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-12">
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/settings')}
             aria-label={t('kit.common.back')}
-            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white">{t('kit.invite.title')}</h1>
+          <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white">{t('kit.invite.title')}</h1>
         </div>
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center py-6">
-          <div className="w-24 h-24 rounded-full bg-[#d3da0c]/10 border border-[#d3da0c]/30 flex items-center justify-center mb-5">
-            <Users className="w-10 h-10 text-[#d3da0c]" />
+          <div className="w-24 h-24 rounded-full bg-black/5 dark:bg-[#d3da0c]/10 border border-black/10 dark:border-[#d3da0c]/30 flex items-center justify-center mb-5">
+            <Users className="w-10 h-10 text-[#020b00] dark:text-[#d3da0c]" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">{t('kit.invite.heading')}</h2>
-          <p className="text-gray-400 text-sm max-w-xs">{t('kit.invite.desc')}</p>
+          <h2 className="text-xl font-bold text-[#020b00] dark:text-white mb-2">{t('kit.invite.heading')}</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm max-w-xs">{t('kit.invite.desc')}</p>
         </motion.div>
 
         {/* Invite button */}
@@ -152,7 +152,7 @@ const InviteFriends = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           onClick={handleNativeShare}
-          className={`w-full min-h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-colors ${shared ? 'bg-white/10 text-[#d3da0c]' : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b]'}`}
+          className={`w-full min-h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all shadow-md ${shared ? 'bg-black/10 dark:bg-white/10 text-[#020b00] dark:text-[#d3da0c]' : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90'}`}
         >
           {shared ? (
             <>
@@ -174,29 +174,29 @@ const InviteFriends = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.07 }}
             onClick={pickContacts}
-            className="w-full min-h-[48px] rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 bg-white/5 text-white hover:bg-white/10 transition-colors"
+            className="w-full min-h-[48px] rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
           >
-            <ContactRound className="w-5 h-5 text-[#d3da0c]" />
+            <ContactRound className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
             {t('kit.invite.fromContacts', 'Invite from contacts')}
           </motion.button>
         )}
 
         {contacts.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-            <div className="divide-y divide-white/5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none">
+            <div className="divide-y divide-black/5 dark:divide-white/5">
               {contacts.map((contact, idx) => (
                 <div key={idx} className="w-full flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-[#d3da0c]">{(contact.name || '?')[0].toUpperCase()}</span>
+                  <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-[#020b00] dark:text-[#d3da0c]">{(contact.name || '?')[0].toUpperCase()}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{contact.name}</p>
+                    <p className="text-sm font-bold text-[#020b00] dark:text-white truncate">{contact.name}</p>
                     {contact.tel && <p className="text-xs text-gray-500 truncate">{contact.tel}</p>}
                   </div>
                   <button
                     onClick={() => inviteContact(idx)}
                     disabled={contact.invited}
-                    className={`px-4 min-h-[36px] rounded-xl text-xs font-bold transition-colors ${contact.invited ? 'bg-white/10 text-[#d3da0c]' : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b]'}`}
+                    className={`px-4 min-h-[36px] rounded-xl text-xs font-bold transition-all ${contact.invited ? 'bg-black/10 dark:bg-white/10 text-[#020b00] dark:text-[#d3da0c]' : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90'}`}
                   >
                     {contact.invited ? t('kit.invite.invited') : t('kit.invite.invite')}
                   </button>
@@ -211,31 +211,31 @@ const InviteFriends = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
+          className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
         >
-          <h2 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('kit.invite.via')}</h2>
-          <div className="divide-y divide-white/5">
+          <h2 className="px-4 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('kit.invite.via')}</h2>
+          <div className="divide-y divide-black/5 dark:divide-white/5">
             {shareChannels.map(channel => (
               <a
                 key={channel.id}
                 href={channel.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">{channel.icon}</div>
-                <span className="text-sm font-medium text-white flex-1">{channel.label}</span>
-                <Share2 className="w-4 h-4 text-gray-600" />
+                <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0">{channel.icon}</div>
+                <span className="text-sm font-semibold text-[#020b00] dark:text-white flex-1">{channel.label}</span>
+                <Share2 className="w-4 h-4 text-gray-400 dark:text-gray-600" />
               </a>
             ))}
             <button
               onClick={handleCopyLink}
-              className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] hover:bg-white/5 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                <Copy className="w-5 h-5 text-[#d3da0c]" />
+              <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0">
+                <Copy className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
               </div>
-              <span className="text-sm font-medium text-white flex-1">{t('kit.invite.copyLink')}</span>
+              <span className="text-sm font-semibold text-[#020b00] dark:text-white flex-1">{t('kit.invite.copyLink')}</span>
             </button>
           </div>
         </motion.div>

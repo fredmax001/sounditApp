@@ -220,7 +220,7 @@ def _email_wrapper(title: str, content_html: str) -> str:
     light card renders consistently everywhere. Brand mark sits on a black
     header bar so the lime drum logo stays vivid.
     """
-    logo_url = "https://sounditent.com/brand-mark.png"
+    logo_url = "https://sounditent.com/logo.png"
     favicon_url = "https://sounditent.com/apple-touch-icon.png"
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -271,7 +271,8 @@ def _email_wrapper(title: str, content_html: str) -> str:
             text-align: center;
         }}
         .header img {{
-            max-height: 52px;
+            height: 48px;
+            max-height: 48px;
             width: auto;
             display: inline-block;
             vertical-align: middle;

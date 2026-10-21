@@ -29,8 +29,8 @@ const config: CapacitorConfig = {
       },
     },
     SplashScreen: {
-      launchShowDuration: 2000,
-      launchAutoHide: true,
+      launchShowDuration: 0,
+      launchAutoHide: false,
       backgroundColor: '#000000',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
@@ -42,6 +42,9 @@ const config: CapacitorConfig = {
       style: 'DARK',
       backgroundColor: '#000000',
       overlaysWebView: false,
+    },
+    PushNotifications: {
+      presentationOptions: ['alert', 'badge', 'sound'],
     },
   },
 };

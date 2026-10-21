@@ -181,7 +181,7 @@ export default function UniversalShareModal({
 
       // Background Gradient
       const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1440);
-      bgGrad.addColorStop(0, '#0A0A0A');
+      bgGrad.addColorStop(0, '#020b00');
       bgGrad.addColorStop(0.5, '#121212');
       bgGrad.addColorStop(1, '#050505');
       ctx.fillStyle = bgGrad;

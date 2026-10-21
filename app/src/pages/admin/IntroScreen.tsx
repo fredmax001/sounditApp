@@ -119,18 +119,18 @@ const IntroScreen = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-[#d3da0c]" />
             {t('admin.introScreen.title') || 'Intro Screen'}
           </h1>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             {t('admin.introScreen.subtitle') || 'Customize the splash screen shown when the app loads'}
           </p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving || uploading}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-semibold rounded-lg hover:bg-neutral-900 dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {t('common.save') || 'Save'}
@@ -139,20 +139,20 @@ const IntroScreen = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Settings Form */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-6 space-y-5">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6 space-y-5">
           {/* Enabled toggle */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm font-medium">
+              <p className="text-[#020b00] dark:text-white text-sm font-medium">
                 {t('admin.introScreen.enabled') || 'Show intro screen'}
               </p>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-600 dark:text-gray-500 text-xs">
                 {t('admin.introScreen.enabledHint') || 'Disable to skip the splash screen on app load'}
               </p>
             </div>
             <button
               onClick={() => setSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
-              className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${settings.enabled ? 'bg-[#d3da0c]' : 'bg-white/20'}`}
+              className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${settings.enabled ? 'bg-[#d3da0c]' : 'bg-neutral-200 dark:bg-white/20'}`}
             >
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${settings.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
@@ -160,28 +160,28 @@ const IntroScreen = () => {
 
           {/* Logo */}
           <div>
-            <label className="block text-gray-400 text-sm mb-2">
+            <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">
               {t('admin.introScreen.logo') || 'Logo'}
             </label>
             {settings.logo_url ? (
-              <div className="flex items-center gap-4 border border-white/10 rounded-lg p-3 bg-white/5">
-                <div className="w-16 h-16 bg-black rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+              <div className="flex items-center gap-4 border border-black/10 dark:border-white/10 rounded-lg p-3 bg-neutral-50 dark:bg-white/5">
+                <div className="w-16 h-16 bg-neutral-900 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
                   <img src={previewLogo} alt="" className="max-w-full max-h-full object-contain" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm truncate">{settings.logo_url.split('/').pop()}</p>
-                  <p className="text-gray-500 text-xs truncate">{settings.logo_url}</p>
+                  <p className="text-[#020b00] dark:text-white text-sm truncate">{settings.logo_url.split('/').pop()}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{settings.logo_url}</p>
                 </div>
                 <button
                   onClick={() => setSettings(prev => ({ ...prev, logo_url: '' }))}
-                  className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 rounded-lg transition-colors"
+                  className="p-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-500/10 rounded-lg transition-colors"
                   title={t('common.remove') || 'Remove'}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <label className="border-2 border-dashed border-white/10 hover:border-[#d3da0c]/50 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white/[0.02]">
+              <label className="border-2 border-dashed border-black/15 dark:border-white/10 hover:border-[#d3da0c]/50 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-neutral-50/50 dark:bg-white/[0.02] hover:bg-neutral-100/50 dark:hover:bg-white/[0.04]">
                 <input
                   type="file"
                   accept="image/*"
@@ -198,10 +198,10 @@ const IntroScreen = () => {
                 ) : (
                   <>
                     <Upload className="w-5 h-5 text-[#d3da0c] mb-1" />
-                    <span className="text-sm text-gray-300 font-medium">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                       {t('admin.introScreen.uploadLogo') || 'Click to upload logo'}
                     </span>
-                    <span className="text-xs text-gray-500 mt-0.5">PNG (transparent), up to 5MB</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">PNG (transparent), up to 5MB</span>
                   </>
                 )}
               </label>
@@ -211,13 +211,13 @@ const IntroScreen = () => {
               value={settings.logo_url}
               onChange={(e) => setSettings(prev => ({ ...prev, logo_url: e.target.value }))}
               placeholder={t('admin.introScreen.logoUrlPlaceholder') || 'Or paste an image URL (https://...)'}
-              className="mt-2 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+              className="mt-2 w-full px-3 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-xs placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
             />
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-gray-400 text-sm mb-2">
+            <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">
               {t('admin.introScreen.titleLabel') || 'Title (optional)'}
             </label>
             <input
@@ -226,13 +226,13 @@ const IntroScreen = () => {
               maxLength={80}
               onChange={(e) => setSettings(prev => ({ ...prev, title: e.target.value }))}
               placeholder={t('admin.introScreen.titlePlaceholder') || 'e.g. Welcome to Sound It'}
-              className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+              className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
             />
           </div>
 
           {/* Tagline */}
           <div>
-            <label className="block text-gray-400 text-sm mb-2">
+            <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">
               {t('admin.introScreen.taglineLabel') || 'Tagline'}
             </label>
             <textarea
@@ -241,20 +241,20 @@ const IntroScreen = () => {
               rows={2}
               onChange={(e) => setSettings(prev => ({ ...prev, tagline: e.target.value }))}
               placeholder={t('admin.introScreen.taglinePlaceholder') || 'e.g. 5 years of Excellence in Entertainment'}
-              className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none resize-none"
+              className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none resize-none"
             />
           </div>
         </div>
 
         {/* Live Preview */}
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-6">
+        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Eye className="w-4 h-4 text-[#d3da0c]" />
-            <h2 className="text-white font-semibold text-sm">
+            <h2 className="text-[#020b00] dark:text-white font-semibold text-sm">
               {t('admin.introScreen.preview') || 'Live Preview'}
             </h2>
           </div>
-          <div className="relative rounded-xl overflow-hidden bg-[#0A0A0A] aspect-[4/5] max-h-[420px] flex items-center justify-center border border-white/5">
+          <div className="relative rounded-xl overflow-hidden bg-[#020b00] aspect-[4/5] max-h-[420px] flex items-center justify-center border border-black/10 dark:border-white/5">
             <div className="absolute inset-0 opacity-10" style={{
               backgroundImage: 'linear-gradient(rgba(211,218,12,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(211,218,12,0.3) 1px, transparent 1px)',
               backgroundSize: '40px 40px',
@@ -274,7 +274,7 @@ const IntroScreen = () => {
               </div>
             </div>
           </div>
-          <p className="text-gray-500 text-xs mt-3 flex items-center gap-1.5">
+          <p className="text-gray-600 dark:text-gray-500 text-xs mt-3 flex items-center gap-1.5">
             <ImageIcon className="w-3.5 h-3.5" />
             {t('admin.introScreen.previewHint') || 'This is how the intro screen appears when the app loads.'}
           </p>

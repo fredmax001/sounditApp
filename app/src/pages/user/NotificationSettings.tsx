@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
 import { Switch } from '@/components/ui/switch';
 import { NotificationService } from '@/lib/notificationService';
+import { NativePush } from '@/lib/nativePush';
 
 interface Prefs {
   push_enabled: boolean;
@@ -82,10 +83,13 @@ const NotificationSettings = () => {
     // Push toggle = real browser permission + Web Push subscribe/unsubscribe
     if (key === 'push_enabled' && next) {
       setSavingKey(key);
-      const status = await NotificationService.enablePush();
-      if (status !== 'enabled') {
+      const nativeIOS = NativePush.isNativeIOS();
+      const enabled = nativeIOS ? await NativePush.enable() : (await NotificationService.enablePush()) === 'enabled';
+      if (!enabled) {
         setSavingKey(null);
-        if (status === 'denied') {
+        if (nativeIOS) {
+          toast.error('Allow notifications for Sound It in iPhone Settings, then try again.');
+        } else if (NotificationService.getPermission() === 'denied') {
           toast.error(NotificationService.openSettingsHint().message);
         } else {
           toast.error(t('settings.saveFailed', 'Failed to save settings'));
@@ -139,23 +143,23 @@ const NotificationSettings = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden"
+      className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
     >
-      <h2 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</h2>
-      <div className="divide-y divide-white/5">
+      <h2 className="px-4 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h2>
+      <div className="divide-y divide-black/5 dark:divide-white/5">
         {items.map(item => (
           <div key={item.key} className="flex items-center justify-between gap-4 px-4 py-3.5">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-white">{item.label}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+              <p className="text-sm font-semibold text-[#020b00] dark:text-white">{item.label}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{item.desc}</p>
             </div>
             {savingKey === item.key ? (
-              <Loader2 className="w-5 h-5 text-[#d3da0c] animate-spin shrink-0" />
+              <Loader2 className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c] animate-spin shrink-0" />
             ) : (
               <Switch
                 checked={prefs[item.key]}
                 onCheckedChange={() => handleToggle(item.key)}
-                className="data-[state=checked]:bg-[#d3da0c] shrink-0"
+                className="data-[state=checked]:bg-[#020b00] dark:data-[state=checked]:bg-[#d3da0c] shrink-0"
                 aria-label={item.label}
               />
             )}
@@ -166,17 +170,17 @@ const NotificationSettings = () => {
   );
 
   return (
-    <div className="min-h-screen pb-12">
-      <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/settings')}
             aria-label={t('kit.common.back')}
-            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white">{t('kit.notifications.title')}</h1>
+          <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white">{t('kit.notifications.title')}</h1>
         </div>
       </section>
 
@@ -184,10 +188,10 @@ const NotificationSettings = () => {
         {isLoading && (
           <div className="space-y-4">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="bg-[#111111] border border-white/5 rounded-2xl p-4 space-y-3 animate-pulse">
-                <div className="h-3 bg-white/5 rounded w-1/4" />
-                <div className="h-8 bg-white/5 rounded" />
-                <div className="h-8 bg-white/5 rounded" />
+              <div key={i} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 space-y-3 animate-pulse shadow-xs">
+                <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-1/4" />
+                <div className="h-8 bg-black/5 dark:bg-white/5 rounded" />
+                <div className="h-8 bg-black/5 dark:bg-white/5 rounded" />
               </div>
             ))}
           </div>
@@ -195,10 +199,10 @@ const NotificationSettings = () => {
 
         {!isLoading && loadError && (
           <div className="text-center py-20">
-            <p className="text-gray-400 mb-4">{t('kit.common.loadFailed')}</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{t('kit.common.loadFailed')}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-xl hover:bg-[#bbc10b] transition-colors min-h-[44px]"
+              className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:opacity-90 transition-all min-h-[44px]"
             >
               {t('kit.common.tryAgain')}
             </button>

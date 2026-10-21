@@ -257,12 +257,12 @@ const ManageUsers = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display text-white mb-2">{t('admin.manageUsers.title')}</h1>
-                    <p className="text-gray-400">{t('admin.manageUsers.subtitle')}</p>
+                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.manageUsers.title')}</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{t('admin.manageUsers.subtitle')}</p>
                 </div>
                 <button
                     onClick={() => setShowInviteModal(true)}
-                    className="px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-white transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-white transition-colors flex items-center gap-2"
                 >
                     <UserPlus className="w-4 h-4" />
                     {t('admin.manageUsers.inviteUser')}
@@ -271,96 +271,96 @@ const ManageUsers = () => {
 
             <div className="flex gap-4">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <input
                         type="text"
                         placeholder={t('admin.manageUsers.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
                     />
                 </div>
                 <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                 >
-                    <option value="">{t('admin.manageUsers.allRoles')}</option>
-                    <option value="user">User</option>
-                    <option value="business">Business</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="artist">Artist</option>
-                    <option value="organizer">Organizer</option>
-                    <option value="admin">Admin</option>
-                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
+                    <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allRoles')}</option>
+                    <option value="user" className="bg-white dark:bg-[#111111]">User</option>
+                    <option value="business" className="bg-white dark:bg-[#111111]">Business</option>
+                    <option value="vendor" className="bg-white dark:bg-[#111111]">Vendor</option>
+                    <option value="artist" className="bg-white dark:bg-[#111111]">Artist</option>
+                    <option value="organizer" className="bg-white dark:bg-[#111111]">Organizer</option>
+                    <option value="admin" className="bg-white dark:bg-[#111111]">Admin</option>
+                    {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111]">Super Admin</option>}
                 </select>
                 <select
                     value={cityFilter}
                     onChange={(e) => setCityFilter(e.target.value)}
-                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                 >
-                    <option value="">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
+                    <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
                     {cities.map((city) => (
-                        <option key={city.id} value={city.id} className="bg-[#111111]">{city.name}</option>
+                        <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111]">{city.name}</option>
                     ))}
                 </select>
                 <button
                     onClick={loadUsers}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm hover:bg-white/10 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
                 >
                     <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                     {t('admin.manageUsers.refresh')}
                 </button>
             </div>
 
-            <div className="glass rounded-3xl overflow-hidden border border-white/5">
+            <div className="bg-white dark:bg-[#111111] rounded-3xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                 {isLoading ? (
                     <div className="flex justify-center py-20">
                         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                     </div>
                 ) : filteredUsers.length === 0 ? (
                     <div className="text-center py-20">
-                        <User className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                        <h3 className="text-white font-semibold text-lg mb-2">
+                        <User className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                        <h3 className="text-[#020b00] dark:text-white font-semibold text-lg mb-2">
                             {searchQuery || roleFilter ? t('admin.manageUsers.noMatchingUsers') : t('admin.manageUsers.noUsersFound')}
                         </h3>
-                        <p className="text-gray-500">
+                        <p className="text-gray-500 dark:text-gray-400">
                             {searchQuery || roleFilter ? t('admin.manageUsers.tryAdjustingFilters') : t('admin.manageUsers.usersWillAppearHere')}
                         </p>
                     </div>
                 ) : (
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-white/10 bg-white/5">
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.identityHeader')}</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.accessLevelHeader')}</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.cityHeader') || 'City'}</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.joinDateHeader')}</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.securityStateHeader')}</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">{t('admin.manageUsers.overridesHeader')}</th>
+                            <tr className="border-b border-black/8 dark:border-white/10 bg-neutral-50 dark:bg-white/5">
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.identityHeader')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.accessLevelHeader')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.cityHeader') || 'City'}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.joinDateHeader')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.manageUsers.securityStateHeader')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-right">{t('admin.manageUsers.overridesHeader')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
                             {filteredUsers.map((user: AdminUser) => (
-                                <tr key={user.id} className={`hover:bg-white/5 transition-colors ${isFrozen(user.id) ? 'opacity-50' : ''}`}>
+                                <tr key={user.id} className={`hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors ${isFrozen(user.id) ? 'opacity-50' : ''}`}>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 relative overflow-hidden">
+                                         <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 relative overflow-hidden">
                                                 {user.avatar_url ? (
                                                     <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <User className="w-5 h-5" />
                                                 )}
                                                 {isFrozen(user.id) && (
-                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-[#111111]">
+                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
                                                         <Lock className="w-2 h-2 text-white" />
                                                     </div>
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-white font-medium">{`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'}</p>
-                                                <p className="text-gray-500 text-xs">{user.email}</p>
+                                                <p className="text-[#020b00] dark:text-white font-medium">{`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'}</p>
+                                                <p className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -371,26 +371,26 @@ const ManageUsers = () => {
                                             disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
                                             className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
                                         >
-                                            <option value="user" className="bg-[#111111]">User</option>
-                                            <option value="business" className="bg-[#111111]">Business</option>
-                                            <option value="vendor" className="bg-[#111111]">Vendor</option>
-                                            <option value="artist" className="bg-[#111111]">Artist</option>
-                                            <option value="organizer" className="bg-[#111111]">Organizer</option>
-                                            <option value="admin" className="bg-[#111111]">Admin</option>
-                                            {isSuperAdmin && <option value="super_admin" className="bg-[#111111]">Super Admin</option>}
+                                            <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
+                                            <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
+                                            <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
+                                            <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
+                                            <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
+                                            <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
+                                            {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
                                         {user.preferred_city ? (
-                                            <span className="inline-flex items-center gap-1.5 text-gray-300 text-xs">
+                                            <span className="inline-flex items-center gap-1.5 text-gray-700 dark:text-gray-300 text-xs">
                                                 <MapPin className="w-3 h-3 text-[#d3da0c]" />
                                                 {cities.find(c => c.id === user.preferred_city)?.name || user.preferred_city.charAt(0).toUpperCase() + user.preferred_city.slice(1)}
                                             </span>
                                         ) : (
-                                            <span className="text-gray-600 text-xs">, </span>
+                                            <span className="text-gray-400 dark:text-gray-600 text-xs">—</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-400">
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : t('admin.manageUsers.notApplicable')}
                                     </td>
                                     <td className="px-6 py-4">
@@ -400,7 +400,7 @@ const ManageUsers = () => {
                                                 {user.status === 'suspended' ? t('admin.manageUsers.statusSuspended') : t('admin.manageUsers.statusFrozen')}
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 text-green-500 text-xs font-bold uppercase">
+                                            <span className="inline-flex items-center gap-1.5 text-green-600 dark:text-green-500 text-xs font-bold uppercase">
                                                 <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                                                 {t('admin.manageUsers.statusActive')}
                                             </span>
@@ -419,7 +419,7 @@ const ManageUsers = () => {
                                             <button
                                                 onClick={() => handleToggleVerification(user.id, !!user.is_verified)}
                                                 disabled={actionLoading === `verify-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
-                                                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${user.is_verified ? 'bg-[#d3da0c]/20 text-[#d3da0c] hover:bg-[#d3da0c]/30' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${user.is_verified ? 'bg-[#d3da0c]/20 text-yellow-700 dark:text-[#d3da0c] hover:bg-[#d3da0c]/30' : 'bg-neutral-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10'}`}
                                                 title={user.is_verified ? (t('admin.manageUsers.removeVerificationTitle') || 'Remove verification badge') : (t('admin.manageUsers.grantVerificationTitle') || 'Grant verification badge')}
                                             >
                                                 {actionLoading === `verify-${user.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
@@ -441,7 +441,7 @@ const ManageUsers = () => {
                                                         }
                                                     }}
                                                     disabled={actionLoading === `activate-${user.id}`}
-                                                    className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                                                    className="p-2 bg-green-500/10 text-green-600 dark:text-green-500 rounded-lg hover:bg-green-500/20 transition-colors disabled:opacity-50"
                                                     title={t('admin.manageUsers.restoreAccessTitle')}
                                                 >
                                                     <Unlock className="w-4 h-4" />
@@ -457,7 +457,7 @@ const ManageUsers = () => {
                                                             await fetch(`${API_BASE_URL}/admin/users/${user.id}/suspend`, {
                                                                 method: 'POST',
                                                                 headers: { 'Authorization': `Bearer ${token}` }
-                                                            });
+                                                             });
                                                             toast.error(t('admin.manageUsers.accountLocked'));
                                                             loadUsers();
                                                         } catch {
@@ -480,19 +480,19 @@ const ManageUsers = () => {
                 )}
             </div>
 
-            <div className="flex items-center justify-between p-6 glass rounded-2xl border border-white/5">
+            <div className="flex items-center justify-between p-6 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
+                    <div className="p-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg">
                         <Mail className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-white text-sm font-medium">{t('admin.manageUsers.broadcastTitle')}</p>
-                        <p className="text-gray-500 text-xs">{t('admin.manageUsers.broadcastSubtitle')}</p>
+                        <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('admin.manageUsers.broadcastTitle')}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">{t('admin.manageUsers.broadcastSubtitle')}</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setShowBroadcastModal(true)}
-                    className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors text-xs font-bold uppercase tracking-widest"
+                    className="px-4 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors text-xs font-bold uppercase tracking-widest"
                 >
                     {t('admin.manageUsers.draftMessage')}
                 </button>
@@ -500,67 +500,67 @@ const ManageUsers = () => {
 
             {/* Invite User Modal */}
             {showInviteModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div className="bg-[#111111] border border-white/10 rounded-xl p-6 w-full max-w-md">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-semibold text-white">{t('admin.manageUsers.inviteNewUser')}</h3>
+                            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.manageUsers.inviteNewUser')}</h3>
                             <button
                                 onClick={() => setShowInviteModal(false)}
-                                className="p-2 hover:bg-white/10 rounded-lg"
+                                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400"
                             >
-                                <X className="w-5 h-5 text-gray-400" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleInviteUser} className="space-y-4">
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.emailLabel')}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.emailLabel')}</label>
                                 <input
                                     type="email"
                                     value={inviteForm.email}
                                     onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                     required
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.firstNameLabel')}</label>
+                                    <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.firstNameLabel')}</label>
                                     <input
                                         type="text"
                                         value={inviteForm.first_name}
                                         onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
-                                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                        className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.lastNameLabel')}</label>
+                                    <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.lastNameLabel')}</label>
                                     <input
                                         type="text"
                                         value={inviteForm.last_name}
                                         onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
-                                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                        className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.roleLabel')}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.roleLabel')}</label>
                                 <select
                                     value={inviteForm.role}
                                     onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                 >
-                                    <option value="user" className="bg-[#111111]">User</option>
-                                    <option value="business" className="bg-[#111111]">Business</option>
-                                    <option value="vendor" className="bg-[#111111]">Vendor</option>
-                                    <option value="artist" className="bg-[#111111]">Artist</option>
-                                    <option value="organizer" className="bg-[#111111]">Organizer</option>
-                                    <option value="admin" className="bg-[#111111]">Admin</option>
+                                    <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
+                                    <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
+                                    <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
+                                    <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
+                                    <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
+                                    <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
                                 </select>
                             </div>
                             <button
                                 type="submit"
                                 disabled={sendingInvite}
-                                className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-800 dark:hover:bg-[#bbc10b] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
                             >
                                 {sendingInvite ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                                 {t('admin.manageUsers.sendInvitation')}
@@ -572,47 +572,47 @@ const ManageUsers = () => {
 
             {/* Broadcast Modal */}
             {showBroadcastModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div className="bg-[#111111] border border-white/10 rounded-xl p-6 w-full max-w-lg">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-semibold text-white">{t('admin.manageUsers.broadcastMessageTitle')}</h3>
+                            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.manageUsers.broadcastMessageTitle')}</h3>
                             <button
                                 onClick={() => setShowBroadcastModal(false)}
-                                className="p-2 hover:bg-white/10 rounded-lg"
+                                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400"
                             >
-                                <X className="w-5 h-5 text-gray-400" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSendBroadcast} className="space-y-4">
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.subjectLabel') || 'Subject (optional)'}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.subjectLabel') || 'Subject (optional)'}</label>
                                 <input
                                     type="text"
                                     value={broadcastSubject}
                                     onChange={(e) => setBroadcastSubject(e.target.value)}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
                                     placeholder={t('admin.manageUsers.subjectPlaceholder') || 'Announcement from Sound It'}
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.manageUsers.messageLabel')}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.manageUsers.messageLabel')}</label>
                                 <textarea
                                     value={broadcastMessage}
                                     onChange={(e) => setBroadcastMessage(e.target.value)}
                                     rows={4}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none resize-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none resize-none"
                                     placeholder={t('admin.manageUsers.broadcastPlaceholder')}
                                     required
                                 />
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                                 <Mail className="w-4 h-4" />
                                 <span>{t('admin.manageUsers.broadcastHint')}</span>
                             </div>
                             <button
                                 type="submit"
                                 disabled={sendingBroadcast}
-                                className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-neutral-800 dark:hover:bg-[#bbc10b] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
                             >
                                 {sendingBroadcast ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
                                 {t('admin.manageUsers.sendBroadcast')}

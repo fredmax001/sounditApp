@@ -52,6 +52,7 @@ interface ArtistProfile {
   is_verified: boolean;
   verification_badge: boolean;
   avatar_url: string;
+  background_url?: string;
   spotify_url?: string;
   apple_music_url?: string;
   soundcloud_url?: string;
@@ -249,28 +250,28 @@ const BookingModal = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[#020b00] dark:text-white shadow-2xl"
         >
           {/* Header */}
-          <div className="sticky top-20 bg-[#111111] border-b border-white/10 p-6 flex items-center justify-between">
+          <div className="sticky top-0 bg-white dark:bg-[#111111] border-b border-black/10 dark:border-white/10 p-6 flex items-center justify-between z-10">
             <div>
-              <h2 className="text-2xl font-bold text-white">{t('artistDetail.book')} {artist.stage_name}</h2>
-              <p className="text-gray-400 text-sm">{t('artistDetail.bookingSubtitle')}</p>
+              <h2 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('artistDetail.book')} {artist.stage_name}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.bookingSubtitle')}</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg">
-              <X className="w-6 h-6 text-gray-400" />
+            <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:hover:text-white transition-colors">
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Progress */}
-          <div className="flex items-center gap-2 px-6 py-4 border-b border-white/10">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-black/10 dark:border-white/10">
             {[1, 2, 3].map((s) => (
-              <div key={s} className={`flex-1 h-2 rounded-full ${s <= step && !showPaymentStep ? 'bg-[#d3da0c]' : 'bg-white/10'
+              <div key={s} className={`flex-1 h-2 rounded-full ${s <= step && !showPaymentStep ? 'bg-[#020b00] dark:bg-[#d3da0c]' : 'bg-black/10 dark:bg-white/10'
                 }`} />
             ))}
           </div>
@@ -279,46 +280,46 @@ const BookingModal = ({
             {showPaymentStep && (
               <>
                 <div className="text-center mb-6">
-                  <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-7 h-7 text-green-500" />
+                  <div className="w-14 h-14 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{t('artistDetail.bookingSubmitted')}</h3>
-                  <p className="text-gray-400 text-sm mt-1">{t('artistDetail.completePayment')}</p>
+                  <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('artistDetail.bookingSubmitted')}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{t('artistDetail.completePayment')}</p>
                 </div>
 
                 <MobileQrPayment />
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.payerName')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.payerName')}</label>
                     <input
                       type="text"
                       value={paymentForm.payer_name}
                       onChange={(e) => setPaymentForm({ ...paymentForm, payer_name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('artistDetail.payerNamePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.paymentNotes')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.paymentNotes')}</label>
                     <textarea
                       value={paymentForm.notes}
                       onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none resize-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none resize-none"
                       placeholder={t('artistDetail.paymentNotesPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.uploadScreenshot')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.uploadScreenshot')}</label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setPaymentForm({ ...paymentForm, screenshot: e.target.files?.[0] || null })}
-                      className="w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#d3da0c] file:text-black file:font-semibold hover:file:bg-[#bbc10b]"
+                      className="w-full text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#020b00] file:text-[#d3da0c] dark:file:bg-[#d3da0c] dark:file:text-black file:font-semibold hover:opacity-90 cursor-pointer"
                     />
                     {paymentForm.screenshot && (
-                      <p className="text-sm text-gray-500 mt-2">{paymentForm.screenshot.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{paymentForm.screenshot.name}</p>
                     )}
                   </div>
                 </div>
@@ -326,25 +327,25 @@ const BookingModal = ({
             )}
             {step === 1 && (
               <>
-                <h3 className="text-lg font-semibold text-white mb-4">{t('artistDetail.eventDetails')}</h3>
+                <h3 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4">{t('artistDetail.eventDetails')}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.eventName')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.eventName')}</label>
                     <input
                       type="text"
                       value={formData.event_name}
                       onChange={(e) => setFormData({ ...formData, event_name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       placeholder={t('artistDetail.eventNamePlaceholder')}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.eventType')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.eventType')}</label>
                       <select
                         value={formData.event_type}
                         onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       >
                         <option value="">{t('artistDetail.selectType')}</option>
                         <option value="club">{t('artistDetail.clubNight')}</option>
@@ -356,23 +357,23 @@ const BookingModal = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.eventDate')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.eventDate')}</label>
                       <input
                         type="date"
                         value={formData.event_date}
                         onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.city')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.city')}</label>
                       <select
                         value={formData.event_city}
                         onChange={(e) => setFormData({ ...formData, event_city: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       >
                         <option value="">{t('artistDetail.selectCity')}</option>
                         {['Shanghai', 'Beijing', 'Guangzhou', 'Shenzhen', 'Chengdu', 'Hangzhou', 'Yiwu'].map(city => (
@@ -381,12 +382,12 @@ const BookingModal = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.venueLocation')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.venueLocation')}</label>
                       <input
                         type="text"
                         value={formData.event_location}
                         onChange={(e) => setFormData({ ...formData, event_location: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                         placeholder={t('artistDetail.venuePlaceholder')}
                       />
                     </div>
@@ -397,16 +398,16 @@ const BookingModal = ({
 
             {step === 2 && (
               <>
-                <h3 className="text-lg font-semibold text-white mb-4">{t('artistDetail.bookingDetails')}</h3>
+                <h3 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4">{t('artistDetail.bookingDetails')}</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.budget')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.budget')}</label>
                       <input
                         type="number"
                         value={formData.budget}
                         onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                         placeholder={t('artistDetail.budgetPlaceholder')}
                       />
                       {artist.starting_price && (
@@ -414,11 +415,11 @@ const BookingModal = ({
                       )}
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.duration')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.duration')}</label>
                       <select
                         value={formData.duration_hours}
                         onChange={(e) => setFormData({ ...formData, duration_hours: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       >
                         <option value="">{t('artistDetail.selectDuration')}</option>
                         <option value="1">{t('artistDetail.oneHour')}</option>
@@ -430,12 +431,12 @@ const BookingModal = ({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.messageToArtist')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.messageToArtist')}</label>
                     <textarea
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       rows={4}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none resize-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none resize-none"
                       placeholder={t('artistDetail.messagePlaceholder')}
                     />
                   </div>
@@ -445,9 +446,9 @@ const BookingModal = ({
                       id="travel"
                       checked={formData.travel_required}
                       onChange={(e) => setFormData({ ...formData, travel_required: e.target.checked })}
-                      className="w-5 h-5 rounded border-white/10 bg-white/5 text-[#d3da0c]"
+                      className="w-5 h-5 rounded border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-[#020b00] dark:text-[#d3da0c]"
                     />
-                    <label htmlFor="travel" className="text-gray-300">{t('artistDetail.travelRequired')}</label>
+                    <label htmlFor="travel" className="text-gray-700 dark:text-gray-300">{t('artistDetail.travelRequired')}</label>
                   </div>
                 </div>
               </>
@@ -455,67 +456,67 @@ const BookingModal = ({
 
             {step === 3 && (
               <>
-                <h3 className="text-lg font-semibold text-white mb-4">{t('artistDetail.contactInformation')}</h3>
+                <h3 className="text-lg font-semibold text-[#020b00] dark:text-white mb-4">{t('artistDetail.contactInformation')}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.contactName')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.contactName')}</label>
                     <input
                       type="text"
                       value={formData.contact_name}
                       onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.phone')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.phone')}</label>
                       <input
                         type="tel"
                         value={formData.contact_phone}
                         onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.email')}</label>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.email')}</label>
                       <input
                         type="email"
                         value={formData.contact_email}
                         onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none"
+                        className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">{t('artistDetail.specialRequests')}</label>
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm mb-2 font-medium">{t('artistDetail.specialRequests')}</label>
                     <textarea
                       value={formData.special_requests}
                       onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })}
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] outline-none resize-none"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none resize-none"
                       placeholder={t('artistDetail.specialRequestsPlaceholder')}
                     />
                   </div>
 
                   {/* Summary */}
-                  <div className="bg-white/5 rounded-lg p-4 mt-6">
-                    <h4 className="text-white font-medium mb-3">{t('artistDetail.bookingSummary')}</h4>
+                  <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-4 mt-6">
+                    <h4 className="text-[#020b00] dark:text-white font-medium mb-3">{t('artistDetail.bookingSummary')}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">{t('artistDetail.summaryArtist')}</span>
-                        <span className="text-white">{artist.stage_name}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.summaryArtist')}</span>
+                        <span className="text-[#020b00] dark:text-white font-semibold">{artist.stage_name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">{t('artistDetail.summaryEvent')}</span>
-                        <span className="text-white">{formData.event_name || t('artistDetail.notSpecified')}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.summaryEvent')}</span>
+                        <span className="text-[#020b00] dark:text-white font-semibold">{formData.event_name || t('artistDetail.notSpecified')}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">{t('artistDetail.summaryDate')}</span>
-                        <span className="text-white">{formData.event_date || t('artistDetail.notSpecified')}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.summaryDate')}</span>
+                        <span className="text-[#020b00] dark:text-white font-semibold">{formData.event_date || t('artistDetail.notSpecified')}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">{t('artistDetail.summaryBudget')}</span>
-                        <span className="text-white">{formData.budget ? `¥${formData.budget}` : t('artistDetail.notSpecified')}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.summaryBudget')}</span>
+                        <span className="text-[#020b00] dark:text-white font-semibold">{formData.budget ? `¥${formData.budget}` : t('artistDetail.notSpecified')}</span>
                       </div>
                     </div>
                   </div>
@@ -525,23 +526,23 @@ const BookingModal = ({
           </div>
 
           {/* Footer */}
-          <div className="sticky bottom-0 bg-[#111111] border-t border-white/10 p-6 flex justify-between">
+          <div className="sticky bottom-0 bg-white dark:bg-[#111111] border-t border-black/10 dark:border-white/10 p-6 flex justify-between z-10">
             {showPaymentStep ? (
               <>
                 <button
                   onClick={onClose}
-                  className="px-6 py-3 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="px-6 py-3 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors font-medium"
                 >
                   {t('artistDetail.skipForNow')}
                 </button>
                 <button
                   onClick={handlePaymentSubmit}
                   disabled={isSubmitting || !paymentForm.screenshot}
-                  className="px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       {t('artistDetail.submitting')}
                     </>
                   ) : (
@@ -557,7 +558,7 @@ const BookingModal = ({
                 {step > 1 ? (
                   <button
                     onClick={() => setStep(step - 1)}
-                    className="px-6 py-3 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"
+                    className="px-6 py-3 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors font-medium"
                   >
                     {t('artistDetail.back')}
                   </button>
@@ -567,7 +568,7 @@ const BookingModal = ({
                 {step < 3 ? (
                   <button
                     onClick={() => setStep(step + 1)}
-                    className="px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
+                    className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all shadow-sm"
                   >
                     {t('artistDetail.continue')}
                   </button>
@@ -575,11 +576,11 @@ const BookingModal = ({
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm"
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         {t('artistDetail.sending')}
                       </>
                     ) : (
@@ -619,38 +620,38 @@ const MusicPlayer = ({ tracks }: { tracks: Track[] }) => {
 
   if (!tracks || tracks.length === 0) {
     return (
-      <div className="bg-[#111111] rounded-2xl p-8 text-center">
-        <Music className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-        <p className="text-gray-400">{t('artistDetail.noTracks')} {t('artistDetail.available')}</p>
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-8 text-center shadow-xs dark:shadow-none">
+        <Music className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+        <p className="text-gray-600 dark:text-gray-400">{t('artistDetail.noTracks')} {t('artistDetail.available')}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#111111] rounded-2xl p-6">
-      <h3 className="text-xl font-bold text-white mb-6">{t('artistDetail.musicPreview')}</h3>
+    <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+      <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-6">{t('artistDetail.musicPreview')}</h3>
       <div className="space-y-3">
         {tracks.map((track) => (
           <div
             key={track.id}
-            className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${currentTrack?.id === track.id ? 'bg-[#d3da0c]/10 border border-[#d3da0c]/30' : 'bg-white/5 hover:bg-white/10'
+            className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${currentTrack?.id === track.id ? 'bg-[#d3da0c]/15 border border-[#d3da0c]/40' : 'bg-neutral-50 dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 border border-black/5 dark:border-transparent'
               }`}
           >
             <button
               onClick={() => handlePlay(track)}
-              className="w-12 h-12 rounded-full bg-[#d3da0c] flex items-center justify-center flex-shrink-0"
+              className="w-12 h-12 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black flex items-center justify-center flex-shrink-0 shadow-sm"
             >
               {currentTrack?.id === track.id && isPlaying ? (
-                <Pause className="w-5 h-5 text-black" />
+                <Pause className="w-5 h-5 fill-current" />
               ) : (
-                <Play className="w-5 h-5 text-black ml-1" />
+                <Play className="w-5 h-5 fill-current ml-0.5" />
               )}
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium truncate">{track.title}</p>
-              <p className="text-gray-400 text-sm">{track.genre} • {track.duration}</p>
+              <p className="text-[#020b00] dark:text-white font-medium truncate">{track.title}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{track.genre} • {track.duration}</p>
             </div>
-            <div className="text-gray-500 text-sm">
+            <div className="text-gray-500 text-sm font-medium">
               {track.plays_count?.toLocaleString()} {t('artistDetail.plays')}
             </div>
           </div>
@@ -677,21 +678,21 @@ const AvailabilityCalendar = ({ availability }: { availability: Availability[] }
   const statusColors = {
     available: 'bg-green-500',
     booked: 'bg-red-500',
-    unavailable: 'bg-gray-500'
+    unavailable: 'bg-gray-400'
   };
 
   return (
-    <div className="bg-[#111111] rounded-2xl p-6">
+    <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-white">{t('artistDetail.availability')}</h3>
+        <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('artistDetail.availability')}</h3>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-gray-400">{t('artistDetail.available')}</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.available')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-gray-400">{t('artistDetail.booked')}</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('artistDetail.booked')}</span>
           </div>
         </div>
       </div>
@@ -699,16 +700,16 @@ const AvailabilityCalendar = ({ availability }: { availability: Availability[] }
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-          className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+          className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors"
         >
           ←
         </button>
-        <span className="text-white font-medium">
+        <span className="text-[#020b00] dark:text-white font-medium">
           {currentDate.toLocaleDateString(i18n.language === 'zh' ? 'zh-CN' : i18n.language || 'en-US', { month: 'long', year: 'numeric' })}
         </span>
         <button
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-          className="p-2 hover:bg-white/10 rounded-lg text-gray-400"
+          className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors"
         >
           →
         </button>
@@ -716,7 +717,7 @@ const AvailabilityCalendar = ({ availability }: { availability: Availability[] }
 
       <div className="grid grid-cols-7 gap-1">
         {[t('artistDetail.sun'), t('artistDetail.mon'), t('artistDetail.tue'), t('artistDetail.wed'), t('artistDetail.thu'), t('artistDetail.fri'), t('artistDetail.sat')].map((day, i) => (
-          <div key={i} className="text-center text-gray-500 text-xs py-2">{day}</div>
+          <div key={i} className="text-center text-gray-500 dark:text-gray-400 text-xs py-2 font-medium">{day}</div>
         ))}
         {Array.from({ length: firstDayOfMonth }).map((_, i) => (
           <div key={`empty-${i}`} />
@@ -727,8 +728,8 @@ const AvailabilityCalendar = ({ availability }: { availability: Availability[] }
           return (
             <div
               key={day}
-              className={`aspect-square flex items-center justify-center rounded-lg text-sm text-white relative ${status === 'available' ? 'bg-green-500/20' :
-                status === 'booked' ? 'bg-red-500/20' : 'bg-white/5'
+              className={`aspect-square flex items-center justify-center rounded-lg text-sm text-[#020b00] dark:text-white font-medium relative ${status === 'available' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-800 dark:text-green-300' :
+                status === 'booked' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-800 dark:text-red-300' : 'bg-neutral-100 dark:bg-white/5'
                 }`}
             >
               {day}
@@ -902,20 +903,20 @@ const ArtistDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="animate-spin w-12 h-12 border-4 border-[#d3da0c] border-t-transparent rounded-full" />
+      <div className="min-h-screen pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
+        <div className="animate-spin w-12 h-12 border-4 border-[#020b00] dark:border-[#d3da0c] border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (!artist) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">{t('artistDetail.artistNotFound')}</h2>
-          <p className="text-gray-400 mb-4">{t('artistDetail.artistNotFoundDescription')}</p>
-          <Link to="/artists" className="text-[#d3da0c] hover:underline">
+          <AlertCircle className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-[#020b00] dark:text-white mb-2">{t('artistDetail.artistNotFound')}</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{t('artistDetail.artistNotFoundDescription')}</p>
+          <Link to="/artists" className="text-[#020b00] dark:text-[#d3da0c] font-semibold hover:underline">
             {t('artistDetail.browseAllArtists')}
           </Link>
         </div>
@@ -924,24 +925,21 @@ const ArtistDetail = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24">
+    <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Hero Section */}
-      <div className="relative h-[400px] md:h-[500px]">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${artist.avatar_url || '/default-artist.png'})`,
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent" />
-        </div>
+      <div className="relative h-[400px] md:h-[500px] overflow-hidden bg-neutral-900 dark:bg-[#141414]">
+        <img
+          src={artist.background_url || artist.avatar_url || '/default-artist.png'}
+          alt={artist.stage_name}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-[#020b00] dark:via-[#020b00]/55 dark:to-black/25" />
 
         {/* Back Button */}
         <div className="absolute top-6 left-4 md:left-8">
           <Link
             to="/artists"
-            className="flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-full text-[#020b00] dark:text-white border border-black/10 dark:border-white/10 hover:bg-white dark:hover:bg-black/70 transition-colors shadow-xs"
           >
             <ChevronLeft className="w-5 h-5" />{t('artistDetail.back')}</Link>
         </div>
@@ -955,7 +953,7 @@ const ArtistDetail = () => {
             >
               {/* Name with Verification Badge */}
               <div className="flex items-center gap-3 mb-4">
-                <h1 className="text-4xl md:text-6xl font-display text-white">
+                <h1 className="text-4xl md:text-6xl font-display text-[#020b00] dark:text-white">
                   {artist.stage_name}
                 </h1>
                 {artist.verification_badge && (
@@ -968,22 +966,22 @@ const ArtistDetail = () => {
                 {artist.genre_tags?.map((genre) => (
                   <span
                     key={genre}
-                    className="px-3 py-1 bg-white/10 rounded-full text-white text-sm"
+                    className="px-3 py-1 bg-black/5 dark:bg-white/10 border border-black/8 dark:border-transparent rounded-full text-[#020b00] dark:text-white text-sm font-medium"
                   >
                     {genre}
                   </span>
                 ))}
                 {artist.city && (
-                  <div className="flex items-center gap-1 text-gray-300">
+                  <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300 font-medium">
                     <MapPin className="w-4 h-4" />
                     {artist.city}
                   </div>
                 )}
                 {artist.reviews_count > 0 && (
-                  <div className="flex items-center gap-1 text-yellow-400">
+                  <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400 font-semibold">
                     <Star className="w-4 h-4 fill-current" />
                     <span>{artist.rating?.toFixed(1) || '0.0'}</span>
-                    <span className="text-gray-400">({artist.reviews_count} {t('artistDetail.reviews')})</span>
+                    <span className="text-gray-600 dark:text-gray-400">({artist.reviews_count} {t('artistDetail.reviews')})</span>
                   </div>
                 )}
               </div>
@@ -992,14 +990,14 @@ const ArtistDetail = () => {
               <div className="flex flex-row items-center gap-2 overflow-x-auto hide-scrollbar w-full sm:w-auto pt-2">
                 <button
                   onClick={() => setShowBookingModal(true)}
-                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-[#d3da0c] text-black text-xs sm:text-sm font-bold rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md"
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs sm:text-sm font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md"
                 >
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{t('artistDetail.bookNow')}</span>
                 </button>
                 <button
                   onClick={() => setShowMessageModal(true)}
-                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-white/10 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 border border-black/5 dark:border-white/5"
                 >
                   <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{t('artistDetail.message')}</span>
@@ -1046,8 +1044,8 @@ const ArtistDetail = () => {
                   disabled={followLoading}
                   className={`flex-1 sm:flex-initial px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 ${
                     isFollowing
-                      ? 'bg-white/10 text-white hover:bg-white/20'
-                      : 'bg-pink-500/20 text-pink-400 hover:bg-pink-500/30'
+                      ? 'bg-neutral-100 text-[#020b00] dark:bg-white/10 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/5 dark:border-white/5'
+                      : 'bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400 hover:bg-pink-500/20'
                   } disabled:opacity-50`}
                 >
                   <Heart className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isFollowing ? 'fill-current' : ''}`} />
@@ -1055,9 +1053,9 @@ const ArtistDetail = () => {
                 </button>
                 <button
                   onClick={() => setIsShareModalOpen(true)}
-                  className="flex-1 sm:flex-initial px-3.5 sm:px-5 py-2.5 sm:py-3.5 bg-white/10 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
+                  className="flex-1 sm:flex-initial px-3.5 sm:px-5 py-2.5 sm:py-3.5 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 border border-black/5 dark:border-white/5"
                 >
-                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#d3da0c]" />
+                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#020b00] dark:text-[#d3da0c]" />
                   <span>{t('common.share') || 'Share'}</span>
                 </button>
               </div>
@@ -1072,7 +1070,7 @@ const ArtistDetail = () => {
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Tabs */}
-            <div className="flex gap-1.5 sm:gap-2 border-b border-white/10 pb-3 overflow-x-auto hide-scrollbar">
+            <div className="flex gap-1.5 sm:gap-2 border-b border-black/10 dark:border-white/10 pb-3 overflow-x-auto hide-scrollbar">
               {[
                 { id: 'about', label: t('artistDetail.tabAbout') },
                 { id: 'reviews', label: t('artistDetail.tabReviews') },
@@ -1082,8 +1080,8 @@ const ArtistDetail = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as 'about' | 'reviews' | 'gallery')}
                   className={`px-4 sm:px-6 py-2 text-xs sm:text-sm rounded-lg font-medium capitalize whitespace-nowrap shrink-0 transition-colors ${activeTab === tab.id
-                    ? 'bg-[#d3da0c] text-black font-bold'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                 >
                   {tab.label}
@@ -1099,66 +1097,66 @@ const ArtistDetail = () => {
                 className="space-y-8"
               >
                 {/* Bio Section */}
-                <div className="bg-[#111111] rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">{t('artistDetail.about')}</h3>
-                  <p className="text-gray-300 leading-relaxed mb-6">
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+                  <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.about')}</h3>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
                     {artist.bio || t('artistDetail.noBio')}
                   </p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {artist.years_experience > 0 && (
-                      <div className="bg-white/5 rounded-xl p-4">
-                        <Briefcase className="w-6 h-6 text-[#d3da0c] mb-2" />
-                        <p className="text-2xl font-bold text-white">{artist.years_experience}+</p>
-                        <p className="text-gray-400 text-sm">{t('artistDetail.yearsExperience')}</p>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-4">
+                        <Briefcase className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c] mb-2" />
+                        <p className="text-2xl font-bold text-[#020b00] dark:text-white">{artist.years_experience}+</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.yearsExperience')}</p>
                       </div>
                     )}
                     {artist.languages && (
-                      <div className="bg-white/5 rounded-xl p-4">
-                        <Globe className="w-6 h-6 text-[#d3da0c] mb-2" />
-                        <p className="text-2xl font-bold text-white">{artist.languages.length}</p>
-                        <p className="text-gray-400 text-sm">{t('artistDetail.languages')}</p>
+                      <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-4">
+                        <Globe className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c] mb-2" />
+                        <p className="text-2xl font-bold text-[#020b00] dark:text-white">{artist.languages.length}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.languages')}</p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Booking Details */}
-                <div className="bg-[#111111] rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">{t('artistDetail.bookingDetails')}</h3>
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+                  <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.bookingDetails')}</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     {artist.starting_price && (
-                      <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl">
-                        <DollarSign className="w-6 h-6 text-[#d3da0c]" />
+                      <div className="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl">
+                        <DollarSign className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                         <div>
-                          <p className="text-gray-400 text-sm">{t('artistDetail.startingPrice')}</p>
-                          <p className="text-white font-bold">¥{artist.starting_price.toLocaleString()}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.startingPrice')}</p>
+                          <p className="text-[#020b00] dark:text-white font-bold">¥{artist.starting_price.toLocaleString()}</p>
                         </div>
                       </div>
                     )}
                     {artist.performance_duration && (
-                      <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl">
-                        <Clock className="w-6 h-6 text-[#d3da0c]" />
+                      <div className="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl">
+                        <Clock className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                         <div>
-                          <p className="text-gray-400 text-sm">{t('artistDetail.performanceDuration')}</p>
-                          <p className="text-white font-bold">{artist.performance_duration}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.performanceDuration')}</p>
+                          <p className="text-[#020b00] dark:text-white font-bold">{artist.performance_duration}</p>
                         </div>
                       </div>
                     )}
                     {artist.event_types && (
-                      <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl">
-                        <Award className="w-6 h-6 text-[#d3da0c]" />
+                      <div className="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl">
+                        <Award className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                         <div>
-                          <p className="text-gray-400 text-sm">{t('artistDetail.eventTypes')}</p>
-                          <p className="text-white font-bold">{artist.event_types.join(', ')}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.eventTypes')}</p>
+                          <p className="text-[#020b00] dark:text-white font-bold">{artist.event_types.join(', ')}</p>
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl">
-                      <MapPin className="w-6 h-6 text-[#d3da0c]" />
+                    <div className="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl">
+                      <MapPin className="w-6 h-6 text-[#020b00] dark:text-[#d3da0c]" />
                       <div>
-                        <p className="text-gray-400 text-sm">{t('artistDetail.travel')}</p>
-                        <p className="text-white font-bold">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.travel')}</p>
+                        <p className="text-[#020b00] dark:text-white font-bold">
                           {artist.travel_availability || t('artistDetail.localOnly')}
                           {artist.travel_fee > 0 && ` (+¥${artist.travel_fee})`}
                         </p>
@@ -1169,8 +1167,8 @@ const ArtistDetail = () => {
 
                 {/* Social Media Icons */}
                 {(artist.instagram || artist.twitter || artist.tiktok || artist.wechat_id || artist.website) && (
-                  <div className="bg-[#111111] rounded-2xl p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">{t('artistDetail.socialMedia') || 'Social Media'}</h3>
+                  <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+                    <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.socialMedia') || 'Social Media'}</h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.instagram && (
                         <a
@@ -1188,7 +1186,7 @@ const ArtistDetail = () => {
                           href={artist.twitter.startsWith('http') ? artist.twitter : `https://twitter.com/${artist.twitter}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-black border border-white/20 text-white hover:bg-white/10 transition-colors"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-black border border-white/20 text-white hover:bg-neutral-800 transition-colors"
                           title="X / Twitter"
                         >
                           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -1222,7 +1220,7 @@ const ArtistDetail = () => {
                           href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors border border-black/5 dark:border-white/5"
                           title="Website"
                         >
                           <Globe className="w-5 h-5" />
@@ -1234,8 +1232,8 @@ const ArtistDetail = () => {
 
                 {/* Streaming & Music Links */}
                 {(artist.spotify_url || artist.apple_music_url || artist.soundcloud_url || artist.youtube_url || artist.audiomack_url || artist.hearthis_url || (artist.music_links && artist.music_links.length > 0)) && (
-                  <div className="bg-[#111111] rounded-2xl p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">{t('artistDetail.musicLinks') || 'Music & Streaming'}</h3>
+                  <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+                    <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.musicLinks') || 'Music & Streaming'}</h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.spotify_url && (
                         <a
@@ -1309,7 +1307,7 @@ const ArtistDetail = () => {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#d3da0c] text-black hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90 transition-opacity shadow-xs"
                           title={link.title || link.platform}
                         >
                           <Music className="w-5 h-5" />
@@ -1332,11 +1330,11 @@ const ArtistDetail = () => {
                 className="space-y-6"
               >
                 {/* Rating Summary */}
-                <div className="bg-[#111111] rounded-2xl p-6">
+                <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
                   <div className="flex items-center gap-8">
                     <div className="text-center">
-                      <p className="text-5xl font-bold text-white">{artist.rating?.toFixed(1) || '0.0'}</p>
-                      <div className="flex items-center justify-center gap-1 text-yellow-400 my-2">
+                      <p className="text-5xl font-bold text-[#020b00] dark:text-white">{artist.rating?.toFixed(1) || '0.0'}</p>
+                      <div className="flex items-center justify-center gap-1 text-yellow-500 dark:text-yellow-400 my-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
@@ -1344,7 +1342,7 @@ const ArtistDetail = () => {
                           />
                         ))}
                       </div>
-                      <p className="text-gray-400">{artist.reviews_count} {t('artistDetail.reviews')}</p>
+                      <p className="text-gray-600 dark:text-gray-400 font-medium">{artist.reviews_count} {t('artistDetail.reviews')}</p>
                     </div>
                     <div className="flex-1 space-y-2">
                       {[5, 4, 3, 2, 1].map((rating) => {
@@ -1354,14 +1352,14 @@ const ArtistDetail = () => {
                           : 0;
                         return (
                           <div key={rating} className="flex items-center gap-3">
-                            <span className="text-gray-400 w-8">{rating} {t('artistDetail.stars')}</span>
-                            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <span className="text-gray-600 dark:text-gray-400 w-8 text-sm">{rating} {t('artistDetail.stars')}</span>
+                            <div className="flex-1 h-2 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-[#d3da0c] rounded-full"
+                                className="h-full bg-[#020b00] dark:bg-[#d3da0c] rounded-full"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
-                            <span className="text-gray-500 w-8 text-right">{count}</span>
+                            <span className="text-gray-500 w-8 text-right text-sm">{count}</span>
                           </div>
                         );
                       })}
@@ -1371,12 +1369,12 @@ const ArtistDetail = () => {
 
                 {/* Write a Review */}
                 {completedBookingWithArtist && !hasAlreadyReviewed && !showReviewForm && (
-                  <div className="bg-[#111111] rounded-2xl p-6 border border-[#d3da0c]/20">
-                    <p className="text-white font-medium mb-2">{t('artistDetail.leaveReview') || 'You booked this artist'}</p>
-                    <p className="text-gray-400 text-sm mb-4">{t('artistDetail.shareExperience') || 'Share your experience by leaving a review.'}</p>
+                  <div className="bg-neutral-50 dark:bg-[#111111] rounded-2xl p-6 border border-[#d3da0c]/30 shadow-xs dark:shadow-none">
+                    <p className="text-[#020b00] dark:text-white font-medium mb-2">{t('artistDetail.leaveReview') || 'You booked this artist'}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t('artistDetail.shareExperience') || 'Share your experience by leaving a review.'}</p>
                     <button
                       onClick={() => setShowReviewForm(true)}
-                      className="px-6 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
+                      className="px-6 py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm"
                     >
                       {t('artistDetail.writeReview') || 'Write a Review'}
                     </button>
@@ -1387,9 +1385,9 @@ const ArtistDetail = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-[#111111] rounded-2xl p-6 border border-white/10"
+                    className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/10 dark:border-white/10 shadow-xs dark:shadow-none"
                   >
-                    <h3 className="text-lg font-bold text-white mb-4">{t('artistDetail.writeReview') || 'Write a Review'}</h3>
+                    <h3 className="text-lg font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.writeReview') || 'Write a Review'}</h3>
                     <div className="flex items-center gap-2 mb-4">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -1401,8 +1399,8 @@ const ArtistDetail = () => {
                           <Star
                             className={`w-8 h-8 ${
                               star <= reviewForm.rating
-                                ? 'text-[#d3da0c] fill-[#d3da0c]'
-                                : 'text-gray-600'
+                                ? 'text-yellow-500 fill-yellow-500 dark:text-[#d3da0c] dark:fill-[#d3da0c]'
+                                : 'text-gray-300 dark:text-gray-600'
                             }`}
                           />
                         </button>
@@ -1412,20 +1410,20 @@ const ArtistDetail = () => {
                       value={reviewForm.comment}
                       onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
                       placeholder={t('artistDetail.reviewPlaceholder') || 'Tell others about your experience...'}
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 mb-4 focus:outline-none focus:border-[#d3da0c] min-h-[100px] resize-none"
+                      className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c] min-h-[100px] resize-none"
                     />
                     <div className="flex gap-3">
                       <button
                         onClick={handleSubmitReview}
                         disabled={isSubmittingReview}
-                        className="px-6 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm"
                       >
                         {isSubmittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         {t('common.submit') || 'Submit'}
                       </button>
                       <button
                         onClick={() => { setShowReviewForm(false); setReviewForm({ rating: 5, comment: '' }); }}
-                        className="px-6 py-2.5 bg-white/5 text-white text-sm font-bold rounded-lg hover:bg-white/10 transition-colors"
+                        className="px-6 py-2.5 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white text-sm font-bold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
                       >
                         {t('common.cancel') || 'Cancel'}
                       </button>
@@ -1436,20 +1434,20 @@ const ArtistDetail = () => {
                 {/* Reviews List */}
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="bg-[#111111] rounded-2xl p-6">
+                    <div key={review.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold">
                             {review.reviewer.first_name?.[0] || 'U'}
                           </div>
                           <div>
-                            <p className="text-white font-medium">
+                            <p className="text-[#020b00] dark:text-white font-medium">
                               {review.reviewer.first_name} {review.reviewer.last_name}
                             </p>
-                            <p className="text-gray-400 text-sm">{review.event_type}</p>
+                            <p className="text-gray-500 text-sm">{review.event_type}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 text-yellow-400">
+                        <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
@@ -1458,10 +1456,10 @@ const ArtistDetail = () => {
                           ))}
                         </div>
                       </div>
-                      <p className="text-gray-300 mb-3">{review.comment}</p>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">{review.comment}</p>
                       <div className="flex items-center gap-4">
                         {review.is_verified && (
-                          <span className="inline-flex items-center gap-1 text-[#d3da0c] text-sm">
+                          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-[#d3da0c] text-sm font-semibold">
                             <Check className="w-4 h-4" />
                             {t('artistDetail.verifiedBooking')}
                           </span>
@@ -1481,12 +1479,12 @@ const ArtistDetail = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-[#111111] rounded-2xl p-6"
+                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none"
               >
-                <h3 className="text-xl font-bold text-white mb-4">{t('artistDetail.photoVideoGallery')}</h3>
+                <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.photoVideoGallery')}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {tracks.filter(t => t.cover_image).map((track) => (
-                    <div key={track.id} className="aspect-square rounded-xl overflow-hidden bg-white/5">
+                    <div key={track.id} className="aspect-square rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/5">
                       <img
                         src={track.cover_image}
                         alt={track.title}
@@ -1504,44 +1502,44 @@ const ArtistDetail = () => {
             {/* Availability Calendar */}
             <AvailabilityCalendar availability={availability} />
 
-            {/* {t('artistDetail.quickInfo')} Card */}
-            <div className="bg-[#111111] rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-white mb-4">{t('artistDetail.quickInfo')}</h3>
+            {/* Quick Info Card */}
+            <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
+              <h3 className="text-lg font-bold text-[#020b00] dark:text-white mb-4">{t('artistDetail.quickInfo')}</h3>
               <div className="space-y-4">
                 {artist.languages && (
                   <div className="flex items-center gap-3">
-                    <Globe className="w-5 h-5 text-[#d3da0c]" />
+                    <Globe className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                     <div>
-                      <p className="text-gray-400 text-sm">{t('artistDetail.languages')}</p>
-                      <p className="text-white">{artist.languages.join(', ')}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.languages')}</p>
+                      <p className="text-[#020b00] dark:text-white font-medium">{artist.languages.join(', ')}</p>
                     </div>
                   </div>
                 )}
                 {artist.equipment_provided && (
                   <div className="flex items-center gap-3">
-                    <Volume2 className="w-5 h-5 text-[#d3da0c]" />
+                    <Volume2 className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                     <div>
-                      <p className="text-gray-400 text-sm">{t('artistDetail.equipment')}</p>
-                      <p className="text-white">{artist.equipment_provided.join(', ')}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.equipment')}</p>
+                      <p className="text-[#020b00] dark:text-white font-medium">{artist.equipment_provided.join(', ')}</p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#d3da0c]" />
+                  <CheckCircle className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                   <div>
-                    <p className="text-gray-400 text-sm">{t('artistDetail.responseTime')}</p>
-                    <p className="text-white">{t('artistDetail.responseTimeValue')}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.responseTime')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">{t('artistDetail.responseTimeValue')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Book Now Card */}
-            <div className="bg-gradient-to-br from-[#d3da0c]/20 to-[#d3da0c]/5 rounded-2xl p-6 border border-[#d3da0c]/30">
-              <p className="text-gray-300 mb-4">{t('artistDetail.readyToBook')}</p>
+            <div className="bg-gradient-to-br from-[#d3da0c]/10 to-[#d3da0c]/5 dark:from-[#d3da0c]/20 dark:to-[#d3da0c]/5 rounded-2xl p-6 border border-[#d3da0c]/30 shadow-xs dark:shadow-none">
+              <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">{t('artistDetail.readyToBook')}</p>
               <button
                 onClick={() => setShowBookingModal(true)}
-                className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-xl hover:bg-[#bbc10b] transition-colors"
+                className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:opacity-90 transition-all shadow-sm"
               >{t('artistDetail.bookNow')}</button>
             </div>
           </div>

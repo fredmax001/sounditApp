@@ -170,18 +170,18 @@ const VendorEvents = () => {
         <div className="flex items-center gap-4">
           <Link
             to="/dashboard/vendor"
-            className="p-2 bg-white/5 border border-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            className="p-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-gray-700 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-black text-white">{t('vendor.events.title')}</h1>
-            <p className="text-gray-400 text-sm mt-1">{t('vendor.events.subtitle')}</p>
+            <h1 className="text-2xl font-black text-[#020b00] dark:text-white">{t('vendor.events.title')}</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{t('vendor.events.subtitle')}</p>
           </div>
         </div>
         <button
           onClick={handleApplyForBooth}
-          className="flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black rounded-lg font-bold hover:bg-[#bbc10b] transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-lg font-bold hover:opacity-90 transition-all"
         >
           <Plus className="w-4 h-4" />
           {t('vendor.events.applyForBooth')}
@@ -193,10 +193,10 @@ const VendorEvents = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-[#111111] border border-white/10 rounded-2xl p-6"
+        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-6 shadow-xs dark:shadow-none"
       >
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm mb-6">
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 dark:text-red-400 text-sm mb-6">
             {error}
           </div>
         )}
@@ -210,14 +210,14 @@ const VendorEvents = () => {
             {events.map((event) => (
               <div
                 key={event.id}
-                className="bg-white/[0.02] border border-white/5 rounded-xl p-6 hover:border-[#d3da0c]/30 transition-all"
+                className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-xl p-6 hover:border-[#d3da0c]/30 transition-all"
               >
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
                   <div className="flex-1">
-                    <h4 className="text-white font-bold text-lg mb-2">
+                    <h4 className="text-[#020b00] dark:text-white font-bold text-lg mb-2">
                       {event.name || event.event_name || t('vendor.events.unnamedEvent')}
                     </h4>
-                    <div className="flex flex-wrap gap-4 text-gray-400 text-sm">
+                    <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4 text-[#d3da0c]" />
                         {event.date || event.event_date || t('vendor.events.tbd')}
@@ -233,10 +233,10 @@ const VendorEvents = () => {
                   </div>
                   <span
                     className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${event.status === 'approved'
-                        ? 'bg-green-500/20 text-green-400'
+                        ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20'
                         : event.status === 'rejected'
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'bg-yellow-500/20 text-yellow-400'
+                          ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20'
+                          : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
                       }`}
                   >
                     {getStatusLabel(event.status)}
@@ -244,14 +244,14 @@ const VendorEvents = () => {
                 </div>
 
                 {event.description && (
-                  <p className="text-gray-400 text-sm mb-4">{event.description}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{event.description}</p>
                 )}
 
                 {event.status === 'pending' && (
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleCancelApplication(event.id)}
-                      className="px-4 py-2 bg-red-500/20 text-red-400 font-bold rounded-lg hover:bg-red-500/30 transition-all text-sm"
+                      className="px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all text-sm"
                     >
                       <X className="w-3 h-3 inline mr-2" />
                       {t('vendor.events.cancelApplication')}
@@ -263,16 +263,16 @@ const VendorEvents = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-              <Calendar className="w-10 h-10 text-gray-500" />
+            <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <Calendar className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">{t('vendor.events.noEventsTitle')}</h3>
-            <p className="text-gray-400 max-w-md mb-6">
+            <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-2">{t('vendor.events.noEventsTitle')}</h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
               {t('vendor.events.noEventsDescription')}
             </p>
             <button
               onClick={handleApplyForBooth}
-              className="flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black rounded-lg font-bold hover:bg-[#bbc10b] transition-all"
+              className="flex items-center gap-2 px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-lg font-bold hover:opacity-90 transition-all"
             >
               <Plus className="w-4 h-4" />
               {t('vendor.events.browseEvents')}
@@ -283,26 +283,26 @@ const VendorEvents = () => {
 
       {/* Booth Application Modal */}
       {showBoothModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">{t('vendor.events.applyForBooth')}</h3>
-              <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-400 hover:text-white">
+              <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('vendor.events.applyForBooth')}</h3>
+              <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder={t('vendor.events.searchEvents') || 'Search events...'}
                 value={boothSearchQuery}
                 onChange={(e) => setBoothSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] outline-none"
+                className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
               />
             </div>
             <div className="flex-1 overflow-y-auto space-y-3">
@@ -314,15 +314,15 @@ const VendorEvents = () => {
                 availableEvents
                   .filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase()))
                   .map((event) => (
-                    <div key={event.id} className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
+                    <div key={event.id} className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-4 flex items-center justify-between">
                       <div>
-                        <p className="text-white font-bold">{event.name || event.event_name || t('vendor.events.unnamedEvent')}</p>
-                        <p className="text-gray-400 text-sm">{event.date || event.event_date || t('vendor.events.tbd')}</p>
+                        <p className="text-[#020b00] dark:text-white font-bold">{event.name || event.event_name || t('vendor.events.unnamedEvent')}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{event.date || event.event_date || t('vendor.events.tbd')}</p>
                       </div>
                       <button
                         onClick={() => handleApplyToEvent(event.id)}
                         disabled={applyingEventId === event.id}
-                        className="px-4 py-2 bg-[#d3da0c] text-black text-sm font-bold rounded-lg hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                        className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
                       >
                         {applyingEventId === event.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -333,7 +333,7 @@ const VendorEvents = () => {
                     </div>
                   ))
               ) : (
-                <p className="text-gray-400 text-center py-8">{t('vendor.events.noEventsAvailable') || 'No events available for booth application.'}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center py-8">{t('vendor.events.noEventsAvailable') || 'No events available for booth application.'}</p>
               )}
             </div>
           </motion.div>

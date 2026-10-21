@@ -52,7 +52,7 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
 
           {/* Name */}
           <div className="text-center">
-            <p className="text-white text-xs font-semibold truncate max-w-[90px] group-hover:text-[#d3da0c] transition-colors">
+            <p className="text-[#020b00] dark:text-white text-xs font-semibold truncate max-w-[90px] group-hover:text-[#d3da0c] transition-colors">
               {displayName}
             </p>
             <p className="text-gray-500 text-[10px] truncate max-w-[90px]">{displayGenre}</p>
@@ -78,7 +78,7 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
               (e.target as HTMLImageElement).src = '/default-avatar.jpg';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020b00] via-[#020b00]/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
           <div className="absolute top-4 left-4 px-3 py-1 glass rounded-full">
             <span className="text-[#d3da0c] text-xs font-medium flex items-center gap-1">
               <Music className="w-3 h-3" /> {displayGenre}

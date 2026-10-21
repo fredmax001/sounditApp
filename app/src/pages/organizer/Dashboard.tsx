@@ -111,10 +111,10 @@ const OrganizerDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-3xl font-display text-white mb-2">
+        <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">
           {t('organizer.dashboard.welcomeBack')} <span className="text-[#d3da0c]">{profile?.first_name || t('organizer.dashboard.organizerFallback')}</span>
         </h1>
-        <p className="text-gray-400">{t('organizer.dashboard.subtitle')}</p>
+        <p className="text-gray-600 dark:text-gray-400">{t('organizer.dashboard.subtitle')}</p>
       </motion.div>
 
       {/* Stats */}
@@ -127,16 +127,16 @@ const OrganizerDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass rounded-2xl p-6"
+              className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center">
                   <Icon className="w-6 h-6 text-[#d3da0c]" />
                 </div>
-                <span className="text-green-500 text-sm">{stat.change}</span>
+                <span className="text-green-600 dark:text-green-500 text-sm font-medium">{stat.change}</span>
               </div>
-              <p className="text-gray-400 text-sm">{stat.label}</p>
-              <p className="text-2xl font-display text-white">{stat.value}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{stat.label}</p>
+              <p className="text-2xl font-display text-[#020b00] dark:text-white">{stat.value}</p>
             </motion.div>
           );
         })}
@@ -147,44 +147,44 @@ const OrganizerDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="glass rounded-2xl p-6 mb-8"
+        className="bg-white dark:bg-[#111111] rounded-2xl p-6 mb-8 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none"
       >
-        <h2 className="text-xl font-semibold text-white mb-4">{t('organizer.dashboard.quickActionsTitle')}</h2>
+        <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4">{t('organizer.dashboard.quickActionsTitle')}</h2>
         <div className="grid sm:grid-cols-3 gap-4">
           <Link
             to="/organizer/create-event"
-            className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+            className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
-            <div className="w-12 h-12 rounded-xl bg-[#d3da0c] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-[#d3da0c] flex items-center justify-center shrink-0">
               <Plus className="w-6 h-6 text-black" />
             </div>
             <div>
-              <p className="text-white font-medium">{t('organizer.dashboard.createEventAction')}</p>
-              <p className="text-gray-500 text-sm">{t('organizer.dashboard.createEventDescription')}</p>
+              <p className="text-[#020b00] dark:text-white font-medium">{t('organizer.dashboard.createEventAction')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{t('organizer.dashboard.createEventDescription')}</p>
             </div>
           </Link>
           <Link
             to="/organizer/scanner"
-            className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+            className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
-            <div className="w-12 h-12 rounded-xl bg-[#FF2D8F] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-[#FF2D8F] flex items-center justify-center shrink-0">
               <Ticket className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-white font-medium">{t('organizer.dashboard.scanTicketsAction')}</p>
-              <p className="text-gray-500 text-sm">{t('organizer.dashboard.scanTicketsDescription')}</p>
+              <p className="text-[#020b00] dark:text-white font-medium">{t('organizer.dashboard.scanTicketsAction')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{t('organizer.dashboard.scanTicketsDescription')}</p>
             </div>
           </Link>
           <Link
             to="/organizer/analytics"
-            className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+            className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
-            <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center shrink-0">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-white font-medium">{t('organizer.dashboard.analyticsAction')}</p>
-              <p className="text-gray-500 text-sm">{t('organizer.dashboard.analyticsDescription')}</p>
+              <p className="text-[#020b00] dark:text-white font-medium">{t('organizer.dashboard.analyticsAction')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{t('organizer.dashboard.analyticsDescription')}</p>
             </div>
           </Link>
         </div>
@@ -195,13 +195,13 @@ const OrganizerDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="glass rounded-2xl p-6"
+        className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-white">{t('organizer.dashboard.recentEventsTitle')}</h2>
+          <h2 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('organizer.dashboard.recentEventsTitle')}</h2>
           <Link
             to="/organizer/events"
-            className="text-[#d3da0c] text-sm flex items-center gap-1 hover:gap-2 transition-all"
+            className="text-[#020b00] dark:text-[#d3da0c] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
           >
             {t('organizer.dashboard.viewAll')}
             <ArrowRight className="w-4 h-4" />
@@ -212,7 +212,7 @@ const OrganizerDashboard = () => {
           {recentEvents.map((event) => (
             <div
               key={event.id}
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-xl"
+              className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-transparent rounded-xl"
             >
               <img
                 src={event.flyer_image}
@@ -223,14 +223,14 @@ const OrganizerDashboard = () => {
                 }}
               />
               <div className="flex-1">
-                <p className="text-white font-medium">{event.title}</p>
-                <p className="text-gray-500 text-sm">
+                <p className="text-[#020b00] dark:text-white font-medium">{event.title}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                   {new Date(event.start_date).toLocaleDateString()} • {event.city}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[#d3da0c] font-medium">{event.tickets_sold || 0}/{event.capacity || '∞'}</p>
-                <p className="text-gray-500 text-sm">{t('organizer.dashboard.sold')}</p>
+                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold">{event.tickets_sold || 0}/{event.capacity || '∞'}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('organizer.dashboard.sold')}</p>
               </div>
             </div>
           ))}
@@ -239,12 +239,12 @@ const OrganizerDashboard = () => {
         {/* Empty State */}
         {recentEvents.length === 0 && (
           <div className="text-center py-12">
-            <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 mb-2">{t('organizer.dashboard.noEvents')}</p>
-            <p className="text-gray-500 text-sm mb-4">{t('organizer.dashboard.noEventsDescription')}</p>
+            <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-[#020b00] dark:text-gray-400 font-semibold mb-2">{t('organizer.dashboard.noEvents')}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{t('organizer.dashboard.noEventsDescription')}</p>
             <Link
               to="/organizer/create-event"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#d3da0c] text-black font-semibold rounded-lg hover:bg-[#bbc10b] transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-opacity"
             >
               <Plus className="w-5 h-5" />
               {t('organizer.dashboard.createEventButton')}

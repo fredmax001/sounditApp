@@ -1,6 +1,9 @@
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+// Keep the compact native shell on phones and use the full navigation shell
+// on tablets, whose usable width is larger than a phone but smaller than a
+// typical desktop viewport.
+const MOBILE_BREAKPOINT = 1024
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)

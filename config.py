@@ -87,6 +87,12 @@ class Settings(BaseSettings):
     VAPID_PUBLIC_KEY: str = ""
     VAPID_PRIVATE_KEY: str = ""
     VAPID_CLAIM_EMAIL: str = "admin@sounditent.com"
+    # Optional APNs token-auth credentials for native iOS push delivery.
+    APNS_KEY_ID: str = ""
+    APNS_TEAM_ID: str = ""
+    APNS_BUNDLE_ID: str = "com.sounditent.app"
+    APNS_AUTH_KEY: str = ""
+    APNS_USE_SANDBOX: bool = False
     
     # SIA — Sound It Assistant (optional LLM enhancement)
     SIA_ENABLED: bool = True

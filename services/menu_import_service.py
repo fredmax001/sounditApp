@@ -84,6 +84,12 @@ def _clean_name(name: str) -> str:
     name = re.sub(r"CNY\s*\d+.*$", "", name, flags=re.IGNORECASE)
     # Remove common bullet markers
     name = re.sub(r"^[·•\-\*\d]+\s*", "", name)
+    # Strip leftover separator/dash runs at both ends (OCR often leaves
+    # trailing "–", "—", "-", "·" where the price used to be)
+    name = re.sub(r"[\s\-–—―·•|,.]+$", "", name)
+    name = re.sub(r"^[\s\-–—―·•|,]+", "", name)
+    # Collapse internal whitespace runs
+    name = re.sub(r"\s{2,}", " ", name)
     # Strip whitespace
     name = name.strip()
     return name
@@ -164,6 +170,22 @@ def parse_image_menu(image_bytes: bytes) -> List[MenuItem]:
     
     try:
         image = Image.open(io.BytesIO(image_bytes))
+        
+        # Preprocess for better OCR: upscale small images, grayscale, boost contrast
+        try:
+            from PIL import ImageOps, ImageEnhance
+            img = ImageOps.exif_transpose(image)
+            # Upscale if narrow (phone photos of menus are often fine, but
+            # compressed uploads can be small)
+            w, h = img.size
+            if max(w, h) < 1600:
+                factor = 1600 / max(w, h)
+                img = img.resize((int(w * factor), int(h * factor)), Image.LANCZOS)
+            gray = ImageOps.grayscale(img)
+            gray = ImageEnhance.Contrast(gray).enhance(1.6)
+            image = gray
+        except Exception as prep_err:
+            logger.warning(f"[OCR] Preprocessing skipped: {prep_err}")
         
         # Try Chinese + English OCR first
         try:

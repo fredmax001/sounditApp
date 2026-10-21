@@ -89,51 +89,53 @@ const TableBookings = () => {
   };
 
   return (
-    <div className="min-h-screen pb-28">
-      <section className="sticky top-20 lg:top-24 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+      <section className="sticky top-20 lg:top-24 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
-          <button onClick={() => navigate(-1)} aria-label={t('kit.common.back')} className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors">
+          <button onClick={() => navigate(-1)} aria-label={t('kit.common.back')} className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-display text-white">{t('tableBooking.title', 'Table Bookings')}</h1>
+          <h1 className="text-xl font-display text-[#020b00] dark:text-white">{t('tableBooking.title', 'Table Bookings')}</h1>
         </div>
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {isLoading && (
-          <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-40 bg-[#111111] rounded-2xl border border-white/5 animate-pulse" />)}</div>
+          <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-40 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 animate-pulse shadow-xs" />)}</div>
         )}
 
         {!isLoading && orders.length === 0 && (
           <div className="text-center py-20">
-            <Martini className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-white font-medium mb-1">{t('tableBooking.noBookings', 'No table bookings yet')}</p>
+            <Martini className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-[#020b00] dark:text-white font-medium mb-1">{t('tableBooking.noBookings', 'No table bookings yet')}</p>
             <p className="text-gray-500 text-sm">{t('tableBooking.noBookingsDesc', 'Book a table package at an event and it will appear here.')}</p>
           </div>
         )}
 
         {orders.map((o, i) => (
           <motion.div key={o.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.05, 0.3) }}
-            className="bg-[#111111] rounded-2xl border border-white/5 overflow-hidden">
+            className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 overflow-hidden shadow-xs">
             {/* Header */}
             <div className="p-4 pb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-0.5">{o.package.name}</p>
-                <h3 className="text-white font-semibold truncate">{o.event.title}</h3>
+                <p className="text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-0.5">{o.package.name}</p>
+                <h3 className="text-[#020b00] dark:text-white font-semibold truncate">{o.event.title}</h3>
                 <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />{o.event.start_date ? new Date(o.event.start_date).toLocaleString() : ''}
+                  <Calendar className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />{o.event.start_date ? new Date(o.event.start_date).toLocaleString() : ''}
                 </p>
               </div>
-              <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border capitalize shrink-0 ${statusChip(o.status)}`}>{o.status}</span>
+              <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border capitalize shrink-0 ${statusChip(o.status)}`}>
+                {o.status === 'pending' ? t('user.tickets.statusPendingApproval', 'Pending Approval') : o.status}
+              </span>
             </div>
 
             {/* Financial breakdown */}
             {o.drink_allowance != null && (
-              <div className="mx-4 mb-3 bg-white/5 rounded-xl p-3 space-y-1.5 text-xs">
+              <div className="mx-4 mb-3 bg-neutral-50 dark:bg-white/5 rounded-xl p-3 space-y-1.5 text-xs border border-black/5 dark:border-transparent">
                 <Row label={t('tables.packagePrice', 'Package price')} value={fmt(o.payment_amount)} />
                 <Row label={t('tables.ticketsDeduction', `Tickets (${o.guest_count} × ${fmt(o.ticket_price_snapshot)})`)} value={`−${fmt((o.ticket_price_snapshot || 0) * o.guest_count)}`} />
                 <Row label={t('tables.tableAllocation', 'Table allocation (once per table)')} value={`−${fmt(o.allocation_amount)}`} />
-                <div className="border-t border-white/10 my-1" />
+                <div className="border-t border-black/8 dark:border-white/10 my-1" />
                 <Row label={t('tables.drinkAllowance', 'Drink allowance')} value={fmt(o.drink_allowance)} accent />
                 <Row label={t('tables.allowanceUsed', 'Selected drinks')} value={`−${fmt(o.allowance_used)}`} />
                 <Row label={t('tables.allowanceRemaining', 'Remaining')} value={fmt((o.drink_allowance || 0) - (o.allowance_used || 0))} />
@@ -147,10 +149,10 @@ const TableBookings = () => {
                 <div className="space-y-1">
                   {o.drink_selections!.map((d, idx) => (
                     <div key={idx} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300">{d.name} ×{d.qty}
+                      <span className="text-gray-600 dark:text-gray-300">{d.name} ×{d.qty}
                         {(d.mixers?.length || 0) > 0 && <span className="text-gray-500"> · {d.mixers!.map(m => `${m.name}×${m.qty}`).join(', ')}</span>}
                       </span>
-                      <span className="text-white font-medium">{fmt(d.line_total)}</span>
+                      <span className="text-[#020b00] dark:text-white font-medium">{fmt(d.line_total)}</span>
                     </div>
                   ))}
                 </div>
@@ -160,18 +162,18 @@ const TableBookings = () => {
             {/* Upgrade request status */}
             {o.upgrade_request && o.upgrade_status !== 'none' && (
               <div className={`mx-4 mb-3 rounded-xl p-3 border text-xs ${
-                o.upgrade_status === 'approved' ? 'bg-[#d3da0c]/10 border-[#d3da0c]/30'
+                o.upgrade_status === 'approved' ? 'bg-[#d3da0c]/15 border-[#d3da0c]/30'
                 : o.upgrade_status === 'declined' ? 'bg-red-500/10 border-red-500/30'
                 : 'bg-amber-500/10 border-amber-500/30'}`}>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className={`w-3.5 h-3.5 ${o.upgrade_status === 'approved' ? 'text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-400' : 'text-amber-400'}`} />
-                  <span className={`font-semibold ${o.upgrade_status === 'approved' ? 'text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-400' : 'text-amber-400'}`}>
+                  <Sparkles className={`w-3.5 h-3.5 ${o.upgrade_status === 'approved' ? 'text-[#020b00] dark:text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-500' : 'text-amber-500'}`} />
+                  <span className={`font-semibold ${o.upgrade_status === 'approved' ? 'text-[#020b00] dark:text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-500' : 'text-amber-500'}`}>
                     {o.upgrade_status === 'approved' ? t('tables.upgradeApproved', 'Upgrade approved')
                       : o.upgrade_status === 'declined' ? t('tables.upgradeDeclined', 'Upgrade declined')
                       : t('tables.upgradePending', 'Upgrade requested — pending confirmation')}
                   </span>
                 </div>
-                <p className="text-gray-400">{o.upgrade_request.name} ×{o.upgrade_request.qty}
+                <p className="text-gray-600 dark:text-gray-400">{o.upgrade_request.name} ×{o.upgrade_request.qty}
                   {o.upgrade_status === 'approved'
                     ? ` · ${t('tables.extraPayment', 'Extra payment')}: ${fmt(o.upgrade_final_price)} (${o.upgrade_payment_status || 'pending'})`
                     : ` · ${t('tables.estExtra', 'est. extra')} ${fmt(o.upgrade_request.estimated_extra)}`}
@@ -183,31 +185,31 @@ const TableBookings = () => {
             <div className="px-4 pb-4 flex flex-wrap items-center gap-2">
               {o.status === 'pending' && !o.buyer_confirmed_at && (
                 <button onClick={() => confirmPayment(o.id)} disabled={confirmingId === o.id}
-                  className="h-9 px-4 rounded-lg bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] transition-colors flex items-center gap-1.5 disabled:opacity-50">
+                  className="h-9 px-4 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-sm">
                   {confirmingId === o.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   {t('tables.iPaid', "I've completed the payment")}
                 </button>
               )}
               {o.buyer_confirmed_at && o.status === 'pending' && (
-                <span className="h-9 px-3 rounded-lg bg-white/5 text-gray-400 text-xs font-medium flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#d3da0c]" />{t('tables.paymentConfirmedWaiting', 'Payment confirmed — awaiting approval')}
+                <span className="h-9 px-3 rounded-lg bg-neutral-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-xs font-medium flex items-center gap-1.5 border border-black/5 dark:border-white/5">
+                  <Clock className="w-3.5 h-3.5 text-[#020b00] dark:text-[#d3da0c]" />{t('tables.paymentConfirmedWaiting', 'Payment confirmed — awaiting approval')}
                 </span>
               )}
             </div>
 
             {/* Per-guest tickets */}
             {(o.tickets?.length || 0) > 0 && (
-              <div className="border-t border-white/5 px-4 py-3">
+              <div className="border-t border-black/8 dark:border-white/5 px-4 py-3">
                 <p className="text-gray-500 text-[11px] font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <TicketIcon className="w-3.5 h-3.5" />{t('tables.guestTickets', 'Guest tickets')}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {o.tickets!.map((tk, idx) => (
                     <button key={tk.id} onClick={() => setQrTicket(tk)}
-                      className="bg-white/5 rounded-xl p-2.5 text-left hover:bg-white/10 transition-colors">
+                      className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-2.5 text-left hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors">
                       <p className="text-[10px] text-gray-500 mb-0.5">{o.guest_names?.[idx] || `${t('tables.guest', 'Guest')} ${idx + 1}`}</p>
-                      <p className="text-[11px] text-white font-mono truncate">{tk.ticket_number}</p>
-                      <p className={`text-[10px] mt-0.5 ${tk.is_used ? 'text-gray-500' : 'text-[#d3da0c]'}`}>{tk.is_used ? t('tables.used', 'Used') : t('tables.tapForQr', 'Tap for QR')}</p>
+                      <p className="text-[11px] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
+                      <p className={`text-[10px] mt-0.5 font-medium ${tk.is_used ? 'text-gray-500' : 'text-[#020b00] dark:text-[#d3da0c]'}`}>{tk.is_used ? t('tables.used', 'Used') : t('tables.tapForQr', 'Tap for QR')}</p>
                     </button>
                   ))}
                 </div>
@@ -216,10 +218,10 @@ const TableBookings = () => {
 
             {/* Legacy single QR */}
             {(!o.tickets || o.tickets.length === 0) && o.ticket_qr && o.status === 'approved' && (
-              <div className="border-t border-white/5 px-4 py-3 text-center">
+              <div className="border-t border-black/8 dark:border-white/5 px-4 py-3 text-center">
                 <button onClick={() => setQrTicket({ id: o.id, ticket_number: o.ticket_code || '', qr_code: o.ticket_qr })}
-                  className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-white/5 text-white text-xs font-semibold hover:bg-white/10 transition-colors">
-                  <QrCode className="w-4 h-4 text-[#d3da0c]" />{t('tableBooking.showQr', 'Show QR')}
+                  className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white text-xs font-semibold hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors border border-black/5 dark:border-white/5">
+                  <QrCode className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />{t('tableBooking.showQr', 'Show QR')}
                 </button>
               </div>
             )}
@@ -234,21 +236,21 @@ const TableBookings = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-sm p-6" onClick={() => setQrTicket(null)}>
               <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
-                className="bg-[#111111] border border-white/10 rounded-2xl p-6 w-full max-w-xs text-center" onClick={e => e.stopPropagation()}>
+                className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-xs text-center shadow-2xl text-[#020b00] dark:text-white" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-bold">{t('tables.guestTicket', 'Guest ticket')}</h3>
-                  <button onClick={() => setQrTicket(null)} className="p-1.5 bg-white/5 rounded-full text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+                  <h3 className="text-[#020b00] dark:text-white font-bold">{t('tables.guestTicket', 'Guest ticket')}</h3>
+                  <button onClick={() => setQrTicket(null)} className="p-1.5 bg-neutral-100 dark:bg-white/5 rounded-full text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"><X className="w-4 h-4" /></button>
                 </div>
                 {qrTicket.qr_code ? (
-                  <div className="bg-white rounded-xl p-3 inline-block">
+                  <div className="bg-neutral-50 dark:bg-white rounded-xl p-3 inline-block border border-black/10">
                     <img src={qrTicket.qr_code} alt="Ticket QR" className="w-44 h-44 object-contain" />
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl p-6 inline-block"><QrCode className="w-36 h-36 text-black" /></div>
+                  <div className="bg-neutral-50 dark:bg-white rounded-xl p-6 inline-block border border-black/10"><QrCode className="w-36 h-36 text-black" /></div>
                 )}
                 <p className="text-gray-500 text-xs font-mono mt-3 break-all">{qrTicket.ticket_number}</p>
-                <p className="text-gray-600 text-[11px] mt-1.5 flex items-center justify-center gap-1">
-                  <CircleDollarSign className="w-3 h-3" />{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}
+                <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-1.5 flex items-center justify-center gap-1">
+                  <CircleDollarSign className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}
                 </p>
               </motion.div>
             </motion.div>
@@ -261,7 +263,7 @@ const TableBookings = () => {
 const Row = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
   <div className="flex items-center justify-between">
     <span className="text-gray-500">{label}</span>
-    <span className={accent ? 'text-[#d3da0c] font-bold' : 'text-gray-300 font-medium'}>{value}</span>
+    <span className={accent ? 'text-[#020b00] dark:text-[#d3da0c] font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}>{value}</span>
   </div>
 );
 

@@ -107,44 +107,44 @@ const TicketReceipt = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 pb-24">
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-20 pb-24 transition-colors">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 no-print">
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 no-print transition-colors">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-300 hover:text-white active:scale-90 transition-transform"
+            className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white active:scale-90 transition-all"
             aria-label={t('eventDetail.back')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold text-white">{t('receipt.title', 'E-Receipt')}</h1>
+          <h1 className="text-lg font-bold text-[#020b00] dark:text-white">{t('receipt.title', 'E-Receipt')}</h1>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c] animate-spin" />
           </div>
         ) : notFound || !order ? (
           <div className="text-center py-20">
-            <QrCode className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-white font-medium mb-2">{t('receipt.notFound', 'Receipt not found')}</p>
-            <Link to="/tickets" className="text-[#d3da0c] text-sm hover:underline">
+            <QrCode className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-[#020b00] dark:text-white font-medium mb-2">{t('receipt.notFound', 'Receipt not found')}</p>
+            <Link to="/tickets" className="text-[#020b00] dark:text-[#d3da0c] text-sm hover:underline font-semibold">
               {t('receipt.backToTickets', 'Back to My Tickets')}
             </Link>
           </div>
         ) : (
           <>
             {/* Receipt card */}
-            <div id="receipt-print-area" className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden mb-6">
-              <div className="px-5 pt-5 pb-4 border-b border-white/5 flex items-start justify-between gap-3">
+            <div id="receipt-print-area" className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden mb-6 shadow-xs dark:shadow-none">
+              <div className="px-5 pt-5 pb-4 border-b border-black/8 dark:border-white/5 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-1">Sound It</p>
-                  <h2 className="text-white font-bold text-lg leading-snug">{order.event?.title}</h2>
+                  <p className="text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-1">Sound It</p>
+                  <h2 className="text-[#020b00] dark:text-white font-bold text-lg leading-snug">{order.event?.title}</h2>
                   {order.event?.start_date && (
-                    <p className="text-gray-400 text-xs mt-1">
+                    <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
                       {new Date(order.event.start_date).toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -160,49 +160,49 @@ const TicketReceipt = () => {
 
               <div className="px-5 py-2">
                 {rows.map(([label, value]) => (
-                  <div key={label as string} className="flex items-center justify-between gap-4 py-3 border-b border-white/5 last:border-0">
-                    <span className="text-gray-400 text-sm shrink-0">{label}</span>
-                    <span className="text-white text-sm font-medium text-right break-all">{value}</span>
+                  <div key={label as string} className="flex items-center justify-between gap-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm shrink-0">{label}</span>
+                    <span className="text-[#020b00] dark:text-white text-sm font-medium text-right break-all">{value}</span>
                   </div>
                 ))}
               </div>
 
               {(['approved', 'used'].includes(order.status || '')) && (
-                <div className="px-5 py-6 border-t border-white/5 text-center">
+                <div className="px-5 py-6 border-t border-black/8 dark:border-white/5 text-center bg-neutral-50/50 dark:bg-black/20">
                   {order.ticket_qr ? (
-                    <div className="inline-block bg-white rounded-2xl p-3">
+                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <img src={order.ticket_qr} alt="Ticket QR" className="w-40 h-40 object-contain" />
                     </div>
                   ) : tickets.length > 0 && tickets[0].qr_code ? (
-                    <div className="inline-block bg-white rounded-2xl p-3">
+                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <img src={tickets[0].qr_code} alt="Ticket QR" className="w-40 h-40 object-contain" />
                     </div>
                   ) : tickets.length > 0 ? (
-                    <div className="inline-block bg-white rounded-2xl p-3">
+                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <QRCodeSVG value={tickets[0].ticket_number} size={160} level="H" />
                     </div>
                   ) : (
-                    <div className="inline-block bg-white rounded-2xl p-3">
+                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <QRCodeSVG value={order.ticket_code || `ORDER-${order.id}`} size={160} level="H" />
                     </div>
                   )}
                   {(order.ticket_code || tickets[0]?.ticket_number) && (
-                    <p className="text-gray-500 text-xs font-mono mt-3">{order.ticket_code || tickets[0]?.ticket_number}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs font-mono mt-3">{order.ticket_code || tickets[0]?.ticket_number}</p>
                   )}
-                  <p className="text-gray-600 text-[11px] mt-2">{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-2">{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}</p>
                 </div>
               )}
             </div>
 
             <button
               onClick={() => window.print()}
-              className="no-print w-full h-12 bg-[#d3da0c] text-black font-bold rounded-xl flex items-center justify-center gap-2 active:bg-[#bbc10b] transition-colors"
+              className="no-print w-full h-12 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all shadow-sm"
             >
               <Download className="w-5 h-5" />
               {t('receipt.downloadPdf', 'Download PDF')}
             </button>
-            <p className="no-print text-center text-gray-600 text-xs mt-3 flex items-center justify-center gap-1">
-              <Check className="w-3 h-3" />
+            <p className="no-print text-center text-gray-600 dark:text-gray-400 text-xs mt-3 flex items-center justify-center gap-1">
+              <Check className="w-3 h-3 text-green-500" />
               {t('receipt.printHint', 'Choose "Save as PDF" in the print dialog to download.')}
             </p>
           </>

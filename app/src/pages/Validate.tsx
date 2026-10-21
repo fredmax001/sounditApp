@@ -135,7 +135,7 @@ const ValidatePage = () => {
     return (
         <div className="min-h-screen bg-black flex flex-col">
             {/* Header */}
-            <div className="flex items-center gap-4 p-4 bg-[#0A0A0A] border-b border-white/10">
+            <div className="flex items-center gap-4 p-4 bg-[#020b00] border-b border-white/10">
                 <button
                     onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
                     className="p-2 text-white hover:bg-white/10 rounded-full"

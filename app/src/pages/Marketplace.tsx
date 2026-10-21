@@ -84,9 +84,9 @@ export default function Marketplace() {
     );
 
     return (
-        <div className="min-h-screen pb-24 bg-[#0A0A0A]">
+        <div className="min-h-screen pb-24 bg-[#020b00]">
             {/* Header */}
-            <section className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5">
+            <section className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-md border-b border-white/5">
                 <div className="max-w-6xl mx-auto px-4 py-4">
                     <h1 className="text-2xl font-display text-white">Marketplace</h1>
                     <p className="text-gray-400 text-sm hidden md:block mt-1">Browse products from local vendors</p>
@@ -175,7 +175,7 @@ export default function Marketplace() {
                                 {filteredVendors.map((vendor) => (
                                     <Link
                                         key={vendor.id}
-                                        to={`/store/${vendor.id}`}
+                                        to={`/vendor-store/${vendor.id}`}
                                         className="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-[#d3da0c]/30 transition-colors"
                                     >
                                         <div className="flex items-center gap-3 mb-3">

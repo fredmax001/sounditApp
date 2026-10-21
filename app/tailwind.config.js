@@ -52,7 +52,7 @@ module.exports = {
         "soundit-lime-hover": "#bbc10b",
         "soundit-lime-glow": "rgba(211, 218, 12, 0.5)",
         "soundit-white": "#FFFFFF",
-        "soundit-black": "#0A0A0A",
+        "soundit-black": "#020b00",
         "soundit-dark": "#1a1a1a",
         "soundit-pink": "#FF2D8F",
       },

@@ -167,57 +167,57 @@ const Payments = () => {
         <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display text-white mb-2">{t('admin.payments.title')}</h1>
-                    <p className="text-gray-400">{t('admin.payments.subtitle')}</p>
+                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.payments.title')}</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{t('admin.payments.subtitle')}</p>
                 </div>
                 {/* Export button hidden until backend export endpoint is implemented */}
             </div>
 
             {/* Financial Overview */}
             <div className="grid sm:grid-cols-3 gap-6">
-                <div className="glass rounded-2xl p-6 border-l-4 border-[#d3da0c]">
+                <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 border-l-4 border-l-[#d3da0c] shadow-xs dark:shadow-none">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[#d3da0c]/10 text-[#d3da0c]">
+                        <div className="p-2.5 rounded-xl bg-[#d3da0c]/15 text-yellow-700 dark:text-[#d3da0c]">
                             <Wallet className="w-5 h-5" />
                         </div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider">{t('admin.payments.escrowBalanceLabel')}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">{t('admin.payments.escrowBalanceLabel')}</p>
                     </div>
                     {isLoading ? (
                         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                     ) : (
-                        <p className="text-3xl font-display text-white">¥{escrowBalance.toLocaleString()}</p>
+                        <p className="text-3xl font-display text-[#020b00] dark:text-white">¥{escrowBalance.toLocaleString()}</p>
                     )}
-                    <div className="mt-4 flex items-center gap-2 text-[10px] text-gray-500">
-                        <Clock className="w-3 h-3" />
+                    <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                        <Clock className="w-3.5 h-3.5" />
                         {t('admin.payments.escrowBalanceHint')}
                     </div>
                 </div>
 
-                <div className="glass rounded-2xl p-6">
+                <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                        <div className="p-2.5 rounded-xl bg-green-500/10 text-green-700 dark:text-green-500">
                             <ArrowUpRight className="w-5 h-5" />
                         </div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider">{t('admin.payments.lifetimeReleasedLabel')}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">{t('admin.payments.lifetimeReleasedLabel')}</p>
                     </div>
                     {isLoading ? (
                         <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
                     ) : (
-                        <p className="text-3xl font-display text-white">¥{releasedTotal.toLocaleString()}</p>
+                        <p className="text-3xl font-display text-[#020b00] dark:text-white">¥{releasedTotal.toLocaleString()}</p>
                     )}
                 </div>
 
-                <div className="glass rounded-2xl p-6">
+                <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                        <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-500">
                             <Clock className="w-5 h-5" />
                         </div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider">{t('admin.payments.awaitingActionLabel')}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">{t('admin.payments.awaitingActionLabel')}</p>
                     </div>
                     {isLoading ? (
                         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
                     ) : (
-                        <p className="text-3xl font-display text-white">
+                        <p className="text-3xl font-display text-[#020b00] dark:text-white">
                             {payouts.filter(p => p.status === 'pending').length} {t('admin.payments.payoutsCount')}
                         </p>
                     )}
@@ -225,16 +225,16 @@ const Payments = () => {
             </div>
 
             {/* Payout Approval Dashboard */}
-            <div className="glass rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <h2 className="text-xl font-semibold text-white">{t('admin.payments.payoutApprovalDashboard')}</h2>
+            <div className="bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                <div className="p-6 border-b border-black/8 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h2 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.payments.payoutApprovalDashboard')}</h2>
                     <div className="flex items-center gap-3">
-                        <div className="flex rounded-lg bg-white/5 p-1">
+                        <div className="flex rounded-xl bg-neutral-100 dark:bg-white/5 p-1 border border-black/5 dark:border-white/5">
                             {(['all', 'pending', 'approved', 'released', 'rejected'] as const).map((f) => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${filter === f ? 'bg-[#d3da0c] text-black' : 'text-gray-400 hover:text-white'
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${filter === f ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
                                         }`}
                                 >
                                     {t(`admin.payments.filter.${f}`)}
@@ -244,7 +244,7 @@ const Payments = () => {
                         <button 
                             onClick={loadPayouts}
                             disabled={isLoading}
-                            className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                            className="p-2 bg-neutral-100 dark:bg-white/5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors disabled:opacity-50"
                         >
                             <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                         </button>
@@ -259,15 +259,15 @@ const Payments = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-white/5 bg-white/5">
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.payments.entityEventHeader')}</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.payments.cityHeader')}</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.payments.financialBreakdownHeader')}</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('admin.payments.statusHeader')}</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">{t('admin.payments.actionsHeader')}</th>
+                                <tr className="border-b border-black/8 dark:border-white/5 bg-neutral-50 dark:bg-white/5">
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.payments.entityEventHeader')}</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.payments.cityHeader')}</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.payments.financialBreakdownHeader')}</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('admin.payments.statusHeader')}</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-right">{t('admin.payments.actionsHeader')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-black/5 dark:divide-white/5">
                                 <AnimatePresence mode="popLayout">
                                     {filteredPayouts.map((payout) => (
                                         <motion.tr
@@ -276,23 +276,23 @@ const Payments = () => {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
-                                            className="hover:bg-white/5 transition-colors"
+                                            className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors"
                                         >
                                             <td className="px-6 py-4">
                                                 <div>
-                                                    <p className="text-white font-medium text-sm">{payout.targetName}</p>
-                                                    <p className="text-[#d3da0c] text-xs uppercase tracking-tight font-bold">{payout.targetType}</p>
-                                                    <p className="text-gray-500 text-xs mt-1">{payout.eventName}</p>
+                                                    <p className="text-[#020b00] dark:text-white font-medium text-sm">{payout.targetName}</p>
+                                                    <p className="text-yellow-700 dark:text-[#d3da0c] text-xs uppercase tracking-tight font-bold">{payout.targetType}</p>
+                                                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{payout.eventName}</p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="text-gray-400 text-sm capitalize">{payout.city}</span>
+                                                <span className="text-gray-600 dark:text-gray-400 text-sm capitalize">{payout.city}</span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div>
-                                                    <p className="text-white font-display text-lg">¥{payout.amount.toLocaleString()}</p>
-                                                    <p className="text-gray-500 text-[10px] uppercase">{t('admin.payments.commissionLabel', { amount: payout.commission.toLocaleString() })}</p>
-                                                    <p className="text-gray-500 text-[10px] uppercase">{t('admin.payments.netLabel', { amount: (payout.amount - payout.commission).toLocaleString() })}</p>
+                                                    <p className="text-[#020b00] dark:text-white font-display text-lg">¥{payout.amount.toLocaleString()}</p>
+                                                    <p className="text-gray-500 dark:text-gray-400 text-[10px] uppercase">{t('admin.payments.commissionLabel', { amount: payout.commission.toLocaleString() })}</p>
+                                                    <p className="text-gray-500 dark:text-gray-400 text-[10px] uppercase">{t('admin.payments.netLabel', { amount: (payout.amount - payout.commission).toLocaleString() })}</p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -304,7 +304,7 @@ const Payments = () => {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => setSelectedPayout(payout)}
-                                                        className="p-2 text-gray-500 hover:text-white transition-colors"
+                                                        className="p-2 text-gray-400 hover:text-[#020b00] dark:hover:text-white transition-colors"
                                                         title={t('admin.payments.viewDetailsTitle')}
                                                     >
                                                         <Eye className="w-4 h-4" />
@@ -314,7 +314,7 @@ const Payments = () => {
                                                             <button
                                                                 onClick={() => handleApprovePayout(payout.id)}
                                                                 disabled={actionLoading === `approve-${payout.id}`}
-                                                                className="p-2 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500/20 transition-colors disabled:opacity-50"
+                                                                className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 rounded-lg hover:bg-blue-500/20 transition-colors disabled:opacity-50"
                                                                 title={t('admin.payments.approveForReleaseTitle')}
                                                             >
                                                                 {actionLoading === `approve-${payout.id}` ? (
@@ -326,7 +326,7 @@ const Payments = () => {
                                                             <button
                                                                 onClick={() => handleRejectPayout(payout.id)}
                                                                 disabled={actionLoading === `reject-${payout.id}`}
-                                                                className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                                                                className="p-2 bg-red-500/10 text-red-600 dark:text-red-500 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                                                                 title={t('admin.payments.rejectHoldTitle')}
                                                             >
                                                                 {actionLoading === `reject-${payout.id}` ? (
@@ -341,7 +341,7 @@ const Payments = () => {
                                                         <button
                                                             onClick={() => handleReleasePayout(payout.id)}
                                                             disabled={actionLoading === `release-${payout.id}`}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#d3da0c] text-black text-[10px] font-bold rounded uppercase hover:bg-white transition-colors disabled:opacity-50"
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[10px] font-bold rounded-lg uppercase hover:bg-neutral-800 dark:hover:bg-white transition-colors disabled:opacity-50"
                                                         >
                                                             {actionLoading === `release-${payout.id}` ? (
                                                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -352,7 +352,7 @@ const Payments = () => {
                                                         </button>
                                                     )}
                                                     {payout.status === 'released' && (
-                                                        <span className="text-green-500 p-2">
+                                                        <span className="text-green-600 dark:text-green-500 p-2">
                                                             <CheckCircle2 className="w-5 h-5" />
                                                         </span>
                                                     )}
@@ -365,8 +365,8 @@ const Payments = () => {
                         </table>
                         {filteredPayouts.length === 0 && (
                             <div className="p-12 text-center">
-                                <CreditCard className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                                <p className="text-gray-500">{t('admin.payments.noPayoutsFound')}</p>
+                                <CreditCard className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                                <p className="text-gray-500 dark:text-gray-400">{t('admin.payments.noPayoutsFound')}</p>
                             </div>
                         )}
                     </div>
@@ -375,68 +375,68 @@ const Payments = () => {
 
             {/* Payout Detail Modal */}
             {selectedPayout && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#111111] border border-white/10 rounded-xl p-6 w-full max-w-lg">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-semibold text-white">{t('admin.payments.payoutDetailsTitle')}</h3>
+                            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.payments.payoutDetailsTitle')}</h3>
                             <button 
                                 onClick={() => setSelectedPayout(null)}
-                                className="p-2 hover:bg-white/10 rounded-lg"
+                                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-[#020b00] dark:hover:text-white"
                             >
-                                <XCircle className="w-5 h-5 text-gray-400" />
+                                <XCircle className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.entityLabel')}</p>
-                                    <p className="text-white font-medium">{selectedPayout.targetName}</p>
-                                    <p className="text-[#d3da0c] text-xs">{selectedPayout.targetType}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.entityLabel')}</p>
+                                    <p className="text-[#020b00] dark:text-white font-medium">{selectedPayout.targetName}</p>
+                                    <p className="text-yellow-700 dark:text-[#d3da0c] text-xs font-semibold">{selectedPayout.targetType}</p>
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.eventLabel')}</p>
-                                    <p className="text-white font-medium">{selectedPayout.eventName}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.eventLabel')}</p>
+                                    <p className="text-[#020b00] dark:text-white font-medium">{selectedPayout.eventName}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.amountLabel')}</p>
-                                    <p className="text-white font-display text-xl">¥{selectedPayout.amount.toLocaleString()}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.amountLabel')}</p>
+                                    <p className="text-[#020b00] dark:text-white font-display text-xl">¥{selectedPayout.amount.toLocaleString()}</p>
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.commissionDetailLabel')}</p>
-                                    <p className="text-gray-400">¥{selectedPayout.commission.toLocaleString()}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.commissionDetailLabel')}</p>
+                                    <p className="text-gray-600 dark:text-gray-400">¥{selectedPayout.commission.toLocaleString()}</p>
                                 </div>
                             </div>
-                            <div className="p-4 bg-white/5 rounded-xl">
+                            <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400 text-sm">{t('admin.payments.netPayoutLabel')}</span>
-                                    <span className="text-[#d3da0c] font-display text-xl">
+                                    <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">{t('admin.payments.netPayoutLabel')}</span>
+                                    <span className="text-yellow-700 dark:text-[#d3da0c] font-display text-xl">
                                         ¥{(selectedPayout.amount - selectedPayout.commission).toLocaleString()}
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <p className="text-gray-500 text-xs uppercase">{t('admin.payments.statusLabel')}</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.statusLabel')}</p>
                                 <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusColor(selectedPayout.status)}`}>
                                     {t(`admin.payments.status.${selectedPayout.status}`)}
                                 </span>
                             </div>
                             {selectedPayout.bankAccount && (
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.bankAccountLabel')}</p>
-                                    <p className="text-white text-sm">{selectedPayout.bankAccount}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.bankAccountLabel')}</p>
+                                    <p className="text-[#020b00] dark:text-white text-sm">{selectedPayout.bankAccount}</p>
                                 </div>
                             )}
                             {selectedPayout.transactionId && (
                                 <div>
-                                    <p className="text-gray-500 text-xs uppercase">{t('admin.payments.transactionIdLabel')}</p>
-                                    <p className="text-white text-sm font-mono">{selectedPayout.transactionId}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.transactionIdLabel')}</p>
+                                    <p className="text-[#020b00] dark:text-white text-sm font-mono">{selectedPayout.transactionId}</p>
                                 </div>
                             )}
                             <div>
-                                <p className="text-gray-500 text-xs uppercase">{t('admin.payments.createdLabel')}</p>
-                                <p className="text-gray-400 text-sm">
+                                <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.createdLabel')}</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
                                     {new Date(selectedPayout.created_at).toLocaleString()}
                                 </p>
                             </div>

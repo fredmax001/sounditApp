@@ -333,14 +333,14 @@ const SystemSettings = () => {
         <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display text-white mb-2">{t('admin.systemSettings.title')}</h1>
-                    <p className="text-gray-400">{t('admin.systemSettings.subtitle')}</p>
+                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.systemSettings.title')}</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{t('admin.systemSettings.subtitle')}</p>
                 </div>
                 <div className="flex gap-3">
                     <button
                         onClick={loadSettings}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
                     >
                         <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                         {t('admin.systemSettings.refresh')}
@@ -348,7 +348,7 @@ const SystemSettings = () => {
                     <button
                         onClick={handleSaveSettings}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-black/80 dark:hover:bg-white transition-colors disabled:opacity-50"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         {t('admin.systemSettings.saveSettings')}
@@ -364,18 +364,18 @@ const SystemSettings = () => {
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* City & Commission Control */}
                     <div className="space-y-6">
-                        <div className="glass rounded-3xl p-6 border border-white/10">
+                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                                    <Globe className="w-5 h-5 text-blue-400" />
+                                <h2 className="text-xl font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+                                    <Globe className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                                     {t('admin.systemSettings.citiesAndCommissions')}
                                 </h2>
                             </div>
 
                             <div className="space-y-4">
-                                <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
                                     <div>
-                                        <p className="text-white font-medium">{t('admin.systemSettings.commissionRateLabel') || 'Cities Commission Rate'}</p>
+                                        <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.commissionRateLabel') || 'Cities Commission Rate'}</p>
                                         <p className="text-gray-500 text-xs">Applies to all cities platform-wide</p>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -385,17 +385,17 @@ const SystemSettings = () => {
                                             max="100"
                                             value={defaultCommissionRate}
                                             onChange={(e) => setDefaultCommissionRate(parseInt(e.target.value) || 0)}
-                                            className="w-20 px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-white text-right focus:border-[#d3da0c] focus:outline-none"
+                                            className="w-20 px-3 py-2 bg-white dark:bg-white/10 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-right focus:border-[#d3da0c] focus:outline-none"
                                         />
                                         <span className="text-gray-500 text-sm">%</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-6 pt-6 border-t border-white/5">
+                            <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5">
                                 <div className="bg-[#d3da0c]/5 border border-[#d3da0c]/20 p-4 rounded-xl flex gap-3">
                                     <Info className="w-5 h-5 text-[#d3da0c] shrink-0" />
-                                    <p className="text-gray-400 text-xs leading-relaxed">
+                                    <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
                                         {t('admin.systemSettings.commissionInfo')}
                                     </p>
                                 </div>
@@ -405,42 +405,42 @@ const SystemSettings = () => {
 
                     {/* System Feature Flags */}
                     <div className="space-y-6">
-                        <div className="glass rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                            <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-6 flex items-center gap-2">
                                 <Settings className="w-5 h-5 text-[#d3da0c]" />
                                 {t('admin.systemSettings.platformOverrides')}
                             </h2>
 
                             <div className="space-y-4">
-                                <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
                                     <div>
-                                        <p className="text-white font-medium">{t('admin.systemSettings.maintenanceMode')}</p>
+                                        <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.maintenanceMode')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.maintenanceModeHint')}</p>
                                     </div>
                                     <button
                                         onClick={toggleMaintenance}
-                                        className={`w-12 h-6 rounded-full transition-colors relative ${systemFlags.maintenanceMode ? 'bg-[#d3da0c]' : 'bg-white/10'}`}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${systemFlags.maintenanceMode ? 'bg-[#d3da0c]' : 'bg-neutral-200 dark:bg-white/10'}`}
                                     >
                                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${systemFlags.maintenanceMode ? 'right-1' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
                                     <div>
-                                        <p className="text-white font-medium">{t('admin.systemSettings.allowNewRegistrations')}</p>
+                                        <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.allowNewRegistrations')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.allowNewRegistrationsHint')}</p>
                                     </div>
                                     <button
                                         onClick={toggleRegistrations}
-                                        className={`w-12 h-6 rounded-full transition-colors relative ${systemFlags.allowNewRegistrations ? 'bg-[#d3da0c]' : 'bg-white/10'}`}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${systemFlags.allowNewRegistrations ? 'bg-[#d3da0c]' : 'bg-neutral-200 dark:bg-white/10'}`}
                                     >
                                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${systemFlags.allowNewRegistrations ? 'right-1' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
                                     <div className="flex-1">
-                                        <p className="text-white font-medium">{t('admin.systemSettings.featuredEventLimit')}</p>
+                                        <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.featuredEventLimit')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.featuredEventLimitHint')}</p>
                                     </div>
                                     <input
@@ -449,22 +449,22 @@ const SystemSettings = () => {
                                         max="20"
                                         value={systemFlags.featuredEventLimit}
                                         onChange={(e) => updateFeaturedLimit(parseInt(e.target.value) || 1)}
-                                        className="w-16 px-2 py-1 bg-white/10 border border-white/10 rounded text-white text-right text-sm focus:border-[#d3da0c] focus:outline-none"
+                                        className="w-16 px-2 py-1 bg-white dark:bg-white/10 border border-black/10 dark:border-white/10 rounded text-[#020b00] dark:text-white text-right text-sm focus:border-[#d3da0c] focus:outline-none"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="glass rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                            <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-red-500" />
                                 {t('admin.systemSettings.dangerZone')}
                             </h2>
-                            <p className="text-gray-500 text-sm mb-4">{t('admin.systemSettings.dangerZoneHint')}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t('admin.systemSettings.dangerZoneHint')}</p>
                             <button 
                                 onClick={handleResetCache}
                                 disabled={isResettingCache}
-                                className="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/10 rounded-xl font-bold hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-bold hover:bg-red-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isResettingCache ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
                                 {t('admin.systemSettings.resetSystemCache')}
@@ -476,44 +476,44 @@ const SystemSettings = () => {
 
             {/* Add City Modal */}
             {showAddCityModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div className="bg-[#111111] border border-white/10 rounded-xl p-6 w-full max-w-md">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-semibold text-white">{t('admin.systemSettings.addNewCity')}</h3>
+                            <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.systemSettings.addNewCity')}</h3>
                             <button 
                                 onClick={() => setShowAddCityModal(false)}
-                                className="p-2 hover:bg-white/10 rounded-lg"
+                                className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-black dark:hover:text-white"
                             >
-                                <X className="w-5 h-5 text-gray-400" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleAddCity} className="space-y-4">
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.systemSettings.cityNameLabel')}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.systemSettings.cityNameLabel')}</label>
                                 <input
                                     type="text"
                                     value={newCity.name}
                                     onChange={(e) => setNewCity({...newCity, name: e.target.value})}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                     placeholder={t('admin.systemSettings.cityNamePlaceholder')}
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-sm mb-2">{t('admin.systemSettings.commissionRateLabel')}</label>
+                                <label className="block text-gray-700 dark:text-gray-400 text-sm mb-2">{t('admin.systemSettings.commissionRateLabel')}</label>
                                 <input
                                     type="number"
                                     min="0"
                                     max="100"
                                     value={newCity.rate}
                                     onChange={(e) => setNewCity({...newCity, rate: parseInt(e.target.value) || 0})}
-                                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#d3da0c] focus:outline-none"
+                                    className="w-full px-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none"
                                     required
                                 />
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
+                                className="w-full py-3 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black font-bold rounded-lg hover:bg-black/80 dark:hover:bg-white transition-colors"
                             >
                                 {t('admin.systemSettings.addCityButton')}
                             </button>

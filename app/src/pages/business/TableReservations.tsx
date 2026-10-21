@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, Eye, Clock,
   ImageIcon,
   Martini,
+  FileDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -43,10 +44,12 @@ interface TablePackage {
 interface TableOrder {
   id: number;
   package: {
+    id?: number;
     name: string;
     price: number;
   };
   event: {
+    id?: number;
     title: string;
     start_date: string;
   };
@@ -102,6 +105,43 @@ export default function BusinessTableReservations() {
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [drinkMenuImageFile, setDrinkMenuImageFile] = useState<File | null>(null);
   const [editDrinkMenuImageFile, setEditDrinkMenuImageFile] = useState<File | null>(null);
+  const [ordersEventFilter, setOrdersEventFilter] = useState<string>('');
+  const [ordersStatusFilter, setOrdersStatusFilter] = useState<'active' | 'approved' | 'pending' | 'all'>('active');
+  const [downloadingPdf, setDownloadingPdf] = useState<number | 'all' | null>(null);
+
+  const handleDownloadPdf = async (orderId?: number) => {
+    if (!token) return;
+    setDownloadingPdf(orderId ?? 'all');
+    try {
+      const params = new URLSearchParams();
+      if (orderId) {
+        params.set('order_id', String(orderId));
+      } else {
+        if (ordersEventFilter) params.set('event_id', ordersEventFilter);
+        if (ordersStatusFilter) params.set('status', ordersStatusFilter);
+      }
+      const res = await axios.get(`${API_BASE_URL}/tables/business/orders/export-pdf?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const disposition = res.headers['content-disposition'] || '';
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      a.download = match?.[1] || (orderId ? `table-booking-${orderId}.pdf` : `table-bookings-${new Date().toISOString().slice(0, 10)}.pdf`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(t('tables.pdfDownloaded', 'Table bookings PDF downloaded'));
+    } catch {
+      toast.error(t('tables.pdfDownloadFailed', 'Failed to download PDF'));
+    } finally {
+      setDownloadingPdf(null);
+    }
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -394,29 +434,29 @@ export default function BusinessTableReservations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-6">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">{t('business.tableReservations.title')}</h1>
-            <p className="text-white/60 mt-1">{t('business.tableReservations.subtitle')}</p>
+            <h1 className="text-3xl font-bold text-[#020b00] dark:text-white">{t('business.tableReservations.title')}</h1>
+            <p className="text-gray-600 dark:text-white/60 mt-1">{t('business.tableReservations.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex bg-[#141414] rounded-xl p-1">
+            <div className="flex bg-white dark:bg-[#141414] border border-black/8 dark:border-white/10 rounded-xl p-1 shadow-xs dark:shadow-none">
               <button
                 onClick={() => setActiveTab('packages')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === 'packages' 
-                    ? 'bg-[#d3da0c] text-black' 
-                    : 'text-white/60 hover:text-white'
+                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold' 
+                    : 'text-gray-600 dark:text-white/60 hover:text-[#020b00] dark:hover:text-white'
                 }`}
               >
                 <Package className="w-4 h-4 inline mr-2" />
@@ -426,8 +466,8 @@ export default function BusinessTableReservations() {
                 onClick={() => setActiveTab('drinks')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === 'drinks' 
-                    ? 'bg-[#d3da0c] text-black' 
-                    : 'text-white/60 hover:text-white'
+                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold' 
+                    : 'text-gray-600 dark:text-white/60 hover:text-[#020b00] dark:hover:text-white'
                 }`}
               >
                 <Martini className="w-4 h-4 inline mr-2" />
@@ -437,8 +477,8 @@ export default function BusinessTableReservations() {
                 onClick={() => setActiveTab('orders')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === 'orders' 
-                    ? 'bg-[#d3da0c] text-black' 
-                    : 'text-white/60 hover:text-white'
+                    ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold' 
+                    : 'text-gray-600 dark:text-white/60 hover:text-[#020b00] dark:hover:text-white'
                 }`}
               >
                 <Wine className="w-4 h-4 inline mr-2" />
@@ -453,10 +493,20 @@ export default function BusinessTableReservations() {
             {activeTab === 'packages' && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-[#d3da0c] text-black font-medium rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-colors flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
                 {t('business.tableReservations.newPackage')}
+              </button>
+            )}
+            {activeTab === 'orders' && (
+              <button
+                onClick={() => handleDownloadPdf()}
+                disabled={downloadingPdf === 'all'}
+                className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {downloadingPdf === 'all' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                {t('tables.downloadEventPdf', 'Download Event PDF')}
               </button>
             )}
           </div>
@@ -465,19 +515,19 @@ export default function BusinessTableReservations() {
         {/* Content */}
         {activeTab === 'drinks' ? (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3 bg-[#141414] border border-white/10 rounded-2xl p-4">
+            <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-[#141414] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
               {events.length > 1 && (
                 <select value={drinksEventId ?? ''} onChange={e => setDrinksEventId(Number(e.target.value))}
-                  className="bg-[#0A0A0A] border border-white/10 text-white text-sm rounded-xl px-3 py-2.5">
+                  className="bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2.5">
                   {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
                 </select>
               )}
               <div className="flex items-center gap-2 flex-1 min-w-[220px]">
-                <label className="text-white/60 text-xs whitespace-nowrap">{t('tables.tableAllocationPct', 'Table allocation (% of one ticket price, once per table)')}</label>
+                <label className="text-gray-600 dark:text-white/60 text-xs whitespace-nowrap">{t('tables.tableAllocationPct', 'Table allocation (% of one ticket price, once per table)')}</label>
                 <input type="number" min={0} max={100} value={allocationPct} onChange={e => setAllocationPct(e.target.value)}
-                  className="w-20 bg-[#0A0A0A] border border-white/10 text-white text-sm rounded-xl px-3 py-2.5" />
+                  className="w-20 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2.5" />
                 <button onClick={saveAllocation} disabled={savingAlloc}
-                  className="h-9 px-4 rounded-lg bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] transition-colors disabled:opacity-50">
+                  className="h-9 px-4 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-colors disabled:opacity-50">
                   {savingAlloc ? t('kit.common.save') : t('kit.common.save')}
                 </button>
               </div>
@@ -491,7 +541,7 @@ export default function BusinessTableReservations() {
                 key={pkg.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden"
+                className="bg-white dark:bg-[#141414] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
               >
                 {pkg.image_url ? (
                   <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${pkg.image_url})` }} />
@@ -504,8 +554,8 @@ export default function BusinessTableReservations() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-bold text-white">{pkg.name}</h3>
-                      <p className="text-[#d3da0c] text-lg font-semibold">¥{pkg.price}</p>
+                      <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{pkg.name}</h3>
+                      <p className="text-[#d3da0c] text-lg font-bold">¥{pkg.price}</p>
                     </div>
                     {!pkg.is_active && (
                       <span className="px-2 py-1 bg-red-500/20 text-red-500 text-xs rounded-full">
@@ -514,21 +564,21 @@ export default function BusinessTableReservations() {
                     )}
                   </div>
 
-                  <p className="text-white/60 text-sm mb-4 line-clamp-2">{pkg.description}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-sm mb-4 line-clamp-2">{pkg.description}</p>
 
                   <div className="space-y-2 mb-4">
                     {pkg.included_items?.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-white/80 text-sm">
+                      <div key={idx} className="flex items-center gap-2 text-gray-800 dark:text-white/80 text-sm">
                         <Check className="w-4 h-4 text-[#d3da0c]" />
                         {item}
                       </div>
                     ))}
                     {pkg.included_items?.length > 3 && (
-                      <p className="text-white/40 text-sm">{t('business.tableReservations.moreItems', { count: pkg.included_items.length - 3 })}</p>
+                      <p className="text-gray-500 dark:text-white/40 text-sm">{t('business.tableReservations.moreItems', { count: pkg.included_items.length - 3 })}</p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-white/60 text-sm mb-4 flex-wrap">
+                  <div className="flex items-center gap-4 text-gray-600 dark:text-white/60 text-sm mb-4 flex-wrap">
                     {pkg.ticket_quantity > 0 && (
                       <div className="flex items-center gap-1">
                         <Ticket className="w-4 h-4" />
@@ -558,7 +608,7 @@ export default function BusinessTableReservations() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditModal(pkg)}
-                      className="flex-1 py-2 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                     >
                       <Edit2 className="w-4 h-4" />
                       {t('business.tableReservations.edit')}
@@ -576,12 +626,12 @@ export default function BusinessTableReservations() {
 
             {packages.length === 0 && (
               <div className="col-span-full py-16 text-center">
-                <Wine className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">{t('business.tableReservations.noPackages')}</h3>
-                <p className="text-white/60 mb-6">{t('business.tableReservations.noPackagesHint')}</p>
+                <Wine className="w-16 h-16 text-gray-400 dark:text-white/20 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">{t('business.tableReservations.noPackages')}</h3>
+                <p className="text-gray-600 dark:text-white/60 mb-6">{t('business.tableReservations.noPackagesHint')}</p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-6 py-3 bg-[#d3da0c] text-black font-medium rounded-xl hover:bg-[#bbc10b] transition-colors"
+                  className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-colors"
                 >
                   {t('business.tableReservations.createFirstPackage')}
                 </button>
@@ -590,12 +640,54 @@ export default function BusinessTableReservations() {
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {/* Event Day PDF Export & Filter Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#141414] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={ordersEventFilter}
+                  onChange={e => setOrdersEventFilter(e.target.value)}
+                  className="bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#d3da0c]"
+                >
+                  <option value="">{t('tables.allEvents', 'All Events')}</option>
+                  {events.map(ev => (
+                    <option key={ev.id} value={String(ev.id)}>{ev.title}</option>
+                  ))}
+                </select>
+                <select
+                  value={ordersStatusFilter}
+                  onChange={e => setOrdersStatusFilter(e.target.value as 'active' | 'approved' | 'pending' | 'all')}
+                  className="bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#d3da0c]"
+                >
+                  <option value="active">{t('tables.statusActive', 'Active (Approved + Pending)')}</option>
+                  <option value="approved">{t('tables.statusApprovedOnly', 'Approved Only')}</option>
+                  <option value="pending">{t('tables.statusPendingOnly', 'Pending Only')}</option>
+                  <option value="all">{t('tables.statusAll', 'All Bookings')}</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDownloadPdf()}
+                disabled={downloadingPdf === 'all'}
+                className="px-4 py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {downloadingPdf === 'all' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                {t('tables.downloadEventDayPdf', 'Download Event Day PDF (Requests & Drinks)')}
+              </button>
+            </div>
+
+            {orders
+              .filter(o => !ordersEventFilter || String(o.event?.id) === ordersEventFilter)
+              .filter(o => {
+                if (ordersStatusFilter === 'all') return true;
+                if (ordersStatusFilter === 'active') return ['approved', 'pending', 'used'].includes(o.status);
+                return o.status === ordersStatusFilter;
+              })
+              .map((order) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden"
+                className="bg-white dark:bg-[#141414] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
               >
                 <div 
                   className="p-6 cursor-pointer"
@@ -604,25 +696,35 @@ export default function BusinessTableReservations() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
-                        order.status === 'approved' ? 'bg-green-500/20 text-green-500' :
-                        'bg-red-500/20 text-red-500'
+                        order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-500' :
+                        order.status === 'approved' ? 'bg-green-500/20 text-green-600 dark:text-green-500' :
+                        'bg-red-500/20 text-red-600 dark:text-red-500'
                       }`}>
                         {order.status === 'pending' ? <Clock className="w-6 h-6" /> :
                          order.status === 'approved' ? <Check className="w-6 h-6" /> :
                          <X className="w-6 h-6" />}
                       </div>
                       <div>
-                        <h3 className="text-white font-semibold">{order.package.name}</h3>
-                        <p className="text-white/60 text-sm">{order.event.title}</p>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-[#020b00] dark:text-white font-semibold">{order.package.name}</h3>
+                          {order.buyer_confirmed_at && (
+                            <span
+                              className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-wider"
+                              title={t('business.ticketOrders.buyerConfirmedHint') || 'Buyer confirmed payment in the app'}
+                            >
+                              {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 dark:text-white/60 text-sm">{order.event.title}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-white font-semibold">¥{order.payment_amount}</p>
-                        <p className="text-white/60 text-sm">{order.contact_name}</p>
+                        <p className="text-[#020b00] dark:text-white font-semibold">¥{order.payment_amount}</p>
+                        <p className="text-gray-600 dark:text-white/60 text-sm">{order.contact_name}</p>
                       </div>
-                      {expandedOrder === order.id ? <ChevronUp className="w-5 h-5 text-white/40" /> : <ChevronDown className="w-5 h-5 text-white/40" />}
+                      {expandedOrder === order.id ? <ChevronUp className="w-5 h-5 text-gray-400 dark:text-white/40" /> : <ChevronDown className="w-5 h-5 text-gray-400 dark:text-white/40" />}
                     </div>
                   </div>
                 </div>
@@ -633,45 +735,45 @@ export default function BusinessTableReservations() {
                       initial={{ height: 0 }}
                       animate={{ height: 'auto' }}
                       exit={{ height: 0 }}
-                      className="border-t border-white/10"
+                      className="border-t border-black/8 dark:border-white/10"
                     >
                       <div className="p-6 space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
-                          <div className="bg-white/5 rounded-xl p-4">
-                            <p className="text-white/60 text-sm mb-1">{t('business.tableReservations.contactInfo')}</p>
-                            <p className="text-white font-medium">{order.contact_name}</p>
-                            <p className="text-white/60">{order.contact_phone}</p>
-                            {order.user.email && <p className="text-white/60">{order.user.email}</p>}
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-sm mb-1">{t('business.tableReservations.contactInfo')}</p>
+                            <p className="text-[#020b00] dark:text-white font-medium">{order.contact_name}</p>
+                            <p className="text-gray-600 dark:text-white/60">{order.contact_phone}</p>
+                            {order.user.email && <p className="text-gray-600 dark:text-white/60">{order.user.email}</p>}
                           </div>
-                          <div className="bg-white/5 rounded-xl p-4">
-                            <p className="text-white/60 text-sm mb-1">{t('business.tableReservations.bookingDetails')}</p>
-                            <p className="text-white">{t('business.tableReservations.guestsCount', { count: order.guest_count || t('business.tableReservations.notSpecified') })}</p>
-                            <p className="text-white/60 text-sm">{new Date(order.created_at).toLocaleString()}</p>
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-sm mb-1">{t('business.tableReservations.bookingDetails')}</p>
+                            <p className="text-[#020b00] dark:text-white">{t('business.tableReservations.guestsCount', { count: order.guest_count || t('business.tableReservations.notSpecified') })}</p>
+                            <p className="text-gray-600 dark:text-white/60 text-sm">{new Date(order.created_at).toLocaleString()}</p>
                           </div>
                         </div>
 
                         {order.special_requests && (
-                          <div className="bg-white/5 rounded-xl p-4">
-                            <p className="text-white/60 text-sm mb-1">{t('business.tableReservations.specialRequests')}</p>
-                            <p className="text-white">{order.special_requests}</p>
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-sm mb-1">{t('business.tableReservations.specialRequests')}</p>
+                            <p className="text-[#020b00] dark:text-white">{order.special_requests}</p>
                           </div>
                         )}
 
                         {/* Financial breakdown + drink selections (spec §10) */}
                         {order.drink_allowance != null && (
-                          <div className="bg-white/5 rounded-xl p-4 space-y-1.5 text-sm">
-                            <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.breakdown', 'Financial breakdown')}</p>
-                            <div className="flex justify-between"><span className="text-white/60">{t('tables.packagePrice', 'Package price')}</span><span className="text-white">¥{order.payment_amount}</span></div>
-                            <div className="flex justify-between"><span className="text-white/60">{t('tables.ticketsDeduction', 'Included tickets')}</span><span className="text-white/80">−¥{((order.ticket_price_snapshot || 0) * order.guest_count).toLocaleString()}</span></div>
-                            <div className="flex justify-between"><span className="text-white/60">{t('tables.tableAllocation', 'Table allocation')}</span><span className="text-white/80">−¥{(order.allocation_amount || 0).toLocaleString()}</span></div>
-                            <div className="flex justify-between"><span className="text-[#d3da0c]">{t('tables.drinkAllowance', 'Drink allowance')}</span><span className="text-[#d3da0c] font-bold">¥{(order.drink_allowance || 0).toLocaleString()}</span></div>
-                            <div className="flex justify-between"><span className="text-white/60">{t('tables.allowanceUsed', 'Selected drinks')}</span><span className="text-white/80">−¥{(order.allowance_used || 0).toLocaleString()}</span></div>
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 space-y-1.5 text-sm border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.breakdown', 'Financial breakdown')}</p>
+                            <div className="flex justify-between"><span className="text-gray-600 dark:text-white/60">{t('tables.packagePrice', 'Package price')}</span><span className="text-[#020b00] dark:text-white">¥{order.payment_amount}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-600 dark:text-white/60">{t('tables.ticketsDeduction', 'Included tickets')}</span><span className="text-gray-700 dark:text-white/80">−¥{((order.ticket_price_snapshot || 0) * order.guest_count).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-600 dark:text-white/60">{t('tables.tableAllocation', 'Table allocation')}</span><span className="text-gray-700 dark:text-white/80">−¥{(order.allocation_amount || 0).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-[#020b00] dark:text-[#d3da0c] font-semibold">{t('tables.drinkAllowance', 'Drink allowance')}</span><span className="text-[#020b00] dark:text-[#d3da0c] font-bold">¥{(order.drink_allowance || 0).toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-600 dark:text-white/60">{t('tables.allowanceUsed', 'Selected drinks')}</span><span className="text-gray-700 dark:text-white/80">−¥{(order.allowance_used || 0).toLocaleString()}</span></div>
                             {(order.drink_selections?.length || 0) > 0 && (
-                              <div className="pt-2 mt-1 border-t border-white/10 space-y-1">
+                              <div className="pt-2 mt-1 border-t border-black/8 dark:border-white/10 space-y-1">
                                 {order.drink_selections!.map((d, idx) => (
                                   <div key={idx} className="flex justify-between text-xs">
-                                    <span className="text-gray-400">{d.name} ×{d.qty}{(d.mixers?.length || 0) > 0 ? ` · ${d.mixers!.map(m => `${m.name}×${m.qty}`).join(', ')}` : ''}</span>
-                                    <span className="text-white">¥{d.line_total.toLocaleString()}</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{d.name} ×{d.qty}{(d.mixers?.length || 0) > 0 ? ` · ${d.mixers!.map(m => `${m.name}×${m.qty}`).join(', ')}` : ''}</span>
+                                    <span className="text-[#020b00] dark:text-white font-medium">¥{d.line_total.toLocaleString()}</span>
                                   </div>
                                 ))}
                               </div>
@@ -682,31 +784,31 @@ export default function BusinessTableReservations() {
                         {/* Upgrade request workflow (spec §7) */}
                         {order.upgrade_request && order.upgrade_status && order.upgrade_status !== 'none' && (
                           <div className={`rounded-xl p-4 border ${order.upgrade_status === 'approved' ? 'bg-[#d3da0c]/10 border-[#d3da0c]/30' : order.upgrade_status === 'declined' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
-                            <p className={`text-sm font-semibold mb-2 ${order.upgrade_status === 'approved' ? 'text-[#d3da0c]' : order.upgrade_status === 'declined' ? 'text-red-400' : 'text-amber-400'}`}>
+                            <p className={`text-sm font-semibold mb-2 ${order.upgrade_status === 'approved' ? 'text-[#020b00] dark:text-[#d3da0c]' : order.upgrade_status === 'declined' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
                               {order.upgrade_status === 'approved' ? t('tables.upgradeApproved', 'Upgrade approved')
                                 : order.upgrade_status === 'declined' ? t('tables.upgradeDeclined', 'Upgrade declined')
                                 : t('tables.upgradePending', 'Upgrade requested — pending confirmation')}
                               : {order.upgrade_request.name} ×{order.upgrade_request.qty}
                             </p>
-                            <p className="text-white/70 text-xs mb-1">{t('tables.estExtra', 'est. extra')} ¥{order.upgrade_request.estimated_extra}
+                            <p className="text-gray-600 dark:text-white/70 text-xs mb-1">{t('tables.estExtra', 'est. extra')} ¥{order.upgrade_request.estimated_extra}
                               {order.upgrade_status === 'approved' && <> · {t('tables.extraPayment', 'Extra payment')}: ¥{order.upgrade_final_price} ({order.upgrade_payment_status})</>}</p>
-                            {order.upgrade_request.notes && <p className="text-white/50 text-xs mb-3">{order.upgrade_request.notes}</p>}
+                            {order.upgrade_request.notes && <p className="text-gray-500 dark:text-white/50 text-xs mb-3">{order.upgrade_request.notes}</p>}
                             {order.upgrade_status === 'pending' && (
                               <div className="flex flex-wrap gap-2">
                                 <input type="number" placeholder={t('tables.finalPrice', 'Final price ¥')} id={`final-${order.id}`}
-                                  className="w-28 bg-[#0A0A0A] border border-white/10 text-white text-xs rounded-lg px-2 py-2" />
-                                <select id={`payst-${order.id}`} className="bg-[#0A0A0A] border border-white/10 text-white text-xs rounded-lg px-2 py-2">
+                                  className="w-28 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-xs rounded-lg px-2 py-2" />
+                                <select id={`payst-${order.id}`} className="bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-xs rounded-lg px-2 py-2">
                                   <option value="pending">pending</option>
                                   <option value="paid_online">paid_online</option>
                                   <option value="at_venue">at_venue</option>
                                   <option value="waived">waived</option>
                                 </select>
                                 <button onClick={() => resolveUpgrade(order.id, 'approve')} disabled={processingOrder === order.id}
-                                  className="px-3 py-2 rounded-lg bg-[#d3da0c] text-black text-xs font-bold hover:bg-[#bbc10b] disabled:opacity-50">
+                                  className="px-3 py-2 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 disabled:opacity-50">
                                   {t('tables.approveUpgrade', 'Approve')}
                                 </button>
                                 <button onClick={() => resolveUpgrade(order.id, 'decline')} disabled={processingOrder === order.id}
-                                  className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 text-xs font-semibold hover:bg-red-500/25 disabled:opacity-50">
+                                  className="px-3 py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-semibold hover:bg-red-500/20 disabled:opacity-50">
                                   {t('tables.declineUpgrade', 'Decline')}
                                 </button>
                               </div>
@@ -716,13 +818,13 @@ export default function BusinessTableReservations() {
 
                         {/* Guest tickets */}
                         {(order.tickets?.length || 0) > 0 && (
-                          <div className="bg-white/5 rounded-xl p-4">
-                            <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.guestTickets', 'Guest tickets')}</p>
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">{t('tables.guestTickets', 'Guest tickets')}</p>
                             <div className="grid grid-cols-2 gap-2">
                               {order.tickets!.map((tk, idx) => (
-                                <div key={tk.id} className="bg-[#0A0A0A] rounded-lg px-2.5 py-2">
+                                <div key={tk.id} className="bg-white dark:bg-[#020b00] border border-black/5 dark:border-transparent rounded-lg px-2.5 py-2">
                                   <p className="text-[10px] text-gray-500">{order.guest_names?.[idx] || `Guest ${idx + 1}`}</p>
-                                  <p className="text-[11px] text-white font-mono truncate">{tk.ticket_number}</p>
+                                  <p className="text-[11px] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
                                 </div>
                               ))}
                             </div>
@@ -730,17 +832,17 @@ export default function BusinessTableReservations() {
                         )}
 
                         {order.status === 'approved' && order.ticket_qr && (
-                          <div className="bg-white/5 rounded-xl p-4">
-                            <p className="text-white/60 text-sm mb-3">{t('business.tableReservations.ticketQr') || 'Ticket QR'}</p>
+                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-transparent">
+                            <p className="text-gray-600 dark:text-white/60 text-sm mb-3">{t('business.tableReservations.ticketQr') || 'Ticket QR'}</p>
                             <div className="flex flex-col sm:flex-row items-start gap-4">
-                              <div className="bg-white rounded-xl p-4">
+                              <div className="bg-white rounded-xl p-4 border border-black/10 dark:border-transparent">
                                 <img src={order.ticket_qr} alt="Ticket QR" className="w-32 h-32 object-contain" />
                               </div>
                               <div>
-                                <p className="text-white font-mono text-sm">{order.ticket_code}</p>
+                                <p className="text-[#020b00] dark:text-white font-mono text-sm">{order.ticket_code}</p>
                                 <button
                                   onClick={() => setSelectedQrOrder(order)}
-                                  className="mt-2 text-[#d3da0c] text-sm hover:underline"
+                                  className="mt-2 text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                                 >
                                   {t('business.tableReservations.viewLargeQr') || 'View larger'}
                                 </button>
@@ -749,28 +851,41 @@ export default function BusinessTableReservations() {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between">
-                          <button
-                            onClick={() => window.open(order.payment_screenshot, '_blank')}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
-                          >
-                            <Eye className="w-4 h-4" />
-                            {t('business.tableReservations.viewPaymentProof')}
-                          </button>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {order.payment_screenshot && (
+                              <button
+                                onClick={() => window.open(order.payment_screenshot, '_blank')}
+                                className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors text-sm"
+                              >
+                                <Eye className="w-4 h-4" />
+                                {t('business.tableReservations.viewPaymentProof')}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadPdf(order.id)}
+                              disabled={downloadingPdf === order.id}
+                              className="flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-black/10 dark:border-[#d3da0c]/30 rounded-xl hover:bg-black/10 dark:hover:bg-[#d3da0c]/25 transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                              {downloadingPdf === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                              {t('tables.downloadOrderPdf', 'Download Booking PDF')}
+                            </button>
+                          </div>
 
                           {order.status === 'pending' && (
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleRejectOrder(order.id)}
                                 disabled={processingOrder === order.id}
-                                className="px-4 py-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                                className="px-4 py-2 bg-red-500/10 text-red-600 dark:text-red-500 rounded-xl hover:bg-red-500/20 transition-colors disabled:opacity-50 text-sm font-semibold"
                               >
                                 {t('business.tableReservations.reject')}
                               </button>
                               <button
                                 onClick={() => handleApproveOrder(order.id)}
                                 disabled={processingOrder === order.id}
-                                className="px-4 py-2 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                                className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-green-500 dark:text-black rounded-xl hover:opacity-90 transition-colors disabled:opacity-50 text-sm font-semibold"
                               >
                                 {processingOrder === order.id ? (
                                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -790,9 +905,9 @@ export default function BusinessTableReservations() {
 
             {orders.length === 0 && (
               <div className="py-16 text-center">
-                <Wine className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">{t('business.tableReservations.noBookings')}</h3>
-                <p className="text-white/60">{t('business.tableReservations.noBookingsHint')}</p>
+                <Wine className="w-16 h-16 text-gray-400 dark:text-white/20 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-[#020b00] dark:text-white mb-2">{t('business.tableReservations.noBookings')}</h3>
+                <p className="text-gray-600 dark:text-white/60">{t('business.tableReservations.noBookingsHint')}</p>
               </div>
             )}
           </div>
@@ -801,29 +916,29 @@ export default function BusinessTableReservations() {
 
       {/* Create Package Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141414] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl"
           >
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{t('business.tableReservations.createTablePackage')}</h2>
+            <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{t('business.tableReservations.createTablePackage')}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreatePackage} className="p-6 space-y-6">
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.eventLabel') || 'Event'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.eventLabel') || 'Event'}</label>
                 <select
                   value={formData.event_id}
                   onChange={(e) => setFormData({...formData, event_id: e.target.value})}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   required
                 >
                   <option value="">{t('business.tableReservations.selectEvent') || 'Select an event'}</option>
@@ -835,23 +950,23 @@ export default function BusinessTableReservations() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.packageNameLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.packageNameLabel')}</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder={t('business.tableReservations.packageNamePlaceholder')}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.priceLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.priceLabel')}</label>
                   <input
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -859,48 +974,48 @@ export default function BusinessTableReservations() {
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.maxPeopleLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.maxPeopleLabel')}</label>
                   <input
                     type="number"
                     value={formData.max_people}
                     onChange={(e) => setFormData({...formData, max_people: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.ticketQuantityLabel') || 'Ticket Quantity'}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.ticketQuantityLabel') || 'Ticket Quantity'}</label>
                   <input
                     type="number"
                     value={formData.ticket_quantity}
                     onChange={(e) => setFormData({...formData, ticket_quantity: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.totalTablesLabel') || 'Total Tables'}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.totalTablesLabel') || 'Total Tables'}</label>
                   <input
                     type="number"
                     value={formData.total_tables}
                     onChange={(e) => setFormData({...formData, total_tables: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.descriptionLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.descriptionLabel')}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.imageLabel') || 'Package Image'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.imageLabel') || 'Package Image'}</label>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white border border-black/10 dark:border-transparent rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer text-sm">
                     <ImageIcon className="w-4 h-4" />
                     <span>{imageFile ? imageFile.name : (t('business.tableReservations.chooseImage') || 'Choose image')}</span>
                     <input
@@ -924,9 +1039,9 @@ export default function BusinessTableReservations() {
 
               {/* Drink Menu Image */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white border border-black/10 dark:border-transparent rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer text-sm">
                     <ImageIcon className="w-4 h-4" />
                     <span>{drinkMenuImageFile ? drinkMenuImageFile.name : (t('business.tableReservations.chooseDrinkMenu') || 'Choose drink menu image')}</span>
                     <input
@@ -946,12 +1061,12 @@ export default function BusinessTableReservations() {
                     </button>
                   )}
                 </div>
-                <p className="text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
+                <p className="text-gray-500 dark:text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
               </div>
 
               {/* Included Items */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.includedItemsLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.includedItemsLabel')}</label>
                 {formData.included_items.map((item, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -959,7 +1074,7 @@ export default function BusinessTableReservations() {
                       value={item}
                       onChange={(e) => updateArrayField('included_items', idx, e.target.value)}
                       placeholder={t('business.tableReservations.includedItemPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -973,7 +1088,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('included_items')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addItem')}
                 </button>
@@ -981,7 +1096,7 @@ export default function BusinessTableReservations() {
 
               {/* Drinks */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinksIncludedLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.drinksIncludedLabel')}</label>
                 {formData.drinks.map((drink, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -989,7 +1104,7 @@ export default function BusinessTableReservations() {
                       value={drink}
                       onChange={(e) => updateArrayField('drinks', idx, e.target.value)}
                       placeholder={t('business.tableReservations.drinkPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1003,7 +1118,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('drinks')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addDrink')}
                 </button>
@@ -1011,7 +1126,7 @@ export default function BusinessTableReservations() {
 
               {/* Extras */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.extrasLabel') || 'Extras'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.extrasLabel') || 'Extras'}</label>
                 {formData.extras.map((extra, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -1019,7 +1134,7 @@ export default function BusinessTableReservations() {
                       value={extra}
                       onChange={(e) => updateArrayField('extras', idx, e.target.value)}
                       placeholder={t('business.tableReservations.extraPlaceholder') || 'Extra item'}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1033,7 +1148,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('extras')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addExtra') || 'Add extra'}
                 </button>
@@ -1043,13 +1158,13 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-3 text-white/60 hover:text-white transition-colors"
+                  className="px-6 py-3 text-gray-600 dark:text-white/60 hover:text-[#020b00] dark:hover:text-white transition-colors text-sm font-semibold"
                 >
                   {t('business.tableReservations.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-[#d3da0c] text-black font-medium rounded-xl hover:bg-[#bbc10b] transition-colors"
+                  className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-colors text-sm"
                 >
                   {t('business.tableReservations.createPackage')}
                 </button>
@@ -1061,29 +1176,29 @@ export default function BusinessTableReservations() {
 
       {/* Edit Package Modal */}
       {showEditModal && editingPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141414] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl"
           >
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{t('business.tableReservations.editTablePackage') || 'Edit Table Package'}</h2>
+            <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{t('business.tableReservations.editTablePackage') || 'Edit Table Package'}</h2>
               <button
                 onClick={() => { setShowEditModal(false); setEditingPackage(null); setEditImageFile(null); }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUpdatePackage} className="p-6 space-y-6">
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.eventLabel') || 'Event'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.eventLabel') || 'Event'}</label>
                 <select
                   value={formData.event_id}
                   disabled
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white/60 px-4 py-3 rounded-xl focus:outline-none cursor-not-allowed"
+                  className="w-full bg-neutral-100 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-gray-500 dark:text-white/60 px-4 py-3 rounded-xl focus:outline-none cursor-not-allowed"
                 >
                   {events.map(event => (
                     <option key={event.id} value={event.id}>{event.title}</option>
@@ -1093,23 +1208,23 @@ export default function BusinessTableReservations() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.packageNameLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.packageNameLabel')}</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder={t('business.tableReservations.packageNamePlaceholder')}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.priceLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.priceLabel')}</label>
                   <input
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     required
                   />
                 </div>
@@ -1117,53 +1232,53 @@ export default function BusinessTableReservations() {
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.maxPeopleLabel')}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.maxPeopleLabel')}</label>
                   <input
                     type="number"
                     value={formData.max_people}
                     onChange={(e) => setFormData({...formData, max_people: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.ticketQuantityLabel') || 'Ticket Quantity'}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.ticketQuantityLabel') || 'Ticket Quantity'}</label>
                   <input
                     type="number"
                     value={formData.ticket_quantity}
                     onChange={(e) => setFormData({...formData, ticket_quantity: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.totalTablesLabel') || 'Total Tables'}</label>
+                  <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.totalTablesLabel') || 'Total Tables'}</label>
                   <input
                     type="number"
                     value={formData.total_tables}
                     onChange={(e) => setFormData({...formData, total_tables: e.target.value})}
-                    className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                    className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.descriptionLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.descriptionLabel')}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                  className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-3 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                 />
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.imageLabel') || 'Package Image'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.imageLabel') || 'Package Image'}</label>
                 <div className="flex items-center gap-4">
                   {editingPackage.image_url && !editImageFile && (
                     <div className="relative">
                       <img src={editingPackage.image_url} alt="Current" className="w-16 h-16 object-cover rounded-xl" />
                     </div>
                   )}
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white border border-black/10 dark:border-transparent rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer text-sm">
                     <ImageIcon className="w-4 h-4" />
                     <span>{editImageFile ? editImageFile.name : (t('business.tableReservations.chooseImage') || 'Choose image')}</span>
                     <input
@@ -1187,14 +1302,14 @@ export default function BusinessTableReservations() {
 
               {/* Drink Menu Image */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.drinkMenuImageLabel') || 'Drink Menu Image'}</label>
                 <div className="flex items-center gap-4">
                   {editingPackage.drink_menu_image_url && !editDrinkMenuImageFile && (
                     <div className="relative">
                       <img src={editingPackage.drink_menu_image_url} alt="Drink Menu" className="w-16 h-16 object-cover rounded-xl" />
                     </div>
                   )}
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-[#020b00] dark:text-white border border-black/10 dark:border-transparent rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer text-sm">
                     <ImageIcon className="w-4 h-4" />
                     <span>{editDrinkMenuImageFile ? editDrinkMenuImageFile.name : (t('business.tableReservations.chooseDrinkMenu') || 'Choose drink menu image')}</span>
                     <input
@@ -1214,12 +1329,12 @@ export default function BusinessTableReservations() {
                     </button>
                   )}
                 </div>
-                <p className="text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
+                <p className="text-gray-500 dark:text-white/40 text-xs mt-1">{t('business.tableReservations.drinkMenuHint') || 'Upload a menu so customers know what drinks are available'}</p>
               </div>
 
               {/* Included Items */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.includedItemsLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.includedItemsLabel')}</label>
                 {formData.included_items.map((item, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -1227,7 +1342,7 @@ export default function BusinessTableReservations() {
                       value={item}
                       onChange={(e) => updateArrayField('included_items', idx, e.target.value)}
                       placeholder={t('business.tableReservations.includedItemPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1241,7 +1356,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('included_items')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addItem')}
                 </button>
@@ -1249,7 +1364,7 @@ export default function BusinessTableReservations() {
 
               {/* Drinks */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.drinksIncludedLabel')}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.drinksIncludedLabel')}</label>
                 {formData.drinks.map((drink, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -1257,7 +1372,7 @@ export default function BusinessTableReservations() {
                       value={drink}
                       onChange={(e) => updateArrayField('drinks', idx, e.target.value)}
                       placeholder={t('business.tableReservations.drinkPlaceholder')}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1271,7 +1386,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('drinks')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addDrink')}
                 </button>
@@ -1279,7 +1394,7 @@ export default function BusinessTableReservations() {
 
               {/* Extras */}
               <div>
-                <label className="block text-white/60 text-sm mb-2">{t('business.tableReservations.extrasLabel') || 'Extras'}</label>
+                <label className="block text-gray-700 dark:text-white/60 text-sm mb-2">{t('business.tableReservations.extrasLabel') || 'Extras'}</label>
                 {formData.extras.map((extra, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -1287,7 +1402,7 @@ export default function BusinessTableReservations() {
                       value={extra}
                       onChange={(e) => updateArrayField('extras', idx, e.target.value)}
                       placeholder={t('business.tableReservations.extraPlaceholder') || 'Extra item'}
-                      className="flex-1 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
+                      className="flex-1 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white px-4 py-2 rounded-xl focus:outline-none focus:border-[#d3da0c]"
                     />
                     <button
                       type="button"
@@ -1301,7 +1416,7 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => addArrayField('extras')}
-                  className="text-[#d3da0c] text-sm hover:underline"
+                  className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-sm hover:underline"
                 >
                   {t('business.tableReservations.addExtra') || 'Add extra'}
                 </button>
@@ -1311,13 +1426,13 @@ export default function BusinessTableReservations() {
                 <button
                   type="button"
                   onClick={() => { setShowEditModal(false); setEditingPackage(null); setEditImageFile(null); }}
-                  className="px-6 py-3 text-white/60 hover:text-white transition-colors"
+                  className="px-6 py-3 text-gray-600 dark:text-white/60 hover:text-[#020b00] dark:hover:text-white transition-colors text-sm font-semibold"
                 >
                   {t('business.tableReservations.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-[#d3da0c] text-black font-medium rounded-xl hover:bg-[#bbc10b] transition-colors"
+                  className="px-6 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-xl hover:opacity-90 transition-colors text-sm"
                 >
                   {t('business.tableReservations.saveChanges') || 'Save Changes'}
                 </button>
@@ -1334,27 +1449,27 @@ export default function BusinessTableReservations() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4"
             onClick={() => setSelectedQrOrder(null)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-sm w-full"
+              className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl p-8 max-w-sm w-full shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">{t('business.tableReservations.ticketQr') || 'Ticket QR'}</h3>
+                <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('business.tableReservations.ticketQr') || 'Ticket QR'}</h3>
                 <button
                   onClick={() => setSelectedQrOrder(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:text-white"
+                  className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="bg-white rounded-xl p-6 mb-6">
+              <div className="bg-white rounded-xl p-6 mb-6 border border-black/10 dark:border-transparent">
                 {selectedQrOrder.ticket_qr ? (
                   <img src={selectedQrOrder.ticket_qr} alt="Ticket QR" className="w-full h-auto" />
                 ) : (
@@ -1362,10 +1477,10 @@ export default function BusinessTableReservations() {
                 )}
               </div>
               <div className="text-center">
-                <p className="text-white font-semibold mb-1">
+                <p className="text-[#020b00] dark:text-white font-semibold mb-1">
                   {selectedQrOrder.package?.name}
                 </p>
-                <p className="text-[#d3da0c] text-sm mt-2 font-mono">{selectedQrOrder.ticket_code}</p>
+                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold text-sm mt-2 font-mono">{selectedQrOrder.ticket_code}</p>
               </div>
             </motion.div>
           </motion.div>

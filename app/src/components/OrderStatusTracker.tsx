@@ -34,10 +34,10 @@ export default function OrderStatusTracker({ status, isVendor = false }: OrderSt
         <div className="w-full">
             <div className="flex items-center justify-between relative">
                 {/* Progress line */}
-                <div className="absolute top-5 left-0 right-0 h-0.5 bg-white/10 -z-10" />
+                <div className="absolute top-5 left-0 right-0 h-0.5 bg-black/10 dark:bg-white/10 -z-10" />
                 {currentIndex > 0 && (
                     <motion.div
-                        className="absolute top-5 left-0 h-0.5 bg-[#d3da0c] -z-10"
+                        className="absolute top-5 left-0 h-0.5 bg-[#020b00] dark:bg-[#d3da0c] -z-10"
                         initial={{ width: '0%' }}
                         animate={{ width: `${(currentIndex / (STATUS_FLOW.length - 1)) * 100}%` }}
                         transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -54,17 +54,18 @@ export default function OrderStatusTracker({ status, isVendor = false }: OrderSt
                             <motion.div
                                 animate={{
                                     scale: isCurrent ? 1.1 : 1,
-                                    backgroundColor: isActive ? '#d3da0c' : 'rgba(255,255,255,0.1)',
                                 }}
                                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
-                                    isActive ? 'border-[#d3da0c]' : 'border-white/20'
+                                    isActive
+                                        ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black border-[#020b00] dark:border-[#d3da0c] shadow-xs'
+                                        : 'bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-gray-400 dark:text-gray-500'
                                 }`}
                             >
-                                <Icon className={`w-4 h-4 ${isActive ? 'text-black' : 'text-gray-500'}`} />
+                                <Icon className="w-4 h-4" />
                             </motion.div>
                             <span
-                                className={`text-xs font-medium ${
-                                    isActive ? 'text-white' : 'text-gray-500'
+                                className={`text-xs font-semibold ${
+                                    isActive ? 'text-[#020b00] dark:text-white' : 'text-gray-400 dark:text-gray-500'
                                 }`}
                             >
                                 {step.label}

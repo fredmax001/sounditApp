@@ -517,6 +517,12 @@ with engine.connect() as conn:
         if 'ticket_orders' in insp.get_table_names():
             conn.execute(text("ALTER TABLE ticket_orders ALTER COLUMN ticket_qr_code TYPE TEXT"))
             print("Widened ticket_orders.ticket_qr_code to TEXT")
+        if 'table_orders' in insp.get_table_names():
+            try:
+                conn.execute(text("ALTER TABLE table_orders ALTER COLUMN payment_screenshot DROP NOT NULL"))
+                print("Made table_orders.payment_screenshot nullable")
+            except Exception as e:
+                print(f"Skipped table_orders.payment_screenshot drop not null: {e}")
     else:
         print("Skipped QR column widening (non-PostgreSQL dialect)")
 
