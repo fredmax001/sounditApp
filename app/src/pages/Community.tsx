@@ -1018,8 +1018,8 @@ const Community = () => {
                       <div>
                         <h3 className="text-[#020b00] dark:text-white text-sm font-bold flex items-center gap-1.5">
                           <span>{authorName}</span>
-                          {(post.user.is_verified || !post.user.is_guest) && (
-                            <BadgeCheck className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 fill-sky-400/20 flex-shrink-0" />
+                          {post.user.is_verified && (
+                            <BadgeCheck className="w-3.5 h-3.5 text-[#d3da0c] fill-[#d3da0c]/20 flex-shrink-0" />
                           )}
                           {post.user.is_guest && (
                             <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-full font-normal">

@@ -463,6 +463,7 @@ export const useAuthStore = create<AuthState>()(
 
       // Fetch cities from backend API
       fetchCities: async () => {
+        if (get().cities.length > 0) return;
         try {
           const response = await fetch(`${API_BASE_URL}/cities`);
           if (response.ok) {

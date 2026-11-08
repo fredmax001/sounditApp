@@ -33,6 +33,9 @@ interface StaffState {
   clear: () => void;
 }
 
+let isFetchingMemberships = false;
+let lastMembershipsFetch = 0;
+
 export const useStaffStore = create<StaffState>((set, get) => ({
   memberships: [],
   events: [],
@@ -41,6 +44,12 @@ export const useStaffStore = create<StaffState>((set, get) => ({
   fetchMemberships: async () => {
     const token = localStorage.getItem('auth-token');
     if (!token) return;
+    const now = Date.now();
+    if (isFetchingMemberships || (now - lastMembershipsFetch < 45000 && get().memberships.length > 0)) {
+      return;
+    }
+    isFetchingMemberships = true;
+    lastMembershipsFetch = now;
     set({ isLoading: true });
     try {
       const res = await fetch(`${API_BASE_URL}/business/staff/my-memberships`, {
@@ -53,6 +62,7 @@ export const useStaffStore = create<StaffState>((set, get) => ({
     } catch {
       // silent
     } finally {
+      isFetchingMemberships = false;
       set({ isLoading: false });
     }
   },

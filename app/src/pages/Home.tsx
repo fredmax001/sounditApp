@@ -798,21 +798,11 @@ const Home = () => {
         {!(mobileDateFilter === 'past' ? pastEventsLoading : isLoading) && (
           <div className="mb-6">
             <MobileSectionHeader
-              label="Don't miss out"
               title={mobileDateFilter === 'past' ? 'Past Event Recaps' : 'Upcoming Events'}
               seeAllPath="/events"
               seeAllLabel="View all"
               accentColor="#d3da0c"
             />
-            {mobileDateFilter === 'past' && (
-              <div className="px-4 mb-3">
-                <Link to="/recaps" className="inline-flex items-center gap-2 rounded-full border border-[#d3da0c]/30 bg-[#d3da0c]/10 px-3.5 py-2 text-xs font-semibold text-[#d3da0c]">
-                  <Camera className="h-3.5 w-3.5" />
-                  Browse event photos & recaps
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            )}
             {filteredMobileEvents.length > 0 ? (
               <div className="flex flex-col gap-2 px-4">
                 {filteredMobileEvents.slice(0, 5).map((event, index) => (

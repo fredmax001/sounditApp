@@ -37,9 +37,10 @@ class PushNotificationManager {
       // Check for existing subscription
       this.subscription = await this.swRegistration.pushManager.getSubscription();
 
-      if (this.subscription) {
+      if (this.subscription && !sessionStorage.getItem('soundit_push_synced')) {
         console.log('[Push] Existing push subscription found');
         await this.sendSubscriptionToServer(this.subscription);
+        sessionStorage.setItem('soundit_push_synced', '1');
       }
 
       // Listen for messages from service worker

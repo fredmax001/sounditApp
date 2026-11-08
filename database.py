@@ -49,10 +49,12 @@ def init_db():
             Subscription, SubscriptionPlan, SubscriptionPlanConfig, SubscriptionFeatureUsage,
             ModerationReport, ApiKey, Webhook, Integration, PromoCode,
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
-            CommunityCommentLike, CommunityShare,
+            CommunityCommentLike, CommunityShare, CommunityBookmark,
             ProductOrder, TablePackage, TableOrder,
             PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout,
-            SecurityLog, AdminActivityLog
+            SecurityLog, AdminActivityLog,
+            Reel, ReelLike, ReelComment, ReelSave, Story,
+            PointsTransaction, PointsReward
         )
         Base.metadata.create_all(bind=engine)
         
@@ -82,6 +84,8 @@ def init_db():
                 ("username", "VARCHAR(100)"),
                 ("password_reset_token", "VARCHAR(255)"),
                 ("password_reset_expires_at", "DATETIME"),
+                ("profile_data", "JSON"),
+                ("points_balance", "INTEGER DEFAULT 0"),
             ]:
                 try:
                     conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
@@ -338,10 +342,12 @@ def init_db():
             Subscription, SubscriptionPlan, SubscriptionPlanConfig, SubscriptionFeatureUsage,
             ModerationReport, ApiKey, Webhook, Integration, PromoCode,
             CommunitySection, CommunityPost, CommunityComment, CommunityLike,
-            CommunityCommentLike, CommunityShare,
+            CommunityCommentLike, CommunityShare, CommunityBookmark,
             ProductOrder, TablePackage, TableOrder,
             PromoterProfile, EventPromoter, PromoterReferral, PromoterPayout,
-            SecurityLog, AdminActivityLog
+            SecurityLog, AdminActivityLog,
+            Reel, ReelLike, ReelComment, ReelSave, Story,
+            PointsTransaction, PointsReward
         )
         try:
             Base.metadata.create_all(bind=engine)
@@ -362,6 +368,11 @@ def init_db():
                     ("payment_verified_at", "TIMESTAMP WITH TIME ZONE"),
                 ]:
                     conn.execute(text(f"ALTER TABLE booking_requests ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+                for col, col_type in [
+                    ("profile_data", "JSON"),
+                    ("points_balance", "INTEGER DEFAULT 0"),
+                ]:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {col_type}"))
             conn.execute(text("UPDATE booking_requests SET payment_status = 'submitted' WHERE payment_status = 'paid'"))
             conn.execute(text("SELECT 1"))
             conn.commit()

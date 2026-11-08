@@ -33,15 +33,14 @@
       (function() {
         try {
           var stored = localStorage.getItem('theme-storage');
-          var theme = 'system';
+          var theme = 'dark';
           if (stored) {
             var parsed = JSON.parse(stored);
             if (parsed && parsed.state && parsed.state.theme) {
               theme = parsed.state.theme;
             }
           }
-          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+          var isDark = theme !== 'light';
           var root = document.documentElement;
           if (isDark) {
             root.classList.add('dark');
@@ -185,7 +184,7 @@
       <!-- Branded loading screen shown while React initialises -->
       <div id="static-loader" style="
         min-height: 100vh;
-        background: #020b00;
+        background: radial-gradient(circle at 50% 44%, rgba(16, 42, 6, 0.95) 0%, rgba(4, 15, 1, 0.98) 52%, #020b00 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -194,17 +193,47 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         padding: 24px;
         box-sizing: border-box;
+        overflow: hidden;
       ">
-        <!-- Drum Logo in the middle -->
-        <img
-          src="/intro_drum.png"
-          alt="Sound It"
-          style="height: 100px; width: auto; object-fit: contain;"
-          onerror="this.src='/mobile-logo.png'"
-        />
+        <!-- Subtle brand-colour glow behind logo -->
+        <div style="
+          position: absolute;
+          width: 320px;
+          height: 320px;
+          border-radius: 50%;
+          background: rgba(211, 218, 12, 0.2);
+          filter: blur(100px);
+          pointer-events: none;
+        "></div>
+
+        <!-- Center Official Sound It Lockup -->
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center;">
+          <img
+            src="/intro_drum.png"
+            alt="Sound It"
+            style="height: 128px; width: auto; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 28px rgba(211, 218, 12, 0.5));"
+            onerror="this.src='/mobile-logo.png'"
+          />
+          <img
+            src="/intro_sound.png"
+            alt="SOUND IT"
+            style="height: 48px; width: auto; object-fit: contain; margin-bottom: 14px; filter: drop-shadow(0 0 22px rgba(211, 218, 12, 0.45));"
+          />
+          <p style="
+            color: #d3da0c;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 18px rgba(211, 218, 12, 0.35);
+          ">
+            YOUR GATEWAY TO ENTERTAINMENT IN CHINA.
+          </p>
+        </div>
 
         <!-- WeChat prompt if applicable -->
-        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px; margin-top:24px;">
+        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px; margin-top:24px; position: relative; z-index: 2;">
           <p style="color:#999; font-size:14px; text-align:center; margin:0; line-height:1.6;">
             For the best experience, open Sound It in your default browser.
           </p>
@@ -234,15 +263,16 @@
         </div>
 
         <!-- Loading circle at the bottom -->
-        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:12px; position:absolute; bottom:48px; left:50%; transform:translateX(-50%);">
+        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:12px; position:absolute; bottom:max(28px, calc(12px + env(safe-area-inset-bottom, 0px))); left:50%; transform:translateX(-50%); z-index: 2;">
           <div style="
-            width: 36px; height: 36px;
-            border: 3px solid #222;
+            width: 32px; height: 32px;
+            border: 2.5px solid rgba(211, 218, 12, 0.2);
             border-top-color: #d3da0c;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 14px rgba(211, 218, 12, 0.25);
+            animation: spin 0.85s linear infinite;
           "></div>
-          <p style="color:#555; font-size:14px; margin:0; white-space:nowrap;">Loading Sound It...</p>
+          <p style="color:rgba(255, 255, 255, 0.75); font-size:12px; font-weight:500; letter-spacing:0.05em; margin:0; white-space:nowrap;">Loading Sound It…</p>
         </div>
 
         <style>

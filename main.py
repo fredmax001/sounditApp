@@ -28,6 +28,8 @@ import api.messaging as messaging
 import api.verification as verification
 import api.sms_test as sms_test
 import api.monitoring as monitoring
+import api.reels as reels
+import api.points as points
 
 settings = get_settings()
 
@@ -411,6 +413,8 @@ app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(newsletter.router, prefix="/api/v1")
+app.include_router(reels.router, prefix="/api/v1")
+app.include_router(points.router, prefix="/api/v1")
 app.include_router(sitemap.router)
 
 
