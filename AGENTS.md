@@ -9,6 +9,28 @@
 
 ---
 
+### 155. Production Real Data Restoration, Speed Optimization, Reels & Points Backend Activation, Past Events Fix, and Verified Badge Polish (2026-11-09)
+- **User Requirements & Issues Addressed**:
+  - Restore all real database records (154 registered users, 20 artists, 11 businesses, 10 events) after schema column mismatch (`users.profile_data`, `users.points_balance`).
+  - Eliminate all remaining mockup arrays across frontend (`FALLBACK_`, `DEMO_`, fake reels, mock vendor orders, mock products).
+  - Fix Mobile Header profile dropdown where avatar image was blowing up to full screen due to invalid Tailwind classes (`w-15 h-15`).
+  - Resolve severe platform latency on mobile app and web caused by un-cached duplicate requests (`push-subscribe` and `my-memberships` stampeding workers on mount).
+  - Enable Reels (`/api/v1/reels`) and Points (`/api/v1/points`) on production backend (previously 404).
+  - Fix past events not opening (`GET /api/v1/events/{id}` returning 404 because status `completed` was excluded).
+  - Fix Community Post verified account badge displaying blue (`text-sky-500`) instead of official Sound It brand yellow (`text-[#d3da0c] fill-[#d3da0c]/20`).
+  - Remove Home page descriptions `"Don't miss out"` and `"Browse Event photos & recaps"`.
+- **Architectural & Design Solutions Completed**:
+  - **Database & Real Data**: Applied non-destructive schema migrations on `soundit_prod` PostgreSQL (`profile_data`, `points_balance`). Verified all 154 users, 20 artists, 11 businesses, and 10 events are 100% intact and actively served by `/api/v1/artists`, `/api/v1/business/top`, `/api/v1/events/past`.
+  - **Profile Dropdown Fix**: Corrected avatar wrapper in `MobileHeader.tsx` to `w-14 h-14 overflow-hidden` with rounded border, clipping all avatar resolutions properly and eliminating the blown-up circular arc. Replaced mock user `Maxrick Max` with standard guest fallback.
+  - **Latency & Concurrency Fix**: Debounced `fetchMemberships` in `staffStore.ts` with a 45s in-flight/cache gate; added `sessionStorage` guard in `pushNotifications.ts` to prevent duplicate `push-subscribe` calls; cached `fetchCities` in `authStore.ts`.
+  - **Reels & Points Backend Deployment**: Deployed `api/reels.py` and `api/points.py` to `/var/www/soundit/current/api/`, registered routers in `main.py`, and verified HTTP 200 on live endpoints.
+  - **Past Events Opening**: Updated `api/events.py` `get_event` check from `event.status != EventStatus.APPROVED` to `event.status not in (EventStatus.APPROVED, EventStatus.COMPLETED)`. Past events (e.g. `AFTER 90's Halloween Party`) now open with HTTP 200.
+  - **Community Verified Badge Color**: Updated `BadgeCheck` in `Community.tsx` to `text-[#d3da0c] fill-[#d3da0c]/20` and restricted visibility strictly to verified users (`post.user.is_verified`).
+  - **Home Screen Descriptions**: Removed `label="Don't miss out"` and the `"Browse event photos & recaps"` link in `Home.tsx`.
+  - **Production Build & Sync**: Built bundle `index-DfK6Bw1u.js` on server, deployed live to `https://sounditent.com/`, and synced to local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+
+---
+
 ### 154. Front-End Redesign: Organizer & Vendor Dashboards, Community/Reels Fullscreen, Inter Font Unification, Mobile Header & Location Filter, and iPhone Deployment (2026-11-08)
 - **User Requirements & Issues Addressed**:
   - Unify onboarding fonts strictly to **Inter** (regular, bold, and light) removing non-brand display fonts.
