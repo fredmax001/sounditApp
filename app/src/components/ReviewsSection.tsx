@@ -285,7 +285,7 @@ export default function ReviewsSection({ entityId, entityType, entityName }: Rev
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold text-sm">
                       {(review.reviewer?.first_name?.[0] || 'U').toUpperCase()}
                     </div>
                   )}

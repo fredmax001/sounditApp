@@ -187,13 +187,17 @@ def send_email(
     body: str = "",
     html_body: Optional[str] = None,
     from_email: Optional[str] = None,
-    attachments: Optional[List[tuple]] = None
+    attachments: Optional[List[tuple]] = None,
+    html_content: Optional[str] = None,
+    **kwargs
 ) -> bool:
     """
     Send an email via SMTP SSL → console log fallback.
-    At least one of body or html_body must be provided.
+    At least one of body, html_body or html_content must be provided.
     attachments: list of (filename, bytes, mimetype) tuples
     """
+    if html_content and not html_body:
+        html_body = html_content
     if not is_deliverable_email(to_email):
         logger.warning(f"[EMAIL SKIPPED] Email address '{to_email}' is not deliverable or blocked.")
         return False
@@ -213,33 +217,28 @@ def send_email(
 # ─────────────────────────── Template Helpers ───────────────────────────
 
 def _email_wrapper(title: str, content_html: str) -> str:
-    """Standard HTML email wrapper, light, email-client-safe Sound It branding.
-
-    Light design chosen deliberately: dark body backgrounds are stripped or
-    unpredictably inverted by Gmail/Apple Mail (incl. dark modes), while a
-    light card renders consistently everywhere. Brand mark sits on a black
-    header bar so the lime drum logo stays vivid.
+    """Standard HTML email wrapper, modern, dark-mode-proof Sound It branding.
+    
+    Includes dark-mode resilient meta tags, high-contrast brand lockup,
+    and fallback styles for iOS Mail, Gmail, and Outlook.
     """
-    logo_url = "https://sounditent.com/logo.png"
+    logo_url = "https://sounditent.com/brand-logo-dark.png"
     favicon_url = "https://sounditent.com/apple-touch-icon.png"
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>{title}</title>
     <link rel="icon" type="image/png" href="{favicon_url}" />
     <link rel="apple-touch-icon" href="{favicon_url}" />
-    <script type="application/ld+json">
-    {{
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Sound It",
-      "url": "https://sounditent.com",
-      "logo": "https://sounditent.com/android-chrome-512x512.png"
-    }}
-    </script>
     <style>
+        :root {{
+            color-scheme: light dark;
+            supported-color-schemes: light dark;
+        }}
         body {{
             margin: 0;
             padding: 0;
@@ -259,31 +258,31 @@ def _email_wrapper(title: str, content_html: str) -> str:
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid #e4e4e7;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
         }}
         .top-accent {{
             height: 4px;
             background: linear-gradient(90deg, #d3da0c 0%, #a8ad0a 100%);
         }}
         .header {{
-            background-color: #000000;
-            padding: 26px 24px;
+            background-color: #020b00 !important;
+            padding: 26px 20px;
             text-align: center;
         }}
         .header img {{
-            height: 48px;
-            max-height: 48px;
+            height: 44px;
+            max-height: 44px;
             width: auto;
             display: inline-block;
             vertical-align: middle;
         }}
         .brand-subtitle {{
-            color: #d3da0c;
+            color: #d3da0c !important;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2.5px;
-            margin-top: 12px;
+            margin-top: 10px;
         }}
         .content {{
             padding: 36px 28px;
@@ -305,7 +304,7 @@ def _email_wrapper(title: str, content_html: str) -> str:
             display: inline-block;
             margin: 20px 0;
             padding: 14px 32px;
-            background-color: #d3da0c;
+            background-color: #d3da0c !important;
             color: #000000 !important;
             text-decoration: none !important;
             border-radius: 12px;
@@ -364,17 +363,56 @@ def _email_wrapper(title: str, content_html: str) -> str:
             color: #71717a;
             text-decoration: underline;
         }}
+
+        /* Dark Mode Overrides for Mail Clients */
+        @media (prefers-color-scheme: dark) {{
+            body, .wrapper {{
+                background-color: #0c0f0a !important;
+            }}
+            .container {{
+                background-color: #171b14 !important;
+                border-color: #262c20 !important;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+            }}
+            .header {{
+                background-color: #020b00 !important;
+            }}
+            .content {{
+                color: #e4e4e7 !important;
+            }}
+            .content strong {{
+                color: #ffffff !important;
+            }}
+            .card-box {{
+                background-color: #1f251a !important;
+                border-color: #2e3727 !important;
+                color: #e4e4e7 !important;
+            }}
+            .footer {{
+                background-color: #121510 !important;
+                border-color: #262c20 !important;
+                color: #a1a1aa !important;
+            }}
+            .footer p {{
+                color: #a1a1aa !important;
+            }}
+            .footer a {{
+                color: #d3da0c !important;
+            }}
+        }}
     </style>
 </head>
 <body>
     <div class="wrapper">
         <div class="container">
             <div class="top-accent"></div>
-            <div class="header">
-                <a href="https://sounditent.com" target="_blank" style="text-decoration: none;">
-                    <img src="{logo_url}" alt="Sound It" />
+            <div class="header" style="background-color: #020b00 !important; padding: 26px 20px; text-align: center;">
+                <a href="https://sounditent.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                    <img src="{logo_url}" alt="Sound It" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
                 </a>
-                <div class="brand-subtitle">Entertainment &amp; Event Platform</div>
+                <div class="brand-subtitle" style="color: #d3da0c !important; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; margin-top: 10px;">
+                    Entertainment &amp; Event Platform
+                </div>
             </div>
             <div class="content">
                 {content_html}
@@ -895,6 +933,7 @@ def send_booking_status_update_email(
 Great news! {artist_name} has accepted your booking request for "{safe_event}".
 
 Event Details:
+• Status: Accepted
 • Event: {safe_event}
 • Date: {safe_date}
 • City: {safe_city}
@@ -902,51 +941,99 @@ Event Details:
 
 You can view and manage your booking here: {dashboard_url}
 
-, Sound It Team"""
+- Sound It Team"""
 
         html = _email_wrapper(
             subject,
-            f"""<p>Hi {name},</p>
-            <p>Great news! <strong>{artist_name}</strong> has <span style="color:#22c55e; font-weight:700;">accepted</span> your booking request for <strong>{safe_event}</strong>.</p>
-            <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:16px 0;">
-                <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
-                <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
-                <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
-                <p style="margin:4px 0;"><strong>Artist:</strong> {artist_name}</p>
+            f"""<p style="font-size: 16px; margin-bottom: 12px;">Hi <strong>{name}</strong>,</p>
+            <p style="font-size: 15px; line-height: 1.6; margin-bottom: 20px;">Great news! <strong>{artist_name}</strong> has <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">accepted</span> your booking request for <strong>{safe_event}</strong>.</p>
+            
+            <div class="card-box" style="border-left: 4px solid #22c55e; padding: 20px; border-radius: 12px; margin: 22px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; width: 90px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Status</td>
+                        <td style="padding: 7px 0;"><span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 12px;">Confirmed</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Artist</td>
+                        <td style="padding: 7px 0; font-weight: 700; color: #111111;">{artist_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Event</td>
+                        <td style="padding: 7px 0; font-weight: 600;">{safe_event}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Date</td>
+                        <td style="padding: 7px 0;">{safe_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">City</td>
+                        <td style="padding: 7px 0; text-transform: capitalize;">{safe_city}</td>
+                    </tr>
+                </table>
             </div>
-            <a href="{dashboard_url}" class="cta">View My Booking</a>
-            <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
+
+            <div style="margin: 28px 0 16px 0;">
+                <a href="{dashboard_url}" class="cta" style="background-color: #d3da0c !important; color: #000000 !important; font-weight: 800; font-size: 15px; padding: 14px 32px; border-radius: 12px; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px rgba(211, 218, 12, 0.35);">View Booking in Dashboard</a>
+            </div>
+            <p style="margin-top: 24px; color: #71717a; font-size: 14px;">- Sound It Team</p>"""
         )
     else:
-        reason_html = f"<p style='color:#888;'><strong>Reason:</strong> {rejection_reason}</p>" if rejection_reason else ""
+        reason_row = f"""<tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Reason</td>
+                        <td style="padding: 7px 0; color: #71717a; font-style: italic;">{rejection_reason}</td>
+                    </tr>""" if rejection_reason else ""
         body = f"""Hi {name},
 
 Unfortunately, {artist_name} has declined your booking request for "{safe_event}".
 
 Event Details:
+• Status: Declined
 • Event: {safe_event}
 • Date: {safe_date}
 • City: {safe_city}
 • Artist: {artist_name}
 {rejection_reason and f'• Reason: {rejection_reason}' or ''}
 
-You can submit a new request or explore other artists here: https://sounditent.com/artists
+You can submit a new request or explore other verified artists here: https://sounditent.com/artists
 
-, Sound It Team"""
+- Sound It Team"""
 
         html = _email_wrapper(
             subject,
-            f"""<p>Hi {name},</p>
-            <p>Unfortunately, <strong>{artist_name}</strong> has <span style="color:#ef4444; font-weight:700;">declined</span> your booking request for <strong>{safe_event}</strong>.</p>
-            <div style="background:#f9fafb; padding:16px; border-radius:12px; margin:16px 0;">
-                <p style="margin:4px 0;"><strong>Event:</strong> {safe_event}</p>
-                <p style="margin:4px 0;"><strong>Date:</strong> {safe_date}</p>
-                <p style="margin:4px 0;"><strong>City:</strong> {safe_city}</p>
-                <p style="margin:4px 0;"><strong>Artist:</strong> {artist_name}</p>
-                {reason_html}
+            f"""<p style="font-size: 16px; margin-bottom: 12px;">Hi <strong>{name}</strong>,</p>
+            <p style="font-size: 15px; line-height: 1.6; margin-bottom: 20px;">Unfortunately, <strong>{artist_name}</strong> has <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">declined</span> your booking request for <strong>{safe_event}</strong>.</p>
+            
+            <div class="card-box" style="border-left: 4px solid #ef4444; padding: 20px; border-radius: 12px; margin: 22px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; width: 90px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Status</td>
+                        <td style="padding: 7px 0;"><span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 12px;">Declined</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Artist</td>
+                        <td style="padding: 7px 0; font-weight: 700; color: #111111;">{artist_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Event</td>
+                        <td style="padding: 7px 0; font-weight: 600;">{safe_event}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Date</td>
+                        <td style="padding: 7px 0;">{safe_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 7px 0; color: #71717a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">City</td>
+                        <td style="padding: 7px 0; text-transform: capitalize;">{safe_city}</td>
+                    </tr>
+                    {reason_row}
+                </table>
             </div>
-            <a href="https://sounditent.com/artists" class="cta">Find Other Artists</a>
-            <p style="margin-top:24px; color:#888;">- Sound It Team</p>"""
+
+            <div style="margin: 28px 0 16px 0;">
+                <a href="https://sounditent.com/artists" class="cta" style="background-color: #d3da0c !important; color: #000000 !important; font-weight: 800; font-size: 15px; padding: 14px 32px; border-radius: 12px; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px rgba(211, 218, 12, 0.35);">Find Other Artists</a>
+            </div>
+            <p style="margin-top: 24px; color: #71717a; font-size: 14px;">- Sound It Team</p>"""
         )
 
     return send_email(to_email, subject, body, html)
@@ -1035,7 +1122,7 @@ def send_test_email(to_email: str = "djfredmax221@gmail.com") -> bool:
         subject,
         """<div style="text-align: center; margin-bottom: 24px;">
             <span style="background-color: rgba(211, 218, 12, 0.15); color: #8a9000; border: 1px solid rgba(211, 218, 12, 0.4); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">
-                ✨ EMAIL TEMPLATE REDESIGN
+                EMAIL TEMPLATE REDESIGN
             </span>
         </div>
         <h2 style="color: #18181b; font-size: 24px; font-weight: 800; margin: 0 0 16px 0; text-align: center; letter-spacing: -0.5px;">

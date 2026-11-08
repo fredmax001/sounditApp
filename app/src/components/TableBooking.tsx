@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { 
   Wine, Users, Ticket, Check, X, Loader2, 
   ChevronRight, PartyPopper,
-  ImageIcon, MessageSquare, Sparkles,
+  ImageIcon, MessageSquare,
   Smartphone, Clock, Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -732,7 +732,6 @@ export default function TableBooking({
                   {upgradeLine && (
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-3">
                       <p className="text-amber-400 text-sm font-semibold flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
                         {t('tables.upgradeRequest', 'Upgrade request')}: {upgradeLine.item.name} ×{upgradeLine.qty}
                       </p>
                       <textarea

@@ -195,7 +195,7 @@ export default function PromoterDashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-500/20 to-[#d3da0c]/10 border border-purple-500/20 rounded-2xl p-6 mb-8"
+            className="bg-[#111111] border border-[#d3da0c]/30 rounded-2xl p-6 mb-8"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>

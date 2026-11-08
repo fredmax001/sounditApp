@@ -2,10 +2,13 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 import { chinaCities } from './data/constants';
 import { captureUtmParams } from './lib/utm';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
+
+import Onboarding, { ONBOARDING_COMPLETED_KEY } from './pages/intro/Onboarding';
 
 // Layouts - Unified System
 import MainLayout from './layouts/MainLayout';
@@ -76,6 +79,11 @@ const Favorites = lazy(() => import('./pages/user/Favorites'));
 const Followers = lazy(() => import('./pages/user/Followers'));
 const Settings = lazy(() => import('./pages/user/Settings'));
 const EditProfile = lazy(() => import('./pages/user/EditProfile'));
+const GetVerified = lazy(() => import('./pages/user/GetVerified'));
+const PointsPage = lazy(() => import('./pages/user/Points'));
+const NotificationsPage = lazy(() => import('./pages/Notifications'));
+const NotificationDetailPage = lazy(() => import('./pages/NotificationDetail'));
+const ReelsPage = lazy(() => import('./pages/Reels'));
 const NotificationSettings = lazy(() => import('./pages/user/NotificationSettings'));
 const SecuritySettings = lazy(() => import('./pages/user/SecuritySettings'));
 const LanguageSettings = lazy(() => import('./pages/user/LanguageSettings'));
@@ -89,6 +97,7 @@ const BusinessFollowers = lazy(() => import('./pages/business/Followers'));
 const BusinessPayouts = lazy(() => import('./pages/business/Payouts'));
 const BusinessPromoters = lazy(() => import('./pages/business/Promoters'));
 const BusinessProfile = lazy(() => import('./pages/business/Profile'));
+const BusinessGallery = lazy(() => import('./pages/business/Gallery'));
 const BusinessCommunity = lazy(() => import('./pages/business/Community'));
 const BusinessTableReservations = lazy(() => import('./pages/business/TableReservations'));
 const BusinessTicketOrders = lazy(() => import('./pages/business/TicketOrders'));
@@ -171,6 +180,44 @@ const PageLoader = () => (
   </div>
 );
 
+const isNativeApp = () => {
+  if (typeof window === 'undefined') return false;
+  return Boolean(
+    Capacitor.isNativePlatform() ||
+    (window as any).__capacitor?.isNativePlatform?.() === true ||
+    (window as any).Capacitor?.isNativePlatform?.() === true ||
+    (window as any).Capacitor?.getPlatform?.() === 'ios' ||
+    (window as any).Capacitor?.getPlatform?.() === 'android'
+  );
+};
+
+// Root route handler:
+// Onboarding is exclusively for native mobile apps (iOS & Android)
+// Web and Mobile Layout use the Intro screen only and land directly on Home
+const RootEntry = () => {
+  const { isAuthenticated } = useAuthStore();
+  const isApp = isNativeApp();
+  const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_COMPLETED_KEY) === 'true';
+
+  // First-time user on native iOS / Android App:
+  if (isApp && !hasCompletedOnboarding && !isAuthenticated) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // Web and Mobile layout (and returning App users) browse Home directly
+  return <Home />;
+};
+
+const OnboardingGuard = () => {
+  const isApp = isNativeApp();
+  const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+  // Onboarding is only for native apps. Web & Mobile Layout use Intro Screen.
+  if (!isApp && !isPreview) {
+    return <Navigate to="/" replace />;
+  }
+  return <Onboarding />;
+};
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -222,10 +269,10 @@ function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', checkMaintenance);
 
-    // Initial loading timer for animated intro
+    // Safety fallback timer for animated intro if onFinish does not fire
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2600);
+    }, 6000);
 
     return () => {
       clearTimeout(timer);
@@ -244,11 +291,7 @@ function App() {
 
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  if (isLoading) {
-    return <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />;
-  }
-
-  if (maintenanceMode && !isAdminUser) {
+  if (!isLoading && maintenanceMode && !isAdminUser) {
     return (
       <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
@@ -273,6 +316,9 @@ function App() {
 
   return (
     <ErrorBoundary>
+    {isLoading && (
+      <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
+    )}
     <Router>
       <GlobalAudioPlayer />
       <Toaster
@@ -286,9 +332,24 @@ function App() {
         }}
       />
       <Routes>
-          {/* Public Routes */}
+          {/* Onboarding Flow (Native Apps Only) */}
+          <Route path="/onboarding" element={<OnboardingGuard />} />
+
+          {/* Public & Simulator-Accessible Routes */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RootEntry />} />
+            <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
+            <Route path="/notifications/:id" element={<Suspense fallback={<PageLoader />}><NotificationDetailPage /></Suspense>} />
+            <Route path="/points" element={<Suspense fallback={<PageLoader />}><PointsPage /></Suspense>} />
+            <Route path="/get-verified" element={<Suspense fallback={<PageLoader />}><GetVerified /></Suspense>} />
+            <Route path="/profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
+            <Route path="/profile/edit" element={<Suspense fallback={<PageLoader />}><EditProfile /></Suspense>} />
+            <Route path="/favorites" element={<Suspense fallback={<PageLoader />}><Favorites /></Suspense>} />
+            <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
+            <Route path="/settings/notifications" element={<Suspense fallback={<PageLoader />}><NotificationSettings /></Suspense>} />
+            <Route path="/settings/security" element={<Suspense fallback={<PageLoader />}><SecuritySettings /></Suspense>} />
+            <Route path="/settings/language" element={<Suspense fallback={<PageLoader />}><LanguageSettings /></Suspense>} />
+            <Route path="/settings/invite" element={<Suspense fallback={<PageLoader />}><InviteFriends /></Suspense>} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/artists" element={<Artists />} />
@@ -296,11 +357,15 @@ function App() {
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/vendors/:id" element={<VendorDetail />} />
             <Route path="/profiles/:id" element={<PublicProfile />} />
+            <Route path="/organizers/:id" element={<PublicProfile />} />
+            <Route path="/business/:id" element={<PublicProfile />} />
+            <Route path="/venues/:id" element={<PublicProfile />} />
             <Route path="/city-guide" element={<CityGuide />} />
             <Route path="/discovery" element={<CityGuide />} />
             <Route path="/recaps" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />
             <Route path="/food" element={<Food />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/reels" element={<Suspense fallback={<PageLoader />}><ReelsPage /></Suspense>} />
             <Route path="/about" element={<About />} />
             <Route path="/download" element={<Download />} />
             <Route path="/contact" element={<Contact />} />
@@ -338,25 +403,17 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/verify-otp" element={<Navigate to="/login" replace />} />
             <Route path="/verify-email" element={<EmailVerification />} />
           </Route>
 
           {/* Protected User Routes - Public Layout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route path="/profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
               <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
               <Route path="/dashboard/user" element={<Suspense fallback={<PageLoader />}><UserDashboard /></Suspense>} />
               <Route path="/table-bookings" element={<Suspense fallback={<PageLoader />}><TableBookings /></Suspense>} />
-              <Route path="/favorites" element={<Suspense fallback={<PageLoader />}><Favorites /></Suspense>} />
               <Route path="/followers" element={<Suspense fallback={<PageLoader />}><Followers /></Suspense>} />
-              <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
-              <Route path="/profile/edit" element={<Suspense fallback={<PageLoader />}><EditProfile /></Suspense>} />
-              <Route path="/settings/notifications" element={<Suspense fallback={<PageLoader />}><NotificationSettings /></Suspense>} />
-              <Route path="/settings/security" element={<Suspense fallback={<PageLoader />}><SecuritySettings /></Suspense>} />
-              <Route path="/settings/language" element={<Suspense fallback={<PageLoader />}><LanguageSettings /></Suspense>} />
-              <Route path="/settings/invite" element={<Suspense fallback={<PageLoader />}><InviteFriends /></Suspense>} />
               <Route path="/payment/success" element={<Suspense fallback={<PageLoader />}><PaymentSuccess /></Suspense>} />
             </Route>
 
@@ -416,6 +473,11 @@ function App() {
             <Route path="/dashboard/business/profile" element={
               <ResponsiveLayout>
                 <Suspense fallback={<PageLoader />}><BusinessProfile /></Suspense>
+              </ResponsiveLayout>
+            } />
+            <Route path="/dashboard/business/gallery" element={
+              <ResponsiveLayout>
+                <Suspense fallback={<PageLoader />}><BusinessGallery /></Suspense>
               </ResponsiveLayout>
             } />
             <Route path="/dashboard/business/recaps" element={

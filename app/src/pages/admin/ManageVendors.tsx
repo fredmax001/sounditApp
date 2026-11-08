@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
-  Store, Search, Check, Trash2, Loader2, DollarSign, Package, Sparkles, XCircle, Lock, Unlock
+  Store, Search, Check, Trash2, Loader2, DollarSign, Package, XCircle, Lock, Unlock, Eye
 } from 'lucide-react';
+import EntityDetailModal from '@/components/admin/EntityDetailModal';
 
 interface Vendor {
   id: number;
@@ -30,6 +32,13 @@ const ManageVendors = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedVendorId, setSelectedVendorId] = useState<string | number | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewVendorCard = (vendorId: string | number) => {
+    setSelectedVendorId(vendorId);
+    setIsDetailModalOpen(true);
+  };
 
   useEffect(() => {
     loadVendors();
@@ -221,12 +230,7 @@ const ManageVendors = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageVendors.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageVendors.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="Management" title={t('admin.manageVendors.title')} subtitle={t('admin.manageVendors.subtitle')} />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -295,9 +299,6 @@ const ManageVendors = () => {
         </div>
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 rounded-xl">
-              <Sparkles className="w-5 h-5" />
-            </div>
             <div>
               <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.featured')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
@@ -353,12 +354,19 @@ const ManageVendors = () => {
               {filteredVendors.map((vendor) => (
                 <tr key={vendor.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div 
+                      onClick={() => handleViewVendorCard(vendor.id)}
+                      className="flex items-center gap-3 cursor-pointer group"
+                      title="Click to view vendor card"
+                    >
+                      <div className="w-10 h-10 bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30 rounded-full flex items-center justify-center font-bold group-hover:ring-2 group-hover:ring-[#d3da0c] transition-all">
                         {vendor.business_name?.[0] || 'V'}
                       </div>
                       <div>
-                        <p className="text-[#020b00] dark:text-white font-medium">{vendor.business_name}</p>
+                        <p className="text-[#020b00] dark:text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                          {vendor.business_name}
+                          <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                        </p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs">{vendor.user_name}</p>
                       </div>
                     </div>
@@ -382,6 +390,14 @@ const ManageVendors = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleViewVendorCard(vendor.id)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-[#d3da0c] text-xs font-medium transition-colors"
+                        title="View Vendor Card & Performance"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        View
+                      </button>
                       {!vendor.is_verified ? (
                         <button
                           onClick={() => handleVerify(vendor.id)}
@@ -427,10 +443,10 @@ const ManageVendors = () => {
                       <button
                         onClick={() => handleFeature(vendor.id)}
                         disabled={actionLoading === `feature-${vendor.id}`}
-                        className={`p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${vendor.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
+                        className={`px-2.5 py-1.5 text-xs font-medium hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${vendor.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
                         title={vendor.is_featured ? t('admin.manageVendors.unfeatureTitle') : t('admin.manageVendors.featureTitle')}
                       >
-                        {actionLoading === `feature-${vendor.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {actionLoading === `feature-${vendor.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : (vendor.is_featured ? 'Featured' : 'Feature')}
                       </button>
                       {vendor.status === 'suspended' ? (
                         <button
@@ -467,6 +483,17 @@ const ManageVendors = () => {
           </table>
         )}
       </div>
+      {/* Vendor Detail Modal */}
+      <EntityDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedVendorId(null);
+        }}
+        type="vendor"
+        entityId={selectedVendorId}
+        onUpdated={loadVendors}
+      />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, Link } from 'react-router-dom';
@@ -109,18 +110,7 @@ const TicketReceipt = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-20 pb-24 transition-colors">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 no-print transition-colors">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white active:scale-90 transition-all"
-            aria-label={t('eventDetail.back')}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-bold text-[#020b00] dark:text-white">{t('receipt.title', 'E-Receipt')}</h1>
-        </div>
-      </div>
+      <MobilePageHeader title={t('receipt.title', 'E-Receipt')} className="no-print" />
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {loading ? (
@@ -169,7 +159,17 @@ const TicketReceipt = () => {
 
               {(['approved', 'used'].includes(order.status || '')) && (
                 <div className="px-5 py-6 border-t border-black/8 dark:border-white/5 text-center bg-neutral-50/50 dark:bg-black/20">
-                  {order.ticket_qr ? (
+                  {(order.ticket_code || tickets[0]?.ticket_number) ? (
+                    <div className="inline-block bg-white rounded-2xl p-4 border border-black/10 shadow-xs">
+                      <QRCodeSVG
+                        value={order.ticket_code || tickets[0]?.ticket_number}
+                        size={176}
+                        level="H"
+                        minVersion={6}
+                        marginSize={1}
+                      />
+                    </div>
+                  ) : order.ticket_qr ? (
                     <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <img src={order.ticket_qr} alt="Ticket QR" className="w-40 h-40 object-contain" />
                     </div>
@@ -177,13 +177,9 @@ const TicketReceipt = () => {
                     <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
                       <img src={tickets[0].qr_code} alt="Ticket QR" className="w-40 h-40 object-contain" />
                     </div>
-                  ) : tickets.length > 0 ? (
-                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
-                      <QRCodeSVG value={tickets[0].ticket_number} size={160} level="H" />
-                    </div>
                   ) : (
-                    <div className="inline-block bg-white rounded-2xl p-3 border border-black/10 shadow-xs">
-                      <QRCodeSVG value={order.ticket_code || `ORDER-${order.id}`} size={160} level="H" />
+                    <div className="inline-block bg-white rounded-2xl p-4 border border-black/10 shadow-xs">
+                      <QRCodeSVG value={`ORDER-${order.id}`} size={176} level="H" minVersion={6} marginSize={1} />
                     </div>
                   )}
                   {(order.ticket_code || tickets[0]?.ticket_number) && (

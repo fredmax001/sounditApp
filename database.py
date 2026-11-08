@@ -42,7 +42,7 @@ def init_db():
         # Import all models to ensure they're registered with Base
         from models import (
             User, OTPCode, Event, Club, FoodSpot, Order, 
-            ArtistProfile, OrganizerProfile, BusinessProfile,
+            ArtistProfile, ArtistPortfolioMedia, OrganizerProfile, BusinessProfile,
             BookingRequest, PayoutRequest, VerificationRequest, Venue,
             EventArtist, TicketTier, Ticket, OrderItem,
             ArtistFollow, EventFollow, Notification,
@@ -88,7 +88,7 @@ def init_db():
                     conn.commit()
                 except Exception:
                     pass
-            
+
             # Business profiles new columns
             try:
                 conn.execute(text("ALTER TABLE business_profiles ADD COLUMN gallery_images JSON"))
@@ -130,12 +130,25 @@ def init_db():
                 ("payment_status", "VARCHAR(20) DEFAULT 'pending'"),
                 ("reviewed_at", "DATETIME"),
                 ("rejection_reason", "TEXT"),
+                ("deposit_amount", "FLOAT"),
+                ("payment_currency", "VARCHAR(3) DEFAULT 'CNY'"),
+                ("payment_submitted_at", "DATETIME"),
+                ("payment_reviewed_at", "DATETIME"),
+                ("payment_verified_at", "DATETIME"),
             ]:
                 try:
                     conn.execute(text(f"ALTER TABLE booking_requests ADD COLUMN {col} {col_type}"))
                     conn.commit()
                 except Exception:
                     pass
+
+            # Legacy booking uploads were labelled "paid" on screenshot upload.
+            # Preserve them as submitted proofs until an artist reviews them.
+            try:
+                conn.execute(text("UPDATE booking_requests SET payment_status = 'submitted' WHERE payment_status = 'paid'"))
+                conn.commit()
+            except Exception:
+                pass
             
             # Community posts new columns
             for col, col_type in [
@@ -318,7 +331,7 @@ def init_db():
         # Import all models to ensure they're registered with Base
         from models import (
             User, OTPCode, Event, Club, FoodSpot, Order,
-            ArtistProfile, OrganizerProfile, BusinessProfile,
+            ArtistProfile, ArtistPortfolioMedia, OrganizerProfile, BusinessProfile,
             BookingRequest, PayoutRequest, VerificationRequest, Venue,
             EventArtist, TicketTier, Ticket, OrderItem,
             ArtistFollow, EventFollow, Notification,
@@ -340,6 +353,16 @@ def init_db():
                 raise
         # Verify the connection
         with engine.connect() as conn:
+            if engine.dialect.name == "postgresql":
+                for col, col_type in [
+                    ("deposit_amount", "DOUBLE PRECISION"),
+                    ("payment_currency", "VARCHAR(3) DEFAULT 'CNY'"),
+                    ("payment_submitted_at", "TIMESTAMP WITH TIME ZONE"),
+                    ("payment_reviewed_at", "TIMESTAMP WITH TIME ZONE"),
+                    ("payment_verified_at", "TIMESTAMP WITH TIME ZONE"),
+                ]:
+                    conn.execute(text(f"ALTER TABLE booking_requests ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+            conn.execute(text("UPDATE booking_requests SET payment_status = 'submitted' WHERE payment_status = 'paid'"))
             conn.execute(text("SELECT 1"))
             conn.commit()
 

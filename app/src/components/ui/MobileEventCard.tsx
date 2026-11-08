@@ -9,6 +9,7 @@ import { Heart, Clock, MapPin, Loader2, Users } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import type { EventWithDetails } from '@/store/eventStore';
 import { toast } from 'sonner';
+import { getEntitySlug } from '@/lib/slug';
 
 interface MobileEventCardProps {
   event: EventWithDetails;
@@ -58,9 +59,10 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
   };
 
   const isFeatured = variant === 'featured';
+  const eventSlug = event.id;
 
   return (
-    <Link to={`/events/${event.id}`} className={`block ${className}`}>
+    <Link to={`/events/${eventSlug}`} className={`block ${className}`}>
       <motion.div
         whileTap={{ scale: 0.97 }}
         className={`relative overflow-hidden rounded-2xl ${

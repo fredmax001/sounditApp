@@ -41,6 +41,7 @@ import {
   MessageSquare,
   Share2,
   DollarSign,
+  Images,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -157,6 +158,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/dashboard/business', label: t('nav.dashboard') || 'Dashboard Overview', icon: LayoutDashboard, locked: false },
     { path: '/dashboard/business/finance', label: 'Finance', icon: DollarSign, locked: false },
     { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: CalendarDays, locked: false },
+    { path: '/dashboard/business/gallery', label: 'Gallery & Media', icon: Images, locked: false },
     { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket, locked: false },
     { path: '/dashboard/business/promoters', label: t('nav.promoters') || 'Promoters', icon: Share2, locked: false },
     { path: '/dashboard/business/staff', label: t('business.staff.title') || 'Staff', icon: Users, locked: false },
@@ -397,7 +399,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* User Section */}
         <div className="p-4 border-t border-black/8 dark:border-white/5">
           <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/5 dark:bg-white/5 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center">
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}

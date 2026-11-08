@@ -4,9 +4,12 @@ import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Send, Loader2, Check, Instagram, Facebook } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Contact = () => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const instagramHref = isMobile ? 'https://instagram.com/soundit_app' : 'https://instagram.com/soundit_ent';
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -173,7 +176,7 @@ const Contact = () => {
                   <p className="text-gray-400 text-sm mb-4">{t('contact.followUs')}</p>
                   <div className="flex gap-3">
                     <a
-                      href="https://instagram.com/soundit_ent"
+                      href={instagramHref}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#d3da0c] hover:text-black transition-colors"

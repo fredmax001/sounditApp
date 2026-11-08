@@ -13,15 +13,20 @@ import {
   ChevronRight,
   Grid3X3,
   Calendar,
-  Sparkles
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { useRecapsStore } from '../store/recapsStore';
+import { saveImageToDevice } from '@/lib/downloadImage';
+import { slugify } from '@/lib/slug';
+import { toast } from 'sonner';
 
 interface Recap {
   id: number;
   title: string;
   description?: string;
   photos: string[];
+  photo_album_url?: string;
   views_count: number;
   likes_count: number;
   status: string;
@@ -121,7 +126,7 @@ export default function Recaps() {
           </Link>
 
           <div className="flex items-center gap-4 mb-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#d3da0c]/20 to-[#FF2D8F]/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-[#d3da0c]/15 border border-[#d3da0c]/30 flex items-center justify-center">
               <Camera className="w-7 h-7 text-[#d3da0c]" />
             </div>
             <div>
@@ -132,7 +137,6 @@ export default function Recaps() {
 
           {eventIdParam && (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] text-xs font-semibold border border-[#d3da0c]/30">
-              <Sparkles className="w-3.5 h-3.5" />
               <span>Filtered by Event #{eventIdParam}</span>
               <button
                 onClick={() => setSearchParams({})}
@@ -321,12 +325,30 @@ export default function Recaps() {
                   </>
                 )}
 
-                {/* Photo Counter */}
+                {/* Photo Actions & Counter */}
                 {selectedRecap.photos && (
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
-                    <span className="text-white font-medium text-xs">
-                      {selectedPhotoIndex + 1} / {selectedRecap.photos.length}
-                    </span>
+                  <div className="absolute top-4 right-4 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const curImg = selectedRecap.photos[selectedPhotoIndex];
+                        if (curImg) {
+                          toast.info('Saving photo to device...');
+                          const ok = await saveImageToDevice(curImg, `${slugify(selectedRecap.title)}-${selectedPhotoIndex + 1}.jpg`);
+                          if (ok) toast.success('Photo saved to device');
+                        }
+                      }}
+                      className="bg-black/70 hover:bg-black/90 active:scale-95 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                      title="Save photo to device"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#d3da0c]" />
+                      <span>Save to Device</span>
+                    </button>
+                    <div className="bg-black/70 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-white/10">
+                      <span className="text-white font-medium text-xs">
+                        {selectedPhotoIndex + 1} / {selectedRecap.photos.length}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -379,6 +401,19 @@ export default function Recaps() {
                   </div>
                 </div>
 
+                {/* Cloud Photo Album Link */}
+                {selectedRecap.photo_album_url && (
+                  <a
+                    href={selectedRecap.photo_album_url.startsWith('http') ? selectedRecap.photo_album_url : `https://${selectedRecap.photo_album_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#d3da0c] text-[#020b00] text-sm font-bold hover:opacity-90 active:scale-[0.99] transition-all mb-6 shadow-md"
+                  >
+                    <ExternalLink className="w-4 h-4 shrink-0" />
+                    <span>Open Full Cloud Album</span>
+                  </a>
+                )}
+
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 p-4 bg-[#1a1a1a] rounded-xl mb-6 border border-white/5">
                   <div className="text-center">
@@ -386,7 +421,7 @@ export default function Recaps() {
                     <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{t('recaps.views') || 'Views'}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#FF2D8F]">{(selectedRecap.likes_count || 0).toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-[#d3da0c]">{(selectedRecap.likes_count || 0).toLocaleString()}</div>
                     <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{t('recaps.likes') || 'Likes'}</div>
                   </div>
                 </div>

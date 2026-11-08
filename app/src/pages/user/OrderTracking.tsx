@@ -1,3 +1,4 @@
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -79,21 +80,7 @@ export default function OrderTracking() {
     return (
         <div className="min-h-screen pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
             {/* Header */}
-            <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-                <div className="max-w-lg mx-auto px-4 py-4">
-                    <div className="flex items-center gap-3">
-                        <Link to="/my-orders" className="p-1 -ml-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold font-display text-[#020b00] dark:text-white">Order #{order.id}</h1>
-                            {order.vendor_name && (
-                                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{order.vendor_name}</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </section>
+      <MobilePageHeader title={`Order #${order.id}`} />
 
             <div className="max-w-lg mx-auto px-4 pt-6">
 

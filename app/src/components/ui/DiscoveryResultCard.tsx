@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
+import { slugify } from '@/lib/slug';
 interface DiscoveryResultCardProps {
   user: any;
   subtitle?: string;
@@ -11,19 +12,7 @@ const DiscoveryResultCard = ({ user, subtitle, linkPath }: DiscoveryResultCardPr
   const isArtist = user.role === 'artist' || user.role === 'dj';
   const isVendor = user.role === 'vendor';
   const isBusiness = user.role === 'business' || user.role === 'organizer';
-  
-  // Route to the exact profile ID for each entity type:
-  // - Artists require ArtistProfile.id (/artists/:id)
-  // - Vendors require VendorProfile.id (/vendors/:id)
-  // - Businesses & Organizers require User.id (/profiles/:user_id)
-  const resolvedLink = linkPath || (
-    isArtist
-      ? `/artists/${user.artist_id || user.id}`
-      : isVendor
-        ? `/vendors/${user.vendor_id || user.id}`
-        : `/profiles/${user.user_id || user.id}`
-  );
-  
+
   const displayName = isArtist 
     ? (user.artist_profile?.stage_name || user.first_name || user.name)
     : isVendor 
@@ -31,6 +20,18 @@ const DiscoveryResultCard = ({ user, subtitle, linkPath }: DiscoveryResultCardPr
       : isBusiness 
         ? (user.business_profile?.business_name || user.first_name || user.name)
         : (user.first_name || user.name);
+
+  const slug = user.slug || user.artist_profile?.slug || user.vendor_profile?.slug || user.business_profile?.slug || user.organizer_profile?.slug;
+  const canonicalIdentifier = slug || slugify(displayName);
+
+  // Route to the canonical URL for each entity type:
+  const resolvedLink = linkPath || (
+    isArtist
+      ? `/artists/${canonicalIdentifier || user.artist_id || user.id}`
+      : isVendor
+        ? `/vendors/${canonicalIdentifier || user.vendor_id || user.id}`
+        : `/profiles/${canonicalIdentifier || user.user_id || user.id}`
+  );
 
   return (
     <Link

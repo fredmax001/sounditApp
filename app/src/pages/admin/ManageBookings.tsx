@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
@@ -99,12 +100,7 @@ const ManageBookings = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageBookings.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageBookings.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="Management" title={t('admin.manageBookings.title')} subtitle={t('admin.manageBookings.subtitle')} />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -205,7 +201,7 @@ const ManageBookings = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#d3da0c] to-green-500 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 bg-[#d3da0c] rounded-xl flex items-center justify-center shrink-0">
                       <Ticket className="w-6 h-6 text-black" />
                     </div>
                     <div>

@@ -56,7 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         // Forward URL opens (deep links, OAuth callbacks) to Capacitor plugins
         for context in URLContexts {
-            ApplicationDelegateProxy.shared.application(UIApplication.shared, open: context.url, options: [
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: context.url, options: [
                 .openInPlace: context.options.openInPlace,
                 .sourceApplication: context.options.sourceApplication as Any
             ])
@@ -65,7 +65,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
         // Forward Universal Links to Capacitor plugins
-        ApplicationDelegateProxy.shared.application(UIApplication.shared, continue: userActivity) { _ in }
+        _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, continue: userActivity) { _ in }
     }
 
 }

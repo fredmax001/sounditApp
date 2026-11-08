@@ -78,8 +78,10 @@ export interface CommunityAuthor {
     id: number;
     first_name: string | null;
     last_name: string | null;
+    username?: string | null;
     avatar_url: string | null;
     is_guest: boolean;
+    is_verified?: boolean;
 }
 
 export interface CommunityComment {
@@ -112,6 +114,7 @@ export interface CommunityPost {
     comments_count: number;
     shares_count: number;
     has_liked: boolean;
+    has_saved?: boolean;
     comments: CommunityComment[];
     created_at: string;
     updated_at?: string;
@@ -128,7 +131,7 @@ interface CommunityState {
     total: number;
 
     // Actions
-    fetchPosts: (params?: { page?: number; event_id?: number; user_id?: number; search?: string }) => Promise<void>;
+    fetchPosts: (params?: { page?: number; event_id?: number; user_id?: number; search?: string; feed_type?: string }) => Promise<void>;
     fetchSections: () => Promise<void>;
     fetchPostsBySection: (slug: string, page?: number) => Promise<void>;
     createPost: (data: { title?: string; content: string; images?: string[]; videos?: string[]; event_id?: number; section_id?: number; author_type?: string; guestName?: string; guestEmail?: string }) => Promise<boolean>;
@@ -136,6 +139,7 @@ interface CommunityState {
     deletePost: (postId: number) => Promise<boolean>;
     likePost: (postId: number) => Promise<void>;
     unlikePost: (postId: number) => Promise<void>;
+    toggleBookmark: (postId: number) => Promise<boolean>;
     addComment: (postId: number, content: string, parentCommentId?: number, guestName?: string, guestEmail?: string) => Promise<void>;
     deleteComment: (postId: number, commentId: number) => Promise<boolean>;
     likeComment: (commentId: number, postId: number) => Promise<void>;
@@ -197,6 +201,7 @@ export const useCommunityStore = create<CommunityState>()(
                     if (params.event_id) queryParams.append('event_id', String(params.event_id));
                     if (params.user_id) queryParams.append('user_id', String(params.user_id));
                     if (params.search) queryParams.append('search', params.search);
+                    if (params.feed_type) queryParams.append('feed_type', params.feed_type);
 
                     const response = await axios.get(`${API_URL}/community/posts?${queryParams.toString()}`, {
                         headers: buildAuthHeaders(),
@@ -359,6 +364,28 @@ export const useCommunityStore = create<CommunityState>()(
                     });
                 } catch (error) {
                     console.error('Failed to unlike post:', error);
+                }
+            },
+
+            toggleBookmark: async (postId) => {
+                try {
+                    const response = await axios.post(`${API_URL}/community/posts/${postId}/bookmark`, {}, {
+                        headers: buildAuthHeaders(),
+                    });
+                    const saved = Boolean(response.data?.saved);
+                    set({
+                        posts: get().posts.map(post =>
+                            post.id === postId
+                                ? { ...post, has_saved: saved }
+                                : post
+                        )
+                    });
+                    toast.success(saved ? 'Post saved to Bookmarks' : 'Removed from Bookmarks');
+                    return saved;
+                } catch (error) {
+                    console.error('Failed to bookmark post:', error);
+                    toast.error('Please log in to bookmark posts');
+                    return false;
                 }
             },
 

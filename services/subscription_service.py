@@ -25,6 +25,18 @@ def _aware(dt):
 
 class SubscriptionService:
     @staticmethod
+    def has_active_artist_subscription(db: Session, user_id: int) -> bool:
+        """Deposit receiving requires an active subscription row for the artist role."""
+        sub = SubscriptionService.get_active_subscription(db, user_id)
+        return bool(
+            sub
+            and sub.role == UserRole.ARTIST
+            and sub.status == SubscriptionStatus.ACTIVE
+            and not sub.is_trial
+            and (sub.price or 0) > 0
+        )
+
+    @staticmethod
     def get_active_subscription(db: Session, user_id: int):
         now = datetime.now(timezone.utc)
         return db.query(Subscription).filter(
@@ -349,6 +361,123 @@ class SubscriptionService:
         db.refresh(trial)
         return trial
 
+    # ── User self-service: cancel / resume / restore ────────────────────────
+    # Payments are one-off YOOPAY transfers (no store billing, no auto-renew),
+    # so "cancel" never refunds and never cuts access to a period already paid for.
+
+    @staticmethod
+    def cancel_subscription(db: Session, user_id: int, reason: Optional[str] = None) -> Dict[str, Any]:
+        """Cancel the user's current subscription.
+
+        - PENDING (not yet approved)  -> withdrawn immediately (status CANCELLED)
+        - Free trial                  -> ends immediately (status CANCELLED)
+        - Paid ACTIVE                 -> marked cancelled, access kept until end_date,
+                                         then the expiry job moves it to EXPIRED
+        """
+        now = datetime.now(timezone.utc)
+        reason = (reason or "").strip()[:500] or None
+
+        pending = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.status == SubscriptionStatus.PENDING,
+        ).order_by(Subscription.created_at.desc()).first()
+        active = SubscriptionService.get_active_subscription(db, user_id)
+
+        if not pending and not active:
+            raise ValueError("You don't have a subscription to cancel")
+
+        if pending and not active:
+            pending.status = SubscriptionStatus.CANCELLED
+            pending.cancelled_at = now
+            pending.cancel_reason = reason
+            pending.admin_notes = ((pending.admin_notes or "") + " | Withdrawn by user").strip(" |")
+            db.commit()
+            return {"action": "withdrawn", "subscription": pending, "access_until": None}
+
+        if (active.billing_period or "") == "lifetime":
+            raise ValueError("Lifetime plans granted by Sound It can't be cancelled from the app. Please contact support.")
+
+        if active.cancelled_at:
+            raise ValueError("This subscription is already cancelled")
+
+        active.cancelled_at = now
+        active.cancel_reason = reason
+
+        if active.is_trial or (active.price or 0) <= 0:
+            active.status = SubscriptionStatus.CANCELLED
+            active.end_date = now
+            db.commit()
+            return {"action": "ended", "subscription": active, "access_until": None}
+
+        db.commit()
+        return {"action": "cancelled_at_period_end", "subscription": active, "access_until": active.end_date}
+
+    @staticmethod
+    def resume_subscription(db: Session, user_id: int) -> Subscription:
+        """Undo a cancellation on a paid plan that hasn't reached its end date yet."""
+        now = datetime.now(timezone.utc)
+        sub = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.status == SubscriptionStatus.ACTIVE,
+            Subscription.cancelled_at.isnot(None),
+            Subscription.end_date > now,
+        ).order_by(Subscription.end_date.desc()).first()
+        if not sub:
+            raise ValueError("No cancelled subscription to resume")
+        sub.cancelled_at = None
+        sub.cancel_reason = None
+        db.commit()
+        db.refresh(sub)
+        return sub
+
+    @staticmethod
+    def restore_purchases(db: Session, user_id: int) -> Dict[str, Any]:
+        """Re-sync the user's paid access from the server record.
+
+        Used after reinstalling the app, switching phones, or if the app shows no
+        plan even though one was paid for. Repairs paid subscriptions whose period
+        hasn't ended but were wrongly moved to EXPIRED, and re-grants the plan's
+        verification badge.
+        """
+        now = datetime.now(timezone.utc)
+        restored = []
+
+        wrongly_expired = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.status == SubscriptionStatus.EXPIRED,
+            Subscription.end_date > now,
+            Subscription.approved_at.isnot(None),
+        ).all()
+        for sub in wrongly_expired:
+            sub.status = SubscriptionStatus.ACTIVE
+            restored.append(sub.id)
+
+        active = SubscriptionService.get_active_subscription(db, user_id)
+        if active:
+            plan_config = db.query(SubscriptionPlanConfig).filter(
+                SubscriptionPlanConfig.role == active.role,
+                SubscriptionPlanConfig.plan_type == active.plan_type,
+                SubscriptionPlanConfig.is_active == True,
+            ).first()
+            if plan_config and plan_config.verified_badge:
+                user = db.query(User).filter(User.id == user_id).first()
+                if user and not user.verification_badge:
+                    user.verification_badge = True
+                    user.is_verified = True
+
+        db.commit()
+
+        pending = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.status == SubscriptionStatus.PENDING,
+        ).order_by(Subscription.created_at.desc()).first()
+
+        return {
+            "active": active,
+            "pending": pending,
+            "restored_ids": restored,
+        }
+
     @staticmethod
     def check_expired_subscriptions(db: Session) -> list:
         """Mark expired active subscriptions as EXPIRED"""
@@ -362,6 +491,20 @@ class SubscriptionService:
         
         for sub in expired:
             sub.status = SubscriptionStatus.EXPIRED
+            if sub.role == UserRole.ARTIST:
+                try:
+                    from api.notifications import create_notification
+                    create_notification(
+                        db=db,
+                        user_id=sub.user_id,
+                        title="Artist subscription expired",
+                        message="Your artist subscription has expired. You can keep your profile and bookings, but receiving booking deposits through Sound It requires an active subscription.",
+                        notification_type="subscription_update",
+                        data={"subscription_id": sub.id, "eligibility": "booking_deposits_disabled"},
+                    )
+                except Exception:
+                    # Expiry state must still be persisted if notification delivery fails.
+                    pass
             # Check if we need to revoke verification badge
             user = db.query(User).filter(User.id == sub.user_id).first()
             if user and user.verification_badge:

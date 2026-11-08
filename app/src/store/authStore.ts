@@ -151,6 +151,7 @@ export interface BusinessProfile {
   logo_url: string;
   banner_url: string;
   gallery_images: string[];
+  photo_album_url?: string;
   is_verified: boolean;
   verification_status: string;
   total_events: number;
@@ -190,6 +191,11 @@ export interface ArtistProfile {
   dance_video_url?: string;
   dance_video_title?: string;
   dance_video_duration?: number;
+  wechat_qr_url?: string;
+  alipay_qr_url?: string;
+  wechat_pay_url?: string;
+  alipay_pay_url?: string;
+  payment_instructions?: string;
   music_links?: MusicLink[];
 }
 
@@ -237,6 +243,7 @@ interface RegisterData {
   password: string;
   first_name?: string;
   last_name?: string;
+  username?: string;
   city_id?: string;
   phone?: string;
   role_type?: UserRole | 'artist_dj' | 'business' | 'vendor' | 'user';
@@ -283,18 +290,32 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: true,
-      selectedCity: null,
+      selectedCity: 'all',
       cities: [],
       permissions: [],
 
       // Initialize auth state
       initialize: async () => {
         try {
-          // Load cities
-          await get().fetchCities();
+          // Load cities in background without blocking auth startup
+          void get().fetchCities();
 
           // Check for stored token first
           const token = localStorage.getItem('auth-token');
+
+          if (!token) {
+            set({ isLoading: false });
+            const { selectedCity } = get();
+            if (!selectedCity) {
+              void get().detectCityByLocation();
+            }
+            return;
+          }
+
+          // If persisted profile is already hydrated, unblock UI immediately and revalidate in background
+          if (get().isAuthenticated && get().profile) {
+            set({ isLoading: false });
+          }
 
           if (token) {
             // Validate token and get user profile
@@ -304,6 +325,11 @@ export const useAuthStore = create<AuthState>()(
                   'Authorization': `Bearer ${token}`,
                 },
               });
+
+              // Guard against race condition if user logged in while /auth/me was in flight
+              if (localStorage.getItem('auth-token') !== token) {
+                return;
+              }
 
               if (response.ok) {
                 const backendUser = await response.json();
@@ -383,10 +409,9 @@ export const useAuthStore = create<AuthState>()(
                   user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
                 };
 
-                // Preserve locally-selected city if backend has no preferred_city
+                // Preserve locally-selected city, default to 'all' so users see nationwide content
                 const currentSelectedCity = get().selectedCity;
-                const backendCity = backendUser.preferred_city || null;
-                const finalSelectedCity = backendCity || currentSelectedCity;
+                const finalSelectedCity = currentSelectedCity || 'all';
 
                 set({
                   user: { id: String(backendUser.id), email: backendUser.email, phone: backendUser.phone } as User,
@@ -397,30 +422,30 @@ export const useAuthStore = create<AuthState>()(
                   selectedCity: finalSelectedCity,
                 });
 
-                // Set user ID in cart store
-                const { useCartStore } = await import('./cartStore');
-                useCartStore.getState().setUserId(String(backendUser.id));
+                // Hydrate secondary stores & role profiles non-blocking in background
+                import('./cartStore').then(({ useCartStore }) => {
+                  useCartStore.getState().setUserId(String(backendUser.id));
+                }).catch(() => {});
 
-                // Fetch admin permissions if applicable
                 if (roleType === 'admin' || roleType === 'super_admin') {
-                  await get().fetchPermissions();
+                  void get().fetchPermissions();
                 }
 
-                // Fetch business/artist profiles if applicable
                 if (roleType === 'business') {
-                  await get().fetchBusinessProfile();
+                  void get().fetchBusinessProfile();
                 } else if (roleType === 'artist') {
-                  await get().fetchArtistProfile();
+                  void get().fetchArtistProfile();
                 }
 
                 return;
-              } else {
-                // Token invalid - fully log out
-                await get().logout();
+              } else if (response.status === 401 || response.status === 403) {
+                // Token explicitly rejected - log out if token hasn't changed
+                if (localStorage.getItem('auth-token') === token) {
+                  await get().logout();
+                }
               }
             } catch (error) {
               console.error('Token validation error:', error);
-              await get().logout();
             }
           }
 
@@ -620,23 +645,22 @@ export const useAuthStore = create<AuthState>()(
             session: session,
             isAuthenticated: true,
             isLoading: false,
-            selectedCity: backendUser.preferred_city || null,
+            selectedCity: get().selectedCity || 'all',
           });
 
-          // Fetch admin permissions if applicable
+          // Fetch admin permissions, cart store, and role profiles in background without blocking navigation
           if (roleType === 'admin' || roleType === 'super_admin') {
-            await get().fetchPermissions();
+            void get().fetchPermissions();
           }
 
-          // Set user ID in cart store
-          const { useCartStore } = await import('./cartStore');
-          useCartStore.getState().setUserId(user.id);
+          import('./cartStore').then(({ useCartStore }) => {
+            useCartStore.getState().setUserId(user.id);
+          }).catch(() => {});
 
-          // Fetch business/artist profiles if applicable
           if (roleType === 'business') {
-            await get().fetchBusinessProfile();
+            void get().fetchBusinessProfile();
           } else if (roleType === 'artist') {
-            await get().fetchArtistProfile();
+            void get().fetchArtistProfile();
           }
 
           return profile;
@@ -669,6 +693,7 @@ export const useAuthStore = create<AuthState>()(
               password: data.password,
               first_name: data.first_name,
               last_name: data.last_name,
+              username: data.username ? data.username.trim().replace(/^@/, '') : undefined,
               role: roleType,
               city: data.city_id,
               business_name: data.business_name,
@@ -686,29 +711,7 @@ export const useAuthStore = create<AuthState>()(
           const authData = await response.json();
 
           if (authData.access_token) {
-            // Store tokens and user data
-            localStorage.setItem('auth-token', authData.access_token);
-            localStorage.setItem('refresh-token', authData.refresh_token || '');
-
-            const session = {
-              access_token: authData.access_token,
-              refresh_token: authData.refresh_token || '',
-              expires_in: 3600 * 24,
-              token_type: 'bearer',
-              user: authData.user,
-            } as unknown as Session;
-
-            set({
-              user: authData.user,
-              profile: authData.user,
-              session,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-
-            // Set user ID in cart store
-            const { useCartStore } = await import('./cartStore');
-            useCartStore.getState().setUserId(authData.user.id);
+            await get().loginWithEmail(cleanEmail, data.password, authData);
           } else {
             set({ isLoading: false });
           }
@@ -789,7 +792,7 @@ export const useAuthStore = create<AuthState>()(
             ...profile,
             first_name: backendUser.first_name,
             last_name: backendUser.last_name,
-            display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim(),
+            display_name: `${backendUser.first_name || ''} ${backendUser.last_name || ''}`.trim() || backendUser.username || profile.display_name,
             username: backendUser.username || null,
             bio: backendUser.bio,
             avatar_url: backendUser.avatar_url || backendUser.vendor_profile?.logo_url || null,
@@ -801,6 +804,7 @@ export const useAuthStore = create<AuthState>()(
             instagram: backendUser.instagram,
             twitter: backendUser.twitter,
             wechat_id: backendUser.wechat_id,
+            website: backendUser.website,
             is_verified: backendUser.is_verified,
             verification_badge: backendUser.verification_badge,
             verification_status: backendUser.is_verified ? 'verified' : 'unverified',
@@ -808,7 +812,12 @@ export const useAuthStore = create<AuthState>()(
             following_count: backendUser.following_count || 0,
           };
 
-          set({ profile: updatedProfile, selectedCity: backendUser.preferred_city || null });
+          set({ profile: updatedProfile, selectedCity: get().selectedCity || 'all' });
+          if (profile.role_type === 'business') {
+            await get().fetchBusinessProfile();
+          } else if (profile.role_type === 'artist') {
+            await get().fetchArtistProfile();
+          }
         } catch (error: unknown) {
           console.error('Profile update error:', error);
           throw new Error((error as { message?: string }).message || 'Failed to update profile');
@@ -1049,34 +1058,9 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Set Selected City (persist to backend if authenticated)
-      setSelectedCity: async (city: string) => {
-        const { session, profile } = get();
+      // Set Selected City (browsing discovery filter - decoupled from user's permanent home city)
+      setSelectedCity: (city: string) => {
         set({ selectedCity: city });
-        if (session?.access_token) {
-          try {
-            const response = await fetch(`${API_BASE_URL}/auth/me`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${session.access_token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ preferred_city: city }),
-            });
-            if (response.ok && profile) {
-              const cityObj = get().cities.find(c => c.id.toLowerCase() === city.toLowerCase()) || null;
-              set({
-                profile: {
-                  ...profile,
-                  city_id: city,
-                  city: cityObj,
-                }
-              });
-            }
-          } catch (error) {
-            console.error('Failed to persist city selection:', error);
-          }
-        }
       },
 
       // Refresh Session
@@ -1141,7 +1125,7 @@ export const useAuthStore = create<AuthState>()(
                   followers_count: backendUser.followers_count || 0,
                   following_count: backendUser.following_count || 0,
                 },
-                selectedCity: backendUser.preferred_city || null,
+                selectedCity: get().selectedCity || 'all',
               });
             }
           } else {

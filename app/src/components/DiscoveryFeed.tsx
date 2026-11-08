@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight, MapPin, Star, Ticket, Users } from 'lucide-react';
+import { ChevronRight, MapPin, Star, Ticket, Users, Calendar, Building2 } from 'lucide-react';
 import { API_BASE_URL } from '@/config/api';
 import { useAuthStore } from '@/store/authStore';
 import { useCityGuideStore } from '@/store/cityGuideStore';
+import { getEntitySlug, slugify } from '@/lib/slug';
+import VerificationBadge from '@/components/VerificationBadge';
 
 interface FeedEvent {
   id: number;
@@ -40,6 +42,22 @@ interface FeedVendor {
   vendor_type?: string;
 }
 
+interface FeedBusiness {
+  id: number;
+  user_id?: number;
+  slug?: string;
+  business_name: string;
+  description?: string | null;
+  avatar_url?: string | null;
+  city?: string | null;
+  is_verified?: boolean;
+  is_featured?: boolean;
+  events_count?: number;
+  followers_count?: number;
+  business_type?: string[];
+  role?: string;
+}
+
 const SectionHeader = ({ title, seeAllPath }: { title: string; seeAllPath?: string }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -72,6 +90,7 @@ const DiscoveryFeed = () => {
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [artists, setArtists] = useState<FeedArtist[]>([]);
   const [vendors, setVendors] = useState<FeedVendor[]>([]);
+  const [businesses, setBusinesses] = useState<FeedBusiness[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const city = selectedCity && selectedCity !== 'all' ? selectedCity : undefined;
@@ -81,14 +100,16 @@ const DiscoveryFeed = () => {
       setIsLoading(true);
       const params = city ? `&city=${encodeURIComponent(city)}` : '';
       try {
-        const [evRes, artRes, venRes] = await Promise.all([
+        const [evRes, artRes, venRes, bizRes] = await Promise.all([
           fetch(`${API_BASE_URL}/events?limit=30${params}`),
           fetch(`${API_BASE_URL}/artists?limit=20${params}`),
           fetch(`${API_BASE_URL}/vendors?limit=20${params}`),
+          fetch(`${API_BASE_URL}/businesses?limit=20${params}`),
         ]);
         if (evRes.ok) setEvents(await evRes.json() as FeedEvent[]);
         if (artRes.ok) setArtists(await artRes.json() as FeedArtist[]);
         if (venRes.ok) setVendors(await venRes.json() as FeedVendor[]);
+        if (bizRes.ok) setBusinesses(await bizRes.json() as FeedBusiness[]);
       } catch {
         // sections render empty
       } finally {
@@ -234,10 +255,10 @@ const DiscoveryFeed = () => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.3) }}
-                  onClick={() => navigate(`/artists/${artist.id}`)}
+                  onClick={() => navigate(`/artists/${getEntitySlug(artist, 'stage_name')}`)}
                   className="w-28 shrink-0 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-3 text-center active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
                 >
-                  <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center mb-2">
+                  <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-[#d3da0c] flex items-center justify-center mb-2">
                     {artist.avatar_url ? (
                       <img src={artist.avatar_url} alt={artist.stage_name || ''} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
@@ -253,6 +274,73 @@ const DiscoveryFeed = () => {
                   )}
                 </motion.button>
               ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Top Businesses & Organizers */}
+      {(isLoading || businesses.length > 0) && (
+        <section>
+          <SectionHeader
+            title={t('discovery.topBusinesses', 'Top Businesses')}
+            seeAllPath="/discovery?tab=business"
+          />
+          {isLoading ? (
+            <div className="flex gap-3 px-4 overflow-hidden">
+              {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} className="w-32 h-40 shrink-0" />)}
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {businesses.slice(0, 10).map((biz, i) => {
+                const targetSlug = biz.slug || slugify(biz.business_name) || biz.id;
+                return (
+                  <motion.button
+                    key={`biz-${biz.id}-${biz.user_id}`}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i * 0.05, 0.3) }}
+                    onClick={() => navigate(`/profiles/${targetSlug}`)}
+                    className="w-32 shrink-0 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-3 text-center active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
+                  >
+                    <div className="w-16 h-16 mx-auto rounded-2xl overflow-hidden bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-2 border border-black/5 dark:border-white/5">
+                      {biz.avatar_url ? (
+                        <img
+                          src={biz.avatar_url}
+                          alt={biz.business_name}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.jpg';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#d3da0c] flex items-center justify-center text-black font-bold text-lg">
+                          {(biz.business_name || 'B').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate flex items-center justify-center gap-1">
+                      <span className="truncate">{biz.business_name}</span>
+                      {biz.is_verified && <VerificationBadge size="sm" />}
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 capitalize truncate">
+                      {biz.city || 'Organizer'}
+                    </p>
+                    {(biz.events_count ?? 0) > 0 ? (
+                      <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
+                        <Calendar className="w-3 h-3" />
+                        <span>{biz.events_count} event{biz.events_count !== 1 ? 's' : ''}</span>
+                      </p>
+                    ) : (biz.followers_count ?? 0) > 0 ? (
+                      <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
+                        <Users className="w-3 h-3" />
+                        <span>{biz.followers_count}</span>
+                      </p>
+                    ) : null}
+                  </motion.button>
+                );
+              })}
             </div>
           )}
         </section>
@@ -305,7 +393,7 @@ const DiscoveryFeed = () => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.3) }}
-                  onClick={() => navigate(`/vendors/${vendor.id}`)}
+                  onClick={() => navigate(`/vendors/${getEntitySlug(vendor, 'business_name')}`)}
                   className="w-44 shrink-0 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-3 flex items-center gap-3 text-left active:scale-[0.97] transition-transform shadow-sm dark:shadow-none"
                 >
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5 flex items-center justify-center shrink-0">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock } from 'lucide-react';
+import { getEntitySlug } from '@/lib/slug';
 interface CompactEventCardProps {
   event: any;
 }

@@ -32,10 +32,10 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
           whileTap={{ scale: 0.95 }}
           className="group flex flex-col items-center gap-2 w-[100px]"
         >
-          {/* Avatar with gradient ring */}
+          {/* Avatar with ring */}
           <div className="relative w-20 h-20">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] p-[2px]">
-              <div className="w-full h-full rounded-full bg-[#0A0A0F] p-[2px]">
+            <div className="absolute inset-0 rounded-full border-2 border-[#d3da0c] p-[2px]">
+              <div className="w-full h-full rounded-full bg-[#0A0A0F]">
                 <img
                   src={imageUrl}
                   alt={displayName}

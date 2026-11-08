@@ -172,6 +172,7 @@ class ArtistType(str, enum.Enum):
     MC = "MC"
     DANCER = "Dancer"
     PHOTOGRAPHER = "Photographer"
+    SINGER = "Singer"
 
 
 class BookingStatus(str, enum.Enum):
@@ -260,6 +261,10 @@ class User(Base):
     # Quick-login PIN
     pin_hash = Column(String(255), nullable=True)
     pin_enabled = Column(Boolean, default=False)
+
+    # Extended profile & Points system
+    profile_data = Column(JSON, nullable=True, default=dict)
+    points_balance = Column(Integer, default=0, nullable=False)
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -437,6 +442,7 @@ class ArtistProfile(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    slug = Column(String(120), nullable=True, index=True)
     
     # Artist Info
     stage_name = Column(String(100), nullable=False)
@@ -519,12 +525,28 @@ class ArtistProfile(Base):
     reviews = relationship("ArtistReview", back_populates="artist")
 
 
+class ArtistPortfolioMedia(Base):
+    __tablename__ = "artist_portfolio_media"
+
+    id = Column(Integer, primary_key=True, index=True)
+    artist_id = Column(Integer, ForeignKey("artist_profiles.id"), nullable=False, index=True)
+    media_type = Column(String(50), nullable=False)  # audio, video, image
+    title = Column(String(200), nullable=True)
+    url = Column(String(500), nullable=False)
+    duration_seconds = Column(Integer, nullable=True)
+    position = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    artist = relationship("ArtistProfile", backref="portfolio_media_items")
+
 
 class OrganizerProfile(Base):
     __tablename__ = "organizer_profiles"
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    slug = Column(String(220), nullable=True, index=True)
     
     # Organization Info
     organization_name = Column(String(200), nullable=False)
@@ -551,6 +573,10 @@ class OrganizerProfile(Base):
     # Link to unified BusinessProfile
     business_profile_id = Column(Integer, ForeignKey("business_profiles.id"), nullable=True)
     
+    # Media
+    gallery_images = Column(JSON, nullable=True)
+    photo_album_url = Column(String(1000), nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -567,6 +593,7 @@ class BusinessProfile(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    slug = Column(String(220), nullable=True, index=True)
     
     # Business Info
     business_name = Column(String(200), nullable=False)
@@ -591,6 +618,7 @@ class BusinessProfile(Base):
     
     # Media
     gallery_images = Column(JSON, nullable=True)
+    photo_album_url = Column(String(1000), nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -691,10 +719,15 @@ class VendorProfile(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    slug = Column(String(220), nullable=True, index=True)
     
     business_name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     vendor_type = Column(String(50), nullable=True)
+    categories = Column(JSON, nullable=True)
+
+    # Optional business ownership — a business account (e.g. trading company) can own/run this vendor
+    business_profile_id = Column(Integer, ForeignKey("business_profiles.id"), nullable=True, index=True)
     
     logo_url = Column(String(500), nullable=True)
     banner_url = Column(String(500), nullable=True)
@@ -725,6 +758,7 @@ class VendorProfile(Base):
     
     # Relationships
     user = relationship("User", back_populates="vendor_profile")
+    business_profile = relationship("BusinessProfile", foreign_keys=[business_profile_id])
     products = relationship("Product", back_populates="vendor")
     events = relationship("EventVendor", back_populates="vendor")
     followers = relationship("VendorFollow", back_populates="vendor")
@@ -750,7 +784,16 @@ class Product(Base):
     image_url = Column(String(500), nullable=True)
     images = Column(JSON, default=list)  # Array of image URLs
     category = Column(String(100), nullable=True)
+    product_type = Column(String(50), nullable=True)
+    variations = Column(JSON, nullable=True)
     stock_quantity = Column(Integer, default=0)
+
+    # Preorder configuration
+    is_preorder_enabled = Column(Boolean, default=False)
+    preorder_open_date = Column(String(100), nullable=True)
+    preorder_close_date = Column(String(100), nullable=True)
+    preorder_fulfilment_date = Column(String(100), nullable=True)
+    preorder_quantity = Column(Integer, nullable=True)
     
     # Payment QR codes for manual checkout
     wechat_qr_url = Column(String(500), nullable=True)
@@ -828,6 +871,8 @@ class VendorOrder(Base):
     
     # Order status
     status = Column(Enum(VendorOrderStatus), default=VendorOrderStatus.PENDING_VERIFICATION, index=True)
+    is_preorder = Column(Boolean, default=False)
+    fulfilment_date = Column(String(100), nullable=True)
     
     # QR Code for approved order
     order_code = Column(String(255), unique=True, nullable=True, index=True)
@@ -1232,6 +1277,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     organizer_id = Column(Integer, ForeignKey("organizer_profiles.id"), index=True)
     venue_id = Column(Integer, ForeignKey("venues.id"), nullable=True, index=True)
+    slug = Column(String(220), nullable=True, index=True)
     
     # Event Info
     title = Column(String(200), nullable=False)
@@ -1252,6 +1298,7 @@ class Event(Base):
     # Media
     flyer_image = Column(String(500), nullable=True)
     gallery_images = Column(JSON, nullable=True)
+    photo_album_url = Column(String(1000), nullable=True)
     
     # Capacity & Status
     capacity = Column(Integer, nullable=True)
@@ -1883,6 +1930,7 @@ class Recap(Base):
     
     # Photos (max 20)
     photos = Column(JSON, nullable=False, default=list)  # Array of photo URLs
+    photo_album_url = Column(String(1000), nullable=True)
     
     # Stats
     views_count = Column(Integer, default=0)
@@ -1933,6 +1981,7 @@ class AdPosition(str, enum.Enum):
     EVENTS_PAGE = "events_page"
     ARTISTS_PAGE = "artists_page"
     MOBILE_BANNER = "mobile_banner"
+    INTRO_SCREEN = "intro_screen"
 
 
 class AdStatus(str, enum.Enum):
@@ -2411,6 +2460,10 @@ class Subscription(Base):
     
     # Trial flag
     is_trial = Column(Boolean, default=False)
+    
+    # User cancellation (paid plans keep access until end_date; nothing auto-renews)
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    cancel_reason = Column(Text, nullable=True)
     
     # Admin approval
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -3101,3 +3154,144 @@ class AssistantUnansweredQuestion(Base):
     
     # Relationships
     user = relationship("User", back_populates="assistant_unanswered")
+
+
+class NewsletterSubscriber(Base):
+    """Subscribers to Sound It's weekly entertainment & nightlife newsletter."""
+    __tablename__ = "newsletter_subscribers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=True)
+    source = Column(String(60), default="footer", nullable=False)  # footer, modal, checkout, profile
+    frequency = Column(String(30), default="weekly", nullable=False)  # weekly, twice_weekly
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    last_sent_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    unsubscribed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class Reel(Base):
+    """Short-form vertical video reels for entertainment, DJs, events & recaps."""
+    __tablename__ = "reels"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
+    video_url = Column(String(1000), nullable=False)
+    thumbnail_url = Column(String(1000), nullable=True)
+    caption = Column(Text, nullable=True)
+    hashtags = Column(JSON, default=list)
+    venue_name = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True, index=True)
+    music_title = Column(String(255), nullable=True)
+    likes_count = Column(Integer, default=0, nullable=False)
+    comments_count = Column(Integer, default=0, nullable=False)
+    shares_count = Column(Integer, default=0, nullable=False)
+    saves_count = Column(Integer, default=0, nullable=False)
+    views_count = Column(Integer, default=0, nullable=False)
+    is_featured = Column(Boolean, default=False, index=True)
+    status = Column(String(30), default="published", index=True)  # published, pending, hidden, rejected
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User")
+    event = relationship("Event")
+
+
+class ReelLike(Base):
+    """Likes on a Reel."""
+    __tablename__ = "reel_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reel_id = Column(Integer, ForeignKey("reels.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ReelComment(Base):
+    """Comments on a Reel."""
+    __tablename__ = "reel_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reel_id = Column(Integer, ForeignKey("reels.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    likes_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+
+
+class ReelSave(Base):
+    """Saved/bookmarked Reels."""
+    __tablename__ = "reel_saves"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reel_id = Column(Integer, ForeignKey("reels.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Story(Base):
+    """Ephemeral/featured visual stories for Home & Community feeds."""
+    __tablename__ = "stories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    media_url = Column(String(1000), nullable=False)
+    media_type = Column(String(20), default="image")  # image, video
+    caption = Column(String(500), nullable=True)
+    category = Column(String(50), default="general", index=True)  # events, artists, venues, community, general
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    views_count = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User")
+    event = relationship("Event")
+
+
+class PointsTransaction(Base):
+    """Ledger of user points earned and redeemed."""
+    __tablename__ = "points_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    amount = Column(Integer, nullable=False)  # positive for earned, negative for redeemed
+    tx_type = Column(String(30), default="earn", index=True)  # earn, redeem, admin_adjust
+    action_key = Column(String(60), nullable=False, index=True)  # ticket_purchase, event_checkin, share_event, invite_user, redeem_discount, etc.
+    title = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    reference_type = Column(String(50), nullable=True)
+    reference_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User")
+
+
+class PointsReward(Base):
+    """Redeemable rewards and ticket discounts in the Points catalog."""
+    __tablename__ = "points_rewards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    points_cost = Column(Integer, nullable=False)
+    reward_type = Column(String(50), default="ticket_discount")  # ticket_discount, vip_upgrade, free_ticket, merch
+    discount_amount = Column(Float, default=0.0)
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class CommunityBookmark(Base):
+    """Bookmarked/saved community posts."""
+    __tablename__ = "community_bookmarks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("community_posts.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+

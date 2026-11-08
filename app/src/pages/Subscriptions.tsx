@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Star, Zap, Crown, Loader2, X, Smartphone, QrCode, Upload } from 'lucide-react';
+import { Check, Star, Zap, Crown, Loader2, X, Smartphone, QrCode, Upload, RefreshCw, AlertTriangle, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
@@ -21,10 +21,30 @@ interface Plan {
 
 interface SubscriptionStatus {
   has_subscription?: boolean;
+  has_pending?: boolean;
+  is_verified_premium?: boolean;
+  is_trial?: boolean;
   subscription?: {
+    id?: number;
     plan_type: string;
     billing_period?: string;
     days_remaining: number;
+    price?: number;
+    status?: string;
+    start_date?: string;
+    end_date?: string;
+    is_cancelled?: boolean;
+    cancelled_at?: string;
+    cancel_reason?: string;
+    is_trial?: boolean;
+  };
+  pending_subscription?: {
+    id: number;
+    plan_type: string;
+    billing_period?: string;
+    price: number;
+    status: string;
+    created_at?: string;
   };
 }
 
@@ -56,6 +76,14 @@ export default function Subscriptions() {
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [paymentReference, setPaymentReference] = useState('');
+
+  // Cancel & Restore modal state
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<'active' | 'pending' | 'trial'>('active');
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+  const [resuming, setResuming] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   const token = session?.access_token;
   const role = profile?.role_type || profile?.role;
@@ -167,6 +195,85 @@ export default function Subscriptions() {
     }
   };
 
+  const handleOpenCancelModal = (target: 'active' | 'pending' | 'trial') => {
+    setCancelTarget(target);
+    setCancelReason('');
+    setCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!token) return;
+    setCancelling(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/subscriptions/cancel`,
+        { reason: cancelReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const action = res.data?.action;
+      if (action === 'withdrawn') {
+        toast.success(t('subscriptions.withdrawSuccess'));
+      } else {
+        toast.success(t('subscriptions.cancelSuccess'));
+      }
+      setCancelModalOpen(false);
+      setCancelReason('');
+      await fetchData();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error((err.response?.data as { detail?: string })?.detail || 'Failed to cancel subscription');
+      } else {
+        toast.error('Failed to cancel subscription');
+      }
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    if (!token) return;
+    setResuming(true);
+    try {
+      await axios.post(
+        `${API_BASE_URL}/subscriptions/resume`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(t('subscriptions.resumeSuccess'));
+      await fetchData();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error((err.response?.data as { detail?: string })?.detail || 'Failed to resume subscription');
+      } else {
+        toast.error('Failed to resume subscription');
+      }
+    } finally {
+      setResuming(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    if (!token) return;
+    setRestoring(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/subscriptions/restore-purchases`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(res.data?.message || t('subscriptions.restorePurchases'));
+      await fetchData();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error((err.response?.data as { detail?: string })?.detail || 'Failed to restore purchases');
+      } else {
+        toast.error('Failed to restore purchases');
+      }
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#020b00] flex items-center justify-center">
@@ -175,14 +282,37 @@ export default function Subscriptions() {
     );
   }
 
+  const activeSub = status?.has_subscription ? status.subscription : null;
+  const pendingSub = status?.pending_subscription;
+  const isLifetime = activeSub?.billing_period === 'lifetime' || status?.is_verified_premium;
+  const isCancelled = activeSub?.is_cancelled;
+  const formattedEndDate = activeSub?.end_date ? new Date(activeSub.end_date).toLocaleDateString() : '';
+
   return (
     <div className="min-h-screen bg-[#020b00] px-4 pt-24 pb-12 lg:py-12">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            {t('subscriptions.title')} <span className="text-[#d3da0c]">{t('subscriptions.titleHighlight')}</span>
-          </h1>
-          <p className="text-white/60">{t('subscriptions.subtitle')}</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+              {t('subscriptions.title')} <span className="text-[#d3da0c]">{t('subscriptions.titleHighlight')}</span>
+            </h1>
+            <p className="text-white/60">{t('subscriptions.subtitle')}</p>
+          </div>
+
+          {/* Restore Purchase Button */}
+          <button
+            onClick={handleRestorePurchases}
+            disabled={restoring}
+            className="self-start md:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-semibold hover:bg-white/10 hover:border-white/20 transition-all disabled:opacity-50"
+            title={t('subscriptions.restorePurchases')}
+          >
+            {restoring ? (
+              <Loader2 className="w-4 h-4 text-[#d3da0c] animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 text-[#d3da0c]" />
+            )}
+            <span>{restoring ? t('subscriptions.restoringPurchases') : t('subscriptions.restorePurchases')}</span>
+          </button>
         </div>
 
         {loadError ? (
@@ -209,95 +339,260 @@ export default function Subscriptions() {
           </div>
         ) : (
           <>
-            {status?.has_subscription && (
-          <div className="mb-8 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-            <p className="text-white">
-              {t('subscriptions.activePlan')} <span className="text-[#d3da0c] capitalize">{status.subscription.plan_type}</span>
-              {status.subscription.billing_period && status.subscription.billing_period !== 'monthly' && (
-                <span className="text-white/60 text-sm"> ({status.subscription.billing_period})</span>
-              )}
-            </p>
-            <p className="text-white/60 text-sm">
-              {status.subscription.billing_period === 'lifetime'
-                ? t('subscriptions.lifetimeAccess') || 'Lifetime access'
-                : `${status.subscription.days_remaining} ${t('subscriptions.daysRemaining')}`}
-            </p>
-          </div>
-        )}
+            {/* Active Subscription Banner */}
+            {activeSub && (
+              <div className={`mb-8 p-5 rounded-2xl border backdrop-blur-sm ${
+                isCancelled
+                  ? 'bg-amber-500/10 border-amber-500/30'
+                  : 'bg-green-500/10 border-green-500/30'
+              }`}>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2.5 rounded-xl shrink-0 ${isCancelled ? 'bg-amber-500/20 text-amber-400' : 'bg-green-500/20 text-[#d3da0c]'}`}>
+                      {isCancelled ? <Clock className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold text-lg flex items-center gap-2">
+                        <span>{t('subscriptions.activePlan')}:</span>
+                        <span className="text-[#d3da0c] capitalize font-bold">{activeSub.plan_type}</span>
+                        {activeSub.billing_period && activeSub.billing_period !== 'monthly' && (
+                          <span className="text-white/60 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 uppercase">
+                            {activeSub.billing_period}
+                          </span>
+                        )}
+                        {activeSub.is_trial && (
+                          <span className="text-amber-400 text-xs px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 font-medium">
+                            Free Trial
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-white/60 text-sm mt-1">
+                        {isLifetime
+                          ? (t('subscriptions.lifetimeAccess') || 'Lifetime access')
+                          : isCancelled
+                          ? t('subscriptions.cancelledNotice', { date: formattedEndDate })
+                          : `${activeSub.days_remaining} ${t('subscriptions.daysRemaining')} (valid until ${formattedEndDate})`}
+                      </p>
+                    </div>
+                  </div>
 
-        {/* Monthly / Yearly billing toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-white/5 rounded-xl p-1 border border-white/10">
-            <button
-              onClick={() => setBillingPeriod('monthly')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'monthly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
-            >
-              {t('subscriptions.monthly') || 'Monthly'}
-            </button>
-            <button
-              onClick={() => setBillingPeriod('yearly')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'yearly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
-            >
-              {t('subscriptions.yearly') || 'Yearly'}
-              <span className={`ml-2 text-xs font-bold ${billingPeriod === 'yearly' ? 'text-black/60' : 'text-[#d3da0c]'}`}>
-                {t('subscriptions.saveBadge') || 'Save 2 months'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className={`grid gap-6 ${plans.length === 1 ? 'md:grid-cols-1 max-w-md mx-auto' : 'md:grid-cols-3'}`}>
-          {plans.map((plan) => (
-            <motion.div
-              key={plan.type}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-2xl p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                {plan.type === 'basic' && <Star className="w-6 h-6 text-[#d3da0c]" />}
-                {plan.type === 'pro' && <Zap className="w-6 h-6 text-[#d3da0c]" />}
-                {plan.type === 'premium' && <Crown className="w-6 h-6 text-[#d3da0c]" />}
-                <h3 className="text-xl font-bold text-white capitalize">{plan.name}</h3>
+                  {/* Action button: Cancel / Resume */}
+                  {!isLifetime && (
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      {isCancelled ? (
+                        <button
+                          onClick={handleResumeSubscription}
+                          disabled={resuming}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#d3da0c] text-black font-bold text-sm hover:bg-[#bbc10b] transition-all disabled:opacity-50"
+                        >
+                          {resuming ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                          <span>{resuming ? t('subscriptions.resuming') : t('subscriptions.resumeSubscription')}</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenCancelModal(activeSub.is_trial ? 'trial' : 'active')}
+                          className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-all text-sm font-semibold"
+                        >
+                          {t('subscriptions.cancelSubscription')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="mb-6">
-                <span className="text-3xl font-bold text-white">
-                  ¥{billingPeriod === 'yearly' ? (plan.yearly_price ?? plan.price) : (plan.monthly_price ?? plan.price)}
-                </span>
-                <span className="text-white/60">
-                  /{billingPeriod === 'yearly' ? (t('subscriptions.year') || 'year') : (t('subscriptions.month') || 'month')}
-                </span>
+            )}
+
+            {/* Pending Subscription Banner */}
+            {!activeSub && pendingSub && (
+              <div className="mb-8 p-5 rounded-2xl bg-[#d3da0c]/10 border border-[#d3da0c]/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-[#d3da0c]/20 text-[#d3da0c] shrink-0">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold flex items-center gap-2">
+                      <span>{t('subscriptions.pendingPayment')}:</span>
+                      <span className="text-[#d3da0c] capitalize font-bold">{pendingSub.plan_type}</span>
+                      <span className="text-white/60 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 uppercase">
+                        ¥{pendingSub.price} / {pendingSub.billing_period}
+                      </span>
+                    </p>
+                    <p className="text-white/60 text-sm mt-1">{t('subscriptions.pendingApprovalNotice')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end md:self-center">
+                  <button
+                    onClick={() => handleSubscribe(pendingSub.plan_type)}
+                    className="px-4 py-2 rounded-xl bg-[#d3da0c] text-black font-bold text-sm hover:bg-[#bbc10b] transition-all"
+                  >
+                    {t('subscriptions.completePayment')}
+                  </button>
+                  <button
+                    onClick={() => handleOpenCancelModal('pending')}
+                    className="px-4 py-2 rounded-xl border border-white/20 text-white/70 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold"
+                  >
+                    {t('subscriptions.cancelPendingRequest')}
+                  </button>
+                </div>
               </div>
+            )}
 
-              <ul className="space-y-3 mb-6">
-                {(Array.isArray(plan.features) ? plan.features : []).slice(0, 5).map((feature: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2 text-white/80 text-sm">
-                    <Check className="w-4 h-4 text-[#d3da0c] flex-shrink-0 mt-0.5" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+            {/* Monthly / Yearly billing toggle */}
+            <div className="flex justify-center mb-8">
+              <div className="inline-flex bg-white/5 rounded-xl p-1 border border-white/10">
+                <button
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'monthly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
+                >
+                  {t('subscriptions.monthly') || 'Monthly'}
+                </button>
+                <button
+                  onClick={() => setBillingPeriod('yearly')}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${billingPeriod === 'yearly' ? 'bg-[#d3da0c] text-black' : 'text-white/60 hover:text-white'}`}
+                >
+                  {t('subscriptions.yearly') || 'Yearly'}
+                  <span className={`ml-2 text-xs font-bold ${billingPeriod === 'yearly' ? 'text-black/60' : 'text-[#d3da0c]'}`}>
+                    {t('subscriptions.saveBadge') || 'Save 2 months'}
+                  </span>
+                </button>
+              </div>
+            </div>
 
-              <button
-                onClick={() => handleSubscribe(plan.type)}
-                disabled={status?.subscription?.plan_type === plan.type || subscribing === plan.type}
-                className="w-full py-3 bg-[#d3da0c] text-black font-bold rounded-xl disabled:opacity-50"
-              >
-                {subscribing === plan.type ? (
-                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                ) : status?.subscription?.plan_type === plan.type ? (
-                  t('subscriptions.currentPlan')
-                ) : (
-                  t('subscriptions.subscribe')
-                )}
-              </button>
-            </motion.div>
-          ))}
-        </div>
-        </>
+            <div className={`grid gap-6 ${plans.length === 1 ? 'md:grid-cols-1 max-w-md mx-auto' : 'md:grid-cols-3'}`}>
+              {plans.map((plan) => {
+                const isCurrent = activeSub?.plan_type === plan.type && !isCancelled;
+                return (
+                  <motion.div
+                    key={plan.type}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`bg-[#141414] border rounded-2xl p-6 relative flex flex-col justify-between ${
+                      isCurrent ? 'border-[#d3da0c] shadow-lg shadow-[#d3da0c]/10' : 'border-white/10'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        {plan.type === 'basic' && <Star className="w-6 h-6 text-[#d3da0c]" />}
+                        {plan.type === 'pro' && <Zap className="w-6 h-6 text-[#d3da0c]" />}
+                        {plan.type === 'premium' && <Crown className="w-6 h-6 text-[#d3da0c]" />}
+                        <h3 className="text-xl font-bold text-white capitalize">{plan.name}</h3>
+                      </div>
+                      
+                      <div className="mb-6">
+                        <span className="text-3xl font-bold text-white">
+                          ¥{billingPeriod === 'yearly' ? (plan.yearly_price ?? plan.price) : (plan.monthly_price ?? plan.price)}
+                        </span>
+                        <span className="text-white/60">
+                          /{billingPeriod === 'yearly' ? (t('subscriptions.year') || 'year') : (t('subscriptions.month') || 'month')}
+                        </span>
+                      </div>
+
+                      <ul className="space-y-3 mb-6">
+                        {(Array.isArray(plan.features) ? plan.features : []).slice(0, 5).map((feature: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2 text-white/80 text-sm">
+                            <Check className="w-4 h-4 text-[#d3da0c] flex-shrink-0 mt-0.5" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <button
+                      onClick={() => handleSubscribe(plan.type)}
+                      disabled={isCurrent || subscribing === plan.type}
+                      className={`w-full py-3 font-bold rounded-xl transition-all disabled:opacity-50 ${
+                        isCurrent
+                          ? 'bg-white/10 text-white cursor-default'
+                          : 'bg-[#d3da0c] text-black hover:bg-[#bbc10b]'
+                      }`}
+                    >
+                      {subscribing === plan.type ? (
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                      ) : isCurrent ? (
+                        t('subscriptions.currentPlan')
+                      ) : (
+                        t('subscriptions.subscribe')
+                      )}
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      <AnimatePresence>
+        {cancelModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setCancelModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#141414] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4 text-amber-400">
+                <AlertTriangle className="w-6 h-6 shrink-0" />
+                <h3 className="text-xl font-bold text-white">{t('subscriptions.cancelConfirmTitle')}</h3>
+              </div>
+
+              <p className="text-white/70 text-sm mb-4 leading-relaxed">
+                {cancelTarget === 'pending'
+                  ? t('subscriptions.cancelPendingConfirmText')
+                  : cancelTarget === 'trial'
+                  ? t('subscriptions.cancelTrialConfirmText')
+                  : t('subscriptions.cancelConfirmText')}
+              </p>
+
+              {cancelTarget === 'active' && (
+                <div className="mb-4">
+                  <label className="text-xs text-white/50 block mb-1.5">Optional reason</label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Tell us why you are cancelling..."
+                    rows={2}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-white/30 outline-none resize-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end mt-6">
+                <button
+                  onClick={() => setCancelModalOpen(false)}
+                  disabled={cancelling}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-white text-sm font-semibold hover:bg-white/5 transition-all"
+                >
+                  {t('subscriptions.keepSubscription')}
+                </button>
+                <button
+                  onClick={handleConfirmCancel}
+                  disabled={cancelling}
+                  className="px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all inline-flex items-center gap-2 disabled:opacity-50"
+                >
+                  {cancelling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>
+                    {cancelling
+                      ? t('subscriptions.cancelling')
+                      : cancelTarget === 'pending'
+                      ? t('subscriptions.confirmWithdraw')
+                      : t('subscriptions.confirmCancel')}
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Payment Modal */}
       <AnimatePresence>
@@ -361,9 +656,9 @@ export default function Subscriptions() {
                   />
                 </div>
 
-                  {paymentModal.details.instructions.map((instruction, idx) => (
-                    <p key={idx} className="text-white/60 text-xs">{instruction}</p>
-                  ))}
+                {paymentModal.details.instructions.map((instruction, idx) => (
+                  <p key={idx} className="text-white/60 text-xs">{instruction}</p>
+                ))}
 
                 <div className="space-y-4 pt-4 border-t border-white/10">
                   <div>

@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import MobileHeader from '@/components/MobileHeader';
@@ -11,7 +11,17 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 
 const MainLayout = () => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   useAnalytics();
+
+  // Pages that render their own top bar (full-screen / detail views)
+  const immersive =
+    location.pathname === '/reels' ||
+    location.pathname.startsWith('/notifications') ||
+    location.pathname === '/points' ||
+    location.pathname === '/get-verified' ||
+    location.pathname === '/profile/edit';
+  const isReels = location.pathname === '/reels';
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative transition-colors duration-200">
@@ -34,10 +44,10 @@ const MainLayout = () => {
       {!isMobile && <Navbar />}
 
       {/* Mobile Header */}
-      {isMobile && <MobileHeader />}
+      {isMobile && <MobileHeader hideBar={immersive} />}
 
       {/* Main Content */}
-      <main className={`relative z-10 ${isMobile ? 'pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))] pb-app-nav' : 'pt-24'}`}>
+      <main className={`relative z-10 ${isMobile ? (immersive ? 'pb-app-nav' : 'pt-[calc(3.5rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav') : (isReels ? '' : 'pt-24')}`}>
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobilePageTransition key="mobile-outlet">
@@ -56,8 +66,8 @@ const MainLayout = () => {
         </AnimatePresence>
       </main>
 
-      {/* Footer - Desktop only */}
-      {!isMobile && <Footer />}
+      {/* Footer - Displayed on both Desktop and Mobile / PWA */}
+      {!immersive && <Footer isMobile={isMobile} />}
 
       {/* Mobile Bottom Navigation */}
       {isMobile && <MobileBottomNav />}

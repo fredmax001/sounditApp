@@ -6,7 +6,7 @@ import {
   ChevronLeft, ChevronRight, LogOut, Share2, Ticket, Heart, Armchair, Users,
   Settings as SettingsIcon, UserPen, X, CalendarCheck, Mic, BarChart3,
   MessageCircle, ShoppingBag, UtensilsCrossed, Wallet, CalendarDays,
-  UserCog, LayoutDashboard, Banknote, Camera, Loader2,
+  UserCog, LayoutDashboard, Banknote, Camera, Loader2, Images,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
@@ -28,7 +28,7 @@ const getRoleKey = (profile: any): RoleKey => {
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, session, logout, uploadBanner } = useAuthStore();
+  const { profile, businessProfile, artistProfile, session, logout, uploadBanner } = useAuthStore();
   const navigate = useNavigate();
   const roleKey = getRoleKey(profile);
   const [primaryStat, setPrimaryStat] = useState<number>(0);
@@ -125,9 +125,24 @@ const Profile = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, roleKey]);
 
-  const displayName = (profile?.first_name || profile?.last_name
-    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
-    : profile?.email?.split('@')[0] || t('user.profile.user'));
+  const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
+  const displayName =
+    (roleKey === 'business'
+      ? businessProfile?.business_name ||
+        (profile as any)?.business_name ||
+        (profile as any)?.business_profile?.business_name ||
+        (profile as any)?.organizer_profile?.organization_name ||
+        fullName
+      : roleKey === 'artist'
+      ? artistProfile?.stage_name ||
+        (profile as any)?.artist_profile?.stage_name ||
+        fullName
+      : roleKey === 'vendor'
+      ? (profile as any)?.vendor_profile?.business_name || fullName
+      : fullName) ||
+    profile?.username ||
+    profile?.email?.split('@')[0] ||
+    t('user.profile.user');
 
   const handleLogout = () => {
     logout();
@@ -174,15 +189,18 @@ const Profile = () => {
     ],
     business: [
       editItem,
+      { icon: UserPen, label: t('business.profile.title', 'Business Profile'), path: '/dashboard/business/profile' },
       { icon: LayoutDashboard, label: 'Business Dashboard', path: '/dashboard/business' },
-      { icon: Ticket, label: t('kit.profile.myTickets') || 'My Bought Tickets', path: '/tickets' },
-      { icon: Heart, label: t('kit.profile.favorites') || 'Favorites', path: '/favorites' },
       { icon: CalendarDays, label: t('kit.profile.myEvents'), path: '/dashboard/business/events' },
+      { icon: Images, label: 'Photo Gallery & Media', path: '/dashboard/business/gallery' },
+      { icon: Camera, label: 'Event Photos & Recaps', path: '/dashboard/business/recaps' },
       { icon: Ticket, label: t('kit.profile.ticketOrders'), path: '/dashboard/business/ticket-orders' },
       { icon: UserCog, label: t('kit.profile.staff'), path: '/dashboard/business/staff' },
       { icon: Armchair, label: t('kit.profile.tableReservations'), path: '/dashboard/business/tables' },
       { icon: Wallet, label: t('kit.profile.payouts'), path: '/dashboard/business/payouts' },
       { icon: BarChart3, label: t('kit.profile.analytics'), path: '/dashboard/business/analytics' },
+      { icon: Ticket, label: t('kit.profile.myTickets') || 'My Bought Tickets', path: '/tickets' },
+      { icon: Heart, label: t('kit.profile.favorites') || 'Favorites', path: '/favorites' },
       settingsItem,
     ],
     admin: [
@@ -270,7 +288,7 @@ const Profile = () => {
           className="flex flex-col items-center text-center mb-6"
         >
           {/* Marked hero space with background image or blurred profile image fallback */}
-          <div className="relative w-full rounded-3xl overflow-hidden border border-black/10 dark:border-white/10 pt-8 pb-6 px-4 flex flex-col items-center">
+          <div className="relative w-full rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 pt-8 pb-6 px-4 flex flex-col items-center">
             {/* Background Layer */}
             {bgImage ? (
               <img
@@ -285,7 +303,7 @@ const Profile = () => {
                 className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60"
               />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-[#FF2D8F]/10 to-transparent dark:to-[#020b00]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-transparent to-transparent dark:to-[#020b00]" />
             )}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-black/80" />
 
@@ -323,7 +341,7 @@ const Profile = () => {
                     onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+                  <div className="w-full h-full bg-[#d3da0c] flex items-center justify-center">
                     <span className="text-4xl font-bold text-black">{(displayName || '?')[0].toUpperCase()}</span>
                   </div>
                 )}

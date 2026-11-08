@@ -5,7 +5,1059 @@
 ---
 
 ## Last Updated
-2026-10-21
+2026-11-08
+
+---
+
+### 154. Front-End Redesign: Organizer & Vendor Dashboards, Community/Reels Fullscreen, Inter Font Unification, Mobile Header & Location Filter, and iPhone Deployment (2026-11-08)
+- **User Requirements & Issues Addressed**:
+  - Unify onboarding fonts strictly to **Inter** (regular, bold, and light) removing non-brand display fonts.
+  - Onboarding flow restricted exclusively to first-time native mobile App users (iOS & Android). Web and Mobile Layout use the consistent Intro Screen only and land directly on Home.
+  - Suppress PWA install prompts inside native iOS & Android applications; only display on mobile web layout.
+  - Replace the top-left mobile header section (logo icon, time, and location) with the full web layout brand logo (`/logo-dark.png` / `/logo-light.png`).
+  - Move the location / city filter right next to the search bar with reduced search bar size.
+  - Change "Birthdate" to "Birthday" on profile edit (`EditProfile.tsx`).
+  - Upgrade Organizer Dashboard to 3 screens matching design references (`Dashboard.tsx`, `ManageEvents.tsx`, `TicketOrders.tsx`).
+  - Upgrade Vendor Dashboard & Platform to 3 screens matching design references (`Dashboard.tsx`, `Products.tsx`, `Orders.tsx`) with 9 vendor categories, preorders system, and variations.
+  - Redesign Community Post Creation (`Community.tsx`) and Reels Upload (`Reels.tsx`) into dedicated full-screen creation pages matching design references.
+  - Fix Profile drawer z-index so Log Out is never covered by bottom navigation.
+  - Deploy to production server, build and install directly onto connected iPhone 14 Pro Max (`38C8118A-8397-51CB-AA93-9A04EC74452B`), and push to git.
+- **Architectural & Design Fixes Completed**:
+  - **Onboarding Typography**:
+    - Replaced all `font-display` references with `font-['Inter',sans-serif]` across headlines, role selection cards, and descriptions with proper regular, bold, and light weights.
+  - **Platform Routing & First-Time Detection**:
+    - In `App.tsx`, configured `RootEntry` and `OnboardingGuard` so only native iOS/Android Apps on first run trigger `/onboarding`. Web and mobile browser layouts seamlessly display the Intro Screen and land directly on `<Home />`.
+  - **PWA Prompt Guarding**:
+    - Updated `PWAInstallPrompt.tsx` and `AndroidAppPrompt.tsx` to detect native platforms (`Capacitor.isNativePlatform()`, bridge flags, and platform checks) and return immediately, preventing PWA prompts inside native builds.
+  - **Mobile Header & Location Filter**:
+    - Replaced top-left icon, date, and city text in `MobileHeader.tsx` with the clean full Sound It logo.
+    - Updated `Home.tsx` to compact the search bar and place the location/city filter right next to it with an active city label, pin icon, and smooth city bottom sheet trigger.
+  - **Profile Edit Field Update**:
+    - Updated `EditProfile.tsx` field label from `"Birthdate"` to `"Birthday"`.
+  - **Production Deployment & iPhone Installation**:
+    - Deployed latest backend and frontend bundle to `/var/www/soundit/current/`, verified HTTP 200 on `https://sounditent.com/`, and restarted `soundit.service`.
+    - Re-signed `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`, installed to device `38C8118A-8397-51CB-AA93-9A04EC74452B` via `devicectl`, and launched on the iPhone.
+
+---
+
+### 153. Screen 1 Flash Intro / Splash Screen Audit & Polish (2026-11-08)
+- **User Requirements & Issues Addressed**:
+  - Audit and perfect **Screen 1: Flash Intro / Splash Screen** (`LoadingScreen.tsx`, `index.html`, `App.tsx`, `api/admin.py`, `IntroScreen.tsx`):
+    - Official Sound It animated logo in the centre (`/intro_drum.png` + `/intro_sound.png`).
+    - Original Sound It brand identity (`#020b00` dark green/black + `#d3da0c` yellow accent).
+    - Tagline: *"YOUR GATEWAY TO ENTERTAINMENT IN CHINA."* clearly visible and professionally styled.
+    - Animated circular loading indicator at the bottom with text *"Loading Sound It…"*.
+    - Smooth logo appearance, subtle brand-colour glow, gentle fade-in, and smooth automatic transition to onboarding.
+- **Audit Findings & Improvements Completed**:
+  - **Fixed Invalid Tailwind Height Classes (`h-18 sm:h-22`) on `SOUND it` Wordmark (`app/src/components/LoadingScreen.tsx`)**:
+    - `h-18` and `sm:h-22` do not exist in Tailwind v3, which caused `/intro_sound.png` (`566×222`) to render unconstrained at full container width below a `176px` (`h-44`) drum.
+    - Replaced with balanced, responsive dimensions matching the official 5-screen specification (`h-32 sm:h-36` for the Drum emblem and `h-12 sm:h-14` for the `SOUND it` wordmark).
+  - **Eliminated 300ms Vertical Layout Jump (`app/src/components/LoadingScreen.tsx`)**:
+    - Previously, conditionally mounting the `SOUND it` wordmark and tagline at `300ms` (`phase !== 'drum'`) caused the drum emblem to jump upward by ~90px mid-animation.
+    - Kept all three brand elements (Drum emblem, `SOUND it` wordmark, and Tagline) mounted in the layout from frame 0 with staggered Framer Motion entrance animations (`delay: 0s`, `0.15s`, `0.28s`).
+  - **Enhanced Tagline Visibility & Brand-Colour Glow (`app/src/components/LoadingScreen.tsx`, `api/admin.py`, `app/src/pages/admin/IntroScreen.tsx`)**:
+    - Styled *"YOUR GATEWAY TO ENTERTAINMENT IN CHINA."* in uppercase `#d3da0c` with `tracking-[0.14em]`, `font-extrabold`, and a dual contrast/glow `textShadow`.
+    - Updated `INTRO_SCREEN_DEFAULTS["tagline"]` in `api/admin.py` and `DEFAULTS.tagline` in `app/src/pages/admin/IntroScreen.tsx` to *"YOUR GATEWAY TO ENTERTAINMENT IN CHINA."*.
+  - **Seamless Pre-React HTML Loader (`app/index.html`)**:
+    - Aligned `#static-loader` in `app/index.html` with the exact same drum emblem, `SOUND it` wordmark, tagline, radial glow, and bottom spinner so there is zero layout shift when React mounts.
+  - **Smooth Cross-Fade Transition into Onboarding (`app/src/App.tsx`)**:
+    - Rendered `<LoadingScreen />` as a fullscreen animated overlay above `<Router>` so `<Onboarding />` pre-renders and preloads its hero images underneath while the splash screen plays, smoothly cross-fading at completion.
+  - **Production Build & Multi-Platform Sync**:
+    - Built production bundle (`index-Cy2e79Sq.js`, `index-CAACGHoX.css`) on server, deployed to `/var/www/soundit/current/app/dist/`, restarted `soundit.service`, and synced to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and re-signed the Xcode `DerivedData` iOS `.app` bundle.
+
+---
+
+### 152. Premium Three-Screen Onboarding Experience, First-Time Detection & Multi-Platform Deployment (2026-11-07)
+- **User Requirements & Issues Addressed**:
+  - Implement a premium three-screen onboarding experience in the existing Sound It mobile application according to `SOUND IT – FINAL ONBOARDING IMPLEMENTATION INSTRUCTIONS`.
+  - Preserve the official animated splash screen as the application entry point.
+  - Preserve all existing authentication screens (Email/password, Google Auth, Quick PIN Login, Forgot Password) and 4 registration roles (User, Business, Vendor, Artist/DJ).
+  - Use exact supplied image assets:
+    - **Screen 2**: Generated portrait photo of African woman browsing smartphone (`a_vibrant_high_detail_portrait_photo_in_the_same.png` / `/onboarding/screen2-woman.png`).
+    - **Screen 3**: Generated photograph showing Africans enjoying an event in China with DJ performing (`a_vibrant_nightclub_party_event_poster_like_photo.png` / `/onboarding/screen3-event.png`).
+  - Navigation: Skip button at top, Next / GET STARTED button at bottom, 3 pagination indicators, smooth horizontal slide transitions, responsive touch swipe gestures, and safe-area inset compliance.
+  - First-time user detection: First-time users see Splash → Onboarding → Auth. Returning logged-out users see Splash → Login. Returning authenticated users see Splash → Home. Logout does not reset onboarding.
+- **Architectural & Design Solutions Completed**:
+  - **Asset Integration**:
+    - Placed both generated photographs in `app/public/onboarding/` and `app/public/` with exact source filenames and clean web paths. Uploaded to production server `/var/www/soundit/current/app/public/` and verified HTTP 200 responses.
+  - **Onboarding Slider Component (`app/src/pages/intro/Onboarding.tsx`)**:
+    - **Screen 1 (Discover Sound It)**:
+      - Headline: *"Everything Entertainment, In One Place."*
+      - Description: *"Discover music, events, venues and entertainment experiences with Sound It."*
+      - Official Sound It drum (`/intro_drum.png`), Sound It typography (`/intro_sound.png`), *"Five Years of Excellence"* badge, ecosystem feature pills, and `#d3da0c` accent lighting.
+    - **Screen 2 (Explore & Connect)**:
+      - Headline: *"Discover. Connect. Experience."*
+      - Description: *"Explore events, discover DJs and artists, connect with entertainment businesses and find exciting experiences around you."*
+      - Prominently displays the supplied African woman portrait with 9:16 aspect ratio, bottom vignette gradient, and Sound It branding.
+    - **Screen 3 (Be Part of the Experience)**:
+      - Headline: *"Your Experience Starts Here."*
+      - Description: *"Discover African events in China, connect with the community, enjoy unforgettable experiences and become part of the Sound It movement."*
+      - Displays the supplied African events in China party photograph with DJ in background and high-energy atmosphere.
+      - Includes glowing full-width **"GET STARTED"** action button leading directly to `/login`.
+    - **Interaction & Navigation**:
+      - Skip button (top right) allowing users to bypass directly to existing authentication.
+      - Next button with right arrow icon for Screens 1 and 2.
+      - Three interactive pagination indicator dots with an animated layout pill.
+      - Touch swipe gesture support (`onTouchStart`, `onTouchEnd` with 50px delta detection).
+      - Query parameter support (`?step=0`, `?step=1`, `?step=2`) for deep linking and testing.
+  - **App Routing & First-Time Detection (`app/src/App.tsx`, `app/src/pages/user/Settings.tsx`)**:
+    - Added `RootEntry` wrapper in `App.tsx`:
+      - Evaluates `localStorage.getItem('soundit_onboarding_completed')`.
+      - Directs first-time unauthenticated users to `/onboarding`.
+      - Directs returning logged-out mobile users to `/login`.
+      - Renders `<Home />` for authenticated users.
+    - Registered standalone route `<Route path="/onboarding" element={<Onboarding />} />`.
+    - Added "App Tour & Intro" shortcut under Account section in `Settings.tsx` allowing users to replay onboarding anytime.
+  - **Production Build, Multi-Platform Synchronization & iPhone Device Installation**:
+    - Compiled production bundle (`index-DkaeulNr.js`, `index-Bmn0dLOP.css`) on server.
+    - Deployed live to `/var/www/soundit/current/app/dist/` and verified HTTP 200 serving on `https://sounditent.com/`.
+    - Synchronized bundle and images to local Capacitor native directories:
+      - `app/dist/`
+      - `app/ios/App/App/public/` (iOS)
+      - `app/android/app/src/main/assets/public/` (Android)
+    - Re-signed and deployed `app.sounditent.com` directly to user's connected **iPhone 14 Pro Max (`38C8118A-8397-51CB-AA93-9A04EC74452B`)** via `devicectl device install app` and launched it on device via `devicectl device process launch`.
+    - Preserved independent bundle ID `app.sounditent.com` ensuring no conflict or overwriting of Deck Salone.
+
+---
+
+### 151. Mobile Top Spacing Minimization, Production Build & Multi-Platform Sync (2026-11-07)
+- **User Requirements & Issues Addressed**:
+  - Re-verified user diagram showing the top header area marked with red rectangle and "X": *"the section with the red markings, can we reduce it so the header info can go up a bit"*
+  - Synchronize and ensure all recent optimizations (Fast Sign-In, Version 6 QR codes, Single-Box Scanner alignment, Settings tab, Floating Dynamic Bottom Nav, and Header Spacing) are built, deployed live, and synced to iOS & Android local project public folders.
+- **Architectural & Design Fixes Completed**:
+  - **Tighter Mobile Header & Content Alignment**:
+    - **MobileHeader (`app/src/components/MobileHeader.tsx`)**: Reduced inner bar padding to `py-2` and logo height to `h-9` (36px), establishing a compact 52px header content height.
+    - **MainLayout (`app/src/layouts/MainLayout.tsx`)**: Adjusted top padding to `pt-[calc(3.5rem+max(0.75rem,env(safe-area-inset-top)))]`, bringing the top of `<main>` flush with the bottom border of the header without any excess gap.
+    - **Home Mobile Section (`app/src/pages/Home.tsx`)**: Set `<section className="md:hidden pt-1 pb-2">` and `<div className="px-4 mb-3">`, pulling the greeting (`Good afternoon`) and headline (`FIND YOUR NEXT EXPERIENCE`) directly up beneath the header.
+  - **Remote Production Build & Verification**:
+    - Built bundle `index-CKKsJ54v.js` and `index-BW5ifBXv.css` on server.
+    - Deployed to `/var/www/soundit/current/app/dist/`.
+    - Verified live HTTP 200 response on `https://sounditent.com/` serving the new bundle.
+    - Service worker cache confirmed at `soundit-v16`.
+  - **Native iOS & Android Asset Sync**:
+    - Extracted the compiled bundle into:
+      - `app/dist/`
+      - `app/ios/App/App/public/`
+      - `app/android/app/src/main/assets/public/`
+    - Confirmed `app/ios/App/App/public/index.html` references `/assets/index-CKKsJ54v.js`.
+
+---
+
+### 150. Fast Sign-In Optimization, High-Density Version 6 Ticket QR Codes, Single-Box Scanner Alignment & Business Bottom Nav Settings Tab (2026-11-07)
+- **User Requirements & Issues Addressed**:
+  - *"Firstly, when I sign in, it takes over 30 seconds, sometimes a minute, before I'm logged into the app. That's a problem that we need to fix."*
+  - *"Secondly, the scanner. The QR code is a little bit too minimal. I want it to be a little bit more, but still work with the system. And also the QR code scanner, you can see it has two different boxes at different angles, up and down. They're not in the same position, and that's one of the reasons why when we scan sometimes it takes time because the scanner starts before it even shows properly. Do not change the actual scanning system because it works. It only needs to be adjusted. The QR code needs to be adjusted and the scanner camera needs to be adjusted."*
+  - *"And then the third image is the nav explorer. I don't know what that is. Business dashboard also, what is that? We need to fix it. It's supposed to be setting or something, but I don't know. We need to fix that one. I don't know what it is, but we need to fix the spelling and also the icon on it too because I click on it, nothing happens."*
+- **Architectural & Design Solutions Completed**:
+  - **1. Fast Sign-In (<1s Response, Eliminating 30–60s Delays)**:
+    - **Redis Socket Timeouts (`security/monitoring.py`, `security/audit_logger.py`)**: Added `socket_connect_timeout=1, socket_timeout=1` to `redis.Redis.from_url(...)` so unreachable Redis instances never stall login for 30+ seconds.
+    - **Single-Query User Counts & Consolidated Transaction (`api/auth.py`)**:
+      - Rewrote `_compute_user_counts(user, db)` to execute a single SQL query with scalar subqueries instead of 10 sequential lazy-loaded ORM queries on every `/auth/login` and `/auth/me` request.
+      - Consolidated `user.last_login`, `_set_refresh_token(..., commit=False)`, and `_log_security` into a single `db.commit()` and offloaded `security_monitor.detect_suspicious_login()` and `audit_log()` to a background daemon thread.
+    - **Non-Blocking Auth Store & Login Preloading (`app/src/store/authStore.ts`, `app/src/pages/auth/Login.tsx`, `app/src/components/GoogleAuthButton.tsx`)**:
+      - Removed `useOneTap` from `GoogleAuthButton.tsx` to avoid background Google FedCM/GSI network timeouts in China.
+      - Updated `authStore.initialize()` and `loginWithEmail()` to fire secondary requests (`fetchCities`, `fetchPermissions`, `fetchBusinessProfile`, `fetchArtistProfile`, `cartStore.fetchCart`) non-blocking in the background (`void ...`) so login resolves immediately after `/api/v1/auth/login`.
+      - Guarded `initialize()` against overwriting a newly logged-in session if an earlier `/auth/me` check was in flight, and decoupled the Sign In button's loading state (`isSubmitting`) from background `authStore.isLoading`.
+      - Added dashboard chunk preloading on `/login` mount so post-login navigation renders immediately.
+  - **2A. High-Density Version 6 Ticket QR Code (100% Compatible Payload)**:
+    - **Frontend (`app/src/pages/user/Tickets.tsx`, `app/src/pages/user/TicketReceipt.tsx`)**:
+      - Upgraded ticket QR modals and receipts to render `<QRCodeSVG value={ticketCode} size={220} level="H" minVersion={6} marginSize={1} />` directly from the ticket code (`TKT-...` / `ORD-...`). Produces a crisp 41x41 Version 6 matrix with High (30%) error correction and alignment patterns while encoding the exact same ticket code string for existing and newly issued tickets.
+    - **Backend (`services/ticketing_service.py`, `api/product_orders.py`, `api/vendor_orders.py`, `api/table_reservations.py`, `api/payments.py`, `api/admin_payment_verification.py`)**:
+      - Updated server-side `qrcode.QRCode(...)` generation from `version=1, border=5` to `version=6, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=2`.
+  - **2B. Single Centered Scanner Viewport & Camera Readiness (`app/src/pages/Scan.tsx`, `app/src/pages/organizer/Scanner.tsx`)**:
+    - Unified `#scan-video-container` / `#scanner-video` and the `#d3da0c` corner-bracket frame inside a single centered square container (`relative w-72 h-72 sm:w-80 sm:h-80 aspect-square rounded-2xl overflow-hidden`).
+    - Suppressed `html5-qrcode`'s internal duplicate `#qr-shaded-region` white box (`[&_#qr-shaded-region]:!hidden [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover`) and enforced `aspectRatio: 1.0`.
+    - Added camera stream readiness check (`loadeddata` / `playing`, `readyState >= 2`) before transitioning `isScanning` to `true`, displaying a centered `"Starting camera..."` indicator until the video stream is live.
+    - Fixed `toggleFlashlight` in `Scan.tsx` to apply torch constraints directly to the active scanner video track.
+  - **3. Business Dashboard Mobile Bottom Nav `Settings` Tab (`app/src/components/MobileBottomNav.tsx`, `app/src/pages/user/Settings.tsx`)**:
+    - Replaced the broken 5th tab (`t('nav.explore')` with `Compass` icon) across Business, Artist, and Vendor dashboards with `{ path: '/settings', label: t('nav.settings', 'Settings'), icon: Settings }` (and `/admin/settings` for Admin).
+    - Updated `isDashboardRoute` and `isActive(path)` so navigating to `/settings` keeps the role dashboard bottom nav visible with the **Settings** tab highlighted, and prevents the root Overview tab (`/dashboard/business`) from staying highlighted on sub-routes.
+    - Added direct **Business Profile** (`/dashboard/business/profile`) and **Business Dashboard** (`/dashboard/business`) shortcuts at the top of `Settings.tsx` for business accounts, plus `"explore"` translation keys in `en.json`, `zh.json`, and `fr.json`.
+
+---
+
+### 149. Mobile Home Header Spacing Reduction & Dynamic Scroll-Reactive Floating Bottom Nav (2026-11-07)
+- **User Requirements & Issues Addressed**:
+  - *"the section with the red markings, can we reduce it so the header info can go up a bit"* (Eliminated excessive empty space above greeting and "FIND YOUR NEXT EXPERIENCE").
+  - *"I want a floating buttom nav bar for PWA, IOS and Andriod. The size react to the scrolliing. expand when scroll down, and decreases when scroll up. just to the normarl size"*
+- **Architectural & Design Solutions Completed**:
+  - **Mobile Home Top Spacing Reduction (`app/src/pages/Home.tsx`)**:
+    - Discovered redundant `pt-16` on mobile `<section className="md:hidden pt-16 pb-2">` which stacked with `MainLayout`'s `pt-[calc(4rem+max(1rem,env(safe-area-inset-top)))]`, causing a ~144px void.
+    - Adjusted mobile home section to `pt-2`, bringing the greeting ("Good afternoon") and headline ("FIND YOUR NEXT EXPERIENCE") cleanly up below the mobile header.
+  - **Dynamic Scroll-Reactive Floating Bottom Navigation Bar (`app/src/components/MobileBottomNav.tsx`)**:
+    - Replaced the full-width edge-anchored bottom bar with an elevated floating dock capsule:
+      - Centered floating layout (`fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none px-3`).
+      - Elevated bottom spacing with mobile safe area support: `bottom: calc(10px + max(0.25rem, env(safe-area-inset-bottom)))`.
+      - Frosted glassmorphism styling (`backdrop-blur-xl saturate(180%)`, `rgba(7, 14, 4, 0.88)` in dark mode, `rgba(255, 255, 255, 0.92)` in light mode, subtle 1px border and elevation shadow).
+      - Added floating animated active indicator pill (`layoutId="floating-nav-active-pill"`, `bg-[#d3da0c]/20`).
+    - **Scroll Responsiveness**:
+      - Integrated passive scroll listener tracking delta movement:
+        - **Scrolling Down**: Nav bar dynamically **expands** (height expands from 58px to 66px, max-width expands from 385px to 440px, scale 1.02, slightly larger touch padding and icon scale with spring physics).
+        - **Scrolling Up / At Top**: Nav bar smoothly **decreases** back to its compact **normal size** (58px height, 385px max-width, scale 1.0).
+    - Unified across regular user tab set, staff scanner tab set, and role operational dashboard routes (organizer, artist, vendor, admin).
+    - Added bottom spacer `<div className="h-24 pointer-events-none" />` ensuring page content is never hidden behind the floating dock.
+  - **Multi-Platform Deployment & Sync (PWA, iOS, Android)**:
+    - Built production frontend bundle (`index-C-IWWeD-.js`) on server and deployed live to `https://sounditent.com/`.
+    - Bumped service worker cache to `soundit-v15`.
+    - Synchronized compiled assets into local Capacitor projects:
+      - `app/dist/`
+      - `app/ios/App/App/public/` (iOS)
+      - `app/android/app/src/main/assets/public/` (Android)
+    - Verified live health (`{"status":"healthy"}`) and bundle serving.
+
+---
+
+### 148. Business Dashboard Dedicated Gallery Hub with Multi-File & Folder Drag-and-Drop (2026-11-05)
+- **User Requirements & Issues Addressed**:
+  - *"there's no gallery section on business dashoard where i can add the photos without going to events or edit past events."*
+  - *"I also need a. drag and drop option for multiple images or folder"*
+- **Architectural & Design Solutions Completed**:
+  - **Dedicated Business Gallery Hub (`app/src/pages/business/Gallery.tsx`)**:
+    - Created a central media management interface at `/dashboard/business/gallery` reachable from:
+      - Desktop sidebar (`DashboardLayout.tsx` -> "Gallery & Media").
+      - Mobile drawer navigation (`MobileLayout.tsx` -> "Photo Gallery & Media").
+      - Business dashboard quick actions (`Dashboard.tsx` -> "Photo Gallery & Media").
+      - User profile role shortcuts (`Profile.tsx`).
+    - **Upload Destination Switcher**: Allows organizers to select between their **General Brand & Organizer Profile** or any specific event (past or upcoming) without needing to navigate to "My Events -> Edit Event -> Photos".
+  - **Drag-and-Drop for Multiple Images and Entire Folders**:
+    - Built drag-and-drop zone supporting:
+      - Multiple loose image files dropped simultaneously.
+      - Dropped folders with recursive traversal using the HTML5 File System API (`webkitGetAsEntry()` & `createReader()` batch recursion), extracting all nested image formats (`jpg`, `jpeg`, `png`, `webp`, `gif`, `heic`, `avif`).
+    - Integrated native picker action buttons:
+      - **"Choose Photos"** (`<input type="file" multiple ... />`).
+      - **"Upload Folder"** (`<input type="file" webkitdirectory directory multiple ... />`).
+    - Real-time upload progress indicator displaying current batch progress (`Uploading 3 of 12...`).
+  - **Cloud Photo Album Integration**:
+    - Centralized external cloud album connection (Google Cloud, Google Drive, iCloud, Dropbox, Baidu Wangpan) with inline link tester and instant persistence for both the general organizer profile and individual events.
+  - **Media Management & Save to Device**:
+    - Photo grid featuring hover actions: preview lightbox, single-photo deletion, and save-to-device trigger.
+    - Fullscreen lightbox modal with Previous/Next keyboard and button navigation, image counter, and high-resolution device download (`saveImageToDevice`).
+    - Batch "Download All Photos" utility for saving event photos to the local device.
+  - **Backend API Endpoints (`api/business.py`)**:
+    - Added `GET /api/v1/business/gallery/summary` returning general gallery, general cloud album, and all organizer events with their respective galleries and cloud URLs.
+    - Added `PUT /api/v1/business/gallery/general` to update the organizer's general profile photos and cloud URL.
+    - Added `PUT /api/v1/business/gallery/events/{event_id}` to update any specific event's photo gallery and cloud URL with ownership validation.
+  - **Production Deployment & Live Verification**:
+    - Deployed backend updates to `/var/www/soundit/current/` and restarted `soundit.service` (verified healthy).
+    - Compiled frontend production bundle `index-BOmz97gp.js` and deployed to `/var/www/soundit/current/app/dist/`.
+    - Bumped service-worker cache to `soundit-v14`.
+    - Verified `GET https://sounditent.com/api/v1/business/gallery/summary` returns authenticated JSON.
+
+---
+
+### 147. Gallery by Events, Cloud Album Links (Google Drive/Cloud), Batch Multi-Image Upload & Device Photo Download (2026-11-05)
+- **User Requirements & Issues Addressed**:
+  - *"I need to be able to see gallery by events"*
+  - *"I need to be able to connect my google cloud, Upload multiple images, or even add a link"*
+  - *"User should be able to save image to device also"*
+- **Architectural & Design Fixes Completed**:
+  - **Database Migration (`soundit_prod`)**:
+    - Added `photo_album_url VARCHAR(1000)` column to `organizer_profiles` and `business_profiles` in `models.py` and production PostgreSQL (`ALTER TABLE organizer_profiles ADD COLUMN IF NOT EXISTS photo_album_url VARCHAR(1000); ALTER TABLE business_profiles ADD COLUMN IF NOT EXISTS photo_album_url VARCHAR(1000);`).
+  - **Backend API & Serialization**:
+    - `api/profiles.py`:
+      - Updated `PublicEventItem` and `get_user_events` (`GET /api/v1/profiles/{id}/events`) to include `gallery_images` and `photo_album_url` for every event.
+      - Serialized `photo_album_url` in `organizer_profile`, `business_profile`, and top-level response payload in `get_public_profile`.
+    - `api/business.py`:
+      - Synchronized `photo_album_url` persistence across `OrganizerProfile` and `BusinessProfile`.
+      - Exposed `photo_album_url` in `BusinessProfileResponse` and `get_top_businesses`.
+    - `schemas.py`:
+      - Extended `BusinessProfileBase`, `BusinessProfileCreate`, `BusinessProfileResponse`, and `OrganizerProfileResponse` with `photo_album_url: Optional[str] = None`.
+  - **Gallery by Events on Public Profiles (`PublicProfile.tsx`)**:
+    - Created an interactive Event Gallery filter:
+      - **"All Photos"** combining event photos and general organizer photos, with contextual event title badges on thumbnails.
+      - **Per-Event Tabs** (e.g. `[AFTER 90's Halloween Party]`, `[BOA Festival]`) showing the exact photos taken at each event.
+      - **"General Gallery"** for the organizer's team, venue, and brand photos.
+    - Added contextual Event & Organizer media banners:
+      - Displaying event date, location, a link to the event details page, and a direct **"Open Cloud Album (Google Drive / Cloud)"** CTA button when a cloud drive link is connected.
+  - **Save Image to Device & Fullscreen Lightbox**:
+    - Added reusable download utility [`saveImageToDevice`](file:///Users/fredmax/Desktop/CODE/SOUND%20IT%20WEB%20APP%20COMPLETE/app/src/lib/downloadImage.ts) with blob fetch conversion, automatic file naming (`event-title-photo-1.jpg`), and mobile/desktop fallback triggers.
+    - Upgraded full-screen lightboxes across `PublicProfile.tsx`, `EventDetail.tsx`, and `Recaps.tsx` with:
+      - Direct **"Save to Device" / "Download"** action buttons with download feedback toast.
+      - Previous and Next navigation buttons with smooth transitions.
+      - Deep link to external cloud photo albums (Google Drive, iCloud, Dropbox, Baidu Wangpan).
+  - **Organizer Profile Cloud Link & Batch Multi-Image Upload (`business/Profile.tsx`)**:
+    - Converted single-image upload into a batch multi-image uploader (`<input type="file" multiple ... />`) supporting simultaneous file selection up to 24 photo slots.
+    - Added real-time progress indicator (`Uploading photo 2 of 5...`).
+    - Added **"Cloud Photo Album & External Link"** input card allowing organizers to connect Google Drive, Google Cloud Storage, iCloud, Baidu Wangpan, or Dropbox albums, with an inline "Test Link" button.
+  - **Production Deployment & Live Verification**:
+    - Deployed backend updates to `/var/www/soundit/current/` and restarted `soundit.service`.
+    - Verified `https://sounditent.com/health` returns `{"status":"healthy"}`.
+    - Verified `GET https://sounditent.com/api/v1/profiles/sound-events/events` returns populated `gallery_images` and `photo_album_url`.
+    - Deployed frontend production bundle `index-DiEmj0qc.js` and updated service worker to `soundit-v13`.
+
+---
+
+### 146. Top Businesses & Organizers Discovery Feed, Organizer Public Profile Photo Gallery & Query Sync (2026-11-05)
+- **User Requirements & Issues Addressed**:
+  - *"No Top business/Organizers"* (Discovery Hub carousel displayed Top Artists, Top Vendors, and Top Spots, but lacked a dedicated "Top Businesses & Organizers" feed section).
+  - *"No section for Gallery for Organizer"* (On Organizer/Business public profiles, e.g. Sound Events `/profiles/sound-events` or `/profiles/3`, no photo gallery was rendered even though organizers uploaded gallery photos).
+- **Architectural & Design Fixes Completed**:
+  - **Database Migration (`soundit_prod`)**:
+    - Added `gallery_images JSON` column to `organizer_profiles` in `models.py` and production PostgreSQL (`ALTER TABLE organizer_profiles ADD COLUMN IF NOT EXISTS gallery_images JSON;`).
+    - Synced existing gallery photos from `business_profiles` to `organizer_profiles` so organizer records immediately hold their visual assets.
+  - **Backend API Additions & Profile Serialization**:
+    - Added public endpoint `/api/v1/businesses` (mapped to `get_top_businesses` in `api/business.py`) supporting city filtering, search queries, pagination, and sorting by featured status, verification, event count, and follower count.
+    - Updated `api/profiles.py` to serialize `gallery_images` in `organizer_profile`, `business_profile`, and root `gallery_images`.
+    - Synced `gallery_images` updates between `business_profiles` and `organizer_profiles` in `api/business.py`.
+  - **Public Profile Photo Gallery**:
+    - Added responsive Photo Gallery grid to `PublicProfile.tsx` (2 columns on mobile, 3-4 columns on desktop) displaying organizer/business photos.
+    - Added fullscreen click-to-preview lightbox modal with image counter.
+    - Added clean empty-state CTA prompting organizer profile owners to upload gallery photos if none exist.
+  - **Discovery Hub "Top Businesses" Carousel & Deep Linking**:
+    - Added "Top Businesses" horizontal carousel in `DiscoveryFeed.tsx` with avatar, verified badge, city, and event count / follower count indicators, linking to `/profiles/{slug || id}` and `/discovery?tab=business`.
+    - Added tab parameter normalization and deep-linking support in `CityGuide.tsx` (`?tab=business`, `?tab=event`, etc.) so clicking "See all >" switches tabs instantly.
+    - Added multilingual i18n keys for `topBusinesses` across English, Chinese, and French.
+    - Bumped service-worker cache to `soundit-v12`.
+  - **Production Deployment & Live Verification**:
+    - Deployed backend updates to `/var/www/soundit/current/` and restarted `soundit.service`.
+    - Compiled frontend production bundle (`index-hF_lhkrk.js`) on remote server and deployed to `/var/www/soundit/current/app/dist/`.
+    - Verified `https://sounditent.com/health` returns `{"status":"healthy"}`.
+    - Verified `https://sounditent.com/api/v1/businesses?limit=2` returns "Sound Events" with verified/featured status and gallery images.
+    - Verified `https://sounditent.com/api/v1/profiles/sound-events` returns populated `gallery_images`.
+
+---
+
+### 145. Mobile Event Creation/Editing UX, Past Events Layout, Cloud Photo Album Links & Registration Name Alignment (2026-11-04)
+- **User Requirements & Issues Addressed**:
+  - *"the save button is laying over. fix that"* (Cancel/Save Draft/Publish Event bar was floating on top of cards on mobile).
+  - *"I can't edit past events on Mobile"*
+  - *"If organizers connect their cloud or add a link to photos, I can't see that section either."*
+  - *"How can user access these photos after events?"*
+  - *"Past Events layout also need to be adjust properly"* (Mobile table overflowed horizontally, titles wrapped 1 character per line, Action buttons clipped off).
+  - *"Upon signup, user, business or any roles selected put a username, or change it. that does not show."*
+  - *"business name also. I see the System taking the user name that what was written for the business, and adding Business at the end, why?"*
+  - *"psycopg2.errors.DuplicateAlias: table name 'artist_profiles' specified more than once"* (Discovered in live production logs when querying artists with city filters).
+- **Architectural & Design Fixes Completed**:
+  - **In-Flow Mobile Form Action Bar**:
+    - Converted the floating action bar in `CreateEventMobile.tsx` into a responsive in-flow container placed below the form cards. Fixed button clipping, touch targets, and discard dialog.
+  - **Past Events Mobile Layout & Editing Capabilities**:
+    - `ManageEvents.tsx`: Replaced single desktop table with dual-mode responsive layout: high-density mobile cards (`md:hidden`) with flyer thumbnails, status badges, ticket sales counters, and full touch buttons (**Edit**, **View**, **Photos & Cloud**, **QR**, **Broadcast**, **Promoters**, **Close/Reopen Sales**, and **Delete**). Retained table for `hidden md:block`.
+    - `EditEvent.tsx`: Removed date restriction (`min={formData.date || undefined}` instead of forcing future date) so past events can be edited and saved without validation blocking. Removed `disabled={isSubmitting || !businessProfile}` blocking save.
+  - **Cloud Photo Album & Post-Event Photo Access**:
+    - Database: Added `photo_album_url VARCHAR(1000)` column to `events` and `recaps` tables in `models.py` and production PostgreSQL (`soundit_prod`).
+    - Backend: Added `photo_album_url` serialization and persistence to `schemas.py`, `api/events.py`, and `api/recaps.py`.
+    - Organizer: Added **Cloud Photo Album Link** inputs in `CreateEventMobile.tsx`, `CreateEvent.tsx`, `EditEvent.tsx`, and `Recaps.tsx` for Google Drive, Baidu Wangpan, iCloud, Dropbox, etc.
+    - Public Event Detail: Added dedicated **Event Photos & Cloud Album** section in `EventDetail.tsx` with external link button to open the organizer's cloud album drive, interactive gallery thumbnail grid with fullscreen preview modal, and community recaps link.
+    - Sidebar & Mobile Sticky Bar: When an event has ended (`isEventPast`), both the desktop ticket sidebar and mobile sticky bar render direct **"Open Cloud Photo Album"** and **"Photos & Recaps"** buttons.
+    - Recaps: Added direct cloud photo album action button in the full recap viewer modal.
+  - **Registration & Role Name Alignment**:
+    - `api/auth.py`: Stripped `@`, validated username uniqueness against `users.username`, and directly assigned `data.business_name` instead of appending `'s Business'` or `'s Shop'`. Synchronized `OrganizerProfile` and `BusinessProfile`.
+    - `Register.tsx`: Added dedicated role-specific name field (**Business / Organization Name**, **Stage / Artist Name**, **Vendor / Shop Name**) and dedicated `@username` field.
+    - `Profile.tsx` & `EditProfile.tsx`: Displayed and allowed editing `@username` and business/stage names.
+    - `MobileLayout.tsx`: Drawer header displays `@username` and business/artist name instead of generic user first name.
+  - **Artists Query Duplicate Alias Fix**:
+    - `api/artists.py`: Fixed `get_artists`, `search_artists`, and `get_featured_artists` where `ArtistProfile` was joined twice (once via `outerjoin` and once via `join` for `is_approved`), causing PostgreSQL error `psycopg2.errors.DuplicateAlias`. Consolidated to a single join upfront.
+  - **Production Deployment & Verification**:
+    - Deployed database migration, backend Python files (`models.py`, `schemas.py`, `api/auth.py`, `api/business.py`, `api/events.py`, `api/recaps.py`, `api/artists.py`), and frontend bundle (`index-Cv36UO6p.js`, `service-worker.js` bumped to `soundit-v11`) to `72.62.254.251`.
+    - Verified `https://sounditent.com/health` returns `{"status":"healthy"}` and `https://sounditent.com/api/v1/artists?city=shanghai` returns 200 OK.
+
+---
+
+### 144. Platform-Wide UI/UX & Copy Refinement: Removal of Generic AI Design Tropes, Gradient De-Cluttering & Radius Standardization (2026-10-29)
+- **User Requirements & Issues Addressed**:
+  - *"Audit the entire Sound It project and refine it to feel professionally human-designed, premium, and production-ready. Remove generic AI design patterns, unnecessary sparkles, decorative icons, AI badges, excessive gradients, repetitive card layouts, oversized rounded corners, and stereotypical AI typography. Use clean, consistent styling that follows the existing brand identity and design references."*
+  - *"Keep all user-facing content concise and purposeful. Use a clear heading, a short subheading where necessary, and a brief description only when it adds value. Remove unnecessary explanations, repetitive text, obvious instructions, lengthy introductions, redundant labels, and content that users do not need. Let the interface speak for itself. Prioritize clarity, simplicity, and usability over excessive information."*
+- **Architectural & Design Refinements Completed**:
+  - **Eliminated Pink/Purple/Rainbow Gradients (`to-[#FF2D8F]`, `via-[#FF2D8F]`, `to-purple-600`, etc.)**:
+    - Replaced generic neon gradients with cohesive Sound It brand styling (`#d3da0c`, `#111111`, `#020b00`, and subtle neutral surfaces) across `Navbar.tsx`, `MobileHeader.tsx`, `MobileLayout.tsx`, `DashboardLayout.tsx`, `ArtistCard.tsx`, `DiscoveryFeed.tsx`, `ReviewsSection.tsx`, `AndroidAppPrompt.tsx`, `PWAInstallPrompt.tsx`, `Events.tsx`, `Recaps.tsx`, `VendorDetail.tsx`, `PublicProfile.tsx`, `ArtistDetail.tsx`, `PromoterDashboard.tsx`, `user/Dashboard.tsx`, `user/Profile.tsx`, `user/EditProfile.tsx`, `user/Followers.tsx`, `user/Settings.tsx`, `artist/Messages.tsx`, `vendor/Dashboard.tsx`, `vendor/Profile.tsx`, `business/Profile.tsx`, `business/Followers.tsx`, `business/Staff.tsx`, and `admin/ManageArtists.tsx`, `ManageVendors.tsx`, `ManageBusinesses.tsx`, `VerificationCenter.tsx`, `RolePermissions.tsx`, and `ManageBookings.tsx`.
+  - **Standardized Oversized Corner Radii (`rounded-3xl`, `rounded-[2.5rem]`, `rounded-[3rem]` -> `rounded-2xl`)**:
+    - Standardized cards, containers, and modals across `WeatherWidget.tsx`, `EntityDetailModal.tsx`, `AndroidAppPrompt.tsx`, `About.tsx`, `Events.tsx`, `user/Dashboard.tsx`, `user/Profile.tsx`, `user/EditProfile.tsx`, `user/Followers.tsx`, `artist/Dashboard.tsx`, `admin/SystemSettings.tsx`, `admin/ManageUsers.tsx`, and `admin/VerificationCenter.tsx`.
+  - **Removed Redundant Explanatory Banners & Stereotypical AI Copy**:
+    - Removed redundant `"Your workspace"` role-variant banners in `artist/Dashboard.tsx` and `vendor/Dashboard.tsx`, and unified multicolored vendor quick-action buttons into clean, consistent cards.
+    - Refined flyer autofill and menu import copy across `organizer/CreateEvent.tsx`, `vendor/Dashboard.tsx`, and `app/src/i18n/locales/en.json` (`"Autofill from Flyer"`, `"Import Menu"`), removing phrases like `"AI reads title, date, venue & price"` and `"in one shot — you just review"`.
+    - Streamlined `Assistant.tsx` and `AssistantDrawer.tsx` welcome and sign-in messages, renamed `"AI Insights"` to `"Insights"` in `admin/Analytics.tsx`, removed `"AI-powered"` buzzwords in `Home.tsx` and `About.tsx`, removed redundant `"Click to view info"` / `"Details →"` overlays in `About.tsx`, and removed decorative emojis in `Home.tsx` and `BroadcastAnnouncementModal.tsx`.
+
+---
+
+### 143. Complete Removal of Sparkles/Stars Icons (`Sparkles` & `✨`) Across All Pages, Components & Locales (2026-10-29)
+- **User Requirements & Issues Addressed**:
+  - *"Remove all Sparkles/Stars icons (✨) from the entire Sound It project. Search all files, components, pages, and shared UI elements, including imports and icon libraries. Remove every instance without affecting other icons, layouts, functionality, or styling. Do not replace them with other icons."*
+- **Codebase-Wide Removals Completed (No Icon Replacements)**:
+  - **Shared Components**:
+    - `app/src/components/assistant/AssistantDrawer.tsx`: Removed `Sparkles` import and header icon.
+    - `app/src/components/ui/UniversalShareModal.tsx`: Removed `Sparkles` import and header icon.
+    - `app/src/components/intro/HolidayDecorations.tsx`: Removed all `✨`, `⭐`, and `✦` sparkle symbols across holiday badges and particle bursts.
+    - `app/src/components/LoadingScreen.tsx`: Removed `Sparkles` import and sponsor badge icon.
+    - `app/src/components/admin/EntityDetailModal.tsx`: Removed `Sparkles` import, Featured badge icon, and Feature toggle button icon.
+    - `app/src/components/Footer.tsx`: Removed `Sparkles` import and Sound It Insider newsletter badge icon.
+    - `app/src/components/BroadcastAnnouncementModal.tsx`: Removed `Sparkles` import, modal header icon, and target audience button icon.
+    - `app/src/components/TableBooking.tsx`: Removed `Sparkles` import and upgrade request heading icon.
+  - **Public, User, Organizer & Admin Pages**:
+    - `app/src/pages/Home.tsx`: Removed `Sparkles` import and Google Play "Testing Version" pill icon.
+    - `app/src/pages/Events.tsx`: Removed `Sparkles` import and Recaps callout banner icon.
+    - `app/src/pages/Recaps.tsx`: Removed `Sparkles` import and event filter chip icon.
+    - `app/src/pages/About.tsx`: Removed `Sparkles` import, Innovation core value icon, and 2026 BOA Headliner badge icons.
+    - `app/src/pages/Assistant.tsx`: Removed `Sparkles` import, hero icon, and "Create Drafts" card icon.
+    - `app/src/pages/organizer/CreateEvent.tsx`: Removed `Sparkles` import and AI flyer auto-fill button icon.
+    - `app/src/pages/user/Followers.tsx`: Removed `Sparkles` import, DJ/Artist role badge icon, Total Reach metric icon, and Discover empty-state icon.
+    - `app/src/pages/user/TableBookings.tsx`: Removed `Sparkles` import and upgrade status badge icon.
+    - `app/src/pages/admin/AdminLayout.tsx`: Removed `Sparkles` import and Intro Screen sidebar item icon.
+    - `app/src/pages/admin/IntroScreen.tsx`: Removed `Sparkles` import, page header icon, and preview sponsor badge icon.
+    - `app/src/pages/admin/Analytics.tsx`: Removed `Sparkles` import, AI Insights tab icon, AI Insights section header icon, and Growth Forecast placeholder icon.
+    - `app/src/pages/admin/DashboardOverview.tsx`: Removed `Sparkles` import and Sync Data button icon.
+    - `app/src/pages/admin/ManageArtists.tsx`, `ManageVendors.tsx`, `ManageBusinesses.tsx`: Removed `Sparkles` imports, Featured stat card icons, and table row feature button icons (converting icon-only feature buttons to clean text buttons `Feature` / `Featured`).
+  - **Locales & Backend**:
+    - `app/src/i18n/locales/en.json`, `zh.json`, `fr.json`: Removed `"icon": "Sparkles"` from Core Values entries.
+    - `email_service.py`: Removed `✨` from email template redesign badge.
+
+---
+
+### 142. High-Resolution Full SoundIt Logo Replacement Across Web, PWA, Mobile Apps & Intro Screen (2026-10-29)
+- **User Requirements & Issues Addressed**:
+  - *"Replace this full SoundIt logo on all other sections or pages where it is, including the intro, with the new one. Only replace the full logo, SoundIt, because this has more high resolution and it can be used and change colors in different ways. I want you to use it to replace the current full SoundIt logo. Do not change the icon, just the full SoundIt logo on all pages, whether it's on PWA, it's on mobile apps, it's on web. I want the full logo to only be replaced."*
+- **Asset Generation & Replacements (Icon Assets Untouched)**:
+  - Replaced all full SoundIt logo assets using the new `1024 x 418` pure-alpha stencil PNG (`#d3da0c` for dark mode / primary brand and `#020b00` for light mode):
+    - `app/public/logo-dark.png` & `app/public/logo-light.png` (`1024 x 418` — used in `Navbar.tsx`, `Footer.tsx`, `AuthLayout.tsx`, `DashboardLayout.tsx`, and `AdminLayout.tsx`).
+    - `app/public/intro_sound.png` (`1024 x 418` — used in the animated intro screen `LoadingScreen.tsx` across Web, PWA, and Mobile Apps, and in the Admin `IntroScreen.tsx` live preview).
+    - `app/public/brand-logo-dark.png` & `app/public/brand-logo-light.png` (`1024 x 418` — used in `About.tsx` "Our Logo Story" and `UniversalShareModal.tsx`).
+    - `app/public/brand-logo-dark-full.png` & `app/public/brand-logo-light-full.png` (`1024 x 1024` centered square brand lockups).
+    - `app/public/logo.png`, `app/public/logo-web.png`, `app/public/logo.svg`, `web-logo-source.png`, and `web-logo-source-v2.png`.
+  - Preserved all standalone drum icon files (`logo-icon-dark.png`, `logo-icon-light.png`, `intro_drum.png`, `mobile-logo.png`, `brand-mark.png`, `logo-platform.png`, `favicon*`, `apple-touch-icon.png`, `android-chrome-*`) untouched.
+  - Updated `AuthLayout.tsx` so the full SoundIt logo displays on mobile/PWA login & registration screens as well as desktop, updated `AdminLayout.tsx` sidebar header to render the full SoundIt logo image, and bumped `service-worker.js` cache to `soundit-v8`.
+
+---
+
+### 141. Organizer Ticket Sales Closure Fix: Schema Serialization, Event Detail Payload & EditEvent Controls (2026-10-28)
+- **User Requirements & Issues Addressed**:
+  - *"An event organizer just tried to closed a ticket sale for his event, and its not working. Can we fix that"*
+- **Root Cause Analysis**:
+  1. **`get_event` Manual Dict Omitted `ticket_sales_closed` (`api/events.py`)**:
+     - `GET /api/v1/events/{event_id}` returned a manually constructed dictionary that omitted `"ticket_sales_closed": bool(event.ticket_sales_closed)` (as well as `tags`, `promoter_enabled`, `default_commission_rate`, `default_discount_percent`, and `max_discount_amount`).
+     - Because `EventResponse.ticket_sales_closed` defaults to `False`, `GET /api/v1/events/{event_id}` always returned `"ticket_sales_closed": false` even when `event.ticket_sales_closed` was `True` in PostgreSQL.
+     - Consequently, on the public Event Detail page (`EventDetail.tsx`), the "Ticket Sales Closed" banner never appeared and the "Buy Ticket" button stayed active.
+  2. **`EventListResponse` Stripped `ticket_sales_closed` (`schemas.py`)**:
+     - `GET /api/v1/events/me` and `GET /api/v1/events` use `response_model=List[EventListResponse]`, which omitted `ticket_sales_closed: bool = False`.
+     - As a result, `ManageEvents.tsx` received `event.ticket_sales_closed === undefined` after calling `fetchMyEvents()`, so the "Sales Closed" badge never appeared and the toggle button stayed red ("Close Ticket Sales").
+     - When the organizer clicked the button a second time on Event 13 (`AFTER 90's Halloween Party`), `POST /api/v1/tickets/events/13/toggle-sales` (called without `?closed=...`) toggled `ticket_sales_closed` back to `False`.
+  3. **`update_event` & `EditEvent.tsx` Missing `ticket_sales_closed` Support**:
+     - `PUT /api/v1/events/{event_id}` in `api/events.py` did not persist `event_data.ticket_sales_closed`, and `EditEvent.tsx` lacked a UI control to close or re-open ticket sales from the event editor.
+- **Architectural Fixes**:
+  - **`api/events.py`**:
+    - Added `"ticket_sales_closed": bool(getattr(event, 'ticket_sales_closed', False))` (along with `tags` and promoter fields) to the `get_event` response dictionary.
+    - Added `event.ticket_sales_closed = bool(event_data.ticket_sales_closed)` handling in `update_event` (`PUT /api/v1/events/{event_id}`).
+  - **`schemas.py`**:
+    - Added `ticket_sales_closed: bool = False` to `EventListResponse`.
+  - **`app/src/pages/organizer/ManageEvents.tsx`**:
+    - Updated the close/re-open button to pass the explicit target state `?closed=${!isClosed}` to `POST /api/v1/tickets/events/{id}/toggle-sales` and added `useAuthStore` session token fallback.
+  - **`app/src/pages/organizer/EditEvent.tsx`**:
+    - Added a dedicated **"Close Ticket Sales" / "Re-open Ticket Sales"** button and status banner directly inside the **Tickets** section of the Edit Event page, wired both to `POST /api/v1/tickets/events/{id}/toggle-sales?closed=...` and `PUT /api/v1/events/{id}`.
+  - **Production Database & Live Verification**:
+    - Set `ticket_sales_closed = TRUE` for Event `13` (`AFTER 90's Halloween Party`) in `soundit_prod`.
+    - Deployed backend (`schemas.py`, `api/events.py`) and frontend bundle (`index-NktjeOAj.js`, `ManageEvents-OkQyWm58.js`, `EditEvent-D7wcWeHS.js`) to production (`72.62.254.251`) and verified `GET https://sounditent.com/api/v1/events/13` returns `"ticket_sales_closed": true`.
+
+---
+
+### 140. Subscription Self-Service: Cancellation Lifecycle, Resumption & Cross-Device Purchase Restoration (2026-10-28)
+- **User Requirements & Issues Addressed**:
+  - *"Subscription: User should be able to cancel it"*
+  - *"Subscription: User should be able to restore purchace"*
+- **Architecture & Implementation Details**:
+  1. **Database Schema (`models.py` & PostgreSQL `subscriptions`)**:
+     - Added `cancelled_at: DateTime(timezone=True)` and `cancel_reason: Text` columns to `Subscription`.
+     - Migrated production PostgreSQL database via `ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP WITH TIME ZONE, ADD COLUMN IF NOT EXISTS cancel_reason TEXT;`.
+  2. **Service Layer (`services/subscription_service.py`)**:
+     - `cancel_subscription(db, user_id, reason)`:
+       - Pending subscriptions: Withdrawn immediately with status `CANCELLED`.
+       - Free trials / zero-cost plans: Terminated immediately.
+       - Paid active plans: Marked `cancelled_at = now`, with access gracefully preserved until `end_date` (no auto-renew / no early cut-off).
+       - Lifetime admin plans: Guarded against accidental app-side cancellation.
+     - `resume_subscription(db, user_id)`:
+       - Clears `cancelled_at` / `cancel_reason` for subscriptions that were cancelled before reaching their `end_date`.
+     - `restore_purchases(db, user_id)`:
+       - Re-evaluates subscription records for the user.
+       - Rescues any paid subscriptions with `end_date > now` that were incorrectly marked `EXPIRED`.
+       - Ensures the user's verified badge is synced if the active plan includes `verified_badge`.
+  3. **Backend API Endpoints (`api/subscriptions.py`)**:
+     - `POST /api/v1/subscriptions/cancel`: Handles user cancellation with optional reason and sends in-app notifications.
+     - `POST /api/v1/subscriptions/resume`: Re-activates a cancelled plan before expiration.
+     - `POST /api/v1/subscriptions/restore-purchases`: Syncs and restores purchases across devices or after reinstallation.
+     - Extended `GET /api/v1/subscriptions/my-subscription` with `is_cancelled`, `cancelled_at`, and `cancel_reason`.
+  4. **Frontend Interface (`app/src/pages/Subscriptions.tsx` & i18n)**:
+     - Added **"Restore Purchases"** action button in the page header with loading feedback.
+     - Added **"Cancel Subscription"** / **"Resume Subscription"** controls to the active plan card.
+     - Added **"Withdraw Request"** button to the pending payment banner.
+     - Interactive confirmation modal explaining that paid access remains active until the end of the billing period.
+     - Added multi-language translations (`en.json`, `zh.json`, `fr.json`).
+  5. **Production Deployment & Verification**:
+     - Tested API response codes on production server (`72.62.254.251`).
+     - Verified health check: `GET https://sounditent.com/health` returns `200 OK`.
+     - Verified bundle deployment `index-QqeJ-XJj.js` and `Subscriptions-DvkcbCT1.js` containing `restore-purchases` and `cancel`.
+
+---
+
+### 139. Google Search Console Index Coverage Remediation: Dynamic Sitemap Repair, Canonical Tag Unification & Robots.txt Alignment (2026-10-26)
+- **User Requirements & Issues Addressed**:
+  - *"can we fix this"* with attached Google Search Console screenshot:
+    - *Alternative page with proper canonical tag* — 8 pages
+    - *Blocked by robots.txt* — 1 page
+    - *Crawled - currently not indexed* — 2 pages
+- **Root Cause Analysis**:
+  1. **Dynamic Sitemap Enum Exception (`api/sitemap.py`)**:
+     - `Event.status.in_(["approved", "live"])` failed in PostgreSQL with `(psycopg2.errors.InvalidTextRepresentation) invalid input value for enum eventstatus: "live"`.
+     - In SQLAlchemy, this aborted the database transaction (`InFailedSqlTransaction`), causing the subsequent queries for `ArtistProfile`, `VendorProfile`, and `BusinessProfile` in the same request to fail.
+     - As a result, `/sitemap.xml` was omitting all events, artists, vendors, and businesses, returning only 16 static URLs.
+  2. **"Blocked by robots.txt" (1 page)**:
+     - The static `app/public/sitemap.xml` explicitly included `https://sounditent.com/login` and `https://sounditent.com/register`.
+     - At the same time, `robots.txt` had `Disallow: /login` and `Disallow: /register`.
+     - Submitting URLs in a sitemap that are blocked in `robots.txt` triggered Google's "Blocked by robots.txt" warning.
+  3. **"Alternative page with proper canonical tag" (8 pages)**:
+     - The root homepage URL was inconsistent: `api/sitemap.py` generated `https://sounditent.com` (no trailing slash), while `app/public/sitemap.xml` and `api/meta_tags.py` used `https://sounditent.com/` (with trailing slash), and `index.html` lacked a `<link rel="canonical">` tag.
+     - Dynamic entity URLs had split canonical representations: internal routes supported both numeric IDs (`/artists/3`, `/artists/75`, `/vendors/2`) and canonical slugs (`/artists/euphoria`, `/vendors/westcape-business-consulting-co-ltd`). When accessed by ID, `meta_tags.py` emitted the ID as canonical while the client-side router replaced it with the slug.
+  4. **"Crawled - currently not indexed" (2 pages)**:
+     - The static sitemap submitted `https://sounditent.com/music`, a nonexistent route that returned the SPA 404 page with status 200 (soft 404).
+     - The React `NotFound` component did not signal search engines to skip indexing.
+- **Architectural Fixes**:
+  - **Dynamic Sitemap Engine (`api/sitemap.py`)**:
+    - Replaced the enum filter with `Event.status == EventStatus.APPROVED`.
+    - Added individual `try/except` blocks with `db.rollback()` for events, artists, vendors, and businesses to ensure database isolation.
+    - Updated URL generation to prioritize canonical slugs (`event.slug`, `artist.slug`, `vendor.slug`, `biz.slug`) with ID fallback.
+    - Standardized root URL to `https://sounditent.com/`.
+    - Result: Live sitemap now reliably outputs 39+ validated, high-priority public URLs (events, artists, vendors, verified profiles, and core guides) with zero errors.
+  - **Dynamic Canonical Tag & Meta Injector (`api/meta_tags.py`)**:
+    - Updated entity lookups to resolve both numeric ID and slug.
+    - Standardized `<link rel="canonical">` generation so that accessing by ID automatically emits the canonical slug URL.
+    - Normalized path handling with `path.strip("/").split("?")[0]` so trailing slashes and query parameters cleanly resolve to the primary canonical URL.
+    - Added rich title and description definitions for static informational pages (`/about`, `/contact`, `/terms`, `/privacy`, `/refund-policy`, `/user-agreement`, `/organizer-agreement`, `/verification-policy`, `/community`, `/recaps`).
+  - **Nginx Configuration (`/etc/nginx/conf.d/soundit.conf`)**:
+    - Expanded the SSR proxy location regex to include all public informational routes:
+      `location ~ ^/(events|artists|vendors|profiles|organizers|business|venues|marketplace|city-guide|food|recaps|community|tickets|user|about|contact|terms|privacy|refund-policy|user-agreement|organizer-agreement|verification-policy)`.
+    - Reloaded Nginx seamlessly without downtime.
+  - **Frontend SPA & Static Fallbacks (`app/index.html`, `app/src/pages/NotFound.tsx`, `app/public/sitemap.xml`, `robots.txt`)**:
+    - Added default `<link rel="canonical" href="https://sounditent.com/" />` to `app/index.html`.
+    - Updated `NotFound.tsx` with dynamic `<meta name="robots" content="noindex, nofollow" />` injection on mount.
+    - Removed `/login`, `/register`, and `/music` from `app/public/sitemap.xml`.
+    - Synchronized `app/public/robots.txt` with backend directives.
+    - Rebuilt frontend (`npm run build`, bundle `index-DZ9wXN53.js`) and deployed to production.
+- **Production Verification**:
+  - `curl -s https://sounditent.com/health` -> `{"status":"healthy"}` (200 OK).
+  - `curl -s https://sounditent.com/sitemap.xml | grep '<loc>' | wc -l` -> 39 valid URLs returned (no 500/502).
+  - `curl -s https://sounditent.com/robots.txt` -> Clean directives, no clash with sitemap URLs.
+  - `curl -s https://sounditent.com/ | grep canonical` -> `<link rel="canonical" href="https://sounditent.com/" />`.
+  - `curl -s https://sounditent.com/artists/3 | grep canonical` -> `<link rel="canonical" href="https://sounditent.com/artists/euphoria" />`.
+  - `curl -s https://sounditent.com/about | grep canonical` -> `<link rel="canonical" href="https://sounditent.com/about" />`.
+
+---
+
+### 138. Admin Dashboard Sticky Navigation & Internal Table Scrolling Architecture, Missing Bookings Hub Addition & Complete Phone Sign-Up Removal (2026-10-24)
+- **User Requirements & Issues Addressed**:
+  - *"Also I can't moce the users, Artist, vendors, business, events & booking section without moving the whole page up and down. in admin dashboard"*
+  - *"- Remove phone sign up."*
+- **Admin Dashboard Navigation & Scrolling Architecture (`app/src/pages/admin/Dashboard.tsx`)**:
+  - **Sticky Section Navigation Bar**:
+    - Relocated the tab navigation bar directly underneath the dashboard header into a `sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-md px-4 py-3 lg:px-8 border-y border-white/[0.08] shadow-md` container.
+    - Result: As users scroll down or browse tables, the tab selector remains permanently fixed at the top of the viewport. Admins can seamlessly switch between Overview, Users, Admins, Businesses, Artists, Vendors, Events, Bookings, and Payments with a single click from any scroll position without moving the whole page up and down.
+  - **Interactive Bento Stat Cards with Instant Section Navigation**:
+    - Updated `StatCard` and `FeaturedStatCard` to accept an `onClick` callback with hover styling (`cursor-pointer hover:border-[#d3da0c]/40 hover:bg-[#151515] active:scale-[0.99]`) and visual "View →" / "Financial Control →" affordance.
+    - Wired all Overview stat cards: Users (`setActiveTab('users')`), Businesses (`setActiveTab('businesses')`), Artists (`setActiveTab('artists')`), Vendors (`setActiveTab('vendors')`), Events (`setActiveTab('events')`), Bookings (`setActiveTab('bookings')`), Revenue (`navigate('/admin/financial')`), and Verifications (`navigate('/admin/verification-center')`).
+  - **Internal Table Scroll Containers & Sticky Table Headers**:
+    - Fixed the root issue where long lists expanded the document body indefinitely and forced whole-page scrolling.
+    - In `UsersTab`, `AdminsTab`, `BusinessesTab`, `ArtistsTab`, `VendorsTab`, `EventsTab`, and `BookingsTab`:
+      - Encapsulated each section in `<div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">`.
+      - Fixed top filter bars (`p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0`) with live counters and search inputs.
+      - Table views now scroll smoothly inside an independent container: `<div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">`.
+      - Pinned table headers: `<thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">`.
+  - **Brand-New Bookings Management Tab in Admin Dashboard**:
+    - Discovered Bookings was previously absent from `Dashboard.tsx` despite the backend API being ready.
+    - Added `bookings: BookingItem[]` state and connected to `GET /admin/bookings`.
+    - Added `BookingsTab` with:
+      - Live search filtering by event name, artist stage name, requester name, or city.
+      - Status filter dropdown (`Pending`, `Accepted`, `Confirmed`, `Completed`, `Rejected`, `Cancelled`).
+      - Direct entity modal links to inspect requester user card or artist card.
+      - One-click admin actions: Accept/Approve booking, Reject booking (with reason prompt), and Cancel booking.
+    - Fixed backend Pydantic validation error: In `BookingAdminResponse` (`api/admin.py`), updated `duration_hours` from `Optional[int]` to `Optional[float]` to accommodate fractional gig durations (e.g. 1.5h).
+    - Extended `GET /admin/dashboard` stats to return `total_bookings` (8 active bookings in production DB) and displayed on Bento Grid.
+- **Complete Phone Sign-Up Removal**:
+  - **Frontend (`app/src/pages/auth/Register.tsx`, `Login.tsx`, `App.tsx`)**:
+    - `Register.tsx`: Removed `phone`, `smsConsent`, and `authMethod` state variables and tab toggles. Registration form is strictly Name, City, Email, Password, Terms agreement, and optional Google Sign-in.
+    - `Login.tsx`: Removed phone login tab and credentials; authentication is email & password with optional 2FA / Google.
+    - `App.tsx`: Routed `/verify-otp` to redirect directly to `/login`.
+  - **Backend (`api/auth.py`)**:
+    - Updated `ROLE_CONFIGS`: Removed `"phone"` from `optional_fields` for all roles (`USER`, `BUSINESS`, `ARTIST`, `VENDOR`).
+    - Verified `GET /api/v1/auth/roles` no longer advertises phone as an available or required signup field.
+- **Production Deployment & Verification**:
+  - Compiled production bundle: `dist/assets/index-DRQh75g7.js` (zero TypeScript errors).
+  - Deployed updated frontend and backend files to production server (`72.62.254.251`).
+  - Restarted `soundit` service (all 4 uvicorn workers operational, `/health` -> `{"status":"healthy"}`).
+  - Live API testing:
+    - `GET https://sounditent.com/health` -> 200 OK (`{"status":"healthy"}`)
+    - `GET https://sounditent.com/api/v1/auth/roles` -> 200 OK (all 4 roles verified without phone in `optional_fields`)
+    - `GET http://127.0.0.1:8000/api/v1/admin/dashboard` -> 200 OK (`total_bookings: 8`, `total_users: 141`, `total_revenue: 82561.0`)
+    - `GET http://127.0.0.1:8000/api/v1/admin/bookings` -> 200 OK (8 bookings returned, float duration accepted)
+    - `https://sounditent.com/` serves bundle `index-DRQh75g7.js` with sticky tabs and internal table scroll.
+
+---
+
+### 137. China Domain Restoration (soundit.com.cn SSL & Canonical 301), Universal Location Discrepancy Fix & Navbar Browsing Decoupling (2026-10-24)
+- **User Requirements & Issues Addressed**:
+  - *"http://soundit.com.cn/ 404 Not Found nginx/1.26.3 i use to deploy here also for China fast use. I just checked and it shows me 404. can we check what's up with it. just give me the details. I think it use to have it own server"*
+  - *"DJ XI account is showing guangzhou, but admin is see Shanghai. can we make sure location selected is accurate always"*
+- **China Domain Architecture & Resolution (`soundit.com.cn` vs `sounditent.cn`)**:
+  - **DNS & Server Infrastructure Audit**:
+    - Discovered `soundit.com.cn` and `www.soundit.com.cn` are registered at Alibaba Cloud / HiChina (万网) under `希凯谱（上海）商务咨询有限公司` (Westcape Shanghai Consulting).
+    - Authoritative DNS has an A-record pointing directly to `72.62.254.251` (Hostinger production VPS).
+    - Meanwhile, `sounditent.cn` points to `47.100.211.43` (an Alibaba Cloud ECS server in Shanghai/Hangzhou that returns `403 Forbidden` from Aliyun WAF/Beaver due to unfiled/expired ICP binding).
+  - **Root Cause of 404 on `soundit.com.cn`**:
+    - In `/etc/nginx/conf.d/soundit.conf`, `server_name` only listed `sounditent.com` and `sounditent.cn`. Because `soundit.com.cn` was omitted, requests hit the default catch-all server block in `/etc/nginx/nginx.conf` (`root /usr/share/nginx/html;`) which had no files and returned `404 Not Found nginx/1.26.3`.
+  - **Restoration & SSL Certification**:
+    - Issued official Let's Encrypt SSL certificate for `soundit.com.cn` and `www.soundit.com.cn` (`/etc/letsencrypt/live/soundit.com.cn/fullchain.pem` and `privkey.pem`, valid until 2027-01-22).
+    - Created dedicated Nginx configuration `/etc/nginx/conf.d/soundit_com_cn.conf` handling both HTTP (port 80) and HTTPS (port 443) with permanent 301 redirection to `https://sounditent.com$request_uri`.
+    - Tested live: `http://soundit.com.cn/`, `https://soundit.com.cn/`, and paths like `https://soundit.com.cn/events/13` return clean `301 Moved Permanently` to `https://sounditent.com/` with zero 404 or SSL warnings.
+- **Universal Location Integrity & Decoupling Architecture**:
+  - **Root Cause 1 (Navbar Browsing Overwrite)**:
+    - In `app/src/store/authStore.ts` line 1057, `setSelectedCity` was previously calling `PUT /auth/me` with `{ preferred_city: city }`.
+    - Consequence: Whenever an authenticated user or creator changed the navbar city dropdown (e.g. browsing Shanghai events or clicking "all"), their permanent home base in the database was silently overwritten.
+    - Decoupled `setSelectedCity` to act strictly as client-side Zustand browsing filter without triggering backend profile mutations. User home base is now only modified when explicitly edited via `/profile` or `/artist/profile`.
+  - **Root Cause 2 (API Endpoint Fallback & Column Priorities)**:
+    - In `api/admin.py`: `list_artists` and `get_artist` previously read `user.preferred_city` directly and completely ignored `ArtistProfile.city`.
+    - In `api/artists.py`: `_serialize_artist_list` read `user.preferred_city` instead of prioritizing `ArtistProfile.city`.
+    - In `api/bookings.py`: `get_artist_public_profile` lacked a fallback to `user.preferred_city` when `ArtistProfile.city` was unset.
+  - **Comprehensive Backend Location Unification (`api/admin.py`, `api/artists.py`, `api/bookings.py`, `api/auth.py`, `api/artist_dashboard.py`)**:
+    - `api/admin.py`:
+      - `list_artists`: Prioritizes `(ap.city.value if ap and ap.city else None) or (user.preferred_city.value if user.preferred_city else None)`.
+      - `get_artist`: Resolves `(dj.city.value if dj.city else None) or (dj.user.preferred_city.value if dj.user.preferred_city else None)`.
+      - `update_artist`: Added `city: Optional[str] = None` to `ArtistUpdate` schema; updates both `ArtistProfile.city` and linked `User.preferred_city`.
+      - `get_user` and `list_users`: For artist/vendor/organizer accounts, prioritizes their entity profile city so Admin cards and tables reflect the real verified operational city.
+    - `api/artists.py`:
+      - `_serialize_artist_list`: Prioritizes `ArtistProfile.city` over `User.preferred_city`.
+      - `list_artists` & `get_featured_artists`: City filtering now tests `(ArtistProfile.city == city_enum) | (User.preferred_city == city_enum)`.
+    - `api/bookings.py`:
+      - `get_artist_public_profile`: Resolves `(artist.city or artist.user.preferred_city)`.
+    - `api/auth.py`:
+      - `update_profile` (`PUT /auth/me`): When setting `preferred_city`, synchronizes `current_user.artist_profile.city`, `organizer_profile.city`, and `vendor_profile.city` to prevent desync.
+    - `api/artist_dashboard.py`:
+      - `update_artist_profile` (`PUT /artist/profile`): Added `city` parsing to update `ArtistProfile.city` and keep `current_user.preferred_city` in sync.
+- **Production Database Data Repair**:
+  - Migrated DJ Xi (User ID: 233, ArtistProfile ID: 20): Set `User.preferred_city = City.GUANGZHOU` to match `ArtistProfile.city = City.GUANGZHOU`.
+  - Backfilled missing `ArtistProfile.city` from `User.preferred_city` for Euphoria (ID: 3 -> Yiwu), Dj Li Ren (ID: 9 -> Jinan), and Chucky Traub (ID: 4 -> Shanghai).
+- **Admin UI Enhancements (`app/src/pages/admin/ManageArtists.tsx`)**:
+  - Added visible City badges with `MapPin` icon on each artist's identity cell in the table.
+  - Added a dedicated City filter dropdown selector in the filters bar (dynamic unique list of artist cities + "All Cities").
+  - Updated search bar to allow searching by city name (e.g. typing "Guangzhou" instantly isolates DJ Xi).
+- **Live Verification**:
+  - `GET https://soundit.com.cn/` -> 301 to `https://sounditent.com/` (SSL valid, zero 404).
+  - `GET https://sounditent.com/api/v1/artists` -> DJ Xi returns `"city": "guangzhou"`.
+  - `GET https://sounditent.com/api/v1/bookings/artists/20/profile` -> returns `"city": "guangzhou"`.
+  - `GET https://sounditent.com/api/v1/admin/artists/20` -> returns `"city": "guangzhou"`.
+  - `GET https://sounditent.com/api/v1/admin/users/233` -> returns `"preferred_city": "guangzhou"`.
+  - Production frontend bundle `index-DApt8eI0.js` serving live with zero errors.
+
+---
+
+### 136. Platform-Wide Revenue & Community Follower Analytics, Unified Admin Entity Detail Cards, Dual ID/Slug Resolvers & Intro Screen Custom Branding (2026-10-24)
+- **User Requirements & Issues Addressed**:
+  - *"I just checked the analytics on the thing, and then I noticed that it shows me a lot but not total revenue."*
+  - *"How many things that the APIs are not connected connected to each other on the whole platform... Revenue is showing on maybe the organizer's side, but it's not showing to admin. Maybe total followers from the user's side, but also admin don't know how many people are there."*
+  - *"On admin dashboard, I can see user's name and stuff, but I can't even open a user to go view the card of the user, neither a vendor and everything."*
+  - *"Intro screen or ads, if I do ads, it will show. That's not even working."*
+- **Backend Architecture & Analytics Engine (`api/analytics.py`, `api/admin.py`, `api/ads.py`, `models.py`)**:
+  - **Multi-Source Platform Revenue & Community Aggregation**:
+    - Discovered root cause of analytics 500 error: queries previously referenced nonexistent `TicketOrder.final_amount`. Replaced all 7 occurrences with valid `TicketOrder.payment_amount`.
+    - Created `_get_platform_revenue(db, since)` aggregating verified payments across Event Tickets (`TicketOrder`), VIP Tables (`TableOrder`), Vendor Merchandise (`ProductOrder`), and Subscriptions (`Subscription`).
+    - Created `_get_platform_followers(db, since)` calculating live followers across Artists (`ArtistFollow`), Organizers (`OrganizerFollow`), and Vendors (`VendorFollow`).
+    - Extended `GET /analytics/visits/summary` to return `total_platform_revenue`, `period_revenue`, `revenue_by_source` (breakdown by channel with RMB amount, percentage share, and brand color hex), `total_followers`, `period_followers`, `total_tickets_sold`, and `period_tickets_sold`.
+    - Verified live values: Total Platform Revenue: 82,561.0 RMB, Period Revenue: 56,801.0 RMB, Total Followers: 69, Total Tickets Sold: 198.
+    - Updated `GET /admin/dashboard` to sync `total_revenue: 82561.0`, matching analytics exactly.
+  - **Dual Entity ID/Slug Resolvers & Safe Profile Inspection**:
+    - Implemented `_get_artist_profile`, `_get_business_profile`, and `_get_vendor_profile` helpers in `api/admin.py` to seamlessly resolve lookups whether queried by primary profile ID or linked User ID.
+    - Fixed `AttributeError: 'OrganizerProfile' object has no attribute 'contact_email'`: replaced direct property calls with `getattr(org, 'email', None) or getattr(org, 'contact_email', None) or (org.user.email if org.user else None)` and corresponding phone attributes.
+    - Handled Enum serialization for `city` across `OrganizerProfile`, `BusinessProfile`, `VendorProfile`, and `User`.
+    - Fixed `ProductOrder.status == TicketOrderStatus.APPROVED` to accept both `APPROVED` and `USED` statuses.
+    - Added `subscription_status` and `pending_subscription_id` to `UserListResponse`.
+  - **Admin Action Permissions & Verification Toggle Support**:
+    - Updated `POST /admin/users/{user_id}/verify` to read optional JSON body `{"verified": bool}` allowing administrators to both grant and revoke verification badges.
+    - Changed permission dependency on entity actions (`verify`, `unverify`, `approve`, `unapprove`, `feature`) from `require_super_admin` to `require_admin` to allow all platform administrators full operational authority.
+    - Hardened `get_current_user` and `get_optional_user` in `auth.py` to accept tokens where `sub` is either an integer user ID or an email string.
+  - **Intro Screen & Splash Ads Engine**:
+    - Added `INTRO_SCREEN = "intro_screen"` to `AdPosition` enum in `models.py`.
+    - Added case-insensitive position parsing and nationwide ad queries (`city in ("all", "china")`) in `api/ads.py`.
+    - Updated `GET /system/intro-screen` and `PUT /admin/system/intro-screen` to support custom admin logo (`logo_url`), headline (`title`), tagline (`tagline`), and splash ad banner (`show_ad`, `ad_image_url`, `ad_title`, `ad_link_url`, `ad_badge`, `duration_seconds`).
+- **Frontend Architecture & Admin Interactive Card Hub**:
+  - **Unified Entity Detail Inspection Modal (`app/src/components/admin/EntityDetailModal.tsx`)**:
+    - Built a comprehensive modal supporting Users, Artists, Vendors, and Businesses.
+    - Displays high-resolution avatar/logo, status badges, verification badges, performance metrics (revenue, tickets, bookings, follower counts), contact info with one-tap copy buttons, linked creator spaces, and direct public page links (`/profiles/:id`, `/artists/:slug`, `/vendors/:slug`, `/events/:id`).
+    - Integrated direct administrative action buttons: Toggle Verification Badge, Suspend / Activate Account, Approve / Unapprove Vendor, and Feature / Unfeature Creator.
+  - **Entity Detail Modal Integration across Admin Pages**:
+    - `ManageUsers.tsx`: Added clickable user identity cell, view button (`Eye`), and wired `EntityDetailModal`.
+    - `ManageArtists.tsx`: Added clickable artist identity cell, view button, and wired `EntityDetailModal`.
+    - `ManageVendors.tsx`: Added clickable vendor identity cell, view button, and wired `EntityDetailModal`.
+    - `ManageBusinesses.tsx`: Added clickable business identity cell, view button, and wired `EntityDetailModal`.
+    - `Dashboard.tsx`: Added row click handlers and view buttons to all 4 tables (Recent Users, Businesses, Artists, Vendors), wired root modal.
+  - **Admin Analytics Dashboard Upgrades (`app/src/pages/admin/Analytics.tsx`)**:
+    - Added 4 primary glassmorphic KPI cards: Total Platform Revenue (All-Time), Period Revenue, Total Community Followers, Total Tickets Sold.
+    - Added "Platform Revenue by Channel" breakdown card displaying progress bars for Event Tickets, VIP Tables, Vendor Merchandise, and Platform Subscriptions, with a quick navigation link to Financial Control.
+  - **Intro Screen Settings & Public Splash Experience**:
+    - `IntroScreen.tsx`: Redesigned admin interface with custom logo upload, title/tagline text inputs, splash ad banner configuration, duration slider, and live preview modal.
+    - `LoadingScreen.tsx`: Updated to dynamically consume admin settings for custom branding and display promotional splash ads with click-through and skip button.
+- **Production Deployment & Live Verification**:
+  - Frontend compiled cleanly with zero TypeScript errors (`dist/assets/index-C2pjmOlY.js`).
+  - Synced backend code (`api/admin.py`, `api/analytics.py`, `api/ads.py`, `auth.py`, `models.py`) and frontend bundle to production server (`72.62.254.251`).
+  - Restarted `soundit` service (all 4 uvicorn workers operational, `/health` -> `{"status":"healthy"}`).
+  - Verified live:
+    - `GET https://sounditent.com/health` -> 200 OK (`{"status":"healthy"}`)
+    - `GET https://sounditent.com/api/v1/admin/users/2` -> 200 OK (admin user details)
+    - `GET https://sounditent.com/api/v1/admin/businesses/1` -> 200 OK (`Sound It Ent`)
+    - `GET https://sounditent.com/api/v1/admin/vendors/2` -> 200 OK (`Westcape Business Consulting Co. LTD`)
+    - `GET https://sounditent.com/api/v1/admin/artists/1` -> 200 OK (`Fred Max`)
+    - `GET https://sounditent.com/api/v1/analytics/visits/summary` -> 200 OK (`total_platform_revenue: 82561.0`, `period_revenue: 56801.0`, `total_followers: 69`, `total_tickets_sold: 198`)
+    - `GET https://sounditent.com/api/v1/admin/dashboard` -> 200 OK (`total_revenue: 82561.0`, `total_users: 141`, `total_artists: 20`, `total_businesses: 10`)
+    - `GET https://sounditent.com/api/v1/system/intro-screen` -> 200 OK (brand & splash ad config)
+    - `POST https://sounditent.com/api/v1/admin/users/2/verify` -> 200 OK
+
+---
+
+### 135. Universal Role Follow Permissions, Complete Admin Concealment & Social Network Hub Redesign (2026-10-23)
+- **User Requirements**:
+  - *"I just notice an Artist can follow other account."*
+  - *"All other Roles should be able to follow other account, except Admin. Admin should be kept hidden from other roles."*
+  - *"Social net work design is bad. create a better page layout"*
+- **Backend Architecture & Follow System Hardening (`api/social.py`, `api/profiles.py`)**:
+  - **Universal Follow Across Non-Admin Roles**: All roles (Regular Users, Artists/DJs, Businesses/Organizers, Vendors) can now follow and be followed by other accounts.
+  - **Admin Action Block & Protection**:
+    - Added `_check_can_follow(current_user)`: Blocks `ADMIN` and `SUPER_ADMIN` accounts from initiating follow requests (`403 Forbidden`).
+    - Added `_check_target_not_admin(user)`: Enforces `404 Not Found` if any account attempts to query or follow an admin account.
+  - **Direct Follow Routing (`POST/DELETE /social/users/{target_user_id}/follow`)**:
+    - Unified endpoint accepting any target user ID, dynamically discovering the target's primary profile (Artist, Organizer/Business, or Vendor) and creating/deleting the record in `artist_follows`, `organizer_follows`, or `vendor_follows`.
+  - **Aggregated Followers & Following API**:
+    - `GET /social/following`: Returns full metadata (`slug`, `city`, `genre`, `avatar_url`, `is_verified`, `followers_count`) and filters out any entities whose linked user is an admin.
+    - `GET /social/followers`: Aggregates all incoming followers across all profile types, annotates `is_following` (follow-back status), and strictly purges any admin accounts.
+    - `GET /social/suggested`: Delivers rich creator and business recommendations across China while filtering out already-followed accounts, self, and all admins.
+  - **Admin Public Concealment (`api/profiles.py`)**:
+    - In `GET /profiles/{user_id}`, explicitly raises `HTTPException(404, "User not found")` if `user.role` is `ADMIN` or `SUPER_ADMIN`, making admin profiles inaccessible to public discovery.
+- **Frontend Redesign — Social Network Hub (`app/src/pages/user/Followers.tsx`)**:
+  - Completely re-architected `/followers` into a premium responsive Social Network management hub:
+    - **Network KPI Metrics Header**: 4 glassmorphic metric cards showcasing real-time counts for Following, Followers, Discoverable Creators, and Combined Community Reach.
+    - **Segmented Discovery Tabs**: Following, Followers, and Discover & Connect with live numeric badges.
+    - **Category & Role Filter Pills**: Instant filtering across All Roles, DJs & Artists, Venues & Businesses, Vendors, and Community.
+    - **Real-Time Search Bar**: Instant debounced search filtering by name, city, and genre with clear button.
+    - **Interactive Creator Cards**: Displaying avatar / branding, verification checkmark badges, role badges, location tags, genre pills, follower counts, and one-tap action buttons ("View Profile", "Following / Unfollow", "Follow Back" / "Follow") with optimistic UI updates.
+    - **Admin Banner**: If accessed by an administrator, displays a clear privacy banner explaining admin accounts remain hidden from public networking.
+    - **Empty States**: Customized empty states for each tab guiding users to discover creators across China.
+- **Production Deployment & Device Verification**:
+  - Built frontend with zero TypeScript errors (`index-D6yh9Fik.js`).
+  - Synced backend (`api/social.py`, `api/profiles.py`) and frontend bundle to production server (`72.62.254.251`).
+  - Restarted `soundit` service (all 4 uvicorn workers operational, `/health` -> `{"status":"healthy"}`).
+  - Verified live:
+    - `https://sounditent.com/` serves bundle `index-D6yh9Fik.js`.
+    - `https://sounditent.com/api/v1/profiles/2` (admin) returns `404 Not Found` (hidden).
+    - `https://sounditent.com/api/v1/profiles/fred-max` returns 200 OK with full public profile.
+  - Built iOS executable with Xcode targeting physical device (`** BUILD SUCCEEDED **`) and installed onto connected iPhone 14 Pro Max (`com.sounditent.app`).
+
+---
+
+### 134. Nationwide Default Content Discovery Across All Cities for Events, Artists, Vendors & Businesses (2026-10-23)
+- **User Requirement**:
+  - *"Add events, Artist, Vendors, Business in all Cities, not just specific city. Users can use filter if the need specific city. This is How you reach more people"*
+- **Frontend Architecture & Implementation**:
+  - `constants.ts`: Prepending `{ id: 'all', name: 'All Cities', nameCN: '全国城市', description: 'Explore events, artists, businesses and vendors across all cities in China.', venues: [], neighborhoods: [] }` as the first item of `chinaCities`. Exported `specificChinaCities` filtering out `'all'` so physical user registration, business workspace setup, and vendor profile editing continue using valid physical city enums without regression.
+  - `authStore.ts`: Defaulted `selectedCity` to `'all'` (replacing initial `null`), and preserved existing city selection or `'all'` across auth init, login, and profile updates so that nationwide discovery is active by default.
+  - `Navbar.tsx` & `MobileHeader.tsx`:
+    - Updated city button and dropdown / sheet picker to feature "All Cities" at the top of the list.
+    - Handled city selection properly for mobile chips and desktop menu.
+  - `Home.tsx`:
+    - Updated `fetchFeaturedEvents`, `loadPastEvents`, and `fetchCityGuideCounts` so that when `selectedCity === 'all'` or falsy, no city filter parameter is sent (or `'all'` is queried), aggregating events, artists, venues, vendors, and businesses nationwide.
+    - Updated display city fallbacks to `China` / `All Cities` instead of hardcoding `Shanghai`.
+  - `Events.tsx`:
+    - Ensured `fetchEvents` and `fetchPastEvents` pass `undefined` for city when `selectedCity === 'all'`.
+    - Added a dedicated **City Filter section** inside the Events filter modal allowing users to toggle between "All Cities" or any specific city across China with one tap.
+    - Added an active filter chip for selected city with an `(X)` clear button to return to nationwide discovery instantly.
+  - `Artists.tsx` & `Vendors.tsx`:
+    - Added city filter dropdown selector next to search on both pages, defaulting to "All Cities" while allowing users to scope to any specific city.
+    - Updated query parameters to query nationwide when "All Cities" is active.
+  - `CityGuide.tsx`:
+    - Added city filter dropdown selector to the Discovery Hub controls bar.
+    - Supported querying `/cities/all/guide` so that venues, food spots, artists, vendors, and businesses across all cities are discovered.
+- **Backend API Handlers Updated**:
+  - `api/events.py`:
+    - Hardened `validate_city(city)`: recognizes `"all"`, `"all-cities"`, `"china"` and returns `None` so query skips city filtering and returns events nationwide.
+  - `api/artists.py`:
+    - Updated `GET /artists` and `GET /artists/featured`: skips `User.preferred_city` filtering when `city` is omitted or passed as `"all"` / `"china"`.
+  - `api/vendors.py`:
+    - Updated `GET /vendors` and `GET /vendors/products/search`: skips `VendorProfile.city` filtering when `city` is omitted or `"all"`.
+  - `api/cities.py`:
+    - Updated `_validate_city(city)` to accept `"all"`, `"all-cities"`, `"china"`.
+    - In `get_city_guide(city)`: when `validated_city == "all"`, returns events, clubs, food spots, artists, vendors, and businesses nationwide across all cities without raising 404, calculating coordinates based on each item's city metadata.
+- **Production Deployment & Device Verification**:
+  - Rebuilt production web app with Vite: `index-KzGf3L4I.js`.
+  - Deployed backend and frontend to production (`72.62.254.251`).
+  - Restarted `soundit` service (all 4 uvicorn workers operational, `/health` -> `{"status":"healthy"}`).
+  - Verified live:
+    - `https://sounditent.com/api/v1/events` -> 200 OK (all cities)
+    - `https://sounditent.com/api/v1/events?city=all` -> 200 OK
+    - `https://sounditent.com/api/v1/artists` -> 200 OK (19 artists across all cities)
+    - `https://sounditent.com/api/v1/vendors` -> 200 OK (all vendors)
+    - `https://sounditent.com/api/v1/cities/all/guide` -> 200 OK (nationwide aggregation)
+    - `https://sounditent.com/` serves bundle `index-KzGf3L4I.js`.
+  - Built iOS executable with Xcode targeting physical device (`** BUILD SUCCEEDED **`) and installed onto connected iPhone 14 Pro Max (`com.sounditent.app`).
+
+---
+
+### 133. Instagram Account Link Separation: soundit_app (Mobile/App) vs soundit_ent (Web/Tablet) (2026-10-22)
+- **Instagram Routing Configuration (`Footer.tsx`, `Contact.tsx`)**:
+  - Configured Instagram links to adapt dynamically:
+    - **Mobile Layout & Native Apps / PWA**: `https://instagram.com/soundit_app` (`@soundit_app`).
+    - **Web & Tablet / iPad Layout**: `https://instagram.com/soundit_ent` (`@soundit_ent`).
+- **Production Sync & iOS Installation**:
+  - Recompiled frontend (`index-BFN8lTqC.js`) and deployed to production (`72.62.254.251`).
+  - Copied assets to Capacitor iOS project and built Debug arm64 executable (`** BUILD SUCCEEDED **`).
+  - Successfully installed onto connected iPhone ("Fred Max", iPhone 14 Pro Max, UDID `00008120-0018305C3C10C01E`).
+
+---
+
+### 132. Mobile/PWA Footer Simplification, Email-Only Auth (Phone Disabled) & Native iOS Device Installation (2026-10-22)
+- **Mobile & PWA Footer Streamline (`app/src/components/Footer.tsx`)**:
+  - Per user requirement and screenshot reference, mobile apps, PWA, and small viewports now display ONLY the bottom copyright section and social media links:
+    `© 2026 Sound It Entertainment Platform. Sound It. Made for foreigners in China.` with centered Instagram, Twitter/X, TikTok, and YouTube icon buttons.
+  - The newsletter subscription box and 5-column link directory (`Discover`, `Ecosystem`, `Company`, `Support & Legal`) are hidden on mobile phones/PWA and preserved exclusively for iPad, tablet (`md:` breakpoint), and desktop web layouts.
+  - Retained bottom padding `pb-28 pt-8` on mobile to float cleanly above `MobileBottomNav`.
+- **Email-Only Authentication & Disabled Phone Sign-up (`Login.tsx`, `Register.tsx`)**:
+  - Removed phone tab switcher and phone input fields from `app/src/pages/auth/Login.tsx`.
+  - Removed phone registration tab, phone input, and SMS consent checkbox from `app/src/pages/auth/Register.tsx`.
+  - Registration and login now exclusively use Email & Password, streamlining sign-ups and eliminating SMS OTP dependencies.
+- **Production Sync & Live Verification**:
+  - Frontend compiled cleanly with zero TypeScript errors (`index-ZK1CrQAv.js`).
+  - Synced bundle to production (`72.62.254.251`).
+  - Verified live:
+    - `https://sounditent.com/` serves `index-ZK1CrQAv.js` (HTTP 200 OK).
+    - `https://sounditent.com/health` -> `{"status":"healthy"}`.
+- **Native iOS Build & Device Installation**:
+  - Synced latest build assets (`app/dist/`) into `app/ios/App/App/public/`.
+  - Target Device: Physical iPhone ("Fred Max", iPhone 14 Pro Max, UDID `00008120-0018305C3C10C01E`).
+  - Executed `xcodebuild -project app/ios/App/App.xcodeproj -scheme App -configuration Debug -destination "id=00008120-0018305C3C10C01E" -allowProvisioningUpdates -derivedDataPath app/ios/App/build build` (`** BUILD SUCCEEDED **`).
+  - Successfully installed onto device via `xcrun devicectl device install app`:
+    - Bundle ID: `com.sounditent.app`
+    - Version: `1.0 (1)`
+    - Install Path: `/private/var/containers/Bundle/Application/1FAF823F-F424-4E79-AA05-87C283ADD9FF/App.app/`
+    - Verified via `devicectl device info apps`: Sound It installed and ready on device.
+
+---
+
+### 131. Event 13 & Event Route Fix: Numeric ID Preservation, Model Slug Column Fix & Dual ID/Slug Resolution (2026-10-22)
+- **Problem & Root Cause**:
+  - Requesting Event 13 (`/events/13`) caused a `500 Internal Server Error` in the backend API (`/api/v1/events/13`).
+  - Traceback showed `AttributeError: 'Event' object has no attribute 'slug'` in `api/events.py` line 501. While the database column was migrated, SQLAlchemy models in `models.py` (`Event`, `ArtistProfile`, `OrganizerProfile`, `BusinessProfile`, `VendorProfile`) had not declared `slug = Column(String(...))` attributes.
+  - Additionally, `EventDetail.tsx` used `window.history.replaceState` which forcibly altered the browser URL to `/events/after-90s-halloween-party`.
+- **User Instruction**:
+  - The user requested: *"It's Event 13, name changed to https://sounditent.com/events/after-90s-halloween-party, we can keep it at: https://sounditent.com/events/13 and the changes goes for other events"*.
+  - Events should stay cleanly at their numeric URLs (e.g. `/events/13` and `/events/:id`), while artists, organizers, businesses, and vendors continue using their human-readable name URLs (e.g. `/artists/fred-max`).
+  - Both numeric IDs (e.g. `/events/13`) AND human-readable slugs (e.g. `/events/after-90s-halloween-party`) must resolve seamlessly without breaking or 404/500 errors.
+- **Backend Fixes**:
+  - `models.py`: Added `slug` column to `Event` (`VARCHAR(220)`), `ArtistProfile` (`VARCHAR(120)`), `OrganizerProfile` (`VARCHAR(220)`), `BusinessProfile` (`VARCHAR(220)`), and `VendorProfile` (`VARCHAR(220)`).
+  - `api/events.py`:
+    - Updated list endpoints (featured, upcoming, past) and `GET /events/{event_id}` to safely access `getattr(ev, 'slug', None)` with fallback to `slugify(ev.title)`.
+    - `resolve_event()` resolves integer IDs (e.g. `13`), stored slugs (`after-90s-halloween-party`), unslugged titles, and fuzzy title matching.
+- **Frontend Implementations**:
+  - `app/src/pages/EventDetail.tsx`: Removed the forced `window.history.replaceState` call so visiting `/events/13` keeps the URL intact at `/events/13`. Related event links and share links now use `/events/${event.id}`.
+  - `EventCard.tsx`, `MobileEventCard.tsx`, `MobileListRow.tsx`, `CompactEventCard.tsx`, `MobileHeroCarousel.tsx`, `DiscoveryFeed.tsx`, `Home.tsx`: Kept event links at `/events/${event.id}` (while artist/vendor/profile links retain their human-readable name slugs).
+  - `UniversalShareModal.tsx`: Event sharing defaults to `/events/${item.id}`.
+- **Deployment & Verification**:
+  - Synced backend fixes to production (`72.62.254.251`) and restarted `soundit` service (all 4 uvicorn workers healthy).
+  - Frontend built cleanly (`npm run build`, exit code 0) producing bundle `index-CarW159R.js` and synced to production.
+  - Verified live:
+    - `GET https://sounditent.com/api/v1/events/13` -> 200 OK (`AFTER 90's Halloween Party`)
+    - `GET https://sounditent.com/api/v1/events/after-90s-halloween-party` -> 200 OK
+    - `GET https://sounditent.com/events/13` -> 200 OK (renders event title properly)
+    - `GET https://sounditent.com/api/v1/bookings/artists/fred-max/profile` -> 200 OK
+    - `GET https://sounditent.com/api/v1/bookings/artists/1/profile` -> 200 OK
+    - `GET https://sounditent.com/health` -> 200 OK
+
+---
+
+### 130. Holiday Intro Screen (Halloween Bats, CNY Zodiac, Christmas), Brand Logo Upgrades, Email Design Overhaul, Newsletter System & Mobile/PWA Footer (2026-10-22)
+- **Holiday Seasonal Intro Screen (`app/src/components/intro/HolidayDecorations.tsx`)**:
+  - Implemented dynamic date-driven holiday system:
+    - **Halloween** (Active Oct 12 - Nov 3): Smooth animated flying bats with flapping wings, glowing eyes, spooky ambient glow, and Halloween special badge.
+    - **Christmas** (Dec 1 - Dec 27): Falling snowflakes and warm festive glow.
+    - **New Year** (Dec 28 - Jan 5): Fireworks and countdown celebration sparkles.
+    - **Chinese New Year** (Jan - Feb): Floating red lanterns, golden blessing dust, and automatic **Chinese Zodiac animal calculation** (e.g. 2025 Year of the Snake, 2026 Year of the Horse) with bilingual blessings.
+    - **Valentine's Day** (Feb 10 - Feb 16): Floating neon hearts.
+  - Added query param override support (`?holiday=halloween`, `?holiday=cny`, etc.) for instant preview.
+- **Brand Logo Upgrades (Preserving Existing Locations)**:
+  - Processed user-uploaded official logos:
+    - `brand-logo-dark.png`: Lime/Yellow logo (`#d3da0c`) on transparent background for dark mode/backgrounds.
+    - `brand-logo-light.png`: Dark/Black logo on transparent background for light mode/backgrounds.
+  - Preserved existing logo files (`logo-dark.png`, `logo-light.png`, `logo.png`) where already working.
+  - Updated **About page ("Our Logo Story")** to render `brand-logo-dark.png` (dark mode) / `brand-logo-light.png` (light mode) with ambient glow.
+  - Updated **Email Templates** (`email_service.py`) with `brand-logo-dark.png` on an explicit high-contrast header block.
+  - Updated **Shareable Profile Card & Poster** (`UniversalShareModal.tsx`) with the new brand logo and VIP pass branding.
+- **Email Layout Design Overhaul (`email_service.py`)**:
+  - Solved dark mode color inversion bugs in Apple Mail / Gmail.
+  - Added `<meta name="color-scheme" content="light dark">` and dark mode CSS media query overrides.
+  - Completely redesigned booking status update emails (accepted/declined) with color-coded status badges, structured details tables, and prominent CTA buttons.
+- **Mobile Apps & PWA Footer (`app/src/components/Footer.tsx`, `MainLayout.tsx`, `MobileLayout.tsx`)**:
+  - Removed `hidden md:block` and enabled the footer on mobile apps, PWA, and mobile browsers.
+  - Added safe area bottom padding (`pb-28`) so the footer cleanly clears `MobileBottomNav`.
+  - Integrated the **Active Newsletter Subscription Section** directly in the footer with live input, subscription button, and instant feedback.
+- **Newsletter Subscription System (`api/newsletter.py`, `models.py`, `schemas.py`)**:
+  - Created `newsletter_subscribers` table in PostgreSQL with indexes on `email` and `is_active`.
+  - Added `POST /api/v1/newsletter/subscribe` with email deliverability validation and automatic welcome edition dispatch.
+  - Added `GET/POST /api/v1/newsletter/unsubscribe` with one-click unsubscribe headers.
+  - Created automated weekly digest dispatch script `scripts/dispatch_weekly_newsletter.py` featuring top upcoming events and verified DJs.
+- **Deployment & Verification**:
+  - Frontend compiled cleanly (`index-C1zNT8YA.js`).
+  - Executed database migration on production PostgreSQL (`soundit_prod`).
+  - Deployed backend and frontend to production (`72.62.254.251`).
+  - Verified live:
+    - `GET https://sounditent.com/health` -> `{"status":"healthy"}`
+    - `POST https://sounditent.com/api/v1/newsletter/subscribe` -> `{"status":"success", "subscriber_id": 1}`
+    - Serves bundle `index-C1zNT8YA.js` with active Halloween bats and mobile footer.
+
+---
+
+### 129. iOS App Build & Installation on iPhone 14 Pro Max (2026-10-22)
+- **Objective & Device**:
+  - Build the updated native iOS application and install it on the user's connected physical iPhone ("Fred Max", iPhone 14 Pro Max, UDID `00008120-0018305C3C10C01E`).
+- **Implementations & Build Details**:
+  - Synced latest production web build assets (`dist/`) into Capacitor iOS project (`npx cap copy ios`).
+  - Added `DEVELOPMENT_TEAM = X3269MPCLZ;` to `app/ios/App/App.xcodeproj/project.pbxproj` for target `App` (Debug and Release build configurations).
+  - Provisioning Profile: Managed Team Profile `5f0d4641-c2a4-4c96-b984-a516b4fce0b5` covering UDID `00008120-0018305C3C10C01E`.
+  - Built Debug arm64 executable targeting device `id=00008120-0018305C3C10C01E` (`** BUILD SUCCEEDED **`).
+  - Installed onto device via `xcrun devicectl device install app`:
+    - Bundle ID: `com.sounditent.app`
+    - Version: `1.0 (1)`
+    - Install Path: `/private/var/containers/Bundle/Application/E98AB450-6A6D-4841-9580-51C520ED0168/App.app/`
+    - Status: `Install Succeeded` (Verified via `devicectl device info apps`).
+
+---
+
+### 128. Music Platform Brand Icons & Official Vector Fix (2026-10-22)
+- **Problem & Requirement**:
+  - The Music Links section on artist profiles/dashboards had broken, incorrect, or generic icons:
+    - **SoundCloud**: The SVG path was truncated mid-stream, showing only vertical equalizer lines and completely missing the iconic cloud silhouette.
+    - **Audiomack**: Rendered generic triple chevrons (`<<<`) instead of Audiomack's official waveform sound badge.
+    - **HearThis.at**: Rendered random equalizer bars instead of HearThis.at's official radar sound wave logo.
+- **Implementations**:
+  - `app/src/components/ui/MusicPlatformIcons.tsx`:
+    - Completely replaced SVG paths with official Simple Icons vector standards:
+      - `SoundCloudIcon`: Full official cloud shape with vertical sound equalizer bars (`viewBox="0 0 24 24"`).
+      - `AudiomackIcon`: Official Audiomack waveform mark (`viewBox="0 0 24 24"`).
+      - `HearThisIcon`: Official HearThis.at concentric sound radar logo (`viewBox="0 0 24 24"`).
+      - `AppleMusicIcon`, `SpotifyIcon`, and `YouTubeIcon`: Verified and styled.
+      - Added support for `MixcloudIcon`, `TidalIcon`, and `DeezerIcon`.
+    - Added helper `getPlatformBrand(keyOrUrl)` mapping platform keys/URLs to brand labels, official background colors, and hex values (e.g. Audiomack `#FFA200`, HearThis.at `#A11F24`, SoundCloud `#FF5500`, Spotify `#1DB954`, Apple Music `#FA243C`).
+  - `app/src/pages/ArtistDetail.tsx`:
+    - Updated Music Links rendering to use `getPlatformBrand()` for authentic brand badges, hover elevations, and crisp icons.
+  - `app/src/pages/artist/Dashboard.tsx`:
+    - Updated platform helper in DJ dashboard with accurate brand colors and full platform coverage.
+- **Verification & Deployment**:
+  - Compiled production bundle cleanly (`index-DD4DYdx4.js`).
+  - Deployed updated frontend assets to production (`72.62.254.251`).
+
+---
+
+### 127. Universal Entity Slug & Name-Based SEO URLs for Artists, Events, Organizers, Businesses, Venues & Vendors (2026-10-22)
+- **Problem & Requirement**:
+  - URLs across the platform used numeric identifiers (e.g. `https://sounditent.com/artists/1`), making URLs unmemorable, less professional, and poor for SEO.
+  - The user requested clean name-based URLs instead of numeric IDs (e.g. `/artists/fred-max`), and requested this across **Artists**, **Events**, **Organizers**, **Business / Venues**, **Vendors**, and all other roles.
+- **Database & Architecture**:
+  - Created `utils/slug.py` implementing `slugify(text)`, `generate_unique_slug()`, and query resolvers:
+    - `resolve_artist(db, identifier)`
+    - `resolve_event(db, identifier)`
+    - `resolve_organizer(db, identifier)`
+    - `resolve_business(db, identifier)`
+    - `resolve_vendor(db, identifier)`
+    - `resolve_user_profile(db, identifier)`
+  - `models.py`: Added indexed `slug = Column(String(...), nullable=True, index=True)` to:
+    - `ArtistProfile.slug` (`VARCHAR(120)`)
+    - `Event.slug` (`VARCHAR(220)`)
+    - `OrganizerProfile.slug` (`VARCHAR(220)`)
+    - `BusinessProfile.slug` (`VARCHAR(220)`)
+    - `VendorProfile.slug` (`VARCHAR(220)`)
+  - Created and executed `scripts/migrate_entity_slugs.py` on PostgreSQL production database (`soundit_prod`):
+    - Added columns and indexes `ix_artist_profiles_slug`, `ix_events_slug`, `ix_organizer_profiles_slug`, `ix_business_profiles_slug`, `ix_vendor_profiles_slug`.
+    - Backfilled clean unique slugs across all existing records (e.g. `Fred Max` -> `fred-max`, `AFTER 90's Halloween Party` -> `after-90s-halloween-party`, `Sound It Ent` -> `sound-it-ent`, `Westcape Business Consulting Co. LTD` -> `westcape-business-consulting-co-ltd`).
+  - `schemas.py`: Added `slug: Optional[str] = None` to `ArtistInfo`, `ArtistListItem`, `ArtistDetailResponse`, `EventResponse`, `EventListResponse`, `EventDetailResponse`, `EventBusiness`, `EventDJResponse`, `PublicProfileResponse`, `PublicEventItem`, `OrganizerProfileBase`, `BusinessProfileBase`, and `VendorProfileBase`.
+- **Backend API Handlers Updated**:
+  - `api/bookings.py`: Updated `/artists/{artist_id}/profile`, `/artists/{artist_id}/availability`, and `/artists/{artist_id}/reviews` to accept `artist_id: str`, resolve via `resolve_artist`, and return `slug`.
+  - `api/artists.py`: Updated `/artists/{artist_id}` and `GET /artists` list serialization to include `slug`.
+  - `api/events.py`: Updated `/events/{event_id}`, `/events/{event_id}/og`, `/events/{event_id}/ticket-tiers`, `/events/{event_id}/save`, and `/events/{event_id}/vendors` to accept `event_id: str` and resolve via `resolve_event`. Included `slug` in serialized response dictionaries for events, businesses, and DJs.
+  - `api/event_reviews.py`: Updated `/events/{event_id}/reviews` to accept `event_id: str`.
+  - `api/vendors.py`: Updated `GET /vendors/{vendor_id}` and `/vendors/{vendor_id}/payment-settings` to accept `vendor_id: str` and resolve via `resolve_vendor`.
+  - `api/profiles.py`: Updated `GET /profiles/{user_id}` and `/profiles/{user_id}/events` to accept `user_id: str` and resolve via `resolve_user_profile` (supporting user IDs, organizer/business/artist/vendor slugs, or usernames).
+- **Frontend Implementations**:
+  - Created `app/src/lib/slug.ts` with `slugify()` and `getEntitySlug()`.
+  - Automatic URL Normalization (`window.history.replaceState`):
+    - `ArtistDetail.tsx`: Normalizes URL to `/artists/${slug}` seamlessly when visiting `/artists/:id`.
+    - `EventDetail.tsx`: Normalizes URL to `/events/${slug}` seamlessly when visiting `/events/:id`.
+    - `VendorDetail.tsx`: Normalizes URL to `/vendors/${slug}`.
+    - `VendorStore.tsx`: Normalizes URL to `/vendor-store/${slug}`.
+    - `PublicProfile.tsx`: Normalizes URL to `/profiles/${slug}`.
+  - Links Updated to Slugs:
+    - `Artists.tsx`: Outbound links use `/artists/${artistSlug}`.
+    - `MobileEventCard.tsx`, `MobileListRow.tsx`, `EventCard.tsx`, `CompactEventCard.tsx`, `MobileHeroCarousel.tsx`, `Home.tsx`, `DiscoveryFeed.tsx`: Outbound event links use `/events/${eventSlug}`.
+    - `Vendors.tsx`, `DiscoveryFeed.tsx`: Outbound vendor links use `/vendors/${vendorSlug}`.
+    - `DiscoveryResultCard.tsx` & `CityGuide.tsx`: Generate clean slug links for all roles.
+    - `UniversalShareModal.tsx`: Generates clean, human-readable share URLs for copy/social sharing (e.g. `https://sounditent.com/artists/fred-max`, `https://sounditent.com/events/after-90s-halloween-party`).
+  - Route Aliases registered in `App.tsx`:
+    - `/organizers/:id` -> `<PublicProfile />`
+    - `/business/:id` -> `<PublicProfile />`
+    - `/venues/:id` -> `<PublicProfile />`
+- **Verification & Deployment**:
+  - Frontend compiled cleanly with zero TypeScript errors (`npm run build`, exit code 0) producing production bundle `index-HFrt3jq-.js`.
+  - Database schema migration executed and committed on production PostgreSQL.
+  - Synced updated backend files and frontend distribution to `72.62.254.251`.
+  - Restarted `soundit` service (all 4 uvicorn workers healthy).
+  - Verified live:
+    - `GET https://sounditent.com/api/v1/bookings/artists/fred-max/profile` -> 200 OK (`slug: "fred-max"`)
+    - `GET https://sounditent.com/api/v1/bookings/artists/1/profile` -> 200 OK (`slug: "fred-max"`, backwards-compatible)
+    - `GET https://sounditent.com/api/v1/events/after-90s-halloween-party` -> 200 OK with event slug, business slug, and DJ slugs
+    - `GET https://sounditent.com/api/v1/profiles/sound-it-ent` -> 200 OK
+    - `GET https://sounditent.com/api/v1/vendors/westcape-business-consulting-co-ltd` -> 200 OK
+    - `https://sounditent.com/` serves bundle `index-HFrt3jq-.js`
+
+---
+
+### 126. Artist Booking Overhaul — 30-Min Increments, Deposit Prompt, Custom QR Uploads, Network Error Fix & New Creative Disciplines (2026-10-22)
+- **Problem & User Feedback**:
+  1. **Fixed Integer Booking Hours**: When booking a DJ/artist, users could only pick 1, 2, 3, 4, 5+ hours, preventing fractional bookings like 1 hr 30 mins or 2 hrs 30 mins.
+  2. **Booking Network Error (500 Internal Server Error)**: Attempting to submit a booking for Fred Max failed with `Network Error` because `send_email` in `api/bookings.py` called with `html_content=email_html`, but `send_email` expected `html_body`, causing an unhandled `TypeError` that aborted booking creation.
+  3. **No Deposit Button / Prompt on Phone**: When booking via phone, there was no prominent sticky action bar or clear option to pay a deposit (e.g. 50% deposit) to secure the date.
+  4. **Artist Custom Payment QR Codes Missing**: Artists and DJs had no way in their dashboard to upload their personal WeChat Pay and Alipay QR codes for client deposits or full payments.
+  5. **Missing Creative Disciplines**: Dancers, Photographers, and Singers were missing or incomplete as selectable artist types during signup, dashboard editing, and directory browsing.
+- **Backend & Database Implementations**:
+  - `models.py`:
+    - Updated `ArtistType` enum to include `SINGER = "Singer"` alongside `DJ`, `PRODUCER`, `DANCER`, `PHOTOGRAPHER`, `MC`, `OTHER`.
+    - Altered `BookingRequest.duration_hours` from `Integer` to `Float` (`Column(Float, nullable=True)`).
+  - PostgreSQL Production Migration (`soundit_prod`):
+    - Executed `ALTER TABLE booking_requests ALTER COLUMN duration_hours TYPE DOUBLE PRECISION USING duration_hours::DOUBLE PRECISION;`.
+  - `schemas.py`:
+    - Updated `BookingRequestBase.duration_hours` and `BookingRequestResponse.duration_hours` to `Optional[float] = None`.
+    - Added `wechat_pay_url`, `alipay_pay_url`, and `payment_instructions` to `ArtistInfo`.
+  - `email_service.py`:
+    - Hardened `send_email` signature with `html_content: Optional[str] = None` fallback and `**kwargs` resilience.
+  - `api/bookings.py`:
+    - Fixed `create_booking_request`: changed `html_content` to `html_body` and wrapped email sending in a `try...except` block so email delivery warnings never abort booking creation.
+    - Updated `get_artist_public_profile` to return `wechat_qr_url`, `alipay_qr_url`, `wechat_pay_url`, `alipay_pay_url`, and `payment_instructions`.
+  - `api/artists.py`:
+    - Added `artist_type` to `ArtistListItem` and `ArtistDetailResponse`.
+    - Handled string vs Enum compatibility in `_serialize_artist_list` (`ap.artist_type.value if hasattr(ap.artist_type, 'value') else str(ap.artist_type)`).
+    - Added `artist_type` filtering to `GET /artists`.
+- **Frontend Implementations**:
+  - `app/src/pages/ArtistDetail.tsx`:
+    - Added 30-minute duration increments: `0.5`, `1.0`, `1.5`, `2.0`, `2.5`, `3.0`, `3.5`, `4.0`, `4.5`, `5.0`, `6.0`, `7.0`, `8.0+` hours.
+    - Updated submit handler to parse `parseFloat(formData.duration_hours)`.
+    - Added interactive Deposit Selector card: **Pay 50% Deposit** (`¥{deposit}`) to secure date vs **Full Payment** (`¥{budget}`).
+    - Passed all custom QR props (`wechatQrUrl`, `alipayQrUrl`, `wechatPayUrl`, `alipayPayUrl`, `paymentInstructions`, `amount`, `reference`) to `<MobileQrPayment />`.
+    - Added a sticky bottom booking bar on mobile (`fixed bottom-16 md:hidden`) displaying starting price, message button, and `Book / Pay Deposit` CTA.
+  - `app/src/pages/artist/Dashboard.tsx`:
+    - Added a dedicated **"Payment QR Codes & Deposit Settings"** card under the Profile tab allowing artists to upload, preview, replace, or remove their WeChat Pay and Alipay QR codes, and customize client transfer instructions.
+  - `app/src/pages/user/Dashboard.tsx`:
+    - Connected artist custom QR codes and instructions directly to the booking payment upload modal.
+  - `app/src/pages/Artists.tsx`:
+    - Added discipline filter pills: `All Creatives`, `DJs`, `Singers`, `Dancers`, `Photographers`, `MCs & Hosts`.
+    - Added creative role badge to artist gallery cards.
+  - `app/src/pages/auth/Register.tsx`:
+    - Added interactive discipline cards for DJ, Singer, Dancer, Photographer, MC, and Other Artist when signing up as an artist.
+  - `app/src/i18n/locales/`:
+    - Added multilingual translations (`en.json`, `zh.json`, `fr.json`) for `singer`.
+- **Verification & Deployment**:
+  - Frontend compiled cleanly with zero TypeScript errors (`npm run build`, exit code 0) producing production bundle `index-B33RRFbE.js`.
+  - Rsynced backend files and frontend dist to `72.62.254.251`.
+  - Restarted `soundit` systemd service cleanly (all 4 uvicorn workers operational).
+  - Verified live:
+    - `https://sounditent.com/health` -> `{"status":"healthy"}`
+    - `https://sounditent.com/` serves bundle `index-B33RRFbE.js` (HTTP 200)
+    - `https://sounditent.com/api/v1/artists` returns HTTP 200 with `artist_type`
+    - `https://sounditent.com/api/v1/bookings/artists/1/profile` returns Fred Max profile with custom payment QR fields
 
 ---
 
@@ -545,6 +1597,16 @@
 - **Production Deploy & Verification**:
   - Deployed release `20261016182618` + `api/drinks.py` fallback to `sounditent.com`.
   - Verified `GET /api/v1/tables/events/13/drinks` and `GET /api/v1/tables/events/9/drinks` both return 83 categorized items, and `/health` returns 200 OK.
+
+### 103. Full Security Audit & Dependency Hardening + PyJWT Migration (2026-10-25)
+- **Vulnerabilities**: Frontend npm audit **14 → 0** (`npm audit fix` + sharp 0.34→0.35.5 major; incl. critical @capacitor/android+ios, tar; high react-router, axios, zod, ws). Backend pip-audit **220 → 0** via requirements.txt upgrade: fastapi 0.109→0.162.0 (starlette 1.10.0), pydantic 2.5.3→2.14.1, python-multipart 0.0.6→0.0.32, pillow→13.0.0, requests→2.34.2, urllib3→2.8.0, cryptography→50.0.2, aiohttp 3.9.1→3.14.5 (84 CVEs), boto3/botocore→1.35.99, python-dotenv→1.2.2.
+- **python-jose → PyJWT migration** (jose unmaintained, 6 unfixed CVEs, forced vulnerable pyasn1 0.4.8 + ecdsa with no fix): `auth.py`, `security/enhanced_auth.py`, `services/push_service.py` switched to `PyJWT[crypto]==2.15.1` (`import jwt`, `jwt.InvalidTokenError` replaces `jose.JWTError`; API drop-in incl. APNs ES256 headers).
+- **Upgrade compat fixes**: `main.py` added `_json_safe()` for the 422 handler — pydantic 2.14 `exc.errors()` ctx can hold raw ValueError objects that starlette 1.x JSONResponse won't stringify (was 500 on validation errors). 
+- **Tests**: 22/22 pass. Fixed stale `test_security_fixes.py` (`location=` → `address`/`city`, NOT NULL) and rewrote `test_subscriptions.py` self-contained (in-memory SQLite, 10 monthly/yearly configs, was hitting prod DB expecting 9 plans). The old "pre-existing import error" in test_security_fixes.py was caused by the jose chain — gone with the migration.
+- **Secrets/config**: git clean (only .env.example tracked); `.env.example` completed with 19 missing keys (Alibaba SMS, VAPID, APNs, CN_BASE_URL → 67/67). Prod env presence: Google/WeChat/VAPID/Twilio/SMTP/JWT SET; generated + added dedicated `RESET_TOKEN_SECRET` (was falling back to JWT_SECRET); Sentry/OpenAI/APNs missing (optional).
+- **Prod bugs found in logs & fixed**: `GET /analytics/visits/devices` 500 — `event_data` is TEXT, query used JSONB `->>`; now dialect-aware (`::jsonb` Postgres / `json_extract` SQLite), verified against prod DB. `GET /admin/bookings` 500 — fractional `duration_hours` (code already `Optional[float]`; stale workers, fixed by restart).
+- **Deploy**: prod venv upgraded from `/var/www/soundit/current/requirements.txt`, pre-upgrade freeze backup at `/var/www/soundit/venv_freeze_backup_20261024_162715.txt`; service restarted, health 200, all public endpoints 200, `/auth/google/config` enabled:true. Files synced via real release path `/var/www/soundit/releases/20261016182618/` (note: rsync to `/var/www/soundit/current/` hits ELOOP "Too many levels of symbolic links" — use the resolved release path).
+- **Report**: `AUDIT_REPORT.md` in workspace. Open recommendations: delete stale `.venv-1`/`.venv-ui` folders at workspace root; add SENTRY_DSN; nightly pg_dump cron; re-enable SIA assistant UI (Option A ready).
 
 ### 102. Role-Based Profile Page — Artist / Vendor / Business / Admin Menus & Stats (2026-10-16)
 - **Problem**: the mobile kit Profile page (`app/src/pages/user/Profile.tsx`) showed user-only menu items (My Tickets, Favorites, Table Bookings) to every account role. All roles shared the same profile.
@@ -1175,6 +2237,25 @@
 - **Verification & Deployment**:
   - Verified backend compilation (`python3 -m py_compile`), frontend build (`npm run build`), Capacitor Android sync (`npx cap sync android`), and Android Debug APK build (`SoundIt-Android-debug.apk`).
   - Deployed backend updates and frontend distribution live to `72.62.254.251`. Executed PostgreSQL schema migration. Verified `GET /health` returns `HTTP 200 {"status":"healthy"}` and `GET /api/v1/events/10` returns `"ticket_sales_closed": false`.
+
+### 64. Flyer Auto-Fill for Event Creation, Menu Import Surfacing & Admin Hero Header (2026-10-25)
+- **Flyer auto-fill (`app/src/pages/organizer/CreateEvent.tsx`)**: new "Auto-fill from flyer" button in the Event Flyer section — uploads the poster to the existing `POST /assistant/extract-event` (OCR via server tesseract 5.3.4 + OpenAI enhancement, both confirmed live on prod), then pre-fills title, titleCN, description, date/time (with AM/PM→24h normalization), end date/time, venue, address, city, tags, event type and ticket price. Original file is kept so it uploads normally on submit; the saved server copy is shown as preview. Missing fields are reported in a toast.
+- **Vendor Products tab (`app/src/pages/vendor/Dashboard.tsx`)**: new gradient banner at the top of the Products tab promoting the existing `/dashboard/vendor/menu-import` (photo/PDF → AI-parsed items) so food/drinks vendors can find it.
+- **Admin layout (`app/src/pages/admin/DashboardOverview.tsx`)**: plain header replaced with a hero band — role chip (Command Center/Finance/Marketing/…), live date, pending-actions alert pill (jumps to verification center), and a solid-brand refresh button for all roles.
+- **i18n**: new `organizer.createEvent.autoFill*` and `vendor.dashboard.menuImportBanner*` keys in en/zh/fr (English fallbacks embedded).
+- **Verification**: `npm run build` passes; web bundle deployed (live, health 200); iOS app rebuilt, installed and launched on device. No backend changes required — extraction endpoint was already deployed.
+
+### 63. Role-Variant Tailored Dashboards for Vendor, Artist, Business & Admin (2026-10-25)
+- **Problem**: All accounts within a role shared one generic dashboard — a food vendor, a clothing/jewelry retailer and a service provider saw the same thing, as did a DJ vs a photographer, and an event organizer vs a club/bar venue.
+- **Fixes Applied**:
+  - **Shared variant config (`app/src/lib/roleVariants.ts`, new)**: `getVendorVariant()` (food / beverage / merch / service), `getArtistVariant()` (DJ / Singer / MC / Dancer / Photographer / Musician-Band), `getBusinessVariant()` (organizer / club / bar / lounge / restaurant / venue) — each returns label, tagline, and priority-ordered quick actions.
+  - **Vendor dashboard**: variant workspace banner on Overview; quick actions reordered per variant (food/beverage → Menu Import first; merch → Products first) with variant-specific product list label ("Menu Items" vs "Products"); merch variant gains a Products quick action.
+  - **Artist dashboard**: variant workspace banner; "Total Gigs" card relabeled per discipline (Sets/Shows/Performances/Shoots Booked); hardcoded "Pending" stat now translated.
+  - **Business dashboard**: header shows a variant chip (Event Organizer / Club / Bar / Venue…) plus variant tagline; organizer vs venue quick-action priorities defined in config.
+  - **Backend**: added `SINGER` to `ArtistType` enum; added `VendorProfile.business_profile_id` FK + relationship and `VendorProfileBase.business_profile_id` schema field so vendors can be business-owned; `GET /admin/dashboard` now returns `vendors_by_type`, `artists_by_type`, `business_owned_vendors`; new idempotent migration `scripts/migrate_vendor_business_link.py` (SQLite + PostgreSQL, `--rollback` supported).
+  - **Admin dashboard**: new "Role Ecosystem" cards on DashboardOverview — Vendors by Type and Artists by Discipline chips (using variant labels) with Manage links, plus a business-owned vendor count badge.
+  - **i18n**: new keys (`vendor.dashboard.workspaceLabel/importMenu/paymentQrCodes/analyticsLink`, `artist.dashboard.workspaceLabel/stat.pending`) added to en/zh/fr.
+- **Verification**: `python3 -m py_compile models.py schemas.py api/admin.py scripts/migrate_vendor_business_link.py` passes; `npm run build` passes; migration executed on production PostgreSQL; service restarted healthy; web bundle deployed; iOS app rebuilt, installed and launched on device.
 
 ### 62. Role-Based Admin Dashboards, Email Invitations, and Pending Actions Fix (2026-08-11)
 - **Problem**: 

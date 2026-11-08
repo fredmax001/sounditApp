@@ -261,7 +261,7 @@ export default function WeatherWidget({ city = 'Shanghai' }: WeatherWidgetProps)
 
   if (loading) {
     return (
-      <div className="hidden lg:flex w-80 h-[420px] rounded-3xl bg-black/50 backdrop-blur-xl border border-white/10 items-center justify-center">
+      <div className="hidden lg:flex w-80 h-[420px] rounded-2xl bg-black/50 backdrop-blur-xl border border-white/10 items-center justify-center">
         <motion.div
           className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full"
           animate={{ rotate: 360 }}
@@ -278,7 +278,7 @@ export default function WeatherWidget({ city = 'Shanghai' }: WeatherWidgetProps)
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="hidden lg:flex flex-col w-80 rounded-3xl bg-black/50 backdrop-blur-xl border border-white/10 p-6 relative overflow-hidden"
+      className="hidden lg:flex flex-col w-80 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/10 p-6 relative overflow-hidden"
     >
       {/* Ambient glow */}
       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#d3da0c]/8 rounded-full blur-3xl pointer-events-none" />

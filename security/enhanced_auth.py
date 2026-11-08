@@ -14,7 +14,8 @@ import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Tuple
 from enum import Enum
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from fastapi import HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import redis
@@ -154,7 +155,7 @@ class EnhancedAuthManager:
             
             return payload
             
-        except JWTError:
+        except InvalidTokenError:
             return None
     
     def verify_refresh_token(self, token: str) -> Optional[Dict]:
@@ -186,7 +187,7 @@ class EnhancedAuthManager:
             
             return payload
             
-        except JWTError:
+        except InvalidTokenError:
             return None
     
     def refresh_access_token(self, refresh_token: str) -> Optional[Dict]:

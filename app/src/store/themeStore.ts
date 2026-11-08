@@ -57,8 +57,8 @@ let systemThemeListenerAttached = false;
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'system', // Default is 'system' per specification
-      isDark: typeof window !== 'undefined' ? getSystemTheme() : true,
+      theme: 'dark', // Default to Sound It dark interface (#020B00)
+      isDark: true,
 
       setTheme: (theme: ThemeMode) => {
         const isDark = theme === 'dark' || (theme === 'system' && getSystemTheme());
@@ -80,10 +80,10 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       initTheme: () => {
-        const { theme } = get();
-        const isDark = theme === 'dark' || (theme === 'system' && getSystemTheme());
+        const currentTheme = get().theme === 'system' ? 'dark' : get().theme;
+        const isDark = currentTheme === 'dark';
         applyTheme(isDark);
-        set({ isDark });
+        set({ theme: currentTheme, isDark });
 
         // Listen for system theme changes dynamically
         if (typeof window !== 'undefined' && !systemThemeListenerAttached) {

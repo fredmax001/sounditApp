@@ -260,6 +260,7 @@
   },
   "nav": {
     "home": "首页",
+    "explore": "探索",
     "events": "活动",
     "artists": "艺人",
     "cityGuide": "城市指南",
@@ -444,7 +445,8 @@
         "followers": "Followers",
         "avgRating": "Avg Rating",
         "totalGigs": "Total Gigs",
-        "earnings": "Earnings"
+        "earnings": "Earnings",
+        "pending": "待处理"
       },
       "upcomingPerformances": "Upcoming Performances",
       "manageAll": "Manage All",
@@ -503,6 +505,7 @@
         "artist": "艺人",
         "dj": "DJ",
         "mc": "MC",
+        "singer": "歌手",
         "dancer": "舞者",
         "photographer": "摄影师"
       },
@@ -580,7 +583,8 @@
       "availabilitySaved": "可预约状态已更新",
       "availabilitySaveFailed": "更新可预约状态失败",
       "availabilityCleared": "可预约状态已清除",
-      "availabilityClearFailed": "清除可预约状态失败"
+      "availabilityClearFailed": "清除可预约状态失败",
+      "workspaceLabel": "你的工作区"
     },
     "bookings": {
       "title": "预订",
@@ -1657,7 +1661,13 @@
       "commissionRate": "佣金比例 (%)",
       "discountPercent": "推荐折扣 (%)",
       "maxDiscountAmount": "最高折扣金额",
-      "ticketPriceLabel": "票价"
+      "ticketPriceLabel": "票价",
+      "autoFillFromFlyer": "从海报自动填写 — AI 识别标题、日期、场地和价格",
+      "autoFillHint": "上传活动海报，表单自动填好 — 你只需检查并发布。",
+      "extracting": "正在识别海报…",
+      "extractSuccess": "海报识别完成 — 请检查下方信息，确认后发布",
+      "extractMissing": "无法识别",
+      "extractError": "无法识别海报 — 请手动填写表单"
     },
     "eventPromoters": {
       "title": "推广员管理",
@@ -2073,7 +2083,13 @@
       "boothAppliedSuccess": "摊位申请已提交！",
       "boothApplyError": "申请摊位失败",
       "approved": "已通过",
-      "pendingApproval": "待审核"
+      "pendingApproval": "待审核",
+      "workspaceLabel": "你的工作区",
+      "importMenu": "导入菜单",
+      "paymentQrCodes": "收款二维码",
+      "analyticsLink": "数据分析",
+      "menuImportBanner": "一键导入整个菜单",
+      "menuImportBannerHint": "上传美食/酒水菜单的照片或 PDF — AI 读取每个菜品和价格，你只需确认。"
     },
     "products": {
       "title": "My Products",
@@ -3564,7 +3580,6 @@
     "valuesHighlight": "价值观",
     "values": [
       {
-        "icon": "Sparkles",
         "title": "创意与创新",
         "description": "我们不断探索娱乐、连接和赋能社区的新方式。"
       },
@@ -4440,7 +4455,26 @@
     "perMonth": "Per Month",
     "oneTime": "一次性",
     "subscribe": "Subscribe",
-    "failedToSubscribe": "Failed To Subscribe"
+    "failedToSubscribe": "Failed To Subscribe",
+    "restorePurchases": "恢复购买",
+    "restoringPurchases": "正在恢复购买...",
+    "cancelConfirmTitle": "取消订阅",
+    "cancelConfirmText": "您确定要取消订阅吗？在当前已付费周期结束前，您仍可享受全部权益。",
+    "cancelPendingConfirmText": "您确定要撤回未完成的待处理订阅请求吗？",
+    "cancelTrialConfirmText": "您确定要取消免费试用吗？试用权益将立即终止。",
+    "keepSubscription": "保留订阅",
+    "confirmCancel": "确认取消",
+    "confirmWithdraw": "撤回请求",
+    "cancelling": "正在取消...",
+    "cancelSuccess": "订阅已取消",
+    "withdrawSuccess": "订阅请求已撤回",
+    "cancelledNotice": "订阅已取消 — 完整权益将持续有效至 {{date}}。",
+    "resumeSubscription": "恢复订阅",
+    "resuming": "正在恢复...",
+    "resumeSuccess": "订阅已成功恢复",
+    "pendingPayment": "等待付款",
+    "pendingApprovalNotice": "您有一笔待审核或待付款确认的订阅申请。",
+    "cancelPendingRequest": "撤回申请"
   },
   "receipt": {
     "title": "电子收据",
@@ -5011,6 +5045,7 @@
     "pickForYou": "为你推荐",
     "topEvents": "热门活动",
     "topArtists": "热门艺人",
+    "topBusinesses": "热门企业",
     "topSpots": "热门场所",
     "topVendors": "热门商家",
     "seeAll": "查看全部",

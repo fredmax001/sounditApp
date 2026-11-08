@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
+import { getVendorVariant, getArtistVariant } from '@/lib/roleVariants';
 import { toast } from 'sonner';
 import {
   Users, Building2, Music, Calendar, DollarSign,
   Loader2, AlertCircle, ChevronRight, Shield,
   Layers, CreditCard, Megaphone, Bell, MessageSquare,
-  Flag, BookOpen, BarChart3, CheckCircle, Sparkles
+  Flag, BookOpen, BarChart3, CheckCircle
 } from 'lucide-react';
 
 // Stat Card Component
@@ -62,6 +63,9 @@ const DashboardOverview = () => {
     totalTicketsSold: 0,
     pendingPayouts: 0,
     pendingVendorApprovals: 0,
+    vendorsByType: {} as Record<string, number>,
+    artistsByType: {} as Record<string, number>,
+    businessOwnedVendors: 0,
   });
 
   interface PendingAction {
@@ -112,6 +116,9 @@ const DashboardOverview = () => {
           totalTicketsSold: data.total_tickets_sold || 0,
           pendingPayouts: data.pending_payouts || 0,
           pendingVendorApprovals: data.pending_vendor_approvals || 0,
+          vendorsByType: data.vendors_by_type || {},
+          artistsByType: data.artists_by_type || {},
+          businessOwnedVendors: data.business_owned_vendors || 0,
         });
       }
 
@@ -184,41 +191,60 @@ const DashboardOverview = () => {
             disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm transition-all"
           >
-            {refreshing ? <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" /> : <Sparkles className="w-4 h-4 text-[#d3da0c]" />}
+            {refreshing && <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" />}
             Sync Data
           </button>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">
-            {isFinance ? 'Finance & Revenue Workspace' :
-             isMarketing ? 'Marketing & Campaigns Hub' :
-             isModerator ? 'Content Moderation Workspace' :
-             isCommunity ? 'Community Management Hub' :
-             isSupport ? 'Support & Verification Desk' :
-             t('admin.dashboardOverview.title')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {isFinance ? 'Track platform revenue, ticket volume, subscriptions, and withdrawals' :
-             isMarketing ? 'Manage promotional campaigns, ads, push notifications, and audience reach' :
-             isModerator ? 'Review user reports, moderate community posts, recaps, and content' :
-             isCommunity ? 'Engage community members, sections, discussions, and support queries' :
-             isSupport ? 'Handle user verification requests, reviews, reports, and member assistance' :
-             t('admin.dashboardOverview.subtitle')}
-          </p>
+      {/* Header — hero band */}
+      <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-5 lg:p-6 shadow-xs dark:shadow-none">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[10px] font-black uppercase tracking-wider">
+                {isFinance ? 'Finance' : isMarketing ? 'Marketing' : isModerator ? 'Moderation' : isCommunity ? 'Community' : isSupport ? 'Support' : 'Command Center'}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">
+              {isFinance ? 'Finance & Revenue Workspace' :
+               isMarketing ? 'Marketing & Campaigns Hub' :
+               isModerator ? 'Content Moderation Workspace' :
+               isCommunity ? 'Community Management Hub' :
+               isSupport ? 'Support & Verification Desk' :
+               t('admin.dashboardOverview.title')}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
+              {isFinance ? 'Track platform revenue, ticket volume, subscriptions, and withdrawals' :
+               isMarketing ? 'Manage promotional campaigns, ads, push notifications, and audience reach' :
+               isModerator ? 'Review user reports, moderate community posts, recaps, and content' :
+               isCommunity ? 'Engage community members, sections, discussions, and support queries' :
+               isSupport ? 'Handle user verification requests, reviews, reports, and member assistance' :
+               t('admin.dashboardOverview.subtitle')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {pendingActions.length > 0 && (
+              <button
+                onClick={() => navigate('/admin/verification-center')}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/15 transition-colors"
+              >
+                <AlertCircle className="w-3.5 h-3.5" />
+                {pendingActions.length} pending
+              </button>
+            )}
+            <button
+              onClick={loadDashboardData}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-lg hover:opacity-90 disabled:opacity-50 transition-all font-bold text-sm"
+            >
+              {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.dashboardOverview.refresh')}
+            </button>
+          </div>
         </div>
-        {!isCustomRole && (
-          <button
-            onClick={loadDashboardData}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-50 transition-all font-medium"
-          >
-            {refreshing ? <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" /> : t('admin.dashboardOverview.refresh')}
-          </button>
-        )}
       </div>
 
       {/* Stats Grid - Tailored to Role */}
@@ -451,6 +477,57 @@ const DashboardOverview = () => {
             onClick={() => navigate('/admin/verification-center')}
             loading={loading}
           />
+        </div>
+      )}
+
+      {/* Role Ecosystem — sub-type breakdown across vendors & artists */}
+      {!loading && (Object.keys(stats.vendorsByType).length > 0 || Object.keys(stats.artistsByType).length > 0) && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl shadow-xs dark:shadow-none p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+                Vendors by Type
+              </h3>
+              <button onClick={() => navigate('/admin/vendors')} className="text-xs font-semibold text-[#020b00] dark:text-[#d3da0c] hover:underline">Manage</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(stats.vendorsByType).map(([type, count]) => (
+                <button
+                  key={type}
+                  onClick={() => navigate('/admin/vendors')}
+                  className="px-3 py-1.5 rounded-full bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 text-xs font-bold text-[#020b00] dark:text-white hover:border-[#d3da0c]/50 transition-colors"
+                >
+                  {getVendorVariant(type).label} <span className="text-[#020b00]/50 dark:text-[#d3da0c]/60 ml-1">{count}</span>
+                </button>
+              ))}
+              {stats.businessOwnedVendors > 0 && (
+                <span className="px-3 py-1.5 rounded-full bg-[#d3da0c]/10 border border-[#d3da0c]/30 text-xs font-bold text-[#020b00] dark:text-[#d3da0c]">
+                  <Building2 className="w-3 h-3 inline mr-1" />Business-owned: {stats.businessOwnedVendors}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl shadow-xs dark:shadow-none p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+                <Music className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+                Artists by Discipline
+              </h3>
+              <button onClick={() => navigate('/admin/artists')} className="text-xs font-semibold text-[#020b00] dark:text-[#d3da0c] hover:underline">Manage</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(stats.artistsByType).map(([type, count]) => (
+                <button
+                  key={type}
+                  onClick={() => navigate('/admin/artists')}
+                  className="px-3 py-1.5 rounded-full bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 text-xs font-bold text-[#020b00] dark:text-white hover:border-[#d3da0c]/50 transition-colors"
+                >
+                  {getArtistVariant(type).label} <span className="text-[#020b00]/50 dark:text-[#d3da0c]/60 ml-1">{count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

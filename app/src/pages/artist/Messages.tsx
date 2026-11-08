@@ -214,7 +214,7 @@ export default function Messages() {
                   }`}
                 >
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden flex-shrink-0">
                       {conv.other_participant?.avatar_url ? (
                         <img 
                           src={conv.other_participant.avatar_url} 
@@ -285,7 +285,7 @@ export default function Messages() {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden">
                 {activeConversation.other_participant?.avatar_url ? (
                   <img 
                     src={activeConversation.other_participant.avatar_url} 

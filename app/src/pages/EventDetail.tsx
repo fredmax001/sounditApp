@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle, Smartphone, Camera } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, Share2, Heart, X, ShoppingCart, Check, Upload, Ticket, MessageCircle, Copy, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Store, AlertCircle, Smartphone, Camera, ExternalLink, Images, Download, Cloud } from 'lucide-react';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import { toast } from 'sonner';
 import { useEventStore } from '@/store/eventStore';
@@ -13,6 +13,8 @@ import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import { API_BASE_URL } from '@/config/api';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 import { Analytics } from '@/lib/analytics';
+import { slugify, getEntitySlug } from '@/lib/slug';
+import { saveImageToDevice } from '@/lib/downloadImage';
 
 export default function EventDetail() {
   const { t } = useTranslation();
@@ -40,6 +42,7 @@ export default function EventDetail() {
   const [referralDiscount, setReferralDiscount] = useState<number | null>(null);
   const [recentOrder, setRecentOrder] = useState<{ status: string; ticket_qr?: string; ticket_code?: string } | null>(null);
   const [descExpanded, setDescExpanded] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   // One-tap payment confirmation flow (buyer returns from Alipay/WeChat app)
   const [buyerConfirmed, setBuyerConfirmed] = useState(false);
   const [payReturnPrompt, setPayReturnPrompt] = useState(false);
@@ -706,7 +709,7 @@ export default function EventDetail() {
                     {t('eventDetail.organizer', 'Organizer')}
                   </h2>
                   <Link
-                    to={`/profiles/${currentEvent.business.id}`}
+                    to={`/profiles/${currentEvent.business.slug || slugify(currentEvent.business.business_name) || currentEvent.business.id}`}
                     className="flex items-center gap-4 p-4 bg-white dark:bg-[#141414] rounded-xl border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-colors shadow-xs dark:shadow-none"
                   >
                     <img
@@ -776,6 +779,100 @@ export default function EventDetail() {
                 </div>
               )}
 
+              {/* Event Photos & Cloud Album */}
+              {(Boolean(currentEvent.photo_album_url) || (currentEvent.gallery_images && currentEvent.gallery_images.length > 0) || isEventPast) && (
+                <div className="mb-8 p-6 bg-white dark:bg-[#141414] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                      <h2 className="text-xl font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+                        <Images className="w-5 h-5 text-[#d3da0c]" />
+                        <span>Event Photos & Album</span>
+                      </h2>
+                      <p className="text-gray-500 dark:text-white/50 text-xs mt-0.5">
+                        High-resolution event photography and post-event recaps
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {currentEvent.photo_album_url && (
+                        <a
+                          href={currentEvent.photo_album_url.startsWith('http') ? currentEvent.photo_album_url : `https://${currentEvent.photo_album_url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#d3da0c] text-[#020b00] text-xs font-bold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          <span>Open Cloud Album</span>
+                        </a>
+                      )}
+                      <Link
+                        to={`/recaps?event_id=${currentEvent.id}`}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/10 text-[#020b00] dark:text-white text-xs font-semibold hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
+                      >
+                        <Camera className="w-3.5 h-3.5 shrink-0" />
+                        <span>View Recaps</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Cloud Album Banner */}
+                  {currentEvent.photo_album_url && (
+                    <div className="mb-4 p-4 rounded-xl bg-[#d3da0c]/10 border border-[#d3da0c]/25 flex items-start gap-3">
+                      <ExternalLink className="w-5 h-5 text-[#d3da0c] shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#020b00] dark:text-white">
+                          Official Cloud Photo Drive
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-white/60 mt-0.5 break-all">
+                          The organizer linked an external cloud storage drive for this event. Attendees can view and download all official event photos in full resolution:
+                        </p>
+                        <a
+                          href={currentEvent.photo_album_url.startsWith('http') ? currentEvent.photo_album_url : `https://${currentEvent.photo_album_url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#020b00] dark:text-[#d3da0c] hover:underline break-all"
+                        >
+                          <span>{currentEvent.photo_album_url}</span>
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Gallery Thumbnails Grid */}
+                  {currentEvent.gallery_images && currentEvent.gallery_images.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {currentEvent.gallery_images.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setPreviewImage(imgUrl)}
+                          className="group relative aspect-square rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 focus:outline-none focus:ring-2 focus:ring-[#d3da0c]"
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`Event Photo ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-semibold px-2 py-1 bg-black/60 rounded-md transition-opacity">
+                              View
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    !currentEvent.photo_album_url && isEventPast && (
+                      <p className="text-xs text-gray-500 dark:text-white/40">
+                        Event ended. Attendees can post and discover recaps in the Sound It Recaps feed.
+                      </p>
+                    )
+                  )}
+                </div>
+              )}
+
               {/* Related Events */}
               {relatedEvents.length > 0 && (
                 <div>
@@ -829,13 +926,26 @@ export default function EventDetail() {
                         : t('eventDetail.salesClosedDesc', 'Ticket sales for this event have been closed by the organizer.')}
                     </p>
                     {isEventPast && (
-                      <Link
-                        to={`/recaps?event_id=${currentEvent.id}`}
-                        className="mt-3 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-opacity"
-                      >
-                        <Camera className="w-3.5 h-3.5" />
-                        <span>View Event Photos & Recaps</span>
-                      </Link>
+                      <div className="mt-3 flex flex-col gap-2">
+                        {currentEvent.photo_album_url && (
+                          <a
+                            href={currentEvent.photo_album_url.startsWith('http') ? currentEvent.photo_album_url : `https://${currentEvent.photo_album_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#d3da0c] text-[#020b00] text-xs font-bold hover:opacity-90 transition-opacity"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Open Cloud Photo Album</span>
+                          </a>
+                        )}
+                        <Link
+                          to={`/recaps?event_id=${currentEvent.id}`}
+                          className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-white/10 dark:text-white text-xs font-bold hover:opacity-90 transition-opacity"
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                          <span>View Event Photos & Recaps</span>
+                        </Link>
+                      </div>
                     )}
                   </div>
                 )}
@@ -951,13 +1061,26 @@ export default function EventDetail() {
             </p>
           </div>
           {isEventPast ? (
-            <Link
-              to={`/recaps?event_id=${currentEvent.id}`}
-              className="flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black active:opacity-90 shadow-md"
-            >
-              <Camera className="w-4 h-4" />
-              <span>View Photos & Recaps</span>
-            </Link>
+            <div className="flex-1 flex items-center gap-2">
+              {currentEvent.photo_album_url && (
+                <a
+                  href={currentEvent.photo_album_url.startsWith('http') ? currentEvent.photo_album_url : `https://${currentEvent.photo_album_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 h-12 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 bg-[#d3da0c] text-[#020b00] active:opacity-90 shadow-md"
+                >
+                  <ExternalLink className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Cloud Album</span>
+                </a>
+              )}
+              <Link
+                to={`/recaps?event_id=${currentEvent.id}`}
+                className={`h-12 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 bg-[#020b00] text-[#d3da0c] dark:bg-white/10 dark:text-white active:opacity-90 shadow-md ${currentEvent.photo_album_url ? 'flex-1' : 'w-full'}`}
+              >
+                <Camera className="w-4 h-4 shrink-0" />
+                <span className="truncate">Photos & Recaps</span>
+              </Link>
+            </div>
           ) : (
             <button
               disabled={isSalesClosed}
@@ -1249,6 +1372,7 @@ export default function EventDetail() {
           item={{
             type: 'event',
             id: currentEvent.id,
+            slug: currentEvent.slug || slugify(currentEvent.title),
             title: currentEvent.title,
             subtitle: (currentEvent as any).organizer_name || (currentEvent as any).organizer?.organization_name || 'Sound It Event',
             image: currentEvent.flyer_image,
@@ -1507,6 +1631,74 @@ export default function EventDetail() {
                 </button>
               </form>
             )}
+          </div>
+        </div>
+      )}
+      {/* Gallery Image Preview Modal with Save to Device */}
+      {previewImage && (
+        <div
+          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-50 p-4 select-none"
+        >
+          <div
+            className="flex items-center justify-between gap-3 text-white max-w-5xl w-full mx-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-bold truncate text-white">{currentEvent?.title || 'Event Photo'}</p>
+              <p className="text-xs text-gray-400">Photo Preview</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {currentEvent?.photo_album_url && (
+                <a
+                  href={currentEvent.photo_album_url.startsWith('http') ? currentEvent.photo_album_url : `https://${currentEvent.photo_album_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-sm transition-colors"
+                  title="Open external cloud photo album"
+                >
+                  <Cloud className="w-3.5 h-3.5 text-[#d3da0c]" />
+                  <span className="hidden sm:inline">Cloud Album</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={async () => {
+                  toast.info('Saving photo to device...');
+                  const ok = await saveImageToDevice(previewImage, `${slugify(currentEvent?.title || 'event-photo')}-${Date.now()}.jpg`);
+                  if (ok) toast.success('Photo saved to device');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#d3da0c] text-black text-xs font-bold shadow-xs hover:opacity-90 active:scale-95 transition-transform"
+                title="Download / save image to your device"
+              >
+                <Download className="w-4 h-4" />
+                <span>Save to Device</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors ml-1"
+                title="Close preview"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="relative flex-1 flex items-center justify-center my-2 max-w-5xl w-full mx-auto overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewImage}
+              alt="Event Photo Preview"
+              className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl"
+            />
+          </div>
+
+          <div className="text-center text-xs text-gray-400 py-1">
+            <span>Sound It Event Gallery</span>
           </div>
         </div>
       )}

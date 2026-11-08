@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Phone, Lock, User as UserIcon, Loader2, Check, MapPin, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, User as UserIcon, Loader2, Check, MapPin, Mail } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
@@ -9,7 +9,6 @@ import GoogleAuthButton from '@/components/GoogleAuthButton';
 import { API_BASE_URL } from '@/config/api';
 
 type Role = 'user' | 'business' | 'artist_dj' | 'vendor';
-type AuthMethod = 'email' | 'phone';
 
 const Register = () => {
   const { t } = useTranslation();
@@ -17,16 +16,16 @@ const Register = () => {
   const { registerWithEmail, isLoading } = useAuthStore();
 
   const [selectedRole, setSelectedRole] = useState<Role | ''>('');
+  const [selectedArtistType, setSelectedArtistType] = useState<string>('DJ');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [smsConsent, setSmsConsent] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState('');
-  const [authMethod, setAuthMethod] = useState<AuthMethod>('email');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,18 +35,14 @@ const Register = () => {
       return;
     }
 
-    if (!name || !password) {
+    const effectiveName = (name || businessName).trim();
+    if (!effectiveName || !password) {
       toast.error(t('auth.register.fillAllFieldsError'));
       return;
     }
 
-    if (authMethod === 'email' && !email) {
+    if (!email) {
       toast.error(t('auth.register.enterEmailError'));
-      return;
-    }
-
-    if (authMethod === 'phone' && !phone) {
-      toast.error(t('auth.register.enterPhoneError'));
       return;
     }
 
@@ -72,18 +67,22 @@ const Register = () => {
     }
 
     try {
-      const nameParts = name.trim().split(' ');
-      const firstName = nameParts[0] || '';
+      const nameParts = effectiveName.split(/\s+/);
+      const firstName = nameParts[0] || effectiveName;
       const lastName = nameParts.slice(1).join(' ') || '';
+      const resolvedEntityName = (businessName.trim() || effectiveName).trim();
+      const cleanUsername = username.trim().replace(/^@/, '');
 
       await registerWithEmail({
-        email: authMethod === 'email' ? email : '',
-        phone: authMethod === 'phone' ? phone : undefined,
+        email: email.trim().toLowerCase(),
         password,
         first_name: firstName,
         last_name: lastName,
+        username: cleanUsername || undefined,
         city_id: selectedCityId,
         role_type: selectedRole,
+        business_name: selectedRole !== 'user' ? resolvedEntityName : undefined,
+        artist_type: selectedRole === 'artist_dj' ? selectedArtistType : undefined,
       });
 
       toast.success(t('auth.register.accountCreated'));
@@ -163,9 +162,74 @@ const Register = () => {
           </p>
         </div>
 
+        {selectedRole === 'artist_dj' && (
+          <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4 space-y-3">
+            <label className="block text-[#020b00] dark:text-white text-sm font-semibold">
+              {t('artist.dashboard.label.artistType') || 'Creative Discipline'}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { id: 'DJ', label: t('artist.dashboard.artistType.dj') || 'DJ', icon: '🎧' },
+                { id: 'Singer', label: t('artist.dashboard.artistType.singer') || 'Singer', icon: '🎤' },
+                { id: 'Dancer', label: t('artist.dashboard.artistType.dancer') || 'Dancer', icon: '💃' },
+                { id: 'Photographer', label: t('artist.dashboard.artistType.photographer') || 'Photographer', icon: '📸' },
+                { id: 'MC', label: t('artist.dashboard.artistType.mc') || 'MC', icon: '🎙️' },
+                { id: 'Artist', label: t('artist.dashboard.artistType.artist') || 'Other Artist', icon: '🎨' },
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedArtistType(item.id)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all border ${
+                    selectedArtistType === item.id
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black border-transparent shadow-sm'
+                      : 'bg-white dark:bg-[#111111] text-[#020b00] dark:text-white border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]'
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
+          {selectedRole && selectedRole !== 'user' && (
+            <div>
+              <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">
+                {selectedRole === 'business'
+                  ? t('auth.register.businessNameLabel', 'Business / Organization Name *')
+                  : selectedRole === 'artist_dj'
+                  ? t('auth.register.stageNameLabel', 'Stage / Artist Name *')
+                  : t('auth.register.vendorNameLabel', 'Vendor / Shop Name *')}
+              </label>
+              <div className="relative">
+                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder={
+                    selectedRole === 'business'
+                      ? 'e.g. Sound It Entertainment'
+                      : selectedRole === 'artist_dj'
+                      ? 'e.g. DJ Kofi'
+                      : 'e.g. Afro Kitchen'
+                  }
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.register.fullNameLabel')}</label>
+            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">
+              {selectedRole && selectedRole !== 'user'
+                ? t('auth.register.contactNameLabel', 'Your Full Name *')
+                : t('auth.register.fullNameLabel')}
+            </label>
             <div className="relative">
               <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
               <input
@@ -175,6 +239,23 @@ const Register = () => {
                 placeholder={t('auth.register.fullNamePlaceholder')}
                 className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
                 required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">
+              {t('kit.editProfile.username', 'Username')}
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">@</span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
+                placeholder="username"
+                autoCapitalize="none"
+                className="w-full pl-10 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -193,7 +274,7 @@ const Register = () => {
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5rem' }}
             >
               <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('auth.register.cityPlaceholder')}</option>
-              {chinaCities.map(city => (
+              {chinaCities.filter(c => c.id !== 'all').map(city => (
                 <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
                   {city.name} {city.nameCN}
                 </option>
@@ -201,80 +282,21 @@ const Register = () => {
             </select>
           </div>
 
-          {/* Auth Method Tabs */}
-          <div className="flex gap-2 p-1 bg-neutral-100 dark:bg-white/5 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setAuthMethod('email')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                authMethod === 'email'
-                  ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
-              }`}
-            >
-              <Mail className="w-4 h-4" />
-              {t('auth.register.emailTab')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthMethod('phone')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                authMethod === 'phone'
-                  ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
-              }`}
-            >
-              <Phone className="w-4 h-4" />
-              {t('auth.register.phoneTab')}
-            </button>
-          </div>
-
           {/* Email Input */}
-          {authMethod === 'email' && (
-            <div>
-              <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.register.emailLabel')}</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('auth.register.emailPlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
+          <div>
+            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.register.emailLabel')}</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('auth.register.emailPlaceholder')}
+                className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
+                required
+              />
             </div>
-          )}
-
-          {/* Phone Input */}
-          {authMethod === 'phone' && (
-            <div>
-              <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.register.phoneLabel')}</label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t('auth.register.phonePlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-              <label className="flex items-start gap-2.5 mt-2.5 cursor-pointer text-left">
-                <input
-                  type="checkbox"
-                  checked={smsConsent}
-                  onChange={(e) => setSmsConsent(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-gray-400 dark:border-gray-600 bg-neutral-50 dark:bg-white/5 text-[#d3da0c] focus:ring-[#d3da0c]"
-                />
-                <span className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
-                  {t('auth.register.smsConsent', 'I consent to receive SMS notifications and transaction updates from Sound It. Message & data rates may apply. Reply STOP to opt out.')}
-                </span>
-              </label>
-            </div>
-          )}
+          </div>
 
           <div>
             <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.register.passwordLabel')}</label>

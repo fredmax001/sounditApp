@@ -117,7 +117,7 @@ const Followers = () => {
             {followers.map((follower) => (
               <div key={follower.id} className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold text-lg">
                     {follower.name ? follower.name.charAt(0).toUpperCase() : '?'}
                   </div>
                   <div>

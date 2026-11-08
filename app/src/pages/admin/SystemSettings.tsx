@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import {
     Settings,
@@ -332,10 +333,7 @@ const SystemSettings = () => {
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.systemSettings.title')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('admin.systemSettings.subtitle')}</p>
-                </div>
+                <AdminPageHeader chip="System" title={t('admin.systemSettings.title')} subtitle={t('admin.systemSettings.subtitle')} />
                 <div className="flex gap-3">
                     <button
                         onClick={loadSettings}
@@ -364,7 +362,7 @@ const SystemSettings = () => {
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* City & Commission Control */}
                     <div className="space-y-6">
-                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
                                     <Globe className="w-5 h-5 text-blue-500 dark:text-blue-400" />
@@ -405,7 +403,7 @@ const SystemSettings = () => {
 
                     {/* System Feature Flags */}
                     <div className="space-y-6">
-                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                             <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-6 flex items-center gap-2">
                                 <Settings className="w-5 h-5 text-[#d3da0c]" />
                                 {t('admin.systemSettings.platformOverrides')}
@@ -455,7 +453,7 @@ const SystemSettings = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+                        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                             <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-red-500" />
                                 {t('admin.systemSettings.dangerZone')}

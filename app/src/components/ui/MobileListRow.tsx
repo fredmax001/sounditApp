@@ -8,6 +8,7 @@ import { Clock, MapPin, Ticket, Camera } from 'lucide-react';
 import type { EventWithDetails } from '@/store/eventStore';
 import { getMediaUrl } from '@/lib/appUrl';
 import { useState } from 'react';
+import { getEntitySlug } from '@/lib/slug';
 
 interface MobileListRowProps {
   event: EventWithDetails;
@@ -27,8 +28,10 @@ const MobileListRow = ({ event, index = 0 }: MobileListRowProps) => {
   const dateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const timeStr = eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
+  const eventSlug = event.id;
+
   return (
-    <Link to={`/events/${event.id}`}>
+    <Link to={`/events/${eventSlug}`}>
       <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}

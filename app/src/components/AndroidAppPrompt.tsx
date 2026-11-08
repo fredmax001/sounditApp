@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Download } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 
 const STORAGE_KEY = 'soundit_android_prompt_dismissed_v1';
 
@@ -21,6 +22,20 @@ export default function AndroidAppPrompt() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Never show on native iOS / Android apps (Capacitor)
+    if (
+      Capacitor.isNativePlatform() ||
+      (window as any).__capacitor?.isNativePlatform?.() === true ||
+      (window as any).Capacitor?.isNativePlatform?.() === true ||
+      (window as any).Capacitor?.getPlatform?.() === 'ios' ||
+      (window as any).Capacitor?.getPlatform?.() === 'android'
+    ) {
+      return;
+    }
+
+    // Only show on mobile layout (< 768px)
+    if (window.innerWidth >= 768) return;
+
     // Only show on Android browsers, not inside the installed app, and if not dismissed
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (!dismissed && isAndroid() && !isStandalone()) {
@@ -53,13 +68,13 @@ export default function AndroidAppPrompt() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-[70] bg-[#0f0f0f] rounded-t-[2rem] border-t border-white/10 shadow-[0_-20px_60px_rgba(0,0,0,0.6)]"
+            className="fixed inset-x-0 bottom-0 z-[70] bg-[#0f0f0f] rounded-t-2xl border-t border-white/10 shadow-[0_-20px_60px_rgba(0,0,0,0.6)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-3" />
 
             <div className="px-6 pt-5 pb-9 max-w-md mx-auto text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-[#d3da0c] flex items-center justify-center mx-auto mb-4">
                 <Smartphone className="w-8 h-8 text-black" />
               </div>
 

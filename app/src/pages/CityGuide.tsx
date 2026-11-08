@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -19,6 +19,8 @@ import {
   Map as MapIcon,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
+  ArrowRight,
   X,
   ExternalLink,
 } from 'lucide-react';
@@ -29,6 +31,7 @@ import type { GuideItem } from '@/store/cityGuideStore';
 import { openDirections } from '@/lib/directions';
 import DiscoveryResultCard from '@/components/ui/DiscoveryResultCard';
 import DiscoveryFeed from '@/components/DiscoveryFeed';
+import { slugify } from '@/lib/slug';
 
 type GMap = {
   setCenter: (center: { lat: number; lng: number }) => void;
@@ -82,12 +85,12 @@ type FilterTab = 'all' | 'event' | 'venue' | 'food' | 'artist' | 'vendor' | 'bus
 
 const TAB_CONFIG: { key: FilterTab; labelKey: string; fallback: string; icon: typeof MapPin }[] = [
   { key: 'all', labelKey: 'cityGuide.all', fallback: 'All', icon: MapPin },
-  { key: 'event', labelKey: 'cityGuide.events', fallback: 'Events', icon: Calendar },
-  { key: 'business', labelKey: 'discovery.businesses', fallback: 'Businesses', icon: Building2 },
   { key: 'artist', labelKey: 'discovery.artists', fallback: 'Artists', icon: Users },
   { key: 'vendor', labelKey: 'discovery.vendors', fallback: 'Vendors', icon: Store },
-  { key: 'food', labelKey: 'cityGuide.food', fallback: 'Food', icon: Utensils },
+  { key: 'business', labelKey: 'discovery.businesses', fallback: 'Business', icon: Building2 },
   { key: 'venue', labelKey: 'cityGuide.venues', fallback: 'Venues', icon: Music },
+  { key: 'event', labelKey: 'cityGuide.events', fallback: 'Events', icon: Calendar },
+  { key: 'food', labelKey: 'cityGuide.food', fallback: 'Food', icon: Utensils },
 ];
 
 // Only these types appear on the map
@@ -95,16 +98,16 @@ const MAPPABLE_TYPES = new Set<FilterTab>(['event', 'venue', 'food']);
 
 function EntityBadge({ type }: { type: GuideItem['type'] }) {
   const colors: Record<string, string> = {
-    event: 'bg-blue-500/20 text-blue-400',
+    event: 'bg-[#d3da0c]/15 text-[#d3da0c]',
     venue: 'bg-amber-500/20 text-amber-400',
-    food: 'bg-green-500/20 text-green-400',
-    artist: 'bg-pink-500/20 text-pink-400',
-    vendor: 'bg-violet-500/20 text-violet-400',
-    business: 'bg-cyan-500/20 text-cyan-400',
+    food: 'bg-emerald-500/20 text-emerald-400',
+    artist: 'bg-[#d3da0c]/15 text-[#d3da0c]',
+    vendor: 'bg-[#d3da0c]/15 text-[#d3da0c]',
+    business: 'bg-white/10 text-gray-300',
   };
   const labels: Record<string, string> = {
     event: 'Event',
-    venue: 'Club/Bar',
+    venue: 'Venue',
     food: 'Food',
     artist: 'Artist',
     vendor: 'Vendor',
@@ -131,12 +134,44 @@ function MetricPill({ icon: Icon, value }: { icon: typeof Star; value: string })
 const CityGuide = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const validTabs: FilterTab[] = ['all', 'event', 'venue', 'food', 'artist', 'vendor', 'business'];
+  const normalizeTab = (raw: string | null): FilterTab => {
+    if (!raw) return 'all';
+    if (raw === 'events') return 'event';
+    if (raw === 'businesses') return 'business';
+    if (raw === 'artists') return 'artist';
+    if (raw === 'vendors') return 'vendor';
+    if (raw === 'club' || raw === 'clubs' || raw === 'venues') return 'venue';
+    return validTabs.includes(raw as FilterTab) ? (raw as FilterTab) : 'all';
+  };
+  const initialTab: FilterTab = normalizeTab(tabParam);
   const { selectedCity, setSelectedCity } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [activeTab, setActiveTab] = useState<FilterTab>(initialTab);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
+
+  useEffect(() => {
+    const nextTab = normalizeTab(tabParam);
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab);
+    }
+  }, [tabParam]);
+
+  const handleTabClick = (tabKey: FilterTab) => {
+    setActiveTab(tabKey);
+    setSelectedItem(null);
+    const newParams = new URLSearchParams(searchParams);
+    if (tabKey === 'all') {
+      newParams.delete('tab');
+    } else {
+      newParams.set('tab', tabKey);
+    }
+    setSearchParams(newParams, { replace: true });
+  };
 
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<GMap | null>(null);
@@ -168,7 +203,7 @@ const CityGuide = () => {
 
   // Fetch city guide when city changes
   useEffect(() => {
-    const cityToFetch = selectedCity && selectedCity !== 'all' ? selectedCity : 'shanghai';
+    const cityToFetch = selectedCity && selectedCity !== 'all' ? selectedCity : 'all';
     fetchCityGuide(cityToFetch);
   }, [selectedCity, fetchCityGuide]);
 
@@ -375,137 +410,245 @@ const CityGuide = () => {
   }, [guideItems]);
 
   const hasMap = mapReady && !mapError && GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY !== 'your_maps_key';
+  const currentCityName =
+    selectedCity && selectedCity !== 'all'
+      ? chinaCities.find((c) => c.id === selectedCity)?.name || selectedCity
+      : 'Shanghai';
+
+  const categoryCards: Array<{
+    key: FilterTab;
+    title: string;
+    image: string;
+  }> = [
+    {
+      key: 'artist',
+      title: 'Artists',
+      image:
+        guideItems.find((i) => i.type === 'artist' && i.image)?.image ||
+        '/web-hero/C48A0916.jpg',
+    },
+    {
+      key: 'business',
+      title: 'Businesses',
+      image:
+        guideItems.find((i) => i.type === 'business' && i.image)?.image ||
+        '/web-hero/C48A0889.jpg',
+    },
+    {
+      key: 'venue',
+      title: 'Venues',
+      image:
+        guideItems.find((i) => i.type === 'venue' && i.image)?.image ||
+        '/web-hero/C48A0775.jpg',
+    },
+    {
+      key: 'vendor',
+      title: 'Vendors',
+      image:
+        guideItems.find((i) => i.type === 'vendor' && i.image)?.image ||
+        '/about-bg.jpg',
+    },
+  ];
 
   return (
-    <div className="min-h-screen pt-0 pb-24 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
-      {/* Header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
-        <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-3 md:py-4">
-          {/* Title row with back button */}
-          <div className="flex items-center gap-2 mb-3">
+    <div className="min-h-screen pt-0 pb-28 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+      {/* Filter Pills & Search Controls */}
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2.5 md:py-4">
+          {/* Desktop Title row */}
+          <div className="hidden md:flex items-center gap-2 mb-3">
             <button
               onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
               aria-label="Go back"
-              className="w-10 h-10 -ml-1 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all"
+              className="w-10 h-10 -ml-1 rounded-full flex items-center justify-center text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <div className="flex-1">
               <h1 className="text-2xl font-display text-[#020b00] dark:text-white">
-                {t('discovery.title') || 'Discovery'} <span className="text-[#020b00] dark:text-[#d3da0c] font-bold">{t('discovery.hub') || 'Hub'}</span>
+                {t('discovery.title') || 'Discover'}{' '}
+                <span className="text-[#9fa505] dark:text-[#d3da0c] font-bold">{t('discovery.hub') || 'Hub'}</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-xs hidden md:block mt-0.5">
-                {t('discovery.subtitle') || 'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
+              <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5">
+                {t('discovery.subtitle') ||
+                  'Find artists, vendors, businesses, clubs, bars, events, and food spots in your city.'}
               </p>
             </div>
-            
-            {/* Mobile Search Icon Button */}
-            <button 
-              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-              className="md:hidden p-2 bg-neutral-100 dark:bg-white/5 rounded-full text-gray-700 dark:text-white/70 hover:text-[#020b00] dark:hover:text-white"
-            >
-              <Search className="w-5 h-5" />
-            </button>
           </div>
 
-          {/* Controls */}
-          <div className={`flex flex-col md:flex-row gap-3 ${isSearchExpanded ? 'block' : 'hidden md:block'}`}>
+          {/* Search bar (Collapsible on mobile, visible on desktop) */}
+          <div className={`flex flex-col md:flex-row gap-3 mb-2.5 ${isSearchExpanded ? 'block' : 'hidden md:flex'}`}>
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('discovery.searchPlaceholder') || 'Search artists, vendors, venues, events...'}
-                className="w-full pl-10 pr-4 py-3 bg-neutral-100 dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-sm text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 rounded-xl text-sm text-[#020b00] dark:text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
               />
+            </div>
+            <div className="relative shrink-0">
+              <select
+                value={selectedCity || 'all'}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                aria-label="Filter discovery by city"
+                className="w-full md:w-auto bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-[#020b00] dark:text-white text-sm font-medium focus:outline-none focus:border-[#d3da0c] cursor-pointer"
+              >
+                {chinaCities.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-[#0d140a] text-[#020b00] dark:text-white">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Type Tabs - horizontal scroll on mobile */}
-          <div
-            className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar"
-            style={{
-              maskImage: 'linear-gradient(to right, black 82%, transparent)',
-              WebkitMaskImage: 'linear-gradient(to right, black 82%, transparent)',
-            }}
-          >
+          {/* Filter Pills Row matching Reference Visual: All | Artists | Vendors | Business | Venues | Events */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {TAB_CONFIG.map((tab) => {
-              const Icon = tab.icon;
               const active = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
-                  onClick={() => { setActiveTab(tab.key); setSelectedItem(null); }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  onClick={() => handleTabClick(tab.key)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
                     active
-                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
-                      : 'bg-neutral-100 dark:bg-[#111111] text-gray-700 dark:text-gray-400 border border-black/8 dark:border-white/10 hover:text-[#020b00] dark:hover:text-white'
+                      ? 'bg-[#d3da0c] text-black shadow-sm'
+                      : 'bg-neutral-100 dark:bg-[#0d140a] text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
                   {t(tab.labelKey) || tab.fallback}
                 </button>
               );
             })}
+            <button
+              type="button"
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+              aria-label="Toggle search"
+              className="md:hidden ml-auto flex-shrink-0 w-8 h-8 rounded-full bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 flex items-center justify-center text-gray-700 dark:text-gray-300"
+            >
+              <Search className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </section>
 
-      {/* New discovery feed: Pick For You + Top sections */}
-      <div className="pt-1">
-        <DiscoveryFeed />
-      </div>
-
-      {/* Featured Section */}
-      {activeTab === 'all' && featuredItems.length > 0 && (
-        <section className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-4">
-          <h2 className="text-sm font-semibold text-[#020b00] dark:text-white mb-3 flex items-center gap-2">
-            <Star className="w-4 h-4 text-[#d3da0c]" />
-            {t('discovery.featured') || 'Featured'}
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            {featuredItems.map((item) => (
-              <motion.div
-                key={`featured-${item.type}-${item.id}`}
+      {/* 2x2 Visual Category Grid (Matches Reference Visual when on "All" tab) */}
+      {activeTab === 'all' && !searchQuery.trim() && (
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-3 pb-2">
+          <div className="grid grid-cols-2 gap-3">
+            {categoryCards.map((card) => (
+              <motion.button
+                key={card.key}
+                type="button"
                 whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  if (item.type === 'artist') navigate(`/artists/${item.id}`);
-                  else if (item.type === 'vendor') navigate(`/vendors/${item.id}`);
-                  else if (item.type === 'business') navigate(`/profiles/${item.user_id || item.id}`);
-                  else if (item.type === 'event') navigate(`/events/${item.id}`);
-                  else {
-                    setSelectedItem(item);
-                    if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
-                  }
-                }}
-                className="flex-shrink-0 w-28 cursor-pointer"
+                onClick={() => handleTabClick(card.key)}
+                className="group relative h-36 sm:h-44 rounded-2xl overflow-hidden border border-white/10 text-left shadow-lg"
               >
-                <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a] mb-1.5 border border-black/5 dark:border-transparent">
-                  <img
-                    src={item.image || (item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg')}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).src = item.type === 'artist' ? '/default-avatar.jpg' : '/placeholder-club.jpg'; }}
-                  />
+                <img
+                  src={card.image}
+                  alt={card.title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/web-hero/C48A0758.jpg';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between">
+                  <span className="text-white font-display font-bold text-base tracking-tight">
+                    {card.title}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
                 </div>
-                <p className="text-xs font-medium text-[#020b00] dark:text-white truncate">{item.name}</p>
-                <EntityBadge type={item.type} />
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </section>
       )}
 
+      {/* Featured in <City> Section (Matches Reference Visual) */}
+      {activeTab === 'all' && !searchQuery.trim() && (
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-[#020b00] dark:text-white tracking-tight">
+              Featured in {currentCityName}
+            </h2>
+            <button
+              type="button"
+              onClick={() => handleTabClick('business')}
+              className="inline-flex items-center gap-0.5 text-xs font-bold text-[#9fa505] dark:text-[#d3da0c] hover:underline"
+            >
+              See all
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {(featuredItems.length > 0
+              ? featuredItems.slice(0, 4)
+              : guideItems.slice(0, 4)
+            ).map((item) => {
+              const targetSlug = (item as any).slug || slugify(item.name) || item.id;
+              return (
+                <motion.div
+                  key={`featured-${item.type}-${item.id}`}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    if (item.type === 'artist') navigate(`/artists/${targetSlug}`);
+                    else if (item.type === 'vendor') navigate(`/vendors/${targetSlug}`);
+                    else if (item.type === 'business') navigate(`/profiles/${targetSlug}`);
+                    else if (item.type === 'event') navigate(`/events/${targetSlug}`);
+                    else {
+                      setSelectedItem(item);
+                      if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
+                    }
+                  }}
+                  className="group relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-[#0d140a] cursor-pointer shadow-md"
+                >
+                  <img
+                    src={
+                      item.image ||
+                      (item.type === 'artist' ? '/web-hero/C48A0916.jpg' : '/web-hero/C48A0889.jpg')
+                    }
+                    alt={item.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/web-hero/C48A0889.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                  <div className="absolute top-2 left-2">
+                    <EntityBadge type={item.type} />
+                  </div>
+                  <div className="absolute bottom-2.5 left-3 right-3">
+                    <p className="text-xs font-bold text-white truncate">{item.name}</p>
+                    {item.address && (
+                      <p className="text-[10px] text-gray-300 truncate">{item.address}</p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Curated Discovery Feed (only on "all" tab) */}
+      {activeTab === 'all' && !searchQuery.trim() && (
+        <div className="pt-1">
+          <DiscoveryFeed />
+        </div>
+      )}
+
       {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-2">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2">
         <div className={`flex ${hasMap ? 'flex-col lg:flex-row' : 'flex-col'} gap-4`}>
-          {/* Map - stacked on top for mobile when active tab is mappable */}
-          {hasMap && (activeTab === 'all' || MAPPABLE_TYPES.has(activeTab)) && (
-            <div className="w-full lg:w-[55%] h-[45vh] lg:h-[calc(100vh-220px)] min-h-[280px] rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 relative bg-neutral-100 dark:bg-[#111111] shadow-sm dark:shadow-none">
+          {/* Map - stacked on top when active tab is mappable */}
+          {hasMap && MAPPABLE_TYPES.has(activeTab) && (
+            <div className="w-full lg:w-[55%] h-[38vh] lg:h-[calc(100vh-220px)] min-h-[240px] rounded-2xl overflow-hidden border border-white/10 relative bg-[#0d140a]">
               <div ref={mapRef} className="w-full h-full" />
               {!mapReady && (
-                <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 dark:bg-[#111111]">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0d140a]">
                   <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                 </div>
               )}
@@ -513,7 +656,7 @@ const CityGuide = () => {
           )}
 
           {/* List */}
-          <div className={`w-full ${hasMap && (activeTab === 'all' || MAPPABLE_TYPES.has(activeTab)) ? 'lg:w-[45%]' : 'lg:w-full'}`}>
+          <div className={`w-full ${hasMap && MAPPABLE_TYPES.has(activeTab) ? 'lg:w-[45%]' : 'lg:w-full'}`}>
             {isLoading && displayItems.length === 0 && (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
@@ -522,25 +665,38 @@ const CityGuide = () => {
 
             {!isLoading && displayItems.length === 0 && (
               <div className="text-center py-12">
-                <MapPin className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-600 dark:text-gray-400 text-sm">{t('discovery.noItemsFound') || 'No places found for this city.'}</p>
+                <MapPin className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">
+                  {t('discovery.noItemsFound') || 'No places found for this filter.'}
+                </p>
               </div>
             )}
 
-            <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-3">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5 md:gap-3">
               {displayItems.map((item, index) => {
                 if (item.type === 'artist' || item.type === 'vendor' || item.type === 'business') {
                   const meta = item.meta || {};
-                  const subtitle = item.type === 'artist'
-                    ? (Number(meta.followers_count) > 0 ? t('discovery.followersCount', { count: meta.followers_count }) || `${meta.followers_count} followers` : undefined)
-                    : item.type === 'business'
-                      ? (Number(meta.events_count) > 0 ? t('discovery.eventsCount', { count: meta.events_count }) || `${meta.events_count} events` : undefined)
-                      : (Number(meta.rating) > 0 ? t('discovery.ratingLabel', { rating: meta.rating }) || `★ ${meta.rating}` : undefined);
-                  const targetPath = item.type === 'artist'
-                    ? `/artists/${item.id}`
-                    : item.type === 'vendor'
-                      ? `/vendors/${item.id}`
-                      : `/profiles/${item.user_id || item.id}`;
+                  const subtitle =
+                    item.type === 'artist'
+                      ? Number(meta.followers_count) > 0
+                        ? t('discovery.followersCount', { count: meta.followers_count }) ||
+                          `${meta.followers_count} followers`
+                        : undefined
+                      : item.type === 'business'
+                      ? Number(meta.events_count) > 0
+                        ? t('discovery.eventsCount', { count: meta.events_count }) ||
+                          `${meta.events_count} events`
+                        : undefined
+                      : Number(meta.rating) > 0
+                      ? `Rating ${meta.rating}`
+                      : undefined;
+                  const targetSlug = (item as any).slug || slugify(item.name) || item.id;
+                  const targetPath =
+                    item.type === 'artist'
+                      ? `/artists/${targetSlug}`
+                      : item.type === 'vendor'
+                      ? `/vendors/${targetSlug}`
+                      : `/profiles/${targetSlug}`;
 
                   const cardUser = {
                     id: Number(item.id),
@@ -578,76 +734,78 @@ const CityGuide = () => {
                         if (MAPPABLE_TYPES.has(item.type)) setMapCenter(item.lat, item.lng);
                       }
                     }}
-                    className={`group flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer ${
+                    className={`group flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
                       selectedItem?.id === item.id && selectedItem?.type === item.type
                         ? 'bg-[#d3da0c]/15 border-[#d3da0c]'
-                        : 'bg-white dark:bg-[#1A1A1A] border-black/8 dark:border-white/5 hover:border-black/15 dark:hover:border-white/15 shadow-sm dark:shadow-none'
+                        : 'bg-neutral-50 dark:bg-[#0d140a] border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
                     }`}
                   >
-                    <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a]">
+                    <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-200 dark:bg-[#151c12]">
                       <img
                         src={item.image || '/placeholder-club.jpg'}
                         alt={item.name}
                         className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-club.jpg'; }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder-club.jpg';
+                        }}
                       />
                     </div>
                     <div className="flex-1 min-w-0 py-0.5">
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                         <EntityBadge type={item.type} />
                       </div>
-                    <h3 className="text-sm md:text-base font-semibold text-[#020b00] dark:text-white truncate">{item.name}</h3>
+                      <h3 className="text-sm md:text-base font-bold text-[#020b00] dark:text-white truncate">{item.name}</h3>
 
-                    {/* Event-specific: clickable address + venue info */}
-                    {item.type === 'event' ? (
-                      <div className="mt-1 space-y-0.5">
-                        {item.meta.venue_name && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{String(item.meta.venue_name)}</p>
-                        )}
-                        {item.address && (
+                      {item.type === 'event' ? (
+                        <div className="mt-1 space-y-0.5">
+                          {item.meta.venue_name && (
+                            <p className="text-xs text-gray-400 truncate">{String(item.meta.venue_name)}</p>
+                          )}
+                          {item.address && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDirections(item.lat, item.lng, item.name);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs text-[#d3da0c] hover:text-white transition-colors font-medium"
+                            >
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate max-w-[160px] md:max-w-[200px]">{item.address}</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                          {item.meta.start_date && (
+                            <p className="text-[11px] text-gray-400">
+                              {new Date(String(item.meta.start_date)).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {item.address || item.description || ''}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        {item.type !== 'event' && MAPPABLE_TYPES.has(item.type) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               openDirections(item.lat, item.lng, item.name);
                             }}
-                            className="inline-flex items-center gap-1 text-xs text-gray-800 dark:text-[#d3da0c] hover:text-[#020b00] dark:hover:text-white transition-colors font-medium"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#d3da0c] hover:text-white transition-colors"
                           >
-                            <MapPin className="w-3 h-3" />
-                            <span className="truncate max-w-[160px] md:max-w-[200px]">{item.address}</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
+                            <Navigation className="w-3 h-3" />
+                            {t('cityGuide.getDirections') || 'Directions'}
                           </button>
                         )}
-                        {item.meta.start_date && (
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                            {new Date(String(item.meta.start_date)).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </p>
-                        )}
                       </div>
-                    ) : (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{item.address || item.description || ''}</p>
-                    )}
-
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      {/* Directions button for mappable items (non-events handled here, events have address link above) */}
-                      {item.type !== 'event' && MAPPABLE_TYPES.has(item.type) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openDirections(item.lat, item.lng, item.name);
-                          }}
-                          className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-800 dark:text-[#d3da0c] hover:text-[#020b00] dark:hover:text-white transition-colors"
-                        >
-                          <Navigation className="w-3 h-3" />
-                          {t('cityGuide.getDirections') || 'Directions'}
-                        </button>
-                      )}
                     </div>
-                  </div>
                   </motion.div>
                 );
               })}
@@ -655,16 +813,6 @@ const CityGuide = () => {
           </div>
         </div>
       </section>
-      {/* Floating community chat */}
-      <motion.button
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        onClick={() => navigate('/community')}
-        aria-label={t('discovery.communityChat', 'Community Chat')}
-        className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-[#d3da0c] text-black flex items-center justify-center shadow-lg shadow-[#d3da0c]/30 hover:bg-[#bbc10b] active:scale-90 transition-all"
-      >
-        <MessageCircle className="w-7 h-7" />
-      </motion.button>
     </div>
   );
 };

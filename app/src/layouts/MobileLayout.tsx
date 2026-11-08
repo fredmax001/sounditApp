@@ -17,6 +17,7 @@ import UpgradeModal from '@/components/UpgradeModal';
 import NotificationBell from '@/components/NotificationBell';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import MobilePageTransition from '@/components/MobilePageTransition';
+import Footer from '@/components/Footer';
 import {
   Bell,
   LogOut,
@@ -47,6 +48,7 @@ import {
   Menu,
   ChevronLeft,
   Camera,
+  Images,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHaptic } from '@/hooks/useHaptic';
@@ -125,6 +127,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     if (path === '/dashboard/business/finance') return 'Finance Workspace';
     if (path === '/dashboard/business/create-event') return t('organizer.createEvent.newEvent') || 'Create Event';
     if (path === '/dashboard/business/events') return t('nav.events') || 'My Events';
+    if (path === '/dashboard/business/gallery') return 'Gallery & Media';
     if (path === '/dashboard/business/ticket-orders') return t('business.dashboard.ticketOrders') || 'Ticket Orders';
     if (path === '/dashboard/business/profile') return t('nav.profile') || 'Profile';
     if (path === '/dashboard/business/staff') return t('business.staff.title') || 'Staff';
@@ -188,12 +191,11 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     }
     if (isBusiness) {
       return [
-        { path: '/events', label: t('nav.events') || 'Explore Events', icon: Compass },
-        { path: '/discovery', label: t('nav.discovery') || 'Discovery & Venues', icon: Globe },
-        { path: '/tickets', label: t('nav.myTickets') || 'My Tickets', icon: Ticket },
-        { path: '/recaps', label: t('nav.recaps') || 'Event Recaps', icon: Camera },
-        { path: '/dashboard/business/finance', label: 'Finance Workspace', icon: DollarSign },
+        { path: '/dashboard/business/events', label: t('kit.profile.myEvents') || 'Manage Events', icon: CalendarDays },
+        { path: '/dashboard/business/gallery', label: 'Photo Gallery & Media', icon: Images },
+        { path: '/dashboard/business/recaps', label: 'Event Photos & Recaps', icon: Camera },
         { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Ticket Orders', icon: Ticket },
+        { path: '/dashboard/business/finance', label: 'Finance Workspace', icon: DollarSign },
         { path: '/dashboard/business/promoters', label: t('nav.promoters') || 'Promoters', icon: Share2 },
         { path: '/dashboard/business/staff', label: t('business.staff.title') || 'Staff', icon: Users },
         { path: '/dashboard/business/analytics', label: t('upgrade.analytics') || 'Analytics', icon: BarChart3, locked: true, feature: 'analytics' },
@@ -201,6 +203,10 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
         { path: '/dashboard/business/payouts', label: t('upgrade.payouts') || 'Payouts', icon: Wallet, locked: true, feature: 'payouts' },
         { path: '/dashboard/business/community', label: t('upgrade.communityPosts') || 'Community Posts', icon: MessageSquare, locked: true, feature: 'community_posts' },
         { path: '/dashboard/business/tables', label: t('upgrade.tableReservations') || 'Table Reservations', icon: Wine, locked: true, feature: 'table_reservations' },
+        { path: '/events', label: t('nav.events') || 'Explore Events', icon: Compass },
+        { path: '/discovery', label: t('nav.discovery') || 'Discovery & Venues', icon: Globe },
+        { path: '/tickets', label: t('nav.myTickets') || 'My Tickets', icon: Ticket },
+        { path: '/recaps', label: t('nav.recaps') || 'Public Recaps', icon: Video },
         { path: '/subscriptions', label: t('nav.subscriptions') || 'Subscription', icon: Crown },
       ];
     }
@@ -283,9 +289,19 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     );
   }
 
+  const hasCustomHeader = [
+    '/dashboard/business',
+    '/dashboard/business/events',
+    '/dashboard/business/ticket-orders',
+    '/dashboard/vendor',
+    '/dashboard/vendor/products',
+    '/dashboard/vendor/orders',
+  ].includes(location.pathname);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white flex flex-col transition-colors duration-200">
       {/* App Header with Back button and Menu button */}
+      {!hasCustomHeader && (
       <motion.header
         initial={{ y: 0 }}
         animate={{ y: isHeaderHidden ? '-100%' : 0 }}
@@ -320,7 +336,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               aria-label="Open menu"
               title="Menu"
             >
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
+              <div className="w-6 h-6 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden">
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
@@ -339,12 +355,19 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
           </div>
         </div>
       </motion.header>
+      )}
 
       {/* Main Content */}
-      <main ref={mainRef} className="flex-1 pt-[calc(4rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav overflow-y-auto app-page">
+      <main
+        ref={mainRef}
+        className={`flex-1 ${
+          hasCustomHeader ? 'pb-app-nav' : 'pt-[calc(4rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav'
+        } overflow-y-auto app-page`}
+      >
         <AnimatePresence mode="wait">
           <MobilePageTransition key={location.pathname}>
             {children}
+            {!hasCustomHeader && <Footer isMobile={true} />}
           </MobilePageTransition>
         </AnimatePresence>
       </main>
@@ -360,7 +383,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-50"
+              className="fixed inset-0 bg-black/70 z-[110]"
               onClick={() => setShowDrawer(false)}
             />
             <motion.div
@@ -368,7 +391,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs bg-white dark:bg-[#111111] border-l border-black/8 dark:border-white/5 z-50 safe-area-pt text-[#020b00] dark:text-white"
+              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs bg-white dark:bg-[#111111] border-l border-black/8 dark:border-white/5 z-[120] safe-area-pt text-[#020b00] dark:text-white"
             >
               <div className="flex flex-col h-full p-4 safe-area-pb">
                 <div className="flex items-center justify-between mb-6">
@@ -379,7 +402,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
                 </div>
 
                 <div className="flex items-center gap-3 mb-6 pb-6 border-b border-black/8 dark:border-white/5">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
+                  <div className="w-14 h-14 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden">
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
@@ -393,13 +416,28 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
                       <User className="w-7 h-7 text-black" />
                     )}
                   </div>
-                  <div>
-                    <p className="text-[#020b00] dark:text-white font-medium">
-                      {(profile?.first_name && profile?.last_name)
-                        ? `${profile.first_name} ${profile.last_name}`
-                        : profile?.first_name || profile?.email?.split('@')[0] || 'User'}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[#020b00] dark:text-white font-semibold truncate">
+                      {isBusiness
+                        ? useAuthStore.getState().businessProfile?.business_name ||
+                          profile?.business_name ||
+                          `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+                          profile?.username ||
+                          'Business'
+                        : isArtist
+                        ? useAuthStore.getState().artistProfile?.stage_name ||
+                          `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+                          profile?.username ||
+                          'Artist'
+                        : `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+                          profile?.username ||
+                          profile?.email?.split('@')[0] ||
+                          'User'}
                     </p>
-                    <p className="text-gray-500 text-xs capitalize">{role}</p>
+                    {profile?.username && (
+                      <p className="text-gray-500 dark:text-gray-400 text-xs truncate">@{profile.username}</p>
+                    )}
+                    <p className="text-[#7a8000] dark:text-[#d3da0c] text-[11px] font-medium capitalize">{role}</p>
                   </div>
                 </div>
 

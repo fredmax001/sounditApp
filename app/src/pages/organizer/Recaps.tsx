@@ -48,6 +48,7 @@ export default function RecapsManagement() {
     title: '',
     description: '',
     photos: [],
+    photo_album_url: '',
     event_id: undefined
   });
 
@@ -104,6 +105,7 @@ export default function RecapsManagement() {
       title: recap.title,
       description: recap.description || '',
       photos: recap.photos,
+      photo_album_url: recap.photo_album_url || '',
       event_id: recap.event_id
     });
   };
@@ -113,6 +115,7 @@ export default function RecapsManagement() {
       title: '',
       description: '',
       photos: [],
+      photo_album_url: '',
       event_id: undefined
     });
   };
@@ -411,6 +414,23 @@ export default function RecapsManagement() {
                     rows={3}
                     className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] resize-none"
                   />
+                </div>
+
+                {/* Cloud Photo Album Link */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Cloud Photo Album Link (Google Drive, Baidu, WeChat, iCloud, Dropbox)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.photo_album_url || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, photo_album_url: e.target.value }))}
+                    placeholder="https://drive.google.com/... or cloud photo album link"
+                    className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c]"
+                  />
+                  <p className="text-gray-500 text-xs mt-1">
+                    Users can open this link directly to view and download high-resolution event photos.
+                  </p>
                 </div>
 
                 <input

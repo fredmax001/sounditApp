@@ -28,6 +28,7 @@ export interface Recap {
   title: string;
   description?: string;
   photos: string[];
+  photo_album_url?: string;
   views_count: number;
   likes_count: number;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'published';
@@ -48,6 +49,7 @@ export interface CreateRecapData {
   title: string;
   description?: string;
   photos: string[];
+  photo_album_url?: string;
   event_id?: number;
 }
 
@@ -55,6 +57,7 @@ export interface UpdateRecapData {
   title?: string;
   description?: string;
   photos?: string[];
+  photo_album_url?: string;
   event_id?: number;
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import {
     CreditCard,
     Wallet,
@@ -166,10 +167,7 @@ const Payments = () => {
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.payments.title')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('admin.payments.subtitle')}</p>
-                </div>
+                <AdminPageHeader chip="Finance" title={t('admin.payments.title')} subtitle={t('admin.payments.subtitle')} />
                 {/* Export button hidden until backend export endpoint is implemented */}
             </div>
 

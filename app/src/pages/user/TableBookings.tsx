@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Loader2, MapPin, Calendar, QrCode, X, Check, Clock,
-  Ticket as TicketIcon, Martini, CircleDollarSign, Sparkles,
+  Ticket as TicketIcon, Martini, CircleDollarSign,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { API_BASE_URL } from '@/config/api';
@@ -166,7 +166,6 @@ const TableBookings = () => {
                 : o.upgrade_status === 'declined' ? 'bg-red-500/10 border-red-500/30'
                 : 'bg-amber-500/10 border-amber-500/30'}`}>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className={`w-3.5 h-3.5 ${o.upgrade_status === 'approved' ? 'text-[#020b00] dark:text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-500' : 'text-amber-500'}`} />
                   <span className={`font-semibold ${o.upgrade_status === 'approved' ? 'text-[#020b00] dark:text-[#d3da0c]' : o.upgrade_status === 'declined' ? 'text-red-500' : 'text-amber-500'}`}>
                     {o.upgrade_status === 'approved' ? t('tables.upgradeApproved', 'Upgrade approved')
                       : o.upgrade_status === 'declined' ? t('tables.upgradeDeclined', 'Upgrade declined')

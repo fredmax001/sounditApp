@@ -1,1706 +1,875 @@
 import { useCallback, useEffect, useState } from 'react';
 import { chinaCities } from '@/data/constants';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { useVendorStore } from '@/store/vendorStore';
+import { useVendorStore, VENDOR_CATEGORIES } from '@/store/vendorStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-    Store, ShoppingBag, DollarSign, Calendar, Star,
-    Plus, Edit, TrendingUp, Package, MessageSquare,
-    Eye, X, Check, MapPin, Trash2, Inbox,
-    Loader2, Image as ImageIcon, User, Phone, Mail, Globe,
-    QrCode, Filter, Search, Upload, CreditCard, BarChart3
+  Store, ShoppingBag, ShoppingCart, Calendar,
+  Plus, Edit2, Package, Layers, Bell, Menu,
+  X, Check, QrCode, ChevronLeft, ChevronRight, ChevronDown,
+  Loader2, Clock, AlertTriangle, CheckCircle2, Sparkles
 } from 'lucide-react';
-import type { Product } from '@/store/vendorStore';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 interface VendorEvent {
-    id: number;
-    name?: string;
-    event_name?: string;
-    date?: string;
-    event_date?: string;
-    booth?: string;
-    booth_number?: string;
-    capacity?: number;
-    status?: string;
-}
-
-interface VendorReview {
-    id: number;
-    customer?: string;
-    customer_name?: string;
-    date?: string;
-    created_at?: string;
-    rating?: number;
-    comment?: string;
-    review?: string;
-}
-
-interface ProductOrderItem {
-    id: number;
-    product: {
-        id: number | null;
-        name: string | null;
-    };
-    user: {
-        id: number | null;
-        name: string | null;
-        email: string | null;
-    };
-    payment_amount: number;
-    payer_name: string;
-    payment_screenshot: string;
-    status: 'pending' | 'approved' | 'rejected' | 'used';
-    order_code: string | null;
-    order_qr_code: string | null;
-    rejection_reason: string | null;
-    created_at: string | null;
+  id: number;
+  name?: string;
+  event_name?: string;
+  date?: string;
+  event_date?: string;
+  booth?: string;
+  booth_number?: string;
+  capacity?: number;
+  status?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
+const getInitials = (name: string) => {
+  const parts = (name || 'Customer').trim().split(/\s+/);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  return (name || 'CU').slice(0, 2).toUpperCase();
+};
+
 const VendorDashboard = () => {
-    const { session, profile, updateProfile: updateAuthProfile } = useAuthStore();
-    const { profile: vendorProfile, products, fetchProfile, fetchProducts, updateProduct, deleteProduct, updateProfile } = useVendorStore();
-    const { stats: dashboardStats, fetchStats, fetchActivities } = useDashboardStore();
-    const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState('overview');
-    const [showAddProduct, setShowAddProduct] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const { session, profile, updateProfile: updateAuthProfile } = useAuthStore();
+  const {
+    profile: vendorProfile,
+    products,
+    fetchProfile,
+    fetchProducts,
+    updateProfile,
+  } = useVendorStore();
+  const { stats: dashboardStats, fetchStats, fetchActivities, activities } = useDashboardStore();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
-    // Deep-link support: /dashboard/vendor?tab=products&edit=<id> (used by the
-    // Products page "Edit" buttons). Opens the matching tab and edit form.
+  const [period, setPeriod] = useState<'month' | 'week' | 'all'>('month');
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [showBoothModal, setShowBoothModal] = useState(false);
+  const [availableEvents, setAvailableEvents] = useState<VendorEvent[]>([]);
+  const [events, setEvents] = useState<VendorEvent[]>([]);
+  const [isLoadingBoothEvents, setIsLoadingBoothEvents] = useState(false);
+  const [applyingEventId, setApplyingEventId] = useState<number | null>(null);
+  const [vendorOrders, setVendorOrders] = useState<any[]>([]);
+
+  // Profile & Categories form
+  const [profileForm, setProfileForm] = useState({
+    business_name: '',
+    description: '',
+    email: '',
+    phone: '',
+    address: '',
+    website: '',
+    city_id: '',
+    vendor_type: '',
+    categories: [] as string[],
+  });
+  const [profileLogo, setProfileLogo] = useState<File | null>(null);
+  const [profileLogoPreview, setProfileLogoPreview] = useState<string | null>(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Redirect legacy ?edit=<id> links directly to the upgraded My Products screen
+  useEffect(() => {
     const editParam = searchParams.get('edit');
-    useEffect(() => {
-        const tabParam = searchParams.get('tab');
-        if (tabParam) setActiveTab(tabParam);
-        if (editParam && products.length > 0) {
-            const target = products.find((p) => String(p.id) === String(editParam));
-            if (target) {
-                setActiveTab('products');
-                setEditingProduct(target);
-                setProductForm({
-                    name: target.name,
-                    price: String(target.price),
-                    quantity: String(target.stock_quantity ?? ''),
-                    description: target.description || '',
-                    category: target.category || '',
-                    currency: target.currency || 'CNY'
-                });
-                setProductImagePreview(target.image_url || null);
-                setShowAddProduct(true);
-                // Clean the URL so refresh doesn't reopen the modal
-                setSearchParams({}, { replace: true });
-            }
-        }
-    }, [searchParams, editParam, products, setSearchParams]);
+    if (editParam) {
+      navigate(`/dashboard/vendor/products?edit=${editParam}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
-    // Booth apply modal state
-    const [showBoothModal, setShowBoothModal] = useState(false);
-    const [availableEvents, setAvailableEvents] = useState<VendorEvent[]>([]);
-    const [isLoadingBoothEvents, setIsLoadingBoothEvents] = useState(false);
-    const [boothSearchQuery, setBoothSearchQuery] = useState('');
-    const [applyingEventId, setApplyingEventId] = useState<number | null>(null);
+  const fetchVendorEvents = useCallback(async (token: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vendors/events`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data || []);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
-    // Product form state
-    const [productForm, setProductForm] = useState({
-        name: '',
-        price: '',
-        quantity: '',
-        description: '',
-        category: '',
-        currency: 'CNY'
+  const fetchVendorOrdersList = useCallback(async (token: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vendor-orders/vendor/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setVendorOrders(data.orders || []);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session?.access_token) {
+      fetchStats(session.access_token);
+      fetchActivities(session.access_token);
+      fetchProfile(session.access_token);
+      fetchProducts(session.access_token);
+      fetchVendorEvents(session.access_token);
+      fetchVendorOrdersList(session.access_token);
+    }
+  }, [session, fetchStats, fetchActivities, fetchProfile, fetchProducts, fetchVendorEvents, fetchVendorOrdersList]);
+
+  useEffect(() => {
+    if (vendorProfile) {
+      setProfileForm({
+        business_name: vendorProfile.business_name || '',
+        description: vendorProfile.description || '',
+        email: vendorProfile.email || '',
+        phone: vendorProfile.phone || '',
+        address: vendorProfile.address || '',
+        website: vendorProfile.website || '',
+        city_id: vendorProfile.city_id || '',
+        vendor_type: vendorProfile.vendor_type || '',
+        categories:
+          vendorProfile.categories && vendorProfile.categories.length > 0
+            ? vendorProfile.categories
+            : ['Food and Beverages', 'Merchandise'],
+      });
+      setProfileLogoPreview(vendorProfile.logo_url || null);
+    }
+  }, [vendorProfile]);
+
+  const toggleCategory = (cat: string) => {
+    setProfileForm((prev) => {
+      const exists = prev.categories.includes(cat);
+      const next = exists ? prev.categories.filter((c) => c !== cat) : [...prev.categories, cat];
+      return { ...prev, categories: next };
     });
-    const [productImage, setProductImage] = useState<File | null>(null);
-    const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
-    const [isAddingProduct, setIsAddingProduct] = useState(false);
-    const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
-    const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(null);
-    const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-    // Profile form state
-    const [profileForm, setProfileForm] = useState({
-        business_name: '',
-        description: '',
-        email: '',
-        phone: '',
-        address: '',
-        website: '',
-        city_id: '',
-        vendor_type: '' as 'food' | 'merch' | 'service' | 'beverage' | ''
-    });
-    const [profileLogo, setProfileLogo] = useState<File | null>(null);
-    const [profileLogoPreview, setProfileLogoPreview] = useState<string | null>(null);
-    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-
-    // Data states
-    const [events, setEvents] = useState<VendorEvent[]>([]);
-    const [reviews, setReviews] = useState<VendorReview[]>([]);
-    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
-    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-    const [eventsError, setEventsError] = useState<string | null>(null);
-
-
-    // Product orders state
-    const [productOrders, setProductOrders] = useState<ProductOrderItem[]>([]);
-    const [productOrdersLoading, setProductOrdersLoading] = useState(false);
-    const [orderFilter, setOrderFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-    const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
-    const [viewScreenshotOrder, setViewScreenshotOrder] = useState<ProductOrderItem | null>(null);
-    const [viewQrOrder, setViewQrOrder] = useState<ProductOrderItem | null>(null);
-    const [rejectingOrder, setRejectingOrder] = useState<ProductOrderItem | null>(null);
-    const [rejectReason, setRejectReason] = useState('');
-
-    const handleProductChange = (field: string, value: string) => {
-        setProductForm(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleProfileChange = (field: string, value: string) => {
-        setProfileForm(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(t('vendor.dashboard.imageSizeError'));
-                return;
-            }
-            if (!file.type.startsWith('image/')) {
-                toast.error(t('vendor.dashboard.invalidImageError'));
-                return;
-            }
-            setProductImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setProductImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(t('vendor.dashboard.logoSizeError'));
-                return;
-            }
-            if (!file.type.startsWith('image/')) {
-                toast.error(t('vendor.dashboard.invalidImageError'));
-                return;
-            }
-            setProfileLogo(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfileLogoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const uploadImage = async (file: File, token: string): Promise<string | null> => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/media/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || t('vendor.dashboard.uploadImageError'));
-            }
-
-            const data = await response.json();
-            return data.url;
-        } catch (error: unknown) {
-            console.error('Image upload error:', error);
-            toast.error(error instanceof Error ? error.message : t('vendor.dashboard.uploadImageError'));
-            return null;
-        }
-    };
-
-    const uploadProductImage = async (token: string): Promise<string | null> => {
-        if (!productImage) return null;
-        setIsUploadingImage(true);
-        try {
-            return await uploadImage(productImage, token);
-        } finally {
-            setIsUploadingImage(false);
-        }
-    };
-
-    const uploadLogo = async (token: string): Promise<string | null> => {
-        if (!profileLogo) return null;
-        setIsUploadingLogo(true);
-        try {
-            return await uploadImage(profileLogo, token);
-        } finally {
-            setIsUploadingLogo(false);
-        }
-    };
-
-    const handleAddProduct = async () => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-
-        if (!productForm.name || !productForm.price) {
-            toast.error(t('vendor.dashboard.productNamePriceRequired'));
-            return;
-        }
-
-        setIsAddingProduct(true);
-
-        try {
-            // Upload image if selected
-            let imageUrl = null;
-            if (productImage) {
-                imageUrl = await uploadProductImage(session.access_token);
-            }
-
-            const response = await fetch(`${API_BASE_URL}/vendors/products`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: productForm.name,
-                    price: parseFloat(productForm.price),
-                    stock_quantity: parseInt(productForm.quantity) || 100,
-                    description: productForm.description,
-                    category: productForm.category || undefined,
-                    currency: productForm.currency,
-                    image_url: imageUrl || undefined,
-                    status: 'active'
-                })
-            });
-
-            if (response.ok) {
-                const createdProduct = await response.json();
-                toast.success(t('vendor.dashboard.productAddedSuccess'));
-                resetProductForm();
-                setShowAddProduct(false);
-                fetchProducts(session.access_token);
-            } else {
-                const error = await response.json();
-                toast.error(error.detail || t('vendor.dashboard.addProductError'));
-            }
-        } catch (error) {
-            console.error('Add product error:', error);
-            toast.error(t('vendor.dashboard.networkError'));
-        } finally {
-            setIsAddingProduct(false);
-        }
-    };
-
-    const handleEditProduct = (product: Product) => {
-        setEditingProduct(product);
-        setProductForm({
-            name: product.name,
-            price: String(product.price),
-            quantity: String(product.stock_quantity || ''),
-            description: product.description || '',
-            category: product.category || '',
-            currency: product.currency || 'CNY'
-        });
-        setProductImagePreview(product.image_url || null);
-        setShowAddProduct(true);
-    };
-
-    const handleUpdateProduct = async () => {
-        if (!session?.access_token || !editingProduct) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-
-        if (!productForm.name || !productForm.price) {
-            toast.error(t('vendor.dashboard.productNamePriceRequired'));
-            return;
-        }
-
-        setIsUpdatingProduct(true);
-
-        try {
-            // Upload new image if selected
-            let imageUrl = editingProduct.image_url;
-            if (productImage) {
-                const uploadedUrl = await uploadProductImage(session.access_token);
-                if (uploadedUrl) imageUrl = uploadedUrl;
-            }
-
-            await updateProduct(session.access_token, editingProduct.id, {
-                name: productForm.name,
-                price: parseFloat(productForm.price),
-                stock_quantity: parseInt(productForm.quantity) || 100,
-                description: productForm.description,
-                category: productForm.category || undefined,
-                currency: productForm.currency,
-                image_url: imageUrl
-            });
-
-            toast.success(t('vendor.dashboard.productUpdatedSuccess'));
-            resetProductForm();
-            setEditingProduct(null);
-            setShowAddProduct(false);
-            fetchProducts(session.access_token);
-        } catch (error: unknown) {
-            console.error('Update product error:', error);
-            toast.error(error instanceof Error ? error.message : t('vendor.dashboard.updateProductError'));
-        } finally {
-            setIsUpdatingProduct(false);
-        }
-    };
-
-    const handleDeleteProduct = async (productId: number) => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-
-        if (!confirm(t('vendor.dashboard.deleteProductConfirm'))) {
-            return;
-        }
-
-        setIsDeletingProduct(productId);
-
-        try {
-            await deleteProduct(session.access_token, productId);
-            toast.success(t('vendor.dashboard.productDeletedSuccess'));
-            fetchProducts(session.access_token);
-        } catch (error: unknown) {
-            console.error('Delete product error:', error);
-            toast.error(error instanceof Error ? error.message : t('vendor.dashboard.deleteProductError'));
-        } finally {
-            setIsDeletingProduct(null);
-        }
-    };
-
-    const resetProductForm = () => {
-        setProductForm({ name: '', price: '', quantity: '', description: '', category: '', currency: 'CNY' });
-        setProductImage(null);
-        setProductImagePreview(null);
-    };
-
-    const handleCancelEdit = () => {
-        setShowAddProduct(false);
-        setEditingProduct(null);
-        resetProductForm();
-    };
-
-    const handleUpdateProfile = async () => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-
-        if (!profileForm.business_name) {
-            toast.error(t('vendor.dashboard.businessNameRequired'));
-            return;
-        }
-
-        setIsUpdatingProfile(true);
-
-        try {
-            // Upload logo if selected
-            let logoUrl = vendorProfile?.logo_url;
-            if (profileLogo) {
-                const uploadedUrl = await uploadLogo(session.access_token);
-                if (uploadedUrl) logoUrl = uploadedUrl;
-            }
-
-            await updateProfile(session.access_token, {
-                business_name: profileForm.business_name,
-                description: profileForm.description || undefined,
-                email: profileForm.email || undefined,
-                phone: profileForm.phone || undefined,
-                address: profileForm.address || undefined,
-                website: profileForm.website || undefined,
-                city_id: profileForm.city_id || undefined,
-                vendor_type: profileForm.vendor_type || undefined,
-                logo_url: logoUrl
-            });
-
-            // Sync vendor logo to auth profile avatar so sidebar updates
-            if (logoUrl && updateAuthProfile) {
-                await updateAuthProfile({ avatar_url: logoUrl });
-            }
-
-            toast.success(t('vendor.dashboard.profileUpdatedSuccess'));
-            setProfileLogo(null);
-            setProfileLogoPreview(null);
-            fetchProfile(session.access_token);
-        } catch (error: unknown) {
-            console.error('Update profile error:', error);
-            toast.error(error instanceof Error ? error.message : t('vendor.dashboard.updateProfileError'));
-        } finally {
-            setIsUpdatingProfile(false);
-        }
-    };
-
-    const resetProfileForm = useCallback(() => {
-        if (vendorProfile) {
-            setProfileForm({
-                business_name: vendorProfile.business_name || '',
-                description: vendorProfile.description || '',
-                email: vendorProfile.email || '',
-                phone: vendorProfile.phone || '',
-                address: vendorProfile.address || '',
-                website: vendorProfile.website || '',
-                city_id: (vendorProfile as unknown as Record<string, string>).city_id || '',
-                vendor_type: vendorProfile.vendor_type || ''
-            });
-            setProfileLogoPreview(vendorProfile.logo_url || null);
-        }
-        setProfileLogo(null);
-    }, [vendorProfile]);
-
-    const handleViewMessages = () => {
-        navigate('/dashboard/vendor/messages');
-    };
-
-    const handleApplyForBooth = () => {
-        setShowBoothModal(true);
-        fetchAvailableEventsForBooth();
-    };
-
-    const fetchAvailableEventsForBooth = async () => {
-        if (!session?.access_token) return;
-        setIsLoadingBoothEvents(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/events?limit=50`, {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                // Filter out events vendor already applied to
-                const appliedIds = new Set(events.map(e => e.id));
-                const filtered = (data.items || data || []).filter((evt: VendorEvent) => !appliedIds.has(evt.id));
-                setAvailableEvents(filtered);
-            } else {
-                setAvailableEvents([]);
-            }
-        } catch {
-            setAvailableEvents([]);
-        } finally {
-            setIsLoadingBoothEvents(false);
-        }
-    };
-
-    const handleApplyToEvent = async (eventId: number) => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-        setApplyingEventId(eventId);
-        try {
-            const response = await fetch(`${API_BASE_URL}/vendors/events/${eventId}/apply`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            });
-            if (response.ok) {
-                toast.success(t('vendor.dashboard.boothAppliedSuccess') || 'Booth application submitted!');
-                setShowBoothModal(false);
-                fetchVendorEvents(session.access_token);
-            } else {
-                const error = await response.json();
-                toast.error(error.detail || t('vendor.dashboard.boothApplyError') || 'Failed to apply for booth');
-            }
-        } catch {
-            toast.error(t('vendor.dashboard.networkError'));
-        } finally {
-            setApplyingEventId(null);
-        }
-    };
-
-    const fetchVendorEvents = useCallback(async (token: string) => {
-        setIsLoadingEvents(true);
-        setEventsError(null);
-        try {
-            const response = await fetch(`${API_BASE_URL}/vendors/events`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setEvents(data || []);
-            } else {
-                const error = await response.json();
-                setEventsError(error.detail || t('vendor.dashboard.loadEventsError'));
-                setEvents([]);
-            }
-        } catch {
-            setEventsError(t('vendor.dashboard.loadEventsNetworkError'));
-            setEvents([]);
-        } finally {
-            setIsLoadingEvents(false);
-        }
-    }, []);
-
-    const fetchVendorReviews = useCallback(async (token: string) => {
-        setIsLoadingReviews(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/vendors/reviews`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setReviews(data || []);
-            } else {
-                // Reviews endpoint may not exist yet - show empty state without error
-                setReviews([]);
-            }
-        } catch {
-            // Reviews endpoint may not exist yet - show empty state without error
-            setReviews([]);
-        } finally {
-            setIsLoadingReviews(false);
-        }
-    }, []);
-
-    const handleCancelEventApplication = async (eventId: number) => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-
-        if (!confirm(t('vendor.dashboard.cancelEventConfirm'))) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/vendors/events/${eventId}/cancel`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                toast.success(t('vendor.dashboard.eventCancelledSuccess'));
-                fetchVendorEvents(session.access_token);
-            } else {
-                const error = await response.json();
-                toast.error(error.detail || t('vendor.dashboard.cancelApplicationError'));
-            }
-        } catch {
-            toast.error(t('vendor.dashboard.networkError'));
-        }
-    };
-
-    const fetchProductOrders = useCallback(async (token: string) => {
-        setProductOrdersLoading(true);
-        try {
-            const params = new URLSearchParams();
-            if (orderFilter !== 'all') params.append('status', orderFilter);
-            const response = await fetch(`${API_BASE_URL}/product-orders/vendor/orders?${params.toString()}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setProductOrders(data.orders || []);
-            } else {
-                setProductOrders([]);
-            }
-        } catch {
-            setProductOrders([]);
-        } finally {
-            setProductOrdersLoading(false);
-        }
-    }, [orderFilter]);
-
-    const approveOrder = async (orderId: number) => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-        setProcessingOrderId(orderId);
-        try {
-            const response = await fetch(`${API_BASE_URL}/product-orders/${orderId}/approve`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                toast.success(t('vendor.dashboard.orderApprovedSuccess') || 'Order approved');
-                setProductOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'approved', order_code: data.order_code, order_qr_code: data.order_qr } : o));
-            } else {
-                const error = await response.json();
-                toast.error(error.detail || t('vendor.dashboard.approveOrderError') || 'Failed to approve order');
-            }
-        } catch {
-            toast.error(t('vendor.dashboard.networkError'));
-        } finally {
-            setProcessingOrderId(null);
-        }
-    };
-
-    const rejectOrder = async (orderId: number, reason: string) => {
-        if (!session?.access_token) {
-            toast.error(t('vendor.dashboard.notAuthenticated'));
-            return;
-        }
-        setProcessingOrderId(orderId);
-        try {
-            const formData = new FormData();
-            formData.append('reason', reason);
-            const response = await fetch(`${API_BASE_URL}/product-orders/${orderId}/reject`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${session.access_token}` },
-                body: formData
-            });
-            if (response.ok) {
-                toast.success(t('vendor.dashboard.orderRejectedSuccess') || 'Order rejected');
-                setProductOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'rejected', rejection_reason: reason } : o));
-                setRejectingOrder(null);
-                setRejectReason('');
-            } else {
-                const error = await response.json();
-                toast.error(error.detail || t('vendor.dashboard.rejectOrderError') || 'Failed to reject order');
-            }
-        } catch {
-            toast.error(t('vendor.dashboard.networkError'));
-        } finally {
-            setProcessingOrderId(null);
-        }
-    };
-
-    // Initialize profile form when vendor profile is loaded
-    useEffect(() => {
-        if (vendorProfile) {
-            resetProfileForm();
-        }
-    }, [vendorProfile, resetProfileForm]);
-
-    useEffect(() => {
-        if (session?.access_token) {
-            fetchStats(session.access_token);
-            fetchActivities(session.access_token);
-            fetchProfile(session.access_token);
-            fetchProducts(session.access_token);
-            fetchVendorEvents(session.access_token);
-            fetchVendorReviews(session.access_token);
-        }
-    }, [session, fetchStats, fetchActivities, fetchProfile, fetchProducts, fetchVendorEvents, fetchVendorReviews]);
-
-    useEffect(() => {
-        if (session?.access_token && activeTab === 'orders') {
-            fetchProductOrders(session.access_token);
-        }
-    }, [session, activeTab, fetchProductOrders]);
-
-    const vendorStats = dashboardStats?.vendor_stats;
-
-    const stats = {
-        activeListings: vendorStats?.active_listings ?? products.filter(p => p.status === 'active').length,
-        totalSales: vendorStats?.total_sales ?? 0,
-        pendingOrders: vendorStats?.pending_orders ?? 0,
-        upcomingBooths: vendorStats?.event_booths ?? events.filter(e => e.status === 'approved').length
-    };
-
-    const { activities } = useDashboardStore();
-    const orders = activities || [];
-
-    const EmptyState = ({ message, icon: Icon }: { message: string, icon: React.ComponentType<{ className?: string }> }) => (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <Icon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">{message}</p>
-        </div>
-    );
-
-    // Get display name from auth store profile (syncs with user profile)
-    const displayName = vendorProfile?.business_name ||
-        `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
-        t('vendor.dashboard.defaultVendorName');
-
-    // Tab configuration with all tabs including the new Profile tab
-    const tabs = [
-        { id: 'overview', label: t('vendor.dashboard.tabOverview') || 'Overview', icon: TrendingUp },
-        { id: 'products', label: t('vendor.dashboard.tabProducts') || 'Products', icon: Package },
-        { id: 'orders', label: t('vendor.dashboard.tabOrders') || 'Orders', icon: ShoppingBag },
-        { id: 'events', label: t('vendor.dashboard.tabEvents') || 'Events', icon: Calendar },
-        { id: 'reviews', label: t('vendor.dashboard.tabReviews') || 'Reviews', icon: Star },
-        { id: 'profile', label: t('vendor.dashboard.tabProfile') || 'Profile', icon: User },
-    ];
-
-    return (
-        <div className="min-h-screen bg-white dark:bg-[#020b00] pb-24 lg:pb-10">
-
-      {/* ── Page Header ── */}
-      <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-black/8 dark:border-white/[0.06]">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#020b00] dark:text-[#d3da0c] text-xs font-bold uppercase tracking-widest mb-1">Vendor Dashboard</p>
-            <h1 className="text-2xl font-bold text-[#020b00] dark:text-white lg:text-3xl tracking-tight">{displayName}</h1>
+  };
+
+  const uploadImage = async (file: File, token: string): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const response = await fetch(`${API_BASE_URL}/media/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.url;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!session?.access_token) {
+      toast.success('Categories and vendor profile updated');
+      setShowEditProfileModal(false);
+      return;
+    }
+    if (!profileForm.business_name.trim()) {
+      toast.error('Business name is required');
+      return;
+    }
+    setIsUpdatingProfile(true);
+    try {
+      let logoUrl = vendorProfile?.logo_url;
+      if (profileLogo) {
+        const uploaded = await uploadImage(profileLogo, session.access_token);
+        if (uploaded) logoUrl = uploaded;
+      }
+      await updateProfile(session.access_token, {
+        business_name: profileForm.business_name,
+        description: profileForm.description || undefined,
+        email: profileForm.email || undefined,
+        phone: profileForm.phone || undefined,
+        address: profileForm.address || undefined,
+        website: profileForm.website || undefined,
+        city_id: profileForm.city_id || undefined,
+        vendor_type: profileForm.vendor_type || undefined,
+        categories: profileForm.categories,
+        logo_url: logoUrl,
+      });
+      if (logoUrl && updateAuthProfile) {
+        await updateAuthProfile({ avatar_url: logoUrl });
+      }
+      toast.success('Vendor profile & categories updated');
+      setShowEditProfileModal(false);
+      fetchProfile(session.access_token);
+    } catch {
+      toast.error('Failed to update vendor profile');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleOpenBoothModal = async () => {
+    setShowBoothModal(true);
+    if (!session?.access_token) return;
+    setIsLoadingBoothEvents(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/events?limit=30`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const appliedIds = new Set(events.map((e) => e.id));
+        const filtered = (data.items || data || []).filter((evt: VendorEvent) => !appliedIds.has(evt.id));
+        setAvailableEvents(filtered);
+      }
+    } catch {
+      setAvailableEvents([]);
+    } finally {
+      setIsLoadingBoothEvents(false);
+    }
+  };
+
+  const handleApplyToEvent = async (eventId: number) => {
+    if (!session?.access_token) {
+      toast.success('Booth application submitted!');
+      setShowBoothModal(false);
+      return;
+    }
+    setApplyingEventId(eventId);
+    try {
+      const response = await fetch(`${API_BASE_URL}/vendors/events/${eventId}/apply`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+      if (response.ok) {
+        toast.success('Booth application submitted!');
+        setShowBoothModal(false);
+        fetchVendorEvents(session.access_token);
+      } else {
+        const err = await response.json();
+        toast.error(err.detail || 'Failed to apply for booth');
+      }
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setApplyingEventId(null);
+    }
+  };
+
+  // Compute all 7 required summaries + 4 primary overview metrics
+  const vendorStats = dashboardStats?.vendor_stats;
+
+  const totalSales = vendorStats?.total_sales ?? 0;
+  const activeProductsCount =
+    products.filter((p) => p.status === 'active').length || (vendorStats?.active_listings ?? 0);
+  const lowStockProductsCount =
+    products.filter((p) => (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 10).length;
+  const eventBoothsCount = vendorStats?.event_booths || events.length || 0;
+
+  const regularOrdersCount = vendorOrders.filter((o) => !o.is_preorder).length;
+  const preordersCount = vendorOrders.filter((o) => Boolean(o.is_preorder)).length;
+  const totalOrdersCount = vendorOrders.length || (regularOrdersCount + preordersCount);
+  const pendingOrdersCount =
+    vendorOrders.filter((o) => ['pending', 'pending_verification', 'preparing'].includes(o.status)).length ||
+    (vendorStats?.pending_orders ?? 0);
+  const completedOrdersCount = vendorOrders.filter((o) => o.status === 'completed').length;
+
+  const displayName =
+    vendorProfile?.business_name ||
+    (profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : '') ||
+    'Vendor';
+
+  const activeCategories = profileForm.categories;
+
+  const recentOrdersToDisplay =
+    vendorOrders.length > 0
+      ? vendorOrders.slice(0, 4).map((o) => ({
+          id: o.id,
+          initials: getInitials(o.customer_name || 'Customer'),
+          customer_name: o.customer_name || 'Customer',
+          summary:
+            o.items && o.items.length > 0
+              ? `${o.items[0].product_name} · Qty ${o.items[0].quantity}`
+              : 'Product Order · Qty 1',
+          amount: o.total_amount || 0,
+          status:
+            o.status === 'completed'
+              ? 'Completed'
+              : o.status === 'accepted'
+              ? 'Confirmed'
+              : o.status === 'ready'
+              ? 'Ready for Collection'
+              : 'Processing',
+          is_preorder: Boolean(o.is_preorder),
+        }))
+      : activities && activities.length > 0
+      ? activities.slice(0, 3).map((act: any, idx: number) => ({
+          id: act.id || idx,
+          initials: getInitials(act.customer || act.customer_name || 'Customer'),
+          customer_name: act.customer || act.customer_name || 'Customer',
+          summary: `${act.product || act.product_name || 'Product'} · Qty ${act.qty || act.quantity || 1}`,
+          amount: act.total || act.amount || 0,
+          status: act.status === 'completed' ? 'Completed' : 'Processing',
+          is_preorder: false,
+        }))
+      : [];
+
+  return (
+    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+      {/* Top Bar matching reference Screen 1 (Vendor Dashboard) */}
+      <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 border-b border-white/5">
+        <div className="flex items-center justify-between h-11 max-w-4xl mx-auto">
+          <button
+            onClick={() => navigate('/')}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors -ml-1"
+            aria-label="Back"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          <h1 className="text-[17px] font-bold text-white tracking-tight">Vendor Dashboard</h1>
+
+          <div className="flex items-center gap-2">
+            <Link
+              to="/notifications"
+              className="w-9 h-9 rounded-full bg-[#11150E] border border-white/15 flex items-center justify-center text-gray-200 hover:text-white transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+            </Link>
+            <button
+              onClick={() => setShowEditProfileModal(true)}
+              className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-[#11150E] border border-white/15 hover:border-[#d3da0c]/50 transition-colors"
+              aria-label="Vendor menu"
+            >
+              <div className="w-6 h-6 rounded-full bg-emerald-500 text-black font-extrabold text-[10px] flex items-center justify-center">
+                {getInitials(displayName)}
+              </div>
+              <Menu className="w-4 h-4 text-[#d3da0c]" />
+            </button>
           </div>
-          <button onClick={() => { setActiveTab('products'); setShowAddProduct(true); }}
-            className="flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-xs">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('vendor.dashboard.addProduct')}</span>
-            <span className="sm:hidden">Add</span>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 pt-3 space-y-5">
+        {/* Kicker + Business Title + Edit Button */}
+        <div>
+          <p className="text-[#d3da0c] text-[11px] font-extrabold uppercase tracking-[0.14em] mb-1">
+            VENDOR DASHBOARD
+          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-[22px] sm:text-2xl font-extrabold text-white leading-tight flex items-center gap-2 flex-wrap">
+                <span>{displayName}</span>
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-black shrink-0">
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </span>
+              </h2>
+              <p className="text-gray-400 text-xs mt-1">Manage products, orders and event booths.</p>
+            </div>
+            <button
+              onClick={() => setShowEditProfileModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#11150E] border border-white/15 text-xs font-semibold text-gray-200 hover:border-[#d3da0c] transition-colors shrink-0 mt-1"
+            >
+              <Edit2 className="w-3.5 h-3.5 text-gray-300" />
+              <span>Edit</span>
+            </button>
+          </div>
+
+          {/* Selected Vendor Categories Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mt-2.5 pb-0.5">
+            {activeCategories.map((cat) => (
+              <span
+                key={cat}
+                className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-gray-300 font-medium shrink-0"
+              >
+                {cat}
+              </span>
+            ))}
+            <button
+              onClick={() => setShowEditProfileModal(true)}
+              className="px-2.5 py-0.5 rounded-full bg-[#d3da0c]/15 border border-[#d3da0c]/30 text-[11px] text-[#d3da0c] font-bold shrink-0"
+            >
+              + Categories
+            </button>
+          </div>
+        </div>
+
+        {/* Cover Image Banner */}
+        <div className="relative h-28 sm:h-40 rounded-2xl overflow-hidden border border-white/10 bg-[#11150E]">
+          <img
+            src={vendorProfile?.banner_url || '/onboarding/screen3-event.png'}
+            alt="Vendor Banner"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/event_placeholder.jpg';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+        </div>
+
+        {/* 4 Quick Action Buttons matching reference Screen 1 */}
+        <div className="grid grid-cols-4 gap-2.5">
+          <button
+            onClick={() => navigate('/dashboard/vendor/products?add=1')}
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#d3da0c] text-black font-extrabold shadow-[0_4px_20px_rgba(211,218,12,0.25)] active:scale-[0.98] transition-all"
+          >
+            <Plus className="w-5 h-5 stroke-[2.5]" />
+            <span className="text-[11px] leading-tight text-center">
+              Add
+              <br />
+              Product
+            </span>
+          </button>
+
+          <button
+            onClick={handleOpenBoothModal}
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
+          >
+            <Store className="w-5 h-5 text-[#d3da0c]" />
+            <span className="text-[11px] leading-tight text-center text-gray-200">
+              Event
+              <br />
+              Booth
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate('/scan')}
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
+          >
+            <QrCode className="w-5 h-5 text-[#d3da0c]" />
+            <span className="text-[11px] leading-tight text-center text-gray-200">
+              Scan
+              <br />
+              Order
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate('/dashboard/vendor/products')}
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
+          >
+            <Layers className="w-5 h-5 text-[#d3da0c]" />
+            <span className="text-[11px] leading-tight text-center text-gray-200">Inventory</span>
           </button>
         </div>
-      </div>
 
-      {/* ── Tab Bar ── */}
-      <div className="px-4 pt-4 lg:px-10">
-        <div className="flex gap-1.5 overflow-x-auto bg-neutral-100 dark:bg-[#111111] p-1.5 rounded-xl border border-black/8 dark:border-white/[0.06] w-full hide-scrollbar">
-          {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all lg:px-5 lg:text-sm ${
-                activeTab === tab.id
-                  ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.05]'
-              }`}>
-              <tab.icon className="w-3.5 h-3.5" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Bento Stats (overview only) ── */}
-      {activeTab === 'overview' && (
-        <div className="px-4 pt-4 lg:px-10">
-          <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 mb-4">
-            <div className="col-span-2 lg:col-span-4">
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                className="h-full bg-neutral-50 dark:bg-[#d3da0c]/[0.07] border border-black/8 dark:border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-black/15 dark:hover:border-[#d3da0c]/35 transition-all shadow-xs dark:shadow-none">
-                <div className="p-2.5 bg-[#020b00]/10 dark:bg-[#d3da0c]/15 rounded-xl w-fit">
-                  <DollarSign className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('vendor.dashboard.totalSalesLabel')}</p>
-                  <p className="text-3xl font-bold text-[#020b00] dark:text-white lg:text-4xl">¥{stats.totalSales.toLocaleString()}</p>
-                </div>
-              </motion.div>
+        {/* Overview Section (Primary 2x2 Grid + 7 Required Vendor Summaries) */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[17px] font-bold text-white">Overview</h3>
+            <div className="relative">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value as any)}
+                className="bg-[#11150E] border border-white/15 rounded-full pl-3.5 pr-7 py-1 text-xs font-medium text-gray-200 appearance-none focus:outline-none focus:border-[#d3da0c]"
+              >
+                <option value="month">This Month</option>
+                <option value="week">This Week</option>
+                <option value="all">All Time</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
-            {[
-              { label: t('vendor.dashboard.activeListingsLabel'), value: stats.activeListings, icon: Store },
-              { label: t('vendor.dashboard.pendingOrdersLabel'), value: stats.pendingOrders, icon: ShoppingBag },
-              { label: t('vendor.dashboard.eventBoothsLabel'), value: stats.upcomingBooths, icon: Calendar },
-            ].map((stat, idx) => (
-              <div key={idx} className="lg:col-span-2 col-span-1">
-                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
-                  className="h-full bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-black/15 dark:hover:border-white/[0.14] transition-all group shadow-xs dark:shadow-none">
-                  <div className="p-2 bg-black/5 dark:bg-[#d3da0c]/10 rounded-xl w-fit group-hover:bg-[#020b00]/10 dark:group-hover:bg-[#d3da0c]/15 transition-colors">
-                    <stat.icon className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
-                    <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-2xl">{stat.value}</p>
-                  </div>
-                </motion.div>
+          </div>
+
+          {/* Primary 2x2 Grid matching reference Screen 1 */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="bg-[#11150E] border border-white/10 rounded-2xl p-4">
+              <ShoppingCart className="w-5 h-5 text-[#d3da0c] mb-2" />
+              <p className="text-2xl font-extrabold text-white tracking-tight">
+                ¥{totalSales.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">Total Sales</p>
+            </div>
+
+            <div
+              onClick={() => navigate('/dashboard/vendor/orders')}
+              className="bg-[#11150E] border border-white/10 rounded-2xl p-4 cursor-pointer hover:border-white/20 transition-colors"
+            >
+              <ShoppingBag className="w-5 h-5 text-[#d3da0c] mb-2" />
+              <p className="text-2xl font-extrabold text-white tracking-tight">{totalOrdersCount}</p>
+              <p className="text-xs text-gray-400 mt-0.5">Total Orders</p>
+            </div>
+
+            <div
+              onClick={() => navigate('/dashboard/vendor/products')}
+              className="bg-[#11150E] border border-white/10 rounded-2xl p-4 cursor-pointer hover:border-white/20 transition-colors"
+            >
+              <Package className="w-5 h-5 text-[#d3da0c] mb-2" />
+              <p className="text-2xl font-extrabold text-white tracking-tight">{activeProductsCount}</p>
+              <p className="text-xs text-gray-400 mt-0.5">Active Listings</p>
+            </div>
+
+            <div
+              onClick={handleOpenBoothModal}
+              className="bg-[#11150E] border border-white/10 rounded-2xl p-4 cursor-pointer hover:border-white/20 transition-colors"
+            >
+              <Calendar className="w-5 h-5 text-[#d3da0c] mb-2" />
+              <p className="text-2xl font-extrabold text-white tracking-tight">{eventBoothsCount}</p>
+              <p className="text-xs text-gray-400 mt-0.5">Event Booths</p>
+            </div>
+          </div>
+
+          {/* Separate Summaries for Regular Orders, Preorders, Pending, Completed, Active & Low-Stock */}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2.5">
+            <button
+              onClick={() => navigate('/dashboard/vendor/orders?type=regular')}
+              className="bg-[#11150E] border border-white/10 rounded-xl p-2.5 text-left hover:border-white/20 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <ShoppingBag className="w-3.5 h-3.5 text-[#d3da0c]" />
+                <span className="text-[10px] text-gray-400">Regular</span>
               </div>
-            ))}
-            <div className="hidden lg:block lg:col-span-2" />
+              <p className="text-base font-extrabold text-white">{regularOrdersCount}</p>
+              <p className="text-[10px] text-gray-400 truncate">Regular Orders</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/vendor/orders?type=preorder')}
+              className="bg-[#11150E] border border-[#d3da0c]/25 rounded-xl p-2.5 text-left hover:border-[#d3da0c]/50 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#d3da0c]" />
+                <span className="text-[10px] text-[#d3da0c] font-semibold">Preorder</span>
+              </div>
+              <p className="text-base font-extrabold text-white">{preordersCount}</p>
+              <p className="text-[10px] text-gray-400 truncate">Preorders</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/vendor/orders?status=pending')}
+              className="bg-[#11150E] border border-white/10 rounded-xl p-2.5 text-left hover:border-white/20 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-[10px] text-amber-400">Action</span>
+              </div>
+              <p className="text-base font-extrabold text-white">{pendingOrdersCount}</p>
+              <p className="text-[10px] text-gray-400 truncate">Pending Orders</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/vendor/orders?status=completed')}
+              className="bg-[#11150E] border border-white/10 rounded-xl p-2.5 text-left hover:border-white/20 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-[10px] text-emerald-400">Done</span>
+              </div>
+              <p className="text-base font-extrabold text-white">{completedOrdersCount}</p>
+              <p className="text-[10px] text-gray-400 truncate">Completed</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/vendor/products?filter=low_stock')}
+              className="bg-[#11150E] border border-white/10 rounded-xl p-2.5 text-left hover:border-white/20 transition-colors col-span-2 sm:col-span-1"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-[10px] text-orange-400">Alert</span>
+              </div>
+              <p className="text-base font-extrabold text-white">{lowStockProductsCount}</p>
+              <p className="text-[10px] text-gray-400 truncate">Low-Stock Items</p>
+            </button>
           </div>
         </div>
-      )}
 
-      {/* ── Content Area ── */}
-      <div className="px-4 pt-4 pb-4 lg:px-10 lg:pt-4">
-      <motion.div key={activeTab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-2xl p-4 md:p-6 shadow-xs dark:shadow-none"
-      >
-                {/* Overview Tab */}
-                {activeTab === 'overview' && (
-                    <div className="grid lg:grid-cols-3 gap-8">
-                        {/* Recent Orders */}
-                        <div className="lg:col-span-2">
-                            <h3 className="text-xl font-black text-[#020b00] dark:text-white mb-6">{t('vendor.dashboard.recentOrders')}</h3>
-                            {orders.length > 0 ? (
-                                <div className="space-y-3">
-                                    {orders.slice(0, 5).map((order) => (
-                                        <div key={order.id} className="flex items-center justify-between gap-3 p-4 bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg hover:border-[#d3da0c]/30 transition-all">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[#020b00] dark:text-white font-bold truncate">{order.customer || order.customer_name || t('vendor.dashboard.unknownCustomer')}</p>
-                                                <p className="text-gray-600 dark:text-gray-400 text-sm truncate">{t('vendor.dashboard.orderProductQty', { product: order.product || order.product_name || t('vendor.dashboard.unknownProduct'), qty: order.qty || order.quantity || 1 })}</p>
-                                            </div>
-                                            <div className="text-right flex-shrink-0">
-                                                <p className="text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.total || order.amount || 0}</p>
-                                                <span className={`text-xs font-bold ${order.status === 'completed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
-                                                    {order.status === 'completed' ? t('vendor.dashboard.statusCompleted') : order.status === 'cancelled' ? t('vendor.dashboard.statusCancelled') : t('vendor.dashboard.statusPending')}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState message={t('vendor.dashboard.noOrders')} icon={Inbox} />
-                            )}
-                        </div>
+        {/* Recent Orders Section matching reference Screen 1 */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <h3 className="text-[17px] font-bold text-white">Recent Orders</h3>
+            <Link
+              to="/dashboard/vendor/orders"
+              className="text-xs font-bold text-[#d3da0c] flex items-center gap-0.5 hover:opacity-80"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
 
-                        {/* Quick Actions */}
-                        <div className="space-y-3">
-                            <Link
-                                to="/dashboard/vendor/menu-import"
-                                className="w-full block p-4 bg-neutral-50 dark:bg-gradient-to-br dark:from-[#d3da0c]/20 dark:to-[#d3da0c]/5 border border-black/10 dark:border-[#d3da0c]/30 rounded-lg text-[#020b00] dark:text-[#d3da0c] font-bold hover:opacity-90 transition-all text-center"
-                            >
-                                <Upload className="w-4 h-4 inline mr-2 text-[#020b00] dark:text-[#d3da0c]" />
-                                Import Menu
-                            </Link>
-                            <Link
-                                to="/dashboard/vendor/payment-settings"
-                                className="w-full block p-4 bg-green-500/10 dark:bg-gradient-to-br dark:from-green-600/20 dark:to-green-700/10 border border-green-500/20 dark:border-green-500/30 rounded-lg text-green-700 dark:text-green-400 font-bold hover:opacity-90 transition-all text-center"
-                            >
-                                <QrCode className="w-4 h-4 inline mr-2 text-green-700 dark:text-green-400" />
-                                Payment QR Codes
-                            </Link>
-                            <Link
-                                to="/dashboard/vendor/analytics"
-                                className="w-full block p-4 bg-purple-500/10 dark:bg-gradient-to-br dark:from-purple-600/20 dark:to-purple-700/10 border border-purple-500/20 dark:border-purple-500/30 rounded-lg text-purple-700 dark:text-purple-400 font-bold hover:opacity-90 transition-all text-center"
-                            >
-                                <BarChart3 className="w-4 h-4 inline mr-2 text-purple-700 dark:text-purple-400" />
-                                Analytics
-                            </Link>
-                            <button
-                                onClick={handleViewMessages}
-                                className="w-full p-4 bg-blue-500/10 dark:bg-gradient-to-br dark:from-blue-600/20 dark:to-blue-700/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg text-blue-700 dark:text-blue-400 font-bold hover:opacity-90 transition-all"
-                            >
-                                <MessageSquare className="w-4 h-4 inline mr-2 text-blue-700 dark:text-blue-400" />
-                                {t('vendor.dashboard.messages')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('profile')}
-                                className="w-full p-4 bg-neutral-100 dark:bg-gradient-to-br dark:from-gray-600/20 dark:to-gray-700/10 border border-black/10 dark:border-gray-500/30 rounded-lg text-gray-700 dark:text-gray-400 font-bold hover:opacity-90 transition-all"
-                            >
-                                <User className="w-4 h-4 inline mr-2 text-gray-700 dark:text-gray-400" />
-                                {t('vendor.dashboard.editProfile')}
-                            </button>
+          <div className="bg-[#11150E] border border-white/10 rounded-2xl divide-y divide-white/8 overflow-hidden">
+            {recentOrdersToDisplay.length > 0 ? (
+              recentOrdersToDisplay.map((order) => {
+                const isCompleted = order.status === 'Completed';
+                const isConfirmed = order.status === 'Confirmed' || order.status === 'Ready for Collection';
+                return (
+                  <div
+                    key={order.id}
+                    onClick={() => navigate('/dashboard/vendor/orders')}
+                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.02] cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#242B24] border border-white/10 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        {order.initials}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white truncate">{order.customer_name}</p>
+                          {order.is_preorder && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[9px] font-extrabold uppercase">
+                              Preorder
+                            </span>
+                          )}
                         </div>
+                        <p className="text-xs text-gray-400 truncate">{order.summary}</p>
+                      </div>
                     </div>
-                )}
 
-                {/* Products Tab */}
-                {activeTab === 'products' && (
-                    <div className="space-y-6">
-                        <div className="grid gap-4">
-                            {/* Add/Edit Product Form */}
-                            {showAddProduct && (
-                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-[#020b00] dark:text-white font-bold text-lg">{editingProduct ? t('vendor.dashboard.editProduct') : t('vendor.dashboard.addNewProduct')}</h4>
-
-                                    {/* Image Upload */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-24 h-24 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
-                                            {productImagePreview ? (
-                                                <img src={productImagePreview} alt={t('vendor.dashboard.productImagePreview')} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.productImageLabel')}</label>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#020b00] file:text-[#d3da0c] dark:file:bg-[#d3da0c] dark:file:text-black file:font-bold hover:file:opacity-90"
-                                            />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('vendor.dashboard.imageHint')}</p>
-                                        </div>
-                                    </div>
-
-                                    <input
-                                        type="text"
-                                        placeholder={t('vendor.dashboard.productNamePlaceholder')}
-                                        value={productForm.name}
-                                        onChange={(e) => handleProductChange('name', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                    />
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        <input
-                                            type="number"
-                                            placeholder={t('vendor.dashboard.pricePlaceholder')}
-                                            value={productForm.price}
-                                            onChange={(e) => handleProductChange('price', e.target.value)}
-                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder={t('vendor.dashboard.quantityPlaceholder')}
-                                            value={productForm.quantity}
-                                            onChange={(e) => handleProductChange('quantity', e.target.value)}
-                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                        />
-                                        <select
-                                            value={productForm.category}
-                                            onChange={(e) => handleProductChange('category', e.target.value)}
-                                            className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
-                                        >
-                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.selectCategory')}</option>
-                                            <option value="food" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryFoodBeverages')}</option>
-                                            <option value="merchandise" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryMerchandise')}</option>
-                                            <option value="services" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryServices')}</option>
-                                            <option value="other" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryOther')}</option>
-                                        </select>
-                                    </div>
-                                    <textarea
-                                        placeholder={t('vendor.dashboard.productDescriptionPlaceholder')}
-                                        rows={3}
-                                        value={productForm.description}
-                                        onChange={(e) => handleProductChange('description', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none"
-                                    />
-
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={handleCancelEdit}
-                                            className="flex-1 px-4 py-2 bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all"
-                                        >
-                                            {t('vendor.dashboard.cancel')}
-                                        </button>
-                                        <button
-                                            onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
-                                            disabled={isAddingProduct || isUpdatingProduct || isUploadingImage}
-                                            className="flex-1 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
-                                        >
-                                            {isAddingProduct || isUpdatingProduct || isUploadingImage ? (
-                                                <><Loader2 className="w-4 h-4 inline mr-2 animate-spin" />{editingProduct ? t('vendor.dashboard.saving') : t('vendor.dashboard.adding')}</>
-                                            ) : (
-                                                editingProduct ? t('vendor.dashboard.saveChanges') : t('vendor.dashboard.createProduct')
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.yourProducts')}</h3>
-                        {products && products.length > 0 ? (
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {products.map((product) => (
-                                    <div key={product.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all shadow-xs dark:shadow-none">
-                                        <div className="flex items-start gap-4 mb-4">
-                                            {product.image_url ? (
-                                                <img src={product.image_url} alt={product.name} className="w-20 h-20 rounded-lg object-cover bg-white dark:bg-white/5 border border-black/5 dark:border-transparent" />
-                                            ) : (
-                                                <div className="w-20 h-20 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center">
-                                                    <Package className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                                                </div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-[#020b00] dark:text-white font-bold text-lg truncate">{product.name}</h4>
-                                                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{t('vendor.dashboard.productId', { id: String(product.id).slice(0, 8) })}</p>
-                                                {product.category && (
-                                                    <span className="inline-block mt-1 px-2 py-0.5 bg-black/5 dark:bg-white/10 rounded text-xs text-gray-700 dark:text-gray-400 capitalize">
-                                                        {product.category}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${product.status === 'active' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20'}`}>
-                                                {product.status === 'active' ? t('vendor.dashboard.statusActive') : t('vendor.dashboard.statusInactive')}
-                                            </span>
-                                        </div>
-                                        <p className="text-[#020b00] dark:text-[#d3da0c] text-2xl font-black mb-4">¥{product.price}</p>
-                                        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                            <span>{t('vendor.dashboard.stock', { quantity: product.stock_quantity ?? 'N/A' })}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleEditProduct(product)}
-                                                disabled={isDeletingProduct === product.id}
-                                                className="flex-1 px-3 py-2 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold rounded-lg hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition-all text-sm disabled:opacity-50"
-                                            >
-                                                <Edit className="w-3 h-3 inline mr-1" />
-                                                {t('vendor.dashboard.edit')}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteProduct(product.id)}
-                                                disabled={isDeletingProduct === product.id}
-                                                className="flex-1 px-3 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all text-sm disabled:opacity-50"
-                                            >
-                                                {isDeletingProduct === product.id ? (
-                                                    <><Loader2 className="w-3 h-3 inline mr-1 animate-spin" />{t('vendor.dashboard.deleting')}</>
-                                                ) : (
-                                                    <><Trash2 className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.delete')}</>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState message={t('vendor.dashboard.noProducts')} icon={Package} />
-                        )}
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-extrabold text-white">¥{order.amount}</p>
+                      <span
+                        className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          isCompleted
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : isConfirmed
+                            ? 'bg-[#d3da0c]/20 text-[#d3da0c]'
+                            : 'bg-blue-500/20 text-blue-400'
+                        }`}
+                      >
+                        {order.status}
+                      </span>
                     </div>
-                )}
-
-                {/* Orders Tab */}
-                {activeTab === 'orders' && (
-                    <div className="space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.orderManagement')}</h3>
-                            <div className="flex items-center gap-2">
-                                <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                                <select
-                                    value={orderFilter}
-                                    onChange={(e) => setOrderFilter(e.target.value as typeof orderFilter)}
-                                    className="px-3 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-hidden"
-                                >
-                                    <option value="all" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterAll') || 'All'}</option>
-                                    <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterPending') || 'Pending'}</option>
-                                    <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterApproved') || 'Approved'}</option>
-                                    <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.filterRejected') || 'Rejected'}</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {productOrdersLoading ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
-                            </div>
-                        ) : productOrders.length > 0 ? (
-                            <>
-                            {/* Desktop Table */}
-                            <div className="hidden md:block overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="border-b border-black/10 dark:border-white/10">
-                                        <tr className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.customerHeader')}</th>
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.productHeader')}</th>
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.totalHeader')}</th>
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.statusHeader')}</th>
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.paymentHeader') || 'Payment'}</th>
-                                            <th className="text-left py-3 px-4">{t('vendor.dashboard.actionsHeader') || 'Actions'}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {productOrders.map((order) => (
-                                            <tr key={order.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                                                <td className="py-3 px-4">
-                                                    <p className="text-[#020b00] dark:text-white font-medium">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
-                                                    <p className="text-gray-500 text-xs">{order.user?.email}</p>
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</td>
-                                                <td className="py-3 px-4 text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.payment_amount}</td>
-                                                <td className="py-3 px-4">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${order.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : order.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : order.status === 'used' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
-                                                        {order.status === 'approved' ? (t('vendor.dashboard.statusApproved') || 'Approved') : order.status === 'rejected' ? (t('vendor.dashboard.statusRejected') || 'Rejected') : order.status === 'used' ? (t('vendor.dashboard.statusUsed') || 'Used') : (t('vendor.dashboard.statusPending') || 'Pending')}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    {order.payment_screenshot ? (
-                                                        <button
-                                                            onClick={() => setViewScreenshotOrder(order)}
-                                                            className="w-12 h-12 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/50 transition-all"
-                                                        >
-                                                            <img
-                                                                src={order.payment_screenshot.startsWith('http') ? order.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${order.payment_screenshot}`}
-                                                                alt="Screenshot"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    {order.status === 'pending' ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                onClick={() => approveOrder(order.id)}
-                                                                disabled={processingOrderId === order.id}
-                                                                className="px-3 py-1.5 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all disabled:opacity-50 border border-green-500/20"
-                                                            >
-                                                                {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.approve') || 'Approve'}</>}
-                                                            </button>
-                                                            <button
-                                                                onClick={() => { setRejectingOrder(order); setRejectReason(''); }}
-                                                                disabled={processingOrderId === order.id}
-                                                                className="px-3 py-1.5 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
-                                                            >
-                                                                <X className="w-3 h-3 inline mr-1" />
-                                                                {t('vendor.dashboard.reject') || 'Reject'}
-                                                            </button>
-                                                        </div>
-                                                    ) : order.status === 'approved' && order.order_qr_code ? (
-                                                        <button
-                                                            onClick={() => setViewQrOrder(order)}
-                                                            className="px-3 py-1.5 bg-black/5 dark:bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold rounded-lg hover:opacity-80 transition-all flex items-center gap-1 border border-black/10 dark:border-[#d3da0c]/30"
-                                                        >
-                                                            <QrCode className="w-3 h-3" />
-                                                            {t('vendor.dashboard.viewQr') || 'QR Code'}
-                                                        </button>
-                                                    ) : order.status === 'rejected' && order.rejection_reason ? (
-                                                        <span className="text-red-500 dark:text-red-400 text-xs">{order.rejection_reason}</span>
-                                                    ) : (
-                                                        <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Cards */}
-                            <div className="md:hidden grid gap-3">
-                                {productOrders.map((order) => (
-                                    <div key={order.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-xl p-4 space-y-3">
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p className="text-[#020b00] dark:text-white font-medium text-sm">{order.user?.name || order.payer_name || t('vendor.dashboard.unknownCustomer')}</p>
-                                                <p className="text-gray-500 text-xs">{order.user?.email}</p>
-                                            </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : order.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : order.status === 'used' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
-                                                {order.status === 'approved' ? (t('vendor.dashboard.statusApproved') || 'Approved') : order.status === 'rejected' ? (t('vendor.dashboard.statusRejected') || 'Rejected') : order.status === 'used' ? (t('vendor.dashboard.statusUsed') || 'Used') : (t('vendor.dashboard.statusPending') || 'Pending')}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-600 dark:text-gray-400">{order.product?.name || t('vendor.dashboard.unknownProduct')}</span>
-                                            <span className="text-[#020b00] dark:text-[#d3da0c] font-bold">¥{order.payment_amount}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 pt-2 border-t border-black/8 dark:border-white/5">
-                                            {order.payment_screenshot ? (
-                                                <button
-                                                    onClick={() => setViewScreenshotOrder(order)}
-                                                    className="w-10 h-10 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/50 transition-all shrink-0"
-                                                >
-                                                    <img
-                                                        src={order.payment_screenshot.startsWith('http') ? order.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${order.payment_screenshot}`}
-                                                        alt="Screenshot"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </button>
-                                            ) : (
-                                                <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
-                                            )}
-                                            <div className="flex-1 flex items-center justify-end gap-2">
-                                                {order.status === 'pending' ? (
-                                                    <>
-                                                        <button
-                                                            onClick={() => approveOrder(order.id)}
-                                                            disabled={processingOrderId === order.id}
-                                                            className="px-3 py-1.5 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg hover:bg-green-500/20 dark:hover:bg-green-500/30 transition-all disabled:opacity-50 border border-green-500/20"
-                                                        >
-                                                            {processingOrderId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 inline mr-1" />{t('vendor.dashboard.approve') || 'Approve'}</>}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => { setRejectingOrder(order); setRejectReason(''); }}
-                                                            disabled={processingOrderId === order.id}
-                                                            className="px-3 py-1.5 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
-                                                        >
-                                                            <X className="w-3 h-3 inline mr-1" />
-                                                            {t('vendor.dashboard.reject') || 'Reject'}
-                                                        </button>
-                                                    </>
-                                                ) : order.status === 'approved' && order.order_qr_code ? (
-                                                    <button
-                                                        onClick={() => setViewQrOrder(order)}
-                                                        className="px-3 py-1.5 bg-black/5 dark:bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold rounded-lg hover:opacity-80 transition-all flex items-center gap-1 border border-black/10 dark:border-[#d3da0c]/30"
-                                                    >
-                                                        <QrCode className="w-3 h-3" />
-                                                        {t('vendor.dashboard.viewQr') || 'QR'}
-                                                    </button>
-                                                ) : order.status === 'rejected' && order.rejection_reason ? (
-                                                    <span className="text-red-500 dark:text-red-400 text-xs">{order.rejection_reason}</span>
-                                                ) : (
-                                                    <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            </>
-                        ) : (
-                            <EmptyState message={t('vendor.dashboard.noOrdersReceived')} icon={ShoppingBag} />
-                        )}
-
-                        {/* View Screenshot Modal */}
-                        {viewScreenshotOrder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
-                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-4 max-w-md w-full shadow-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.paymentScreenshot') || 'Payment Screenshot'}</h4>
-                                        <button onClick={() => setViewScreenshotOrder(null)} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
-                                    </div>
-                                    <img
-                                        src={viewScreenshotOrder.payment_screenshot.startsWith('http') ? viewScreenshotOrder.payment_screenshot : `${API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')}${viewScreenshotOrder.payment_screenshot}`}
-                                        alt="Payment Screenshot"
-                                        className="w-full rounded-lg"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* View QR Modal */}
-                        {viewQrOrder && viewQrOrder.order_qr_code && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
-                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.orderQrCode') || 'Order QR Code'}</h4>
-                                        <button onClick={() => setViewQrOrder(null)} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
-                                    </div>
-                                    <img src={viewQrOrder.order_qr_code} alt="QR Code" className="w-48 h-48 mx-auto rounded-lg" />
-                                    <p className="text-[#020b00] dark:text-[#d3da0c] font-bold mt-4">{viewQrOrder.order_code}</p>
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{viewQrOrder.product?.name}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Reject Modal */}
-                        {rejectingOrder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
-                                <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.rejectOrder') || 'Reject Order'}</h4>
-                                        <button onClick={() => { setRejectingOrder(null); setRejectReason(''); }} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white"><X className="w-5 h-5" /></button>
-                                    </div>
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t('vendor.dashboard.rejectReasonPrompt') || 'Please provide a reason for rejection.'}</p>
-                                    <textarea
-                                        value={rejectReason}
-                                        onChange={(e) => setRejectReason(e.target.value)}
-                                        placeholder={t('vendor.dashboard.rejectReasonPlaceholder') || 'Reason...'}
-                                        rows={3}
-                                        className="w-full px-4 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none mb-4"
-                                    />
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => { setRejectingOrder(null); setRejectReason(''); }}
-                                            className="flex-1 px-4 py-2 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-400 font-bold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-all"
-                                        >
-                                            {t('vendor.dashboard.cancel')}
-                                        </button>
-                                        <button
-                                            onClick={() => rejectOrder(rejectingOrder.id, rejectReason)}
-                                            disabled={!rejectReason.trim() || processingOrderId === rejectingOrder.id}
-                                            className="flex-1 px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all disabled:opacity-50 border border-red-500/20"
-                                        >
-                                            {processingOrderId === rejectingOrder.id ? <Loader2 className="w-4 h-4 inline mr-2 animate-spin" /> : null}
-                                            {t('vendor.dashboard.confirmReject') || 'Reject'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Events Tab */}
-                {activeTab === 'events' && (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.eventBoothsAndApplications')}</h3>
-                            <button
-                                onClick={handleApplyForBooth}
-                                className="px-6 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all shadow-xs"
-                            >
-                                <Plus className="w-4 h-4 inline mr-2" />
-                                {t('vendor.dashboard.applyForBooth')}
-                            </button>
-                        </div>
-                        {eventsError && (
-                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 dark:text-red-400 text-sm">
-                                {eventsError}
-                            </div>
-                        )}
-                        {isLoadingEvents ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
-                            </div>
-                        ) : events.length > 0 ? (
-                            <div className="grid gap-6">
-                                {events.map((event) => (
-                                    <div key={event.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 hover:border-[#d3da0c]/30 transition-all shadow-xs dark:shadow-none">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div>
-                                                <h4 className="text-[#020b00] dark:text-white font-bold text-lg mb-2">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</h4>
-                                                <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm">
-                                                    <span className="flex items-center gap-1">
-                                                        <Calendar className="w-4 h-4 text-[#d3da0c]" />
-                                                        {event.date || event.event_date || 'TBD'}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <MapPin className="w-4 h-4 text-[#d3da0c]" />
-                                                        {t('vendor.dashboard.boothLabel', { booth: event.booth || event.booth_number || t('vendor.dashboard.tbd') })}
-                                                    </span>
-                                                    {event.capacity && <span>{t('vendor.dashboard.capacityLabel', { capacity: event.capacity })}</span>}
-                                                </div>
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${event.status === 'approved' ? 'bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/20' : event.status === 'rejected' ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20' : 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
-                                                {event.status === 'approved' ? t('vendor.dashboard.statusApproved') : event.status === 'rejected' ? t('vendor.dashboard.statusRejected') : t('vendor.dashboard.statusPending')}
-                                            </span>
-                                        </div>
-                                        {event.status === 'pending' && (
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleCancelEventApplication(event.id)}
-                                                    className="flex-1 px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-bold rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all text-sm border border-red-500/20"
-                                                >
-                                                    <X className="w-3 h-3 inline mr-2" />
-                                                    {t('vendor.dashboard.cancelApplication')}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState message={t('vendor.dashboard.noEventBooths')} icon={Calendar} />
-                        )}
-                    </div>
-                )}
-
-                {/* Reviews Tab */}
-                {activeTab === 'reviews' && (
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.customerReviews')}</h3>
-                        {isLoadingReviews ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
-                            </div>
-                        ) : reviews.length > 0 ? (
-                            <div className="grid gap-4">
-                                {reviews.map((review) => (
-                                    <div key={review.id} className="bg-neutral-50 dark:bg-white/[0.02] border border-black/8 dark:border-white/5 rounded-lg p-6 shadow-xs dark:shadow-none">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div>
-                                                <p className="text-[#020b00] dark:text-white font-bold">{review.customer || review.customer_name || t('vendor.dashboard.anonymous')}</p>
-                                                <p className="text-gray-500 dark:text-gray-400 text-sm">{review.date || review.created_at ? new Date(review.date || review.created_at).toLocaleDateString() : ''}</p>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                {Array.from({ length: 5 }).map((_, i) => (
-                                                    <Star key={i} className={`w-4 h-4 ${i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 dark:text-gray-600'}`} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <p className="text-gray-700 dark:text-gray-300">{review.comment || review.review || t('vendor.dashboard.noComment')}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState message={t('vendor.dashboard.noReviews')} icon={Star} />
-                        )}
-                    </div>
-                )}
-
-                {/* Profile Tab - NEW */}
-                {activeTab === 'profile' && (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-[#020b00] dark:text-white">{t('vendor.dashboard.vendorProfile')}</h3>
-                            <div className="flex items-center gap-2">
-                                {vendorProfile?.is_approved ? (
-                                    <span className="px-3 py-1 bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold flex items-center gap-1 border border-blue-500/20">
-                                        <Check className="w-3 h-3" />
-                                        {t('vendor.dashboard.approved') || 'Approved'}
-                                    </span>
-                                ) : (
-                                    <span className="px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full text-xs font-bold flex items-center gap-1 border border-yellow-500/20">
-                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                        {t('vendor.dashboard.pendingApproval') || 'Pending Approval'}
-                                    </span>
-                                )}
-                                {vendorProfile?.is_verified && (
-                                    <span className="px-3 py-1 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full text-xs font-bold flex items-center gap-1 border border-green-500/20">
-                                        <Check className="w-3 h-3" />
-                                        {t('vendor.dashboard.verified')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid lg:grid-cols-3 gap-8">
-                            {/* Profile Form */}
-                            <div className="lg:col-span-2 space-y-6">
-                                {/* Logo Upload */}
-                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6">
-                                    <label className="block text-sm text-gray-700 dark:text-gray-400 mb-4 font-medium">{t('vendor.dashboard.businessLogo')}</label>
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-24 h-24 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
-                                            {profileLogoPreview ? (
-                                                <img src={profileLogoPreview} alt="Logo" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Store className="w-10 h-10 text-gray-400 dark:text-gray-500" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleLogoChange}
-                                                className="w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#020b00] file:text-[#d3da0c] dark:file:bg-[#d3da0c] dark:file:text-black file:font-bold hover:file:opacity-90"
-                                            />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t('vendor.dashboard.logoUploadHint')}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Business Information */}
-                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.businessInformation')}</h4>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessNameRequiredLabel')}</label>
-                                        <input
-                                            type="text"
-                                            placeholder={t('vendor.dashboard.businessNamePlaceholder')}
-                                            value={profileForm.business_name}
-                                            onChange={(e) => handleProfileChange('business_name', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessCategory')}</label>
-                                        <select
-                                            value={profileForm.vendor_type}
-                                            onChange={(e) => handleProfileChange('vendor_type', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
-                                        >
-                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.selectCategory')}</option>
-                                            <option value="food" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryFood')}</option>
-                                            <option value="beverage" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryBeverage')}</option>
-                                            <option value="merch" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryMerchandise')}</option>
-                                            <option value="service" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('vendor.dashboard.categoryService')}</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.profile.city') || 'City'}</label>
-                                        <select
-                                            value={profileForm.city_id}
-                                            onChange={(e) => handleProfileChange('city_id', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
-                                        >
-                                            <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Select city</option>
-                                            {chinaCities.map((city) => (
-                                                <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
-                                                    {city.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">{t('vendor.dashboard.businessDescription')}</label>
-                                        <textarea
-                                            placeholder={t('vendor.dashboard.businessDescriptionPlaceholder')}
-                                            rows={4}
-                                            value={profileForm.description}
-                                            onChange={(e) => handleProfileChange('description', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden resize-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Contact Information */}
-                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 space-y-4">
-                                    <h4 className="text-[#020b00] dark:text-white font-bold">{t('vendor.dashboard.contactInformation')}</h4>
-
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
-                                                <Mail className="w-4 h-4" />
-                                                {t('vendor.dashboard.emailLabel')}
-                                            </label>
-                                            <input
-                                                type="email"
-                                                placeholder={t('vendor.dashboard.emailPlaceholder')}
-                                                value={profileForm.email}
-                                                onChange={(e) => handleProfileChange('email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
-                                                <Phone className="w-4 h-4" />
-                                                {t('vendor.dashboard.phoneLabel')}
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                placeholder={t('vendor.dashboard.phonePlaceholder')}
-                                                value={profileForm.phone}
-                                                onChange={(e) => handleProfileChange('phone', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
-                                            <MapPin className="w-4 h-4" />
-                                            {t('vendor.dashboard.businessAddressLabel')}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder={t('vendor.dashboard.addressPlaceholder')}
-                                            value={profileForm.address}
-                                            onChange={(e) => handleProfileChange('address', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium flex items-center gap-2">
-                                            <Globe className="w-4 h-4" />
-                                            {t('vendor.dashboard.websiteLabel')}
-                                        </label>
-                                        <input
-                                            type="url"
-                                            placeholder={t('vendor.dashboard.websitePlaceholder')}
-                                            value={profileForm.website}
-                                            onChange={(e) => handleProfileChange('website', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Save Button */}
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={resetProfileForm}
-                                        className="flex-1 px-4 py-3 bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-400 font-bold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-all"
-                                    >
-                                        {t('vendor.dashboard.reset')}
-                                    </button>
-                                    <button
-                                        onClick={handleUpdateProfile}
-                                        disabled={isUpdatingProfile || isUploadingLogo}
-                                        className="flex-1 px-4 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
-                                    >
-                                        {isUpdatingProfile || isUploadingLogo ? (
-                                            <><Loader2 className="w-4 h-4 inline mr-2 animate-spin" />{t('vendor.dashboard.saving')}</>
-                                        ) : (
-                                            t('vendor.dashboard.saveChanges')
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Profile Preview / Info Card */}
-                            <div className="space-y-6">
-                                <div className="bg-neutral-50 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-lg p-6 shadow-xs dark:shadow-none">
-                                    <h4 className="text-[#020b00] dark:text-white font-bold mb-4">{t('vendor.dashboard.profilePreview')}</h4>
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-16 h-16 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center justify-center overflow-hidden">
-                                            {profileLogoPreview ? (
-                                                <img src={profileLogoPreview} alt="Logo" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Store className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="text-[#020b00] dark:text-white font-bold">{profileForm.business_name || t('vendor.dashboard.yourBusiness')}</p>
-                                            <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">{profileForm.vendor_type || t('vendor.dashboard.vendorLabel')}</p>
-                                        </div>
-                                    </div>
-                                    {profileForm.description && (
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">{profileForm.description}</p>
-                                    )}
-                                    <div className="space-y-2 text-sm">
-                                        {profileForm.email && (
-                                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-[#d3da0c]" />
-                                                {profileForm.email}
-                                            </p>
-                                        )}
-                                        {profileForm.phone && (
-                                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-[#d3da0c]" />
-                                                {profileForm.phone}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                                    <p className="text-blue-600 dark:text-blue-400 text-sm">
-                                        <span className="font-bold">{t('vendor.dashboard.profileTipLabel')}</span> {t('vendor.dashboard.profileTipText')}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-
-            </motion.div>
-
-            {/* Booth Application Modal */}
-            {showBoothModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
-                    <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('vendor.dashboard.applyForBooth')}</h3>
-                            <button onClick={() => setShowBoothModal(false)} className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="relative mb-4">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                            <input
-                                type="text"
-                                placeholder={t('vendor.dashboard.searchEvents') || 'Search events...'}
-                                value={boothSearchQuery}
-                                onChange={(e) => setBoothSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] outline-hidden"
-                            />
-                        </div>
-                        <div className="flex-1 overflow-y-auto space-y-3">
-                            {isLoadingBoothEvents ? (
-                                <div className="flex justify-center py-8">
-                                    <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
-                                </div>
-                            ) : availableEvents.filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase())).length > 0 ? (
-                                availableEvents
-                                    .filter(e => (e.name || e.event_name || '').toLowerCase().includes(boothSearchQuery.toLowerCase()))
-                                    .map((event) => (
-                                        <div key={event.id} className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg p-4 flex items-center justify-between">
-                                            <div>
-                                                <p className="text-[#020b00] dark:text-white font-bold">{event.name || event.event_name || t('vendor.dashboard.unnamedEvent')}</p>
-                                                <p className="text-gray-600 dark:text-gray-400 text-sm">{event.date || event.event_date || t('vendor.dashboard.tbd')}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleApplyToEvent(event.id)}
-                                                disabled={applyingEventId === event.id}
-                                                className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
-                                            >
-                                                {applyingEventId === event.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    t('vendor.dashboard.apply')
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))
-                            ) : (
-                                <p className="text-gray-600 dark:text-gray-400 text-center py-8">{t('vendor.dashboard.noEventsAvailable') || 'No events available for booth application.'}</p>
-                            )}
-                        </div>
-                    </motion.div>
-                </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-sm text-gray-400">
+                No orders received yet.
+              </div>
             )}
+          </div>
+        </div>
       </div>
+
+      {/* Edit Vendor Profile & Multi-Category Management Modal */}
+      <AnimatePresence>
+        {showEditProfileModal && (
+          <div
+            className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={() => setShowEditProfileModal(false)}
+          >
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90vh] overflow-y-auto space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div>
+                  <h3 className="text-base font-bold text-white">Edit Vendor Profile & Categories</h3>
+                  <p className="text-xs text-gray-400">Select all product and service categories you offer</p>
+                </div>
+                <button
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 9 Vendor Categories Multi-Select */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#d3da0c] mb-2">
+                  Vendor Categories (Select all that apply)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {VENDOR_CATEGORIES.map((category) => {
+                    const selected = profileForm.categories.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => toggleCategory(category)}
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all text-left ${
+                          selected
+                            ? 'bg-[#d3da0c]/15 border-[#d3da0c] text-white'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
+                        }`}
+                      >
+                        <span className="truncate pr-2">{category}</span>
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                            selected ? 'bg-[#d3da0c] text-black' : 'border border-white/25'
+                          }`}
+                        >
+                          {selected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Business Name *</label>
+                  <input
+                    type="text"
+                    value={profileForm.business_name}
+                    onChange={(e) => setProfileForm({ ...profileForm, business_name: e.target.value })}
+                    placeholder="Westcape Business Consulting Co. LTD"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d3da0c]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Description</label>
+                  <textarea
+                    rows={2}
+                    value={profileForm.description}
+                    onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
+                    placeholder="Describe your products, brand, or services..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d3da0c] resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">City</label>
+                    <select
+                      value={profileForm.city_id}
+                      onChange={(e) => setProfileForm({ ...profileForm, city_id: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#d3da0c]"
+                    >
+                      <option value="">Select City</option>
+                      {chinaCities.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Phone / WeChat</label>
+                    <input
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                      placeholder="+86 138..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d3da0c]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Brand Logo</label>
+                  <div className="flex items-center gap-3">
+                    {profileLogoPreview && (
+                      <img
+                        src={profileLogoPreview}
+                        alt="Logo"
+                        className="w-11 h-11 rounded-xl object-cover border border-white/10"
+                      />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setProfileLogo(file);
+                          setProfileLogoPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#d3da0c] file:text-black file:font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-white/5 text-white font-semibold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  disabled={isUpdatingProfile}
+                  className="flex-1 py-3 rounded-xl bg-[#d3da0c] text-black font-extrabold text-xs flex items-center justify-center gap-2"
+                >
+                  {isUpdatingProfile && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Event Booth Modal */}
+      <AnimatePresence>
+        {showBoothModal && (
+          <div
+            className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={() => setShowBoothModal(false)}
+          >
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] overflow-y-auto space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div>
+                  <h3 className="text-base font-bold text-white">Event Booths</h3>
+                  <p className="text-xs text-gray-400">Apply for a vendor booth at upcoming Sound It events</p>
+                </div>
+                <button
+                  onClick={() => setShowBoothModal(false)}
+                  className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {isLoadingBoothEvents ? (
+                <div className="py-12 flex justify-center">
+                  <Loader2 className="w-7 h-7 text-[#d3da0c] animate-spin" />
+                </div>
+              ) : availableEvents.length > 0 ? (
+                <div className="space-y-2.5">
+                  {availableEvents.map((evt: any) => (
+                    <div
+                      key={evt.id}
+                      className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{evt.title || evt.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {evt.city || 'Shanghai'} ·{' '}
+                          {evt.start_date ? new Date(evt.start_date).toLocaleDateString() : 'Upcoming'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleApplyToEvent(evt.id)}
+                        disabled={applyingEventId === evt.id}
+                        className="px-3.5 py-2 rounded-xl bg-[#d3da0c] text-black font-bold text-xs shrink-0"
+                      >
+                        {applyingEventId === evt.id ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-sm text-gray-400 bg-white/5 rounded-xl border border-white/10">
+                  No upcoming events open for vendor booth applications right now.
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -6,11 +6,13 @@ import { useBookingStore, BookingStatus } from '@/store/bookingStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
   Music, Calendar, Users, Star, TrendingUp, Edit, Camera, Check,
-  X as CloseIcon, Clock, Loader2, Instagram, Twitter,
+  X as CloseIcon, Clock, Loader2, Instagram, Twitter, ChevronUp, ChevronDown,
   DollarSign, Headphones,
   Disc3, ExternalLink, Phone, MessageCircle, Upload, QrCode, Shield,
-  CalendarDays, Compass
+  CalendarDays, Compass, Trash2
 } from 'lucide-react';
+import { getMediaUrl } from '@/lib/appUrl';
+import { getArtistVariant } from '@/lib/roleVariants';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +22,9 @@ import {
   AudiomackIcon,
   HearThisIcon,
   YouTubeIcon,
+  MixcloudIcon,
+  TidalIcon,
+  DeezerIcon,
 } from '@/components/ui/MusicPlatformIcons';
 
 // API Base URL from environment
@@ -64,6 +69,109 @@ const ArtistDashboard = () => {
   const [selectedAvailStatus, setSelectedAvailStatus] = useState<'available' | 'booked' | 'unavailable'>('available');
   const [isSavingAvail, setIsSavingAvail] = useState(false);
 
+  // Payment QR codes & deposit instructions
+  const [wechatQrFile, setWechatQrFile] = useState<File | null>(null);
+  const [alipayQrFile, setAlipayQrFile] = useState<File | null>(null);
+  const [wechatQrPreview, setWechatQrPreview] = useState<string | null>(null);
+  const [alipayQrPreview, setAlipayQrPreview] = useState<string | null>(null);
+  const [paymentInstructions, setPaymentInstructions] = useState<string>('');
+  const [isSavingQr, setIsSavingQr] = useState(false);
+  const [removeWechat, setRemoveWechat] = useState(false);
+  const [removeAlipay, setRemoveAlipay] = useState(false);
+  const [depositEligible, setDepositEligible] = useState<boolean | null>(null);
+  const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+  const [portfolioUploading, setPortfolioUploading] = useState(false);
+  const [portfolioError, setPortfolioError] = useState('');
+  const [portfolioRetry, setPortfolioRetry] = useState<{ file: File; replaceId?: number } | null>(null);
+  const portfolioUploadsSupported = ['DJ', 'Singer', 'Dancer', 'Photographer', 'MC'].includes(profileForm.artist_type);
+
+  // Role variant — tailors labels, tagline and stats to the artist's discipline
+  const artistVariant = getArtistVariant(profileForm.artist_type || artistProfile?.artist_type);
+
+  const refreshPortfolio = async () => {
+    if (!session?.access_token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/artist/portfolio-media`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+      if (response.ok) setPortfolioItems(await response.json());
+    } catch { /* Preserve the rest of the dashboard if portfolio loading is temporarily unavailable. */ }
+  };
+  useEffect(() => { refreshPortfolio(); }, [session?.access_token]);
+  useEffect(() => {
+    if (!session?.access_token) return;
+    fetch(`${API_BASE_URL}/artist/subscription`, { headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => { if (data) setDepositEligible(!!data.can_receive_booking_deposits); })
+      .catch(() => setDepositEligible(false));
+  }, [session?.access_token]);
+  const uploadPortfolio = async (file?: File, replaceId?: number) => {
+    if (!file || !session?.access_token) return;
+    const role = profileForm.artist_type;
+    const expectedKind = role === 'Photographer' ? 'image/' : role === 'Dancer' || role === 'MC' ? 'video/' : role === 'DJ' || role === 'Singer' ? 'audio/' : '';
+    const acceptedExtensions = role === 'Photographer' ? ['.jpg', '.jpeg', '.png', '.webp'] : role === 'Dancer' || role === 'MC' ? ['.mp4', '.mov', '.webm'] : ['.mp3', '.m4a', '.wav'];
+    const extension = `.${file.name.split('.').pop()?.toLowerCase() || ''}`;
+    if (expectedKind && (!file.type.startsWith(expectedKind) || !acceptedExtensions.includes(extension))) {
+      setPortfolioError(`Choose a supported ${expectedKind.slice(0, -1)} file for this category.`); return;
+    }
+    const maxDuration = role === 'DJ' ? 600 : role === 'Singer' ? 180 : role === 'Dancer' ? 120 : role === 'MC' ? 60 : 0;
+    const maxBytes = role === 'Photographer' ? 15 : role === 'DJ' ? 100 : role === 'Singer' ? 40 : role === 'MC' ? 60 : 100;
+    if (file.size > maxBytes * 1024 * 1024) { setPortfolioError(`File is too large. Maximum size is ${maxBytes} MB.`); return; }
+    if (maxDuration > 0) {
+      try {
+        const mediaUrl = URL.createObjectURL(file);
+        const duration = await new Promise<number>((resolve, reject) => {
+          const media = document.createElement(role === 'Dancer' || role === 'MC' ? 'video' : 'audio');
+          media.preload = 'metadata';
+          media.onloadedmetadata = () => resolve(media.duration);
+          media.onerror = () => reject(new Error('Could not read media duration. Choose a supported audio or video file.'));
+          media.src = mediaUrl;
+        });
+        URL.revokeObjectURL(mediaUrl);
+        if (duration > maxDuration) { setPortfolioError(`This file is longer than the ${Math.floor(maxDuration / 60)} minute limit.`); return; }
+      } catch (error: any) { setPortfolioError(error.message || 'Could not read media duration.'); return; }
+    }
+    setPortfolioUploading(true); setPortfolioError('');
+    try {
+      const body = new FormData(); body.append('file', file); body.append('title', file.name);
+      if (replaceId) body.append('replace_id', String(replaceId));
+      const response = await fetch(`${API_BASE_URL}/artist/portfolio-media`, { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || 'Upload failed. Please try again.');
+      setPortfolioRetry(null);
+      await refreshPortfolio(); toast.success('Portfolio item uploaded');
+    } catch (error: any) { setPortfolioRetry({ file, replaceId }); setPortfolioError(error.message || 'Upload failed. Please try again.'); }
+    finally { setPortfolioUploading(false); }
+  };
+  const deletePortfolio = async (id: number) => {
+    if (!session?.access_token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/artist/portfolio-media/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${session.access_token}` } });
+      if (!response.ok) throw new Error('Could not delete portfolio item');
+      await refreshPortfolio(); toast.success('Portfolio item removed');
+    } catch (error: any) { toast.error(error.message); }
+  };
+  const renamePortfolio = async (item: any) => {
+    if (!session?.access_token) return;
+    const title = window.prompt('Portfolio title', item.title)?.trim();
+    if (!title || title === item.title) return;
+    const body = new FormData(); body.append('title', title);
+    try {
+      const response = await fetch(`${API_BASE_URL}/artist/portfolio-media/${item.id}`, { method: 'PATCH', headers: { Authorization: `Bearer ${session.access_token}` }, body });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || 'Could not update title');
+      await refreshPortfolio();
+    } catch (error: any) { toast.error(error.message || 'Could not update title'); }
+  };
+  const movePortfolioItem = async (id: number, direction: -1 | 1) => {
+    const from = portfolioItems.findIndex(item => item.id === id), to = from + direction;
+    if (from < 0 || to < 0 || to >= portfolioItems.length || !session?.access_token) return;
+    const next = [...portfolioItems]; [next[from], next[to]] = [next[to], next[from]];
+    setPortfolioItems(next);
+    try {
+      const response = await fetch(`${API_BASE_URL}/artist/portfolio-media/order`, { method: 'PATCH', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(next.map(item => item.id)) });
+      if (!response.ok) throw new Error();
+    } catch { await refreshPortfolio(); toast.error('Could not reorder portfolio items'); }
+  };
+
 
   // Fetch fresh profile data on mount - syncs with backend
   const hasRefreshedOnMount = useRef(false);
@@ -94,8 +202,52 @@ const ArtistDashboard = () => {
         audiomack_url: artistProfile?.audiomack_url || '',
         music_links: artistProfile?.music_links || []
       });
+
+      if (!wechatQrFile && !removeWechat) {
+        setWechatQrPreview(artistProfile?.wechat_qr_url ? getMediaUrl(artistProfile.wechat_qr_url) : null);
+      }
+      if (!alipayQrFile && !removeAlipay) {
+        setAlipayQrPreview(artistProfile?.alipay_qr_url ? getMediaUrl(artistProfile.alipay_qr_url) : null);
+      }
+      setPaymentInstructions(artistProfile?.payment_instructions || '');
     }
   }, [artistProfile, profile]);
+
+  const handleSaveQrCodes = async () => {
+    if (!session?.access_token) return;
+    setIsSavingQr(true);
+    try {
+      const formData = new FormData();
+      if (wechatQrFile) formData.append('wechat_qr', wechatQrFile);
+      if (alipayQrFile) formData.append('alipay_qr', alipayQrFile);
+      if (paymentInstructions !== undefined) formData.append('payment_instructions', paymentInstructions);
+      if (removeWechat) formData.append('remove_wechat', 'true');
+      if (removeAlipay) formData.append('remove_alipay', 'true');
+
+      const res = await fetch(`${API_BASE_URL}/artist/profile/upload-qr`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to update payment QR codes');
+      }
+      const data = await res.json();
+      setWechatQrFile(null);
+      setAlipayQrFile(null);
+      setRemoveWechat(false);
+      setRemoveAlipay(false);
+      setWechatQrPreview(data.wechat_qr_url ? getMediaUrl(data.wechat_qr_url) : null);
+      setAlipayQrPreview(data.alipay_qr_url ? getMediaUrl(data.alipay_qr_url) : null);
+      await useAuthStore.getState().fetchArtistProfile();
+      toast.success('Payment QR codes and deposit settings saved!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save payment QR codes');
+    } finally {
+      setIsSavingQr(false);
+    }
+  };
 
   // Fetch dashboard data from real API endpoints
   useEffect(() => {
@@ -470,13 +622,31 @@ const ArtistDashboard = () => {
       name: 'Apple Music', 
       color: 'text-pink-500', 
       bg: 'bg-pink-500/20',
-      iconSvg: <AppleMusicIcon className="w-6 h-6 text-[#FA2D48]" />
+      iconSvg: <AppleMusicIcon className="w-6 h-6 text-[#FA243C]" />
     };
     if (url.includes('hearthis.at')) return { 
-      name: 'HearThis', 
-      color: 'text-orange-600', 
-      bg: 'bg-orange-600/20',
-      iconSvg: <HearThisIcon className="w-6 h-6 text-[#E94E1B]" />
+      name: 'HearThis.at', 
+      color: 'text-red-700', 
+      bg: 'bg-red-700/20',
+      iconSvg: <HearThisIcon className="w-6 h-6 text-[#A11F24]" />
+    };
+    if (url.includes('mixcloud.com')) return { 
+      name: 'Mixcloud', 
+      color: 'text-indigo-500', 
+      bg: 'bg-indigo-500/20',
+      iconSvg: <MixcloudIcon className="w-6 h-6 text-[#5000FF]" />
+    };
+    if (url.includes('tidal.com')) return { 
+      name: 'Tidal', 
+      color: 'text-neutral-300', 
+      bg: 'bg-black/30',
+      iconSvg: <TidalIcon className="w-6 h-6 text-white" />
+    };
+    if (url.includes('deezer.com')) return { 
+      name: 'Deezer', 
+      color: 'text-purple-500', 
+      bg: 'bg-purple-500/20',
+      iconSvg: <DeezerIcon className="w-6 h-6 text-[#A238FF]" />
     };
     return { name: t('artist.dashboard.music'), color: 'text-[#d3da0c]', bg: 'bg-[#d3da0c]/20', iconSvg: <Music className="w-6 h-6" /> };
   };
@@ -745,8 +915,8 @@ const ArtistDashboard = () => {
                 {[
                   { label: t('artist.dashboard.stat.followers'), value: stats.followers.toLocaleString(), icon: Users },
                   { label: t('artist.dashboard.stat.avgRating'), value: stats.rating > 0 ? stats.rating.toFixed(1) : '–', icon: Star },
-                  { label: t('artist.dashboard.stat.totalGigs'), value: stats.totalBookings.toString(), icon: Calendar },
-                  { label: 'Pending', value: stats.pendingBookings.toString(), icon: Clock },
+                  { label: artistVariant.gigsLabel, value: stats.totalBookings.toString(), icon: Calendar },
+                  { label: t('artist.dashboard.stat.pending') || 'Pending', value: stats.pendingBookings.toString(), icon: Clock },
                 ].map((stat, idx) => (
                   <div key={idx} className="col-span-1">
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
@@ -869,9 +1039,12 @@ const ArtistDashboard = () => {
                       onChange={(e) => handleProfileChange('artist_type', e.target.value)}
                       className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none transition-all cursor-pointer"
                     >
-                      <option value="Artist">{t('artist.dashboard.artistType.artist')}</option>
                       <option value="DJ">{t('artist.dashboard.artistType.dj')}</option>
+                      <option value="Singer">{t('artist.dashboard.artistType.singer')}</option>
+                      <option value="Dancer">{t('artist.dashboard.artistType.dancer')}</option>
+                      <option value="Photographer">{t('artist.dashboard.artistType.photographer')}</option>
                       <option value="MC">{t('artist.dashboard.artistType.mc')}</option>
+                      <option value="Artist">{t('artist.dashboard.artistType.artist')}</option>
                     </select>
                   </div>
                   <div className="space-y-2 sm:col-span-2 lg:col-span-1">
@@ -947,6 +1120,200 @@ const ArtistDashboard = () => {
                       className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none transition-all"
                     />
                   </div>
+                </div>
+
+                <section className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-5 lg:p-6 space-y-4 mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div><h3 className="text-base font-bold text-[#020b00] dark:text-white">Portfolio media</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">{profileForm.artist_type === 'DJ' ? 'One audio mix, up to 10 minutes.' : profileForm.artist_type === 'Singer' ? 'Songs up to 3 minutes each.' : profileForm.artist_type === 'Dancer' ? 'Performance videos up to 2 minutes each.' : profileForm.artist_type === 'MC' ? 'Performance videos up to 1 minute each.' : profileForm.artist_type === 'Photographer' ? 'Upload up to 60 portfolio images.' : 'Choose a focused category to enable native work uploads.'}</p>
+                    </div>
+                    {portfolioUploadsSupported ? <label className="px-4 py-2 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold cursor-pointer opacity-90">
+                      {portfolioUploading ? 'Uploading…' : 'Add work'}
+                      <input className="hidden" type="file" disabled={portfolioUploading} accept={profileForm.artist_type === 'Photographer' ? 'image/jpeg,image/png,image/webp' : profileForm.artist_type === 'Dancer' || profileForm.artist_type === 'MC' ? 'video/mp4,video/quicktime,video/webm' : 'audio/mpeg,audio/mp4,audio/wav,audio/x-m4a'} onChange={e => { void uploadPortfolio(e.target.files?.[0]); e.currentTarget.value = ''; }} />
+                    </label> : <span className="text-xs text-gray-500">External links only</span>}
+                  </div>
+                  {portfolioError && <div className="text-sm text-red-600 dark:text-red-400">{portfolioError} {portfolioRetry && <button type="button" className="underline ml-2 font-bold" onClick={() => void uploadPortfolio(portfolioRetry.file, portfolioRetry.replaceId)}>Retry upload</button>}<button type="button" className="underline ml-2" onClick={() => setPortfolioError('')}>Dismiss</button></div>}
+                  {portfolioUploading && <div className="h-1.5 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden"><div className="h-full w-2/3 bg-[#d3da0c] animate-pulse" /></div>}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                      {portfolioItems.map((item, index) => <div key={item.id} className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 p-3">
+                      {item.media_type === 'audio' ? <audio controls preload="metadata" className="w-full" src={getMediaUrl(item.url)} /> : item.media_type === 'video' ? <video controls preload="metadata" className="w-full max-h-56 rounded-lg" src={getMediaUrl(item.url)} /> : <img loading="lazy" className="w-full h-40 object-cover rounded-lg" src={getMediaUrl(item.url)} alt={item.title} />}
+                      <div className="flex justify-between items-center gap-3 mt-2"><button type="button" onClick={() => void renamePortfolio(item)} className="text-sm truncate text-left underline decoration-dotted">{item.title}</button><div className="flex items-center gap-2">
+                        <button disabled={index === 0} type="button" aria-label="Move up" onClick={() => void movePortfolioItem(item.id, -1)} className="disabled:opacity-30"><ChevronUp size={16} /></button><button disabled={index === portfolioItems.length - 1} type="button" aria-label="Move down" onClick={() => void movePortfolioItem(item.id, 1)} className="disabled:opacity-30"><ChevronDown size={16} /></button>
+                        <label className="text-xs font-semibold text-[#020b00] dark:text-[#d3da0c] cursor-pointer">Replace<input type="file" className="hidden" accept={item.media_type === 'image' ? 'image/jpeg,image/png,image/webp' : item.media_type === 'video' ? 'video/mp4,video/quicktime,video/webm' : 'audio/mpeg,audio/mp4,audio/wav,audio/x-m4a'} onChange={e => { void uploadPortfolio(e.target.files?.[0], item.id); e.currentTarget.value = ''; }} /></label>
+                        <button type="button" onClick={() => void deletePortfolio(item.id)} aria-label="Delete portfolio item" className="text-red-500"><Trash2 size={16} /></button></div></div>
+                    </div>)}
+                  </div>
+                </section>
+
+                {/* Payment QR Codes & Deposit Settings */}
+                <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-5 lg:p-6 space-y-5 mt-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#020b00] dark:text-white flex items-center gap-2">
+                        <QrCode className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
+                        Payment QR Codes & Deposit Settings
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
+                        Upload your personal WeChat Pay and Alipay QR codes. When clients book you on Sound It, they scan these directly to pay deposits and booking fees.
+                      </p>
+                    </div>
+                  </div>
+                  {depositEligible === false && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-300">An active artist subscription is required to receive booking deposits through Sound It. Your profile and booking requests remain available. <Link to="/subscriptions" className="font-bold underline ml-1">View subscription</Link></div>}
+                  {depositEligible === true && <p className="text-xs text-emerald-700 dark:text-emerald-300">Deposit receiving is enabled. Customers pay directly to your QR code; Sound It does not verify transfers automatically.</p>}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* WeChat Pay QR */}
+                    <div className="p-4 bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          WeChat Pay QR
+                        </span>
+                        {wechatQrPreview && !removeWechat && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setWechatQrFile(null);
+                              setWechatQrPreview(null);
+                              setRemoveWechat(true);
+                            }}
+                            className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        )}
+                      </div>
+
+                      {wechatQrPreview && !removeWechat ? (
+                        <div className="flex flex-col items-center py-2">
+                          <img src={wechatQrPreview} alt="WeChat Pay QR" className="w-32 h-32 object-contain rounded-lg border border-black/5 bg-white p-1" />
+                          <label className="mt-2 text-xs font-semibold text-[#020b00] dark:text-[#d3da0c] hover:underline cursor-pointer">
+                            Replace QR
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) {
+                                  setWechatQrFile(f);
+                                  setRemoveWechat(false);
+                                  setWechatQrPreview(URL.createObjectURL(f));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-black/10 dark:border-white/10 rounded-xl hover:border-[#020b00] dark:hover:border-[#d3da0c] cursor-pointer transition-colors text-center">
+                          <QrCode className="w-8 h-8 text-gray-400 mb-2" />
+                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Upload WeChat QR</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG up to 5MB</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                setWechatQrFile(f);
+                                setRemoveWechat(false);
+                                setWechatQrPreview(URL.createObjectURL(f));
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Alipay QR */}
+                    <div className="p-4 bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          Alipay QR
+                        </span>
+                        {alipayQrPreview && !removeAlipay && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAlipayQrFile(null);
+                              setAlipayQrPreview(null);
+                              setRemoveAlipay(true);
+                            }}
+                            className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        )}
+                      </div>
+
+                      {alipayQrPreview && !removeAlipay ? (
+                        <div className="flex flex-col items-center py-2">
+                          <img src={alipayQrPreview} alt="Alipay QR" className="w-32 h-32 object-contain rounded-lg border border-black/5 bg-white p-1" />
+                          <label className="mt-2 text-xs font-semibold text-[#020b00] dark:text-[#d3da0c] hover:underline cursor-pointer">
+                            Replace QR
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) {
+                                  setAlipayQrFile(f);
+                                  setRemoveAlipay(false);
+                                  setAlipayQrPreview(URL.createObjectURL(f));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-black/10 dark:border-white/10 rounded-xl hover:border-[#020b00] dark:hover:border-[#d3da0c] cursor-pointer transition-colors text-center">
+                          <QrCode className="w-8 h-8 text-gray-400 mb-2" />
+                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Upload Alipay QR</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG up to 5MB</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                setAlipayQrFile(f);
+                                setRemoveAlipay(false);
+                                setAlipayQrPreview(URL.createObjectURL(f));
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Payment Instructions */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Deposit / Payment Instructions for Requesters
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={paymentInstructions}
+                      onChange={(e) => setPaymentInstructions(e.target.value)}
+                      placeholder="e.g. Please include your event date and contact name in the payment remark. 50% deposit required to confirm date."
+                      className="w-full bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none text-xs resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveQrCodes}
+                    disabled={isSavingQr || depositEligible === false}
+                    className="py-2.5 px-6 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold text-xs rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isSavingQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
+                    <span>Save Payment QR Codes</span>
+                  </button>
                 </div>
 
                 <button
@@ -1072,7 +1439,7 @@ const ArtistDashboard = () => {
 
                 {/* Current Links Preview */}
                 {musicLinks.length > 0 && (
-                  <div className="bg-neutral-50 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5 lg:p-5 lg:rounded-3xl shadow-xs dark:shadow-none">
+                  <div className="bg-neutral-50 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5 lg:p-5 shadow-xs dark:shadow-none">
                     <h4 className="text-[#020b00] dark:text-[#d3da0c] font-black uppercase tracking-widest text-sm mb-4">{t('artist.dashboard.connectedPlatforms')}</h4>
                     <div className="flex flex-wrap gap-3">
                       {musicLinks.map((link, idx) => {
@@ -1144,7 +1511,7 @@ const ArtistDashboard = () => {
                   <Loader2 className="w-10 h-10 sm:w-16 sm:h-16 text-[#020b00] dark:text-[#d3da0c] animate-spin" />
                 </div>
               ) : filteredBookings.length === 0 ? (
-                <div className="bg-neutral-50 dark:bg-white/5 p-10 sm:p-20 rounded-3xl sm:rounded-[3rem] text-center border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none">
+                <div className="bg-neutral-50 dark:bg-white/5 p-10 sm:p-20 rounded-2xl text-center border border-black/5 dark:border-white/5 shadow-xs dark:shadow-none">
                   <Calendar className="w-12 h-12 sm:w-20 sm:h-20 text-gray-400 dark:text-gray-700 mx-auto mb-4 sm:mb-8" />
                   <h3 className="text-lg sm:text-2xl font-black text-[#020b00] dark:text-white mb-2 sm:mb-4">
                     {bookingFilter === 'all' ? t('artist.dashboard.noBookings') : t('artist.dashboard.noBookingsFilter', { filter: bookingFilter })}

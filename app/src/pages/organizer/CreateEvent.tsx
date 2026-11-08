@@ -11,7 +11,9 @@ import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { WEB_ORIGIN } from '@/lib/appUrl';
+import { WEB_ORIGIN, getMediaUrl } from '@/lib/appUrl';
+import { useRoleBasedLayout } from '@/hooks/useDeviceDetection';
+import CreateEventMobile from './CreateEventMobile';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -39,6 +41,7 @@ interface CreateEventFormData {
   city: string;
   capacity: string;
   image: string;
+  photoAlbumUrl?: string;
   tags: string[];
   eventType: string;
   refundPolicy: string;
@@ -54,9 +57,12 @@ interface CreateEventFormData {
 
 const EVENT_TYPES = ['Party', 'Concert', 'Festival', 'Day Party', 'Rooftop Party', 'Club Night', 'Live Music', 'DJ Set'];
 const REFUND_POLICIES = ['Non-refundable', 'Full refund', 'Partial refund', 'Exchange only'];
+const CITIES = ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu', 'Hangzhou', 'Ningbo', 'Yiwu', 'Nanjing', 'Wuhan', "Xi'an", 'Chongqing', 'Suzhou', 'Tianjin', 'Qingdao', 'Dalian', 'Xiamen', 'Kunming', 'Changsha', 'Zhengzhou'];
+const MUSIC_GENRES = ['Afrobeats', 'Amapiano', 'Afro House', 'Afro Tech', 'Gqom', 'Kwaito', 'Techno', 'House', 'Deep House', 'Tech House', 'Hip Hop', 'Trap', 'R&B', 'Soul', 'Jazz', 'Reggae', 'Dancehall', 'Soca', 'Highlife', 'Bongo Flava', 'Gospel', 'Pop', 'Rock', 'EDM', 'Drum & Bass', 'Latin', 'Live Band'];
+const MAX_TICKET_TIERS = 4;
 
 const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-6 shadow-xs dark:shadow-none ${className}`}>
+  <div className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xs dark:shadow-none ${className}`}>
     {children}
   </div>
 );
@@ -108,6 +114,7 @@ const CreateEvent = () => {
   const navigate = useNavigate();
   const { createEvent, isLoading } = useEventStore();
   const { profile, businessProfile, fetchBusinessProfile, session } = useAuthStore();
+  const { isMobileLayout } = useRoleBasedLayout(profile?.role_type || profile?.role);
   const token = session?.access_token;
 
   // Subscription gating
@@ -174,6 +181,7 @@ const CreateEvent = () => {
     city: '',
     capacity: '',
     image: '',
+    photoAlbumUrl: '',
     tags: [],
     eventType: '',
     refundPolicy: 'Non-refundable',
@@ -217,7 +225,8 @@ const CreateEvent = () => {
   const [paymentInstructions, setPaymentInstructions] = useState('');
   const [selectedDjs, setSelectedDjs] = useState<number[]>([]);
   const [djSearch, setDjSearch] = useState('');
-  const [artists, setArtists] = useState<{ id: number; name?: string; stage_name?: string }[]>([]);
+  const [genreSearch, setGenreSearch] = useState('');
+  const [artists, setArtists] = useState<{ id: number; name?: string; stage_name?: string; artist_type?: string | null; genre?: string | null }[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -234,7 +243,7 @@ const CreateEvent = () => {
   };
 
   const addTicketTier = () => {
-    if (ticketTiers.length >= 4) {
+    if (ticketTiers.length >= MAX_TICKET_TIERS) {
       toast.error(t('organizer.createEvent.maxTiersError'));
       return;
     }
@@ -283,6 +292,66 @@ const CreateEvent = () => {
       setFormData(prev => ({ ...prev, image: e.target?.result as string }));
     };
     reader.readAsDataURL(file);
+  };
+
+  // AI flyer extraction — upload a flyer, system reads it and pre-fills the whole form
+  const [isExtracting, setIsExtracting] = useState(false);
+  const handleFlyerExtractSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !token) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('organizer.createEvent.invalidImageError'));
+      return;
+    }
+    setIsExtracting(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API_BASE_URL}/assistant/extract-event`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      if (!res.ok) throw new Error('extraction failed');
+      const data = await res.json();
+      const d = data.draft || {};
+      const to24h = (val?: string) => {
+        if (!val) return '';
+        const m = val.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (!m) return val.trim().slice(0, 5);
+        let h = parseInt(m[1], 10) % 12;
+        if (m[3].toUpperCase() === 'PM') h += 12;
+        return `${String(h).padStart(2, '0')}:${m[2]}`;
+      };
+      // Keep the original file so it uploads normally on submit; show the server copy as preview
+      setImageFile(file);
+      setFormData(prev => ({
+        ...prev,
+        image: data.media_url ? getMediaUrl(data.media_url) : prev.image,
+        title: d.title || prev.title,
+        titleCN: d.title_cn || prev.titleCN,
+        description: d.description || prev.description,
+        date: d.start_date ? String(d.start_date).slice(0, 10) : prev.date,
+        time: d.start_time ? to24h(d.start_time) : prev.time,
+        endDate: d.end_date ? String(d.end_date).slice(0, 10) : prev.endDate,
+        endTime: d.end_time ? to24h(d.end_time) : prev.endTime,
+        venue: d.venue || prev.venue,
+        address: d.address || prev.address,
+        city: d.city || prev.city,
+        tags: Array.isArray(d.tags) && d.tags.length ? d.tags : prev.tags,
+        eventType: EVENT_TYPES.includes(d.event_type) ? d.event_type : prev.eventType,
+        ticketPrice: d.ticket_price != null && d.ticket_price !== '' ? String(d.ticket_price) : prev.ticketPrice,
+      }));
+      toast.success(t('organizer.createEvent.extractSuccess') || 'Flyer details imported. Review and publish when ready.');
+      if (Array.isArray(data.missing_fields) && data.missing_fields.length) {
+        toast.info(`${t('organizer.createEvent.extractMissing') || 'Could not read'}: ${data.missing_fields.join(', ')}`);
+      }
+    } catch {
+      toast.error(t('organizer.createEvent.extractError') || 'Could not read flyer. Please enter details manually.');
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handleGallerySelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -426,6 +495,7 @@ const CreateEvent = () => {
   };
 
   const handleSubmit = async (status: 'draft' | 'approved' = 'approved') => {
+    if (isSubmitting) return;
     if (!formData.title.trim()) {
       toast.error(t('organizer.createEvent.titleRequired'));
       return;
@@ -437,6 +507,18 @@ const CreateEvent = () => {
     if (!formData.time) {
       toast.error(t('organizer.createEvent.timeRequired'));
       return;
+    }
+    if (Boolean(formData.endDate) !== Boolean(formData.endTime)) {
+      toast.error('Enter both an end date and end time, or leave both blank.');
+      return;
+    }
+    if (formData.endDate && formData.endTime) {
+      const startsAt = new Date(`${formData.date}T${formData.time}`);
+      const endsAt = new Date(`${formData.endDate}T${formData.endTime}`);
+      if (endsAt <= startsAt) {
+        toast.error('The event end time must be after the start time.');
+        return;
+      }
     }
     if (!formData.venue.trim()) {
       toast.error(t('organizer.createEvent.venueRequired'));
@@ -505,6 +587,7 @@ const CreateEvent = () => {
         city: formData.city.trim().toLowerCase(),
         flyer_image: flyerImageUrl,
         gallery_images: galleryUrls.length > 0 ? galleryUrls : undefined,
+        photo_album_url: formData.photoAlbumUrl?.trim() || undefined,
         capacity: parseInt(formData.capacity),
         status: status,
         address: formData.address || formData.venue,
@@ -564,9 +647,59 @@ const CreateEvent = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className={isMobileLayout ? 'min-h-0' : 'min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom))]'}>
+      {isMobileLayout ? (
+        <CreateEventMobile
+          formData={formData}
+          setFormData={setFormData}
+          ticketTiers={ticketTiers}
+          setTicketTiers={setTicketTiers}
+          addTicketTier={addTicketTier}
+          removeTicketTier={removeTicketTier}
+          handleTicketTierChange={handleTicketTierChange}
+          maxTiers={MAX_TICKET_TIERS}
+          eventTypes={EVENT_TYPES}
+          refundPolicies={REFUND_POLICIES}
+          cities={CITIES}
+          genres={MUSIC_GENRES}
+          artists={artists}
+          selectedDjs={selectedDjs}
+          setSelectedDjs={setSelectedDjs}
+          onFlyerSelect={handleImageFileSelect}
+          onFlyerExtract={handleFlyerExtractSelect}
+          onFlyerRemove={() => {
+            setFormData(prev => ({ ...prev, image: '' }));
+            setImageFile(null);
+          }}
+          isUploadingImage={isUploadingImage}
+          isExtracting={isExtracting}
+          galleryPreviews={galleryPreviews}
+          onGallerySelect={handleGallerySelect}
+          onGalleryRemove={removeGalleryImage}
+          wechatQrPreview={wechatQrPreview}
+          alipayQrPreview={alipayQrPreview}
+          onQrSelect={handleQrFileSelect}
+          onQrRemove={(type) => {
+            if (type === 'wechat') {
+              setWechatQrFile(null);
+              setWechatQrPreview('');
+            } else {
+              setAlipayQrFile(null);
+              setAlipayQrPreview('');
+            }
+          }}
+          paymentInstructions={paymentInstructions}
+          setPaymentInstructions={setPaymentInstructions}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate('/dashboard/business/events')}
+          isSubmitting={isSubmitting}
+          hasBusinessProfile={!!businessProfile}
+          t={(key, fallback) => (fallback === undefined ? t(key) : t(key, fallback))}
+        />
+      ) : (
+      <>
       {/* Header */}
-      <div className="sticky top-20 z-30 bg-white/95 dark:bg-[#020b00]/90 backdrop-blur-md border-b border-black/8 dark:border-white/10">
+      <div className="hidden md:block sticky top-20 z-30 bg-white/95 dark:bg-[#020b00]/90 backdrop-blur-md border-b border-black/8 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -620,12 +753,12 @@ const CreateEvent = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* AI Banner */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 p-4 bg-gradient-to-r from-[#d3da0c]/10 to-transparent border border-[#d3da0c]/20 rounded-xl flex items-center gap-3"
+          className="mb-5 sm:mb-8 p-4 bg-[#d3da0c]/5 border border-[#d3da0c]/20 rounded-xl flex items-center gap-3"
         >
           <div className="w-10 h-10 rounded-full bg-[#d3da0c]/20 flex items-center justify-center flex-shrink-0">
             <Upload className="w-5 h-5 text-[#d3da0c]" />
@@ -636,9 +769,9 @@ const CreateEvent = () => {
           </div>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid min-w-0 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="min-w-0 lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Flyer Upload */}
             <SectionCard>
               <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.eventFlyer')} />
@@ -687,6 +820,29 @@ const CreateEvent = () => {
                     </button>
                   </div>
                 )}
+              </div>
+              {/* Autofill from flyer */}
+              <div className="mt-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFlyerExtractSelect}
+                  disabled={isExtracting}
+                  className="hidden"
+                  id="flyer-extract"
+                />
+                <label
+                  htmlFor="flyer-extract"
+                  className="flex items-center justify-center gap-2 w-full p-3.5 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold text-sm hover:opacity-90 transition-all cursor-pointer"
+                >
+                  {isExtracting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isExtracting
+                    ? (t('organizer.createEvent.extracting') || 'Reading flyer...')
+                    : (t('organizer.createEvent.autoFillFromFlyer') || 'Autofill from Flyer')}
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                  {t('organizer.createEvent.autoFillHint') || 'Upload an event poster to pre-fill title, date, venue, and ticket details.'}
+                </p>
               </div>
             </SectionCard>
 
@@ -900,8 +1056,18 @@ const CreateEvent = () => {
               <div className="space-y-4">
                 <div>
                   <Label>Music Style</Label>
+                  <Input
+                    type="search"
+                    value={genreSearch}
+                    onChange={(e) => setGenreSearch(e.target.value)}
+                    placeholder="Search styles"
+                    className="mb-3"
+                    aria-label="Search music styles"
+                  />
                   <div className="flex flex-wrap gap-2">
-                    {['Afrobeats', 'Amapiano', 'Techno', 'House', 'Hip Hop', 'R&B', 'Jazz', 'Reggae', 'Dancehall'].map(style => (
+                    {['Afrobeats', 'Amapiano', 'Techno', 'House', 'Hip Hop', 'R&B', 'Jazz', 'Reggae', 'Dancehall']
+                      .filter(style => style.toLowerCase().includes(genreSearch.trim().toLowerCase()))
+                      .map(style => (
                       <button
                         key={style}
                         type="button"
@@ -937,7 +1103,7 @@ const CreateEvent = () => {
                         placeholder="Search DJs..."
                         className="w-full px-4 py-2 mb-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none transition-colors placeholder-gray-400 dark:placeholder-gray-500"
                       />
-                      <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="flex flex-col gap-1 max-h-56 overflow-y-auto overscroll-contain pr-1">
                         {artists
                           .filter(a => {
                             const q = djSearch.trim().toLowerCase();
@@ -955,14 +1121,14 @@ const CreateEvent = () => {
                                     isSelected ? prev.filter(id => id !== artist.id) : [...prev, artist.id]
                                   )
                                 }
-                                className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
+                                className={`min-h-11 w-full px-3 py-2 rounded-lg text-sm flex items-center justify-between gap-2 text-left transition-colors ${
                                   isSelected
                                     ? 'bg-[#d3da0c] text-black font-medium'
                                     : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
                                 }`}
                               >
-                                {isSelected && <Check className="w-3.5 h-3.5" />}
-                                {artist.stage_name || artist.name}
+                                <span>{artist.stage_name || artist.name}</span>
+                                {isSelected && <Check className="w-4 h-4 shrink-0" />}
                               </button>
                             );
                           })}
@@ -980,12 +1146,13 @@ const CreateEvent = () => {
 
             {/* Photos / Gallery */}
             <SectionCard>
-              <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.photos')} />
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.photos', 'Photos & Cloud Album')} />
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
                 {galleryPreviews.map((preview, index) => (
                   <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
                     <img src={preview} alt="" className="w-full h-full object-cover" />
                     <button
+                      type="button"
                       onClick={() => removeGalleryImage(index)}
                       className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
                     >
@@ -1003,6 +1170,19 @@ const CreateEvent = () => {
                     className="hidden"
                   />
                 </label>
+              </div>
+              <div>
+                <Label>Cloud Photo Album Link (Google Drive, Baidu Netdisk, WeChat Album, iCloud, Dropbox)</Label>
+                <Input
+                  type="url"
+                  name="photoAlbumUrl"
+                  value={formData.photoAlbumUrl || ''}
+                  onChange={handleChange}
+                  placeholder="https://drive.google.com/... or external cloud photo album link"
+                />
+                <p className="text-gray-500 text-xs mt-1">
+                  Connect an external cloud folder or photo album link so attendees can view and download event photos.
+                </p>
               </div>
             </SectionCard>
 
@@ -1100,7 +1280,7 @@ const CreateEvent = () => {
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Preview Card */}
-            <SectionCard className="sticky top-24">
+            <SectionCard className="lg:sticky lg:top-24">
               <h3 className="text-[#020b00] dark:text-white font-semibold mb-4">{t('organizer.createEvent.eventPreview')}</h3>
               <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-[#020b00]">
                 {formData.image ? (
@@ -1383,6 +1563,27 @@ const CreateEvent = () => {
           </div>
         </div>
       </div>
+
+      <div className="md:hidden max-w-7xl mx-auto px-3 pt-4 pb-2 grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => handleSubmit('draft')}
+          disabled={isSubmitting || !businessProfile}
+          className="min-h-12 px-4 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white rounded-xl font-semibold disabled:opacity-50"
+        >
+          {t('organizer.createEvent.saveDraft', 'Save Draft')}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSubmit('approved')}
+          disabled={isSubmitting || !businessProfile}
+          className="min-h-12 px-4 bg-[#d3da0c] text-[#020b00] rounded-xl font-semibold disabled:opacity-50"
+        >
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : t('organizer.createEvent.publish')}
+        </button>
+      </div>
+      </>
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && createdEvent && (

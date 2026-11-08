@@ -80,7 +80,7 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.sounditent.app</string>
+            <string>app.sounditent.com</string>
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>soundit</string>

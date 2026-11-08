@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Users, Mail, Bell, AlertCircle, Loader2, Sparkles, MapPin, Clock, Info, Calendar } from 'lucide-react';
+import { X, Send, Users, Mail, Bell, AlertCircle, Loader2, MapPin, Clock, Info, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
@@ -219,9 +219,6 @@ export default function BroadcastAnnouncementModal({
           <div className="flex items-start justify-between pb-4 border-b border-white/10">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="p-1.5 bg-[#d3da0c]/15 text-[#d3da0c] rounded-lg">
-                  <Sparkles className="w-5 h-5" />
-                </span>
                 <h3 className="text-xl font-bold text-white">
                   {t('organizer.broadcast.modalTitle', 'Broadcast Announcement')}
                 </h3>
@@ -263,11 +260,11 @@ export default function BroadcastAnnouncementModal({
                 className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#d3da0c] transition-colors text-sm"
               >
                 <option value="" className="bg-[#181818] text-gray-400">
-                  🌐 General Broadcast (All Profile Followers)
+                  General Broadcast (All Profile Followers)
                 </option>
                 {myEvents.map((ev) => (
                   <option key={ev.id} value={String(ev.id)} className="bg-[#181818] text-white">
-                    🎟️ {ev.title} {ev.city ? `(${ev.city})` : ''}
+                    {ev.title} {ev.city ? `(${ev.city})` : ''}
                   </option>
                 ))}
               </select>
@@ -326,7 +323,6 @@ export default function BroadcastAnnouncementModal({
                       : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
                   } ${!selectedEventId ? 'opacity-60 cursor-pointer' : ''}`}
                 >
-                  <Sparkles className="w-4 h-4" />
                   {t('organizer.broadcast.targetBoth', 'Holders & Followers')}
                 </button>
               </div>

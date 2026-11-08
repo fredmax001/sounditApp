@@ -260,6 +260,7 @@
   },
   "nav": {
     "home": "Accueil",
+    "explore": "Explorer",
     "events": "Événements",
     "artists": "Artistes",
     "cityGuide": "Guide de la ville",
@@ -445,7 +446,8 @@
         "followers": "Followers",
         "avgRating": "Avg Rating",
         "totalGigs": "Total Gigs",
-        "earnings": "Earnings"
+        "earnings": "Earnings",
+        "pending": "En attente"
       },
       "upcomingPerformances": "Upcoming Performances",
       "manageAll": "Manage All",
@@ -504,6 +506,7 @@
         "artist": "Artiste",
         "dj": "DJ",
         "mc": "MC",
+        "singer": "Chanteur",
         "dancer": "Danseur",
         "photographer": "Photographe"
       },
@@ -581,7 +584,8 @@
       "availabilitySaved": "Disponibilité mise à jour",
       "availabilitySaveFailed": "Échec de la mise à jour de la disponibilité",
       "availabilityCleared": "Disponibilité effacée",
-      "availabilityClearFailed": "Échec de l'effacement de la disponibilité"
+      "availabilityClearFailed": "Échec de l'effacement de la disponibilité",
+      "workspaceLabel": "Votre espace de travail"
     },
     "bookings": {
       "title": "Réservations",
@@ -1658,7 +1662,13 @@
       "commissionRate": "Taux de commission (%)",
       "discountPercent": "Réduction parrainage (%)",
       "maxDiscountAmount": "Montant max de réduction",
-      "ticketPriceLabel": "Prix du billet"
+      "ticketPriceLabel": "Prix du billet",
+      "autoFillFromFlyer": "Remplissage auto depuis l'affiche — l'IA lit titre, date, lieu et prix",
+      "autoFillHint": "Téléversez votre affiche et le formulaire se remplit tout seul — vérifiez puis publiez.",
+      "extracting": "Lecture de votre affiche…",
+      "extractSuccess": "Affiche lue — vérifiez les détails ci-dessous puis publiez",
+      "extractMissing": "Impossible de lire",
+      "extractError": "Affiche illisible — remplissez le formulaire manuellement"
     },
     "eventPromoters": {
       "title": "Gestion des Promoteurs",
@@ -2074,7 +2084,13 @@
       "boothAppliedSuccess": "Candidature de stand soumise !",
       "boothApplyError": "Échec de la candidature de stand",
       "approved": "Approuvé",
-      "pendingApproval": "En attente de validation"
+      "pendingApproval": "En attente de validation",
+      "workspaceLabel": "Votre espace de travail",
+      "importMenu": "Importer le menu",
+      "paymentQrCodes": "Codes QR de paiement",
+      "analyticsLink": "Analytique",
+      "menuImportBanner": "Importez tout votre menu en une fois",
+      "menuImportBannerHint": "Téléversez une photo ou un PDF de votre menu — l'IA lit chaque plat et prix. Vous validez."
     },
     "products": {
       "title": "My Products",
@@ -3568,7 +3584,6 @@
     "valuesHighlight": "FONDAMENTALES",
     "values": [
       {
-        "icon": "Sparkles",
         "title": "Créativité & Innovation",
         "description": "Nous explorons constamment de nouvelles façons de divertir, connecter et autonomiser les communautés."
       },
@@ -4445,7 +4460,26 @@
     "perMonth": "Per Month",
     "oneTime": "Paiement unique",
     "subscribe": "Subscribe",
-    "failedToSubscribe": "Failed To Subscribe"
+    "failedToSubscribe": "Failed To Subscribe",
+    "restorePurchases": "Restaurer les achats",
+    "restoringPurchases": "Restauration des achats...",
+    "cancelConfirmTitle": "Annuler l'abonnement",
+    "cancelConfirmText": "Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez tous vos accès jusqu'à la fin de la période facturée.",
+    "cancelPendingConfirmText": "Êtes-vous sûr de vouloir retirer votre demande d'abonnement en attente ?",
+    "cancelTrialConfirmText": "Êtes-vous sûr de vouloir annuler votre essai gratuit ? Votre accès d'essai prendra fin immédiatement.",
+    "keepSubscription": "Conserver l'abonnement",
+    "confirmCancel": "Confirmer l'annulation",
+    "confirmWithdraw": "Retirer la demande",
+    "cancelling": "Annulation en cours...",
+    "cancelSuccess": "Abonnement annulé",
+    "withdrawSuccess": "Demande d'abonnement retirée",
+    "cancelledNotice": "Abonnement annulé — tous vos accès restent actifs jusqu'au {{date}}.",
+    "resumeSubscription": "Reprendre l'abonnement",
+    "resuming": "Reprise en cours...",
+    "resumeSuccess": "Abonnement réactivé avec succès",
+    "pendingPayment": "En attente de paiement",
+    "pendingApprovalNotice": "Vous avez une demande d'abonnement en attente de paiement ou de validation.",
+    "cancelPendingRequest": "Retirer la demande"
   },
   "receipt": {
     "title": "E-Reçu",
@@ -5016,6 +5050,7 @@
     "pickForYou": "Sélection pour vous",
     "topEvents": "Meilleurs événements",
     "topArtists": "Meilleurs artistes",
+    "topBusinesses": "Meilleures Entreprises",
     "topSpots": "Meilleurs lieux",
     "topVendors": "Meilleurs vendeurs",
     "seeAll": "Tout voir",

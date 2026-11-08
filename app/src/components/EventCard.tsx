@@ -7,6 +7,7 @@ import type { EventWithDetails } from '@/store/eventStore';
 import { useEventStore } from '@/store/eventStore';
 
 import { toast } from 'sonner';
+import { getEntitySlug } from '@/lib/slug';
 
 interface EventCardProps {
   event: EventWithDetails;
@@ -70,10 +71,12 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
     minute: '2-digit'
   });
 
+  const eventSlug = event.id;
+
   // Trending variant - tall cinematic card
   if (isTrending) {
     return (
-      <Link to={`/events/${event.id}`}>
+      <Link to={`/events/${eventSlug}`}>
         <motion.div
           whileHover={{ y: -4 }}
           className="group relative h-[360px] rounded-2xl overflow-hidden glass-card-premium"
@@ -149,7 +152,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
 
   // Default / Compact variant
   return (
-    <Link to={`/events/${event.id}`}>
+    <Link to={`/events/${eventSlug}`}>
       <motion.div
         whileHover={{ y: -5 }}
         className={`group relative bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/5 hover:border-[#d3da0c]/40 transition-all duration-300 shadow-sm dark:shadow-none ${isCompact ? 'h-full' : ''}`}

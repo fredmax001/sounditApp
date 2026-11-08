@@ -93,7 +93,6 @@ const GoogleAuthButton = ({ text, buttonLabel, onToken, onError }: GoogleAuthBut
       <GoogleLogin
         onSuccess={handleWebSuccess}
         onError={() => onError()}
-        useOneTap
         theme="filled_black"
         shape="pill"
         text={text}

@@ -5,9 +5,12 @@ import VerificationBadge from '@/components/VerificationBadge';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
+import { slugify } from '@/lib/slug';
+import { chinaCities } from '@/data/constants';
 
 interface Vendor {
   id: number;
+  slug?: string;
   business_name: string;
   description: string;
   vendor_type: string;
@@ -23,7 +26,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 export default function Vendors() {
   const { t } = useTranslation();
-  const { selectedCity } = useAuthStore();
+  const { selectedCity, setSelectedCity } = useAuthStore();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +35,7 @@ export default function Vendors() {
     setIsLoading(true);
     try {
       const params: Record<string, string> = {};
-      if (selectedCity) params.city = selectedCity;
+      if (selectedCity && selectedCity !== 'all') params.city = selectedCity;
       const { data } = await axios.get(`${API_URL}/vendors`, { params });
       setVendors(data || []);
     } catch {
@@ -67,15 +70,31 @@ export default function Vendors() {
                 {t('vendors.subtitle') || 'Discover vendors and merchants for your events.'}
               </p>
             </div>
-            <div className="relative w-full md:w-72 md:max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('vendors.searchPlaceholder') || 'Search vendors...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
-              />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('vendors.searchPlaceholder') || 'Search vendors...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
+                />
+              </div>
+              <div className="relative shrink-0">
+                <select
+                  value={selectedCity || 'all'}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  aria-label="Filter vendors by city"
+                  className="bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-[#020b00] dark:text-white text-sm font-medium focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c]/50 cursor-pointer"
+                >
+                  {chinaCities.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-white dark:bg-[#141414] text-[#020b00] dark:text-white">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -95,7 +114,7 @@ export default function Vendors() {
               {filteredVendors.map((vendor) => (
                 <Link
                   key={vendor.id}
-                  to={`/vendors/${vendor.id}`}
+                  to={`/vendors/${vendor.slug || slugify(vendor.business_name) || vendor.id}`}
                   className="group bg-white dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[#020b00]/30 dark:hover:border-[#d3da0c]/30 transition-all shadow-sm dark:shadow-none"
                 >
                   <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">

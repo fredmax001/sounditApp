@@ -1,3 +1,4 @@
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -38,13 +39,7 @@ export default function MyOrders() {
     return (
         <div className="min-h-screen pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
             {/* Header */}
-            <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-                <div className="max-w-3xl mx-auto px-4 py-4">
-                    <h1 className="text-2xl font-bold font-display text-[#020b00] dark:text-white">
-                        My <span className="text-[#020b00] dark:text-[#d3da0c] underline decoration-[#d3da0c] decoration-2 underline-offset-4">Orders</span>
-                    </h1>
-                </div>
-            </section>
+      <MobilePageHeader title="My" accent="Orders" />
 
             <div className="max-w-3xl mx-auto px-4 pt-6">
                 {/* Filters */}

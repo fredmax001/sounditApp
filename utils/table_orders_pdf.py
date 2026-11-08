@@ -228,10 +228,8 @@ def generate_table_orders_pdf(
                 card_lines.append(("SELECTED DRINKS & MIXERS:", (15, 23, 42), f_body))
                 for sel in selections:
                     mixers = sel.get("mixers") or []
-                    mixer_txt = (
-                        f"   [Mixers: {', '.join(f'{m.get('name')} ×{m.get('qty', 1)}' for m in mixers)}]"
-                        if mixers else ""
-                    )
+                    mixer_desc = ", ".join(f"{m.get('name')} ×{m.get('qty', 1)}" for m in mixers)
+                    mixer_txt = f"   [Mixers: {mixer_desc}]" if mixers else ""
                     s_line = f"  • {sel.get('name')} ×{sel.get('qty', 1)}  (¥{float(sel.get('line_total') or 0):,.0f}){mixer_txt}"
                     for l in _wrap_text(draw, s_line, f_body, CONTENT_W - 40):
                         card_lines.append((l, (15, 80, 50), f_body))
@@ -243,10 +241,8 @@ def generate_table_orders_pdf(
             upg_status = o.get("upgrade_status")
             if upg and upg_status and upg_status != "none":
                 upg_mixers = upg.get("mixers") or []
-                upg_mixer_txt = (
-                    f" [Mixers: {', '.join(f'{m.get('name')} ×{m.get('qty', 1)}' for m in upg_mixers)}]"
-                    if upg_mixers else ""
-                )
+                upg_mixer_desc = ", ".join(f"{m.get('name')} ×{m.get('qty', 1)}" for m in upg_mixers)
+                upg_mixer_txt = f" [Mixers: {upg_mixer_desc}]" if upg_mixers else ""
                 extra_val = o.get("upgrade_final_price") if o.get("upgrade_final_price") is not None else upg.get("estimated_extra", 0)
                 upg_line = (
                     f"UPGRADE REQUEST ({str(upg_status).upper()}): {upg.get('name')} ×{upg.get('qty', 1)}"

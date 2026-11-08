@@ -15,8 +15,10 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/store/playerStore';
 import { API_BASE_URL } from '@/config/api';
+import { getMediaUrl } from '@/lib/appUrl';
 import VerificationBadge from '@/components/VerificationBadge';
 import MessageModal from '@/components/MessageModal';
+import { slugify } from '@/lib/slug';
 import {
   SpotifyIcon,
   AppleMusicIcon,
@@ -25,11 +27,13 @@ import {
   HearThisIcon,
   YouTubeIcon,
   getPlatformIcon,
+  getPlatformBrand,
 } from '@/components/ui/MusicPlatformIcons';
 
 // Types
 interface ArtistProfile {
   id: number;
+  slug?: string;
   user_id?: number;
   stage_name: string;
   artist_type: string;
@@ -66,7 +70,11 @@ interface ArtistProfile {
   website?: string;
   wechat_qr_url?: string;
   alipay_qr_url?: string;
+  wechat_pay_url?: string;
+  alipay_pay_url?: string;
   payment_instructions?: string;
+  deposit_eligible?: boolean;
+  portfolio_media?: { id: number; media_type: 'audio' | 'video' | 'image'; title: string; url: string; duration_seconds?: number | null }[];
   // Role-specific media
   dj_mix_url?: string;
   dj_mix_title?: string;
@@ -124,6 +132,7 @@ const BookingModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const [bookingId, setBookingId] = useState<number | null>(null);
+  const [paymentChoice, setPaymentChoice] = useState<'deposit' | 'full'>('deposit');
   const [paymentForm, setPaymentForm] = useState({
     payer_name: '',
     notes: '',
@@ -191,7 +200,7 @@ const BookingModal = ({
           artist_id: artist.id,
           ...formData,
           budget: formData.budget ? parseFloat(formData.budget) : null,
-          duration_hours: formData.duration_hours ? parseInt(formData.duration_hours) : null,
+          duration_hours: formData.duration_hours ? parseFloat(formData.duration_hours) : null,
           event_date: formData.event_date ? new Date(formData.event_date).toISOString() : null
         })
       });
@@ -201,7 +210,7 @@ const BookingModal = ({
         setBookingId(data.id);
         setShowPaymentStep(true);
       } else {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({}));
         toast.error(error.detail || t('artistDetail.failedToSendBooking'));
       }
     } catch {
@@ -210,6 +219,10 @@ const BookingModal = ({
       setIsSubmitting(false);
     }
   };
+
+  const totalBudget = parseFloat(formData.budget) || artist.starting_price || 0;
+  const depositAmount = totalBudget > 0 ? Math.round(totalBudget * 0.5) : 0;
+  const currentPayAmount = paymentChoice === 'deposit' ? (depositAmount > 0 ? depositAmount : null) : (totalBudget > 0 ? totalBudget : null);
 
   const handlePaymentSubmit = async () => {
     if (!session?.access_token || !bookingId || !paymentForm.screenshot) {
@@ -222,7 +235,12 @@ const BookingModal = ({
       const formDataUpload = new FormData();
       formDataUpload.append('payment_screenshot', paymentForm.screenshot);
       formDataUpload.append('payer_name', paymentForm.payer_name || formData.contact_name || '');
-      if (paymentForm.notes) formDataUpload.append('payer_notes', paymentForm.notes);
+      formDataUpload.append('payment_choice', paymentChoice);
+      const prefix = paymentChoice === 'deposit'
+        ? `[Deposit Payment: ¥${depositAmount}] `
+        : `[Full Payment: ¥${totalBudget}] `;
+      const fullNotes = `${prefix}${paymentForm.notes || ''}`.trim();
+      if (fullNotes) formDataUpload.append('payer_notes', fullNotes);
 
       const res = await fetch(`${API_BASE_URL}/bookings/requests/${bookingId}/upload-payment`, {
         method: 'POST',
@@ -279,15 +297,70 @@ const BookingModal = ({
           <div className="p-6 space-y-6">
             {showPaymentStep && (
               <>
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <div className="w-14 h-14 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                     <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('artistDetail.bookingSubmitted')}</h3>
+                  <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('artistDetail.bookingSubmitted')}</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{t('artistDetail.completePayment')}</p>
                 </div>
 
-                <MobileQrPayment />
+                {/* Deposit Prompt / Choice Selector */}
+                <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Payment Option</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]">50% Deposit Accepted</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentChoice('deposit')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        paymentChoice === 'deposit'
+                          ? 'border-[#020b00] dark:border-[#d3da0c] bg-white dark:bg-black/60 ring-2 ring-[#020b00] dark:ring-[#d3da0c] shadow-sm'
+                          : 'border-black/10 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:border-black/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Pay Deposit</span>
+                        <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 font-bold px-1.5 py-0.5 rounded">50%</span>
+                      </div>
+                      <p className="text-lg font-black text-[#020b00] dark:text-[#d3da0c]">
+                        {depositAmount > 0 ? `¥${depositAmount}` : '50% of fee'}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Secures booking date</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentChoice('full')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        paymentChoice === 'full'
+                          ? 'border-[#020b00] dark:border-[#d3da0c] bg-white dark:bg-black/60 ring-2 ring-[#020b00] dark:ring-[#d3da0c] shadow-sm'
+                          : 'border-black/10 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:border-black/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Full Payment</span>
+                        <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">100%</span>
+                      </div>
+                      <p className="text-lg font-black text-[#020b00] dark:text-white">
+                        {totalBudget > 0 ? `¥${totalBudget}` : 'Full Amount'}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Pay complete budget</p>
+                    </button>
+                  </div>
+                </div>
+
+                {artist.deposit_eligible ? <MobileQrPayment
+                  amount={currentPayAmount}
+                  reference={bookingId ? `BOOK-${bookingId}` : undefined}
+                  wechatQrUrl={artist.wechat_qr_url}
+                  alipayQrUrl={artist.alipay_qr_url}
+                  wechatPayUrl={artist.wechat_pay_url}
+                  alipayPayUrl={artist.alipay_pay_url}
+                  paymentInstructions={artist.payment_instructions}
+                /> : <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">This artist is not currently eligible to receive deposits through Sound It. You can still submit a booking request.</div>}
 
                 <div className="space-y-4">
                   <div>
@@ -422,11 +495,19 @@ const BookingModal = ({
                         className="w-full px-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] outline-none"
                       >
                         <option value="">{t('artistDetail.selectDuration')}</option>
-                        <option value="1">{t('artistDetail.oneHour')}</option>
-                        <option value="2">{t('artistDetail.twoHours')}</option>
-                        <option value="3">{t('artistDetail.threeHours')}</option>
-                        <option value="4">{t('artistDetail.fourHours')}</option>
-                        <option value="5">{t('artistDetail.fivePlusHours')}</option>
+                        <option value="0.5">30 mins (0.5 hr)</option>
+                        <option value="1">1 hour</option>
+                        <option value="1.5">1 hour 30 mins (1.5 hrs)</option>
+                        <option value="2">2 hours</option>
+                        <option value="2.5">2 hours 30 mins (2.5 hrs)</option>
+                        <option value="3">3 hours</option>
+                        <option value="3.5">3 hours 30 mins (3.5 hrs)</option>
+                        <option value="4">4 hours</option>
+                        <option value="4.5">4 hours 30 mins (4.5 hrs)</option>
+                        <option value="5">5 hours</option>
+                        <option value="6">6 hours</option>
+                        <option value="7">7 hours</option>
+                        <option value="8">8+ hours</option>
                       </select>
                     </div>
                   </div>
@@ -548,7 +629,9 @@ const BookingModal = ({
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      {t('artistDetail.submitPayment')}
+                      {paymentChoice === 'deposit'
+                        ? (depositAmount > 0 ? `Submit Deposit (¥${depositAmount})` : 'Submit Deposit Payment')
+                        : (totalBudget > 0 ? `Submit Full Payment (¥${totalBudget})` : t('artistDetail.submitPayment'))}
                     </>
                   )}
                 </button>
@@ -773,6 +856,11 @@ const ArtistDetail = () => {
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setArtist(profileData);
+        // Normalize URL if accessed via numeric ID or unslugged name
+        const canonicalSlug = profileData.slug || slugify(profileData.stage_name);
+        if (canonicalSlug && id !== canonicalSlug) {
+          window.history.replaceState(null, '', `/artists/${canonicalSlug}`);
+        }
       } else {
         // Artist not found
         setArtist(null);
@@ -925,7 +1013,7 @@ const ArtistDetail = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-screen pt-20 pb-36 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Hero Section */}
       <div className="relative h-[400px] md:h-[500px] overflow-hidden bg-neutral-900 dark:bg-[#141414]">
         <img
@@ -1230,6 +1318,17 @@ const ArtistDetail = () => {
                   </div>
                 )}
 
+                {artist.portfolio_media?.length ? (
+                  <section className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 lg:p-6">
+                    <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{artist.artist_type === 'Photographer' ? 'Photography Portfolio' : 'Featured Work'}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {artist.portfolio_media.map(item => <article key={item.id} className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-neutral-50 dark:bg-black/30">
+                        {item.media_type === 'audio' ? <div className="p-4"><p className="font-semibold mb-3">{item.title}</p><audio controls preload="metadata" className="w-full" src={getMediaUrl(item.url)} /></div> : item.media_type === 'video' ? <div><video controls preload="metadata" className="w-full max-h-80 bg-black" src={getMediaUrl(item.url)} /><p className="p-3 font-semibold">{item.title}</p></div> : <a href={getMediaUrl(item.url)} target="_blank" rel="noopener noreferrer"><img loading="lazy" className="w-full h-64 object-cover" src={getMediaUrl(item.url)} alt={item.title} /><p className="p-3 font-semibold">{item.title}</p></a>}
+                      </article>)}
+                    </div>
+                  </section>
+                ) : null}
+
                 {/* Streaming & Music Links */}
                 {(artist.spotify_url || artist.apple_music_url || artist.soundcloud_url || artist.youtube_url || artist.audiomack_url || artist.hearthis_url || (artist.music_links && artist.music_links.length > 0)) && (
                   <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
@@ -1240,7 +1339,7 @@ const ArtistDetail = () => {
                           href={artist.spotify_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#1DB954] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#1DB954] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="Spotify"
                         >
                           <SpotifyIcon className="w-6 h-6" />
@@ -1251,7 +1350,7 @@ const ArtistDetail = () => {
                           href={artist.apple_music_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FA2D48] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FA243C] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="Apple Music"
                         >
                           <AppleMusicIcon className="w-6 h-6" />
@@ -1262,7 +1361,7 @@ const ArtistDetail = () => {
                           href={artist.soundcloud_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF5500] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF5500] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="SoundCloud"
                         >
                           <SoundCloudIcon className="w-6 h-6" />
@@ -1273,7 +1372,7 @@ const ArtistDetail = () => {
                           href={artist.youtube_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF0000] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF0000] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="YouTube"
                         >
                           <YouTubeIcon className="w-6 h-6" />
@@ -1284,7 +1383,7 @@ const ArtistDetail = () => {
                           href={artist.audiomack_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FF8200] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FFA200] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="Audiomack"
                         >
                           <AudiomackIcon className="w-6 h-6" />
@@ -1295,24 +1394,28 @@ const ArtistDetail = () => {
                           href={artist.hearthis_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#E94E1B] text-white hover:opacity-90 transition-opacity"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#A11F24] text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm"
                           title="HearThis.at"
                         >
                           <HearThisIcon className="w-6 h-6" />
                         </a>
                       )}
-                      {artist.music_links?.map((link, idx) => (
-                        <a
-                          key={idx}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90 transition-opacity shadow-xs"
-                          title={link.title || link.platform}
-                        >
-                          <Music className="w-5 h-5" />
-                        </a>
-                      ))}
+                      {artist.music_links?.map((link, idx) => {
+                        const brand = getPlatformBrand(link.platform || link.url);
+                        const icon = getPlatformIcon(link.platform || link.url, 'w-6 h-6');
+                        return (
+                          <a
+                            key={idx}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-12 h-12 flex items-center justify-center rounded-xl ${brand.bg} text-white hover:opacity-90 hover:scale-105 transition-all shadow-sm`}
+                            title={link.title || link.platform || brand.name}
+                          >
+                            {icon || <Music className="w-6 h-6" />}
+                          </a>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1437,7 +1540,7 @@ const ArtistDetail = () => {
                     <div key={review.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-6 shadow-xs dark:shadow-none">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold">
+                          <div className="w-12 h-12 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold">
                             {review.reviewer.first_name?.[0] || 'U'}
                           </div>
                           <div>
@@ -1573,6 +1676,7 @@ const ArtistDetail = () => {
           item={{
             type: 'artist',
             id: artist.id,
+            slug: artist.slug || slugify(artist.stage_name),
             title: artist.stage_name,
             subtitle: (artist.artist_type || 'Artist').toUpperCase(),
             image: artist.avatar_url || (artist as any).user?.avatar_url || (artist as any).press_kit_photo || (artist as any).cover_image,
@@ -1583,6 +1687,33 @@ const ArtistDetail = () => {
           }}
         />
       )}
+
+      {/* Mobile Sticky Booking & Deposit Bar */}
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white/95 dark:bg-[#0b130b]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{t('artistDetail.startsFrom') || 'Starts from'}</p>
+          <p className="text-base font-black text-[#020b00] dark:text-[#d3da0c]">
+            {artist.starting_price ? `¥${artist.starting_price}` : 'Inquire'}
+            {artist.starting_price && <span className="text-[11px] text-gray-500 font-normal"> / event</span>}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowMessageModal(true)}
+            className="p-2.5 rounded-xl border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white bg-neutral-100 dark:bg-white/5 active:scale-95 transition-transform"
+            title="Message"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowBookingModal(true)}
+            className="px-4 py-2.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Book / Pay Deposit</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

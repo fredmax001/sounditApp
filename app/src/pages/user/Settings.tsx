@@ -1,10 +1,11 @@
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, ChevronRight, Globe, HelpCircle, LogOut, Moon, Sun, Monitor,
-  Shield, User as UserIcon, UserPlus, X,
+  Shield, User as UserIcon, UserPlus, X, Store, LayoutDashboard, Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -41,12 +42,33 @@ const Settings = () => {
     navigate('/');
   };
 
+  const role = profile?.role_type || profile?.role;
+  const isBusiness = role === 'business' || role === 'organizer';
+  const isVendor = role === 'vendor';
+  const isArtist = role === 'artist' || role === 'dj';
+
   const menuItems = [
+    ...(isBusiness
+      ? [
+          { icon: Store, label: t('business.profile.title', 'Business Profile'), value: null as string | null, path: '/dashboard/business/profile' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Business Dashboard'), value: null as string | null, path: '/dashboard/business' },
+        ]
+      : isVendor
+      ? [
+          { icon: Store, label: t('nav.profile', 'Vendor Profile'), value: null as string | null, path: '/dashboard/vendor/profile' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Vendor Dashboard'), value: null as string | null, path: '/dashboard/vendor' },
+        ]
+      : isArtist
+      ? [
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Artist Dashboard'), value: null as string | null, path: '/dashboard/artist' },
+        ]
+      : []),
     { icon: UserIcon, label: t('kit.settingsMenu.profile'), value: null as string | null, path: '/profile' },
     { icon: Bell, label: t('kit.settingsMenu.notifications'), value: null, path: '/settings/notifications' },
     { icon: Shield, label: t('kit.settingsMenu.security'), value: null, path: '/settings/security' },
     { icon: Globe, label: t('kit.settingsMenu.language'), value: currentLanguage, path: '/settings/language' },
     { icon: HelpCircle, label: t('kit.settingsMenu.helpCenter'), value: null, path: '/help' },
+    { icon: Sparkles, label: t('settings.appIntro', 'App Tour & Intro'), value: null, path: '/onboarding' },
     { icon: UserPlus, label: t('kit.settingsMenu.inviteFriends'), value: null, path: '/settings/invite' },
   ];
 
@@ -57,11 +79,15 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-12 pt-16 lg:pt-20 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="pt-2 pb-4">
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('kit.settingsMenu.title')}</h1>
-        </div>
+    <div className="min-h-screen pb-12 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+      <MobilePageHeader
+        title={t('kit.settingsMenu.title')}
+        onBack={() => {
+          if (window.history.length > 1) navigate(-1);
+          else navigate(isBusiness ? '/dashboard/business' : '/profile');
+        }}
+      />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
 
         {/* Profile header card */}
         <motion.button
@@ -79,7 +105,7 @@ const Settings = () => {
                 onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center">
+              <div className="w-full h-full bg-[#d3da0c] flex items-center justify-center">
                 <span className="text-xl font-bold text-black">{(displayName || '?')[0].toUpperCase()}</span>
               </div>
             )}

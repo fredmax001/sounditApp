@@ -1,21 +1,26 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Music, Users, Heart, Loader2 } from 'lucide-react';
+import { Search, Music, Users, Heart, Loader2, MapPin } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { slugify } from '@/lib/slug';
+import { chinaCities } from '@/data/constants';
 
 interface Artist {
   id: number;
+  slug?: string;
   display_name: string;
+  artist_type?: string;
   avatar_url: string;
   bio: string;
   city_id: string;
   verification_badge?: boolean;
   artist_profiles: Array<{
     stage_name: string;
+    artist_type?: string;
     genres: string[];
     follower_count: number;
   }>;
@@ -25,22 +30,24 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
 export default function Artists() {
   const { t } = useTranslation();
-  const { session } = useAuthStore();
+  const { session, selectedCity, setSelectedCity } = useAuthStore();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [followingIds, setFollowingIds] = useState<Set<number>>(new Set());
   const [followLoadingId, setFollowLoadingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('all');
 
   const fetchArtists = useCallback(async () => {
-    const { selectedCity } = useAuthStore.getState();
     try {
       const params: Record<string, string> = {};
-      if (selectedCity) params.city = selectedCity;
+      if (selectedCity && selectedCity !== 'all') params.city = selectedCity;
 
       const { data } = await axios.get(`${API_URL}/artists`, { params });
       const mapped = (data || []).map((artist: {
         id: number;
+        slug?: string;
         stage_name: string;
+        artist_type?: string;
         avatar_url: string;
         bio: string;
         city: string;
@@ -49,13 +56,16 @@ export default function Artists() {
         verification_badge?: boolean;
       }) => ({
         id: artist.id,
+        slug: artist.slug || slugify(artist.stage_name),
         display_name: artist.stage_name,
+        artist_type: artist.artist_type,
         avatar_url: artist.avatar_url,
         bio: artist.bio,
         city_id: artist.city,
         verification_badge: artist.verification_badge,
         artist_profiles: [{
           stage_name: artist.stage_name,
+          artist_type: artist.artist_type,
           genres: artist.genres || [],
           follower_count: artist.followers_count || 0,
         }],
@@ -64,7 +74,7 @@ export default function Artists() {
     } catch {
       console.error('Error fetching artists');
     }
-  }, []);
+  }, [selectedCity]);
 
   const fetchFollowing = useCallback(async () => {
     if (!session?.access_token) return;
@@ -139,18 +149,33 @@ export default function Artists() {
         const artistProfile = artist.artist_profiles?.[0];
         const name = artistProfile?.stage_name || artist.display_name || '';
         const genres = artistProfile?.genres || [];
+        const artistType = (artist.artist_type || artistProfile?.artist_type || '').toLowerCase();
 
-        return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          genres.some((g: string) => g.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          genres.some((g: string) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          artistType.includes(searchQuery.toLowerCase());
+
+        const matchesType = selectedType === 'all' || artistType === selectedType.toLowerCase();
+
+        return matchesSearch && matchesType;
       }
     );
-  }, [artists, searchQuery]);
+  }, [artists, searchQuery, selectedType]);
+
+  const DISCIPLINE_TABS = [
+    { id: 'all', label: 'All Creatives' },
+    { id: 'dj', label: 'DJs' },
+    { id: 'singer', label: 'Singers' },
+    { id: 'dancer', label: 'Dancers' },
+    { id: 'photographer', label: 'Photographers' },
+    { id: 'mc', label: 'MCs & Hosts' },
+  ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Header */}
       <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-display text-[#020b00] dark:text-white">
@@ -160,16 +185,52 @@ export default function Artists() {
                 {t('artists.subtitle')}
               </p>
             </div>
-            <div className="relative w-full md:w-72 md:max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-white/40" />
-              <input
-                type="text"
-                placeholder={t('artists.searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-white/40 focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c]/50"
-              />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-white/40" />
+                <input
+                  type="text"
+                  placeholder={t('artists.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-[#020b00] dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-white/40 focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c]/50"
+                />
+              </div>
+              <div className="relative shrink-0">
+                <select
+                  value={selectedCity || 'all'}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  aria-label="Filter artists by city"
+                  className="bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-[#020b00] dark:text-white text-sm font-medium focus:outline-none focus:border-[#020b00] dark:focus:border-[#d3da0c]/50 cursor-pointer"
+                >
+                  {chinaCities.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-white dark:bg-[#141414] text-[#020b00] dark:text-white">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+          </div>
+
+          {/* Discipline Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+            {DISCIPLINE_TABS.map((tab) => {
+              const isActive = selectedType === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedType(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                    isActive
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
+                      : 'bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-neutral-200 dark:hover:bg-white/10'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -179,7 +240,7 @@ export default function Artists() {
         <div className="max-w-7xl mx-auto">
           {filteredArtists.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-white/50 text-lg">{t('artists.noArtistsFound')}</p>
+              <p className="text-gray-500 dark:text-white/50 text-lg">{t('artists.noArtistsFound')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -188,10 +249,12 @@ export default function Artists() {
                 const name = artistProfile?.stage_name || artist.display_name || 'Artist';
                 const isFollowing = followingIds.has(artist.id);
 
+                const artistSlug = artist.slug || slugify(name) || String(artist.id);
+
                 return (
                   <Link
                     key={artist.id}
-                    to={`/artists/${artist.id}`}
+                    to={`/artists/${artistSlug}`}
                     className="group relative rounded-2xl overflow-hidden aspect-[3/4] bg-[#141414]"
                   >
                     <img
@@ -201,11 +264,16 @@ export default function Artists() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
 
-                    {/* Genre Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-[#d3da0c] text-black text-xs font-semibold rounded-full">
-                        {artistProfile?.genres?.[0] || 'DJ'}
+                    {/* Role / Genre Badge */}
+                    <div className="absolute top-4 left-4 flex items-center gap-1.5 flex-wrap">
+                      <span className="px-2.5 py-0.5 bg-[#d3da0c] text-black text-[11px] font-black uppercase tracking-wider rounded-full shadow-xs">
+                        {artist.artist_type || artistProfile?.artist_type || 'DJ'}
                       </span>
+                      {artistProfile?.genres?.[0] && (
+                        <span className="hidden sm:inline-block px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium rounded-full border border-white/10">
+                          {artistProfile.genres[0]}
+                        </span>
+                      )}
                     </div>
 
                     {/* Follow Button */}

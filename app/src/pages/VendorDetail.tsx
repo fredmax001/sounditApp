@@ -10,6 +10,7 @@ import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
 import MessageModal from '@/components/MessageModal';
 import UniversalShareModal from '@/components/ui/UniversalShareModal';
+import { slugify } from '@/lib/slug';
 
 interface Product {
   id: number;
@@ -22,6 +23,7 @@ interface Product {
 
 interface Vendor {
   id: number;
+  slug?: string;
   user_id: number;
   business_name: string;
   description?: string;
@@ -62,6 +64,10 @@ export default function VendorDetail() {
         if (res.ok) {
           const data = await res.json();
           setVendor(data);
+          const canonicalSlug = data.slug || slugify(data.business_name);
+          if (canonicalSlug && id !== canonicalSlug) {
+            window.history.replaceState(null, '', `/vendors/${canonicalSlug}`);
+          }
         } else {
           setVendor(null);
         }
@@ -126,7 +132,7 @@ export default function VendorDetail() {
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-[#FF2D8F]/10 to-white dark:to-[#020b00]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#d3da0c]/15 via-transparent to-white dark:to-[#020b00]" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-[#020b00] dark:via-[#020b00]/60 dark:to-black/25" />
 
@@ -343,6 +349,7 @@ export default function VendorDetail() {
           item={{
             type: 'vendor',
             id: vendor.id,
+            slug: vendor.slug || slugify(vendor.business_name),
             title: vendor.business_name,
             subtitle: (vendor.vendor_type || 'Vendor').toUpperCase(),
             image: vendor.logo_url || vendor.banner_url || (vendor as any).user?.avatar_url,

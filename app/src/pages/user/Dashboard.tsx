@@ -32,11 +32,16 @@ interface BookingRequest {
     avatar_url?: string;
     wechat_qr_url?: string;
     alipay_qr_url?: string;
+    wechat_pay_url?: string;
+    alipay_pay_url?: string;
+    payment_instructions?: string;
+    deposit_eligible?: boolean;
   };
   event_name?: string;
   status: string;
   payment_status?: string;
   payment_amount?: number;
+  deposit_amount?: number;
   agreed_price?: number;
   budget?: number;
   event_date?: string;
@@ -271,16 +276,15 @@ const UserDashboard = () => {
       <div className="flex flex-col items-start justify-between gap-4 mb-8 lg:flex-row lg:items-end lg:gap-8 lg:mb-12">
         <div className="flex items-center gap-4 lg:gap-8">
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#d3da0c] to-purple-600 rounded-3xl lg:rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('user.dashboard.userAlt')}
-                className="relative w-14 h-14 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl object-cover border-2 border-black/10 dark:border-white/10"
+                className="relative w-14 h-14 lg:w-24 lg:h-24 rounded-2xl object-cover border-2 border-black/10 dark:border-white/10"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
               />
             ) : (
-              <div className="relative w-14 h-14 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center border-2 border-black/10 dark:border-white/10">
+              <div className="relative w-14 h-14 lg:w-24 lg:h-24 rounded-2xl bg-[#d3da0c] flex items-center justify-center border-2 border-black/10 dark:border-white/10">
                 <span className="text-lg lg:text-3xl font-bold text-black">
                   {(profile?.first_name || t('user.dashboard.userAlt'))[0].toUpperCase()}
                 </span>
@@ -371,7 +375,7 @@ const UserDashboard = () => {
           {activeTab === 'explore' && (
             <div className="grid lg:grid-cols-3 gap-6 lg:gap-10">
               <div className="lg:col-span-2 space-y-10">
-                <section className="relative overflow-hidden group rounded-2xl p-4 lg:rounded-3xl lg:p-8 bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+                <section className="relative overflow-hidden group rounded-2xl p-4 lg:p-8 bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
                   {nextTicket ? (
                     <>
                       <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
@@ -398,7 +402,7 @@ const UserDashboard = () => {
                     <>
                       <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-l from-black to-transparent z-10"></div>
-                        <div className="w-full h-full bg-gradient-to-br from-[#d3da0c]/20 to-[#FF2D8F]/20" />
+                        <div className="w-full h-full bg-[#d3da0c]/15" />
                       </div>
                       <div className="relative z-20 max-w-md">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-full text-[10px] font-bold uppercase tracking-widest mb-6">{t('user.dashboard.discoverEvents')}</div>
@@ -423,10 +427,10 @@ const UserDashboard = () => {
                     <Link to="/events">
                       <motion.div
                         whileHover={{ scale: 1.02 }}
-                        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 group hover:border-[#020b00]/30 dark:hover:border-[#d3da0c]/30 shadow-xs dark:shadow-none transition-all cursor-pointer"
+                        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 group hover:border-[#020b00]/30 dark:hover:border-[#d3da0c]/30 shadow-xs dark:shadow-none transition-all cursor-pointer"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-black/5 dark:bg-[#d3da0c]/20 flex items-center justify-center shrink-0">
+                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-black/5 dark:bg-[#d3da0c]/15 flex items-center justify-center shrink-0">
                             <Calendar className="w-5 h-5 lg:w-10 lg:h-10 text-[#020b00] dark:text-[#d3da0c]" />
                           </div>
                           <div className="min-w-0">
@@ -439,11 +443,11 @@ const UserDashboard = () => {
                     <Link to="/artists">
                       <motion.div
                         whileHover={{ scale: 1.02 }}
-                        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:rounded-3xl lg:p-6 group hover:border-purple-500/30 shadow-xs dark:shadow-none transition-all cursor-pointer"
+                        className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 lg:p-6 group hover:border-[#020b00]/30 dark:hover:border-[#d3da0c]/30 shadow-xs dark:shadow-none transition-all cursor-pointer"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center shrink-0">
-                            <Disc className="w-5 h-5 lg:w-10 lg:h-10 text-purple-600 dark:text-purple-500" />
+                          <div className="w-11 h-11 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-black/5 dark:bg-[#d3da0c]/15 flex items-center justify-center shrink-0">
+                            <Disc className="w-5 h-5 lg:w-10 lg:h-10 text-[#020b00] dark:text-[#d3da0c]" />
                           </div>
                           <div className="min-w-0">
                             <h4 className="text-[#020b00] dark:text-white font-bold text-sm lg:text-lg whitespace-nowrap">{t('user.dashboard.discoverArtists')}</h4>
@@ -457,7 +461,7 @@ const UserDashboard = () => {
               </div>
 
               <div className="space-y-10">
-                <section className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-4 lg:rounded-3xl lg:p-6 shadow-xs dark:shadow-none">
+                <section className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-4 lg:p-6 shadow-xs dark:shadow-none">
                   <h3 className="text-base font-bold text-[#020b00] dark:text-white lg:text-lg mb-8 border-b border-black/8 dark:border-white/5 pb-4">{t('user.dashboard.saved')} <span className="text-[#020b00] dark:text-[#d3da0c]">{t('user.dashboard.events')}</span></h3>
                   <div className="space-y-6">
                     {loadingSaved ? (
@@ -496,8 +500,7 @@ const UserDashboard = () => {
                   </div>
                 </section>
 
-                <section className="bg-gradient-to-br from-purple-500/10 to-[#d3da0c]/10 dark:from-purple-600/20 dark:to-[#d3da0c]/20 rounded-2xl lg:rounded-[2.5rem] border border-black/8 dark:border-white/5 p-6 lg:p-8 text-center relative overflow-hidden shadow-xs dark:shadow-none">
-                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500 blur-[80px] opacity-15"></div>
+                <section className="bg-neutral-50 dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-6 lg:p-8 text-center relative overflow-hidden shadow-xs dark:shadow-none">
                   <h3 className="relative z-10 text-base font-bold text-[#020b00] dark:text-white lg:text-xl mb-4">{t('user.dashboard.yourStats')}</h3>
                   <div className="grid grid-cols-2 gap-4 relative z-10">
                     <div className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-4 shadow-xs">
@@ -505,7 +508,7 @@ const UserDashboard = () => {
                       <p className="text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-widest mt-1">{t('user.dashboard.ticketsLabel')}</p>
                     </div>
                     <div className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-4 shadow-xs">
-                      <p className="text-3xl font-bold text-[#FF2D8F]">{savedCount}</p>
+                      <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-3xl">{savedCount}</p>
                       <p className="text-gray-600 dark:text-gray-400 text-xs font-semibold uppercase tracking-widest mt-1">{t('user.dashboard.savedLabel')}</p>
                     </div>
                   </div>
@@ -527,7 +530,7 @@ const UserDashboard = () => {
                   <p className="text-gray-600 dark:text-gray-400 mt-4">{t('user.dashboard.loadingTickets')}</p>
                 </div>
               ) : upcomingTickets.length === 0 ? (
-                <div className="text-center py-16 lg:py-20 bg-white dark:bg-[#111111] rounded-2xl lg:rounded-[3rem] border border-black/8 dark:border-white/10 shadow-xs">
+                <div className="text-center py-16 lg:py-20 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/10 shadow-xs">
                   <Ticket className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
                   <h3 className="text-base font-bold text-[#020b00] dark:text-white lg:text-lg mb-2">{t('user.dashboard.noTicketsYet')}</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">{t('user.dashboard.browseEventsAndGetTickets')}</p>
@@ -540,7 +543,7 @@ const UserDashboard = () => {
               ) : (
                 <div className="grid gap-10">
                   {upcomingTickets.map(ticket => (
-                    <div key={ticket.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col lg:rounded-3xl shadow-xs dark:shadow-2xl">
+                    <div key={ticket.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xs dark:shadow-2xl">
                       <div className="relative w-full aspect-video">
                         <img
                           src={ticket.flyer_image || '/event_placeholder.jpg'}
@@ -573,7 +576,7 @@ const UserDashboard = () => {
                             </Link>
                           </div>
                         </div>
-                        <div className="w-28 h-28 lg:w-40 lg:h-40 bg-white p-3 lg:p-4 rounded-2xl lg:rounded-3xl flex items-center justify-center border border-black/10 shadow-md">
+                        <div className="w-28 h-28 lg:w-40 lg:h-40 bg-white p-3 lg:p-4 rounded-2xl flex items-center justify-center border border-black/10 shadow-md">
                           <QrCode className="w-full h-full text-black stroke-[1.5]" />
                         </div>
                       </div>
@@ -597,7 +600,7 @@ const UserDashboard = () => {
                   <p className="text-gray-600 dark:text-gray-400 mt-4">{t('user.dashboard.loadingBookings')}</p>
                 </div>
               ) : bookings.length === 0 ? (
-                <div className="text-center py-16 lg:py-20 bg-white dark:bg-[#111111] rounded-2xl lg:rounded-[3rem] border border-black/8 dark:border-white/10 shadow-xs">
+                <div className="text-center py-16 lg:py-20 bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/10 shadow-xs">
                   <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
                   <h3 className="text-base font-bold text-[#020b00] dark:text-white lg:text-lg mb-2">{t('user.dashboard.noBookingsYet')}</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">{t('user.dashboard.browseArtists')}</p>
@@ -610,7 +613,7 @@ const UserDashboard = () => {
               ) : (
                 <div className="grid gap-6">
                   {bookings.map(booking => {
-                    const canUpload = booking.status === 'pending' && booking.payment_status === 'pending';
+                    const canUpload = ['pending', 'accepted'].includes(booking.status) && ['pending', 'rejected'].includes(booking.payment_status || 'pending') && booking.artist?.deposit_eligible !== false;
                     return (
                       <div key={booking.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 flex flex-col gap-3 lg:p-6 lg:gap-4 items-start shadow-xs dark:shadow-none">
                         <div className="w-16 h-16 rounded-2xl bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
@@ -628,6 +631,9 @@ const UserDashboard = () => {
                             </span>
                           </div>
                         </div>
+                        {booking.artist?.deposit_eligible === false && booking.payment_status === 'pending' && (
+                          <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">This artist cannot currently receive deposits through Sound It. Your booking request remains active.</p>
+                        )}
                         {canUpload && (
                           <button
                             onClick={() => setUploadModalBooking(booking)}
@@ -657,7 +663,15 @@ const UserDashboard = () => {
             </div>
 
             <div className="mb-6">
-              <MobileQrPayment amount={uploadModalBooking.budget} />
+              <MobileQrPayment
+                amount={uploadModalBooking.deposit_amount || Math.round((uploadModalBooking.agreed_price || uploadModalBooking.budget || 0) * 0.5)}
+                reference={`BOOK-${uploadModalBooking.id}`}
+                wechatQrUrl={uploadModalBooking.artist?.wechat_qr_url}
+                alipayQrUrl={uploadModalBooking.artist?.alipay_qr_url}
+                wechatPayUrl={uploadModalBooking.artist?.wechat_pay_url}
+                alipayPayUrl={uploadModalBooking.artist?.alipay_pay_url}
+                paymentInstructions={uploadModalBooking.artist?.payment_instructions}
+              />
             </div>
 
             <form onSubmit={handleUploadPayment} className="space-y-4">

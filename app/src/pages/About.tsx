@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useThemeStore } from '@/store/themeStore';
 import {
-  Sparkles,
   Users,
   Globe,
   Award,
@@ -36,6 +36,7 @@ interface Collaborator {
 }
 
 const About = () => {
+  const { isDark } = useThemeStore();
   const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ const About = () => {
       description: 'We bring together artists, businesses, organizers, and audiences to grow stronger together.',
     },
     {
-      icon: Sparkles,
+      icon: undefined,
       title: 'Innovation',
       description: 'We constantly explore new ways to entertain, connect, and empower communities through technology.',
     },
@@ -112,7 +113,7 @@ const About = () => {
     {
       icon: BarChart3,
       name: 'Sound It DJ',
-      description: 'Sound It DJ is the professional DJ intelligence and music curation cloud platform built for DJs, producers, and performers. The platform offers multi-platform music library import and export across all major DJ software, AI-powered mix analysis, automated waveform visualizer creation, and direct USB export for pioneer CDJs and club gear.',
+      description: 'Sound It DJ is the professional DJ intelligence and music curation cloud platform built for DJs, producers, and performers. The platform offers multi-platform music library import and export across all major DJ software, mix analysis, automated waveform visualizer creation, and direct USB export for Pioneer CDJs and club gear.',
       status: 'Active',
       url: 'https://sounditdj.cloud/',
     },
@@ -452,12 +453,13 @@ const About = () => {
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="flex items-center justify-center"
+              className="flex items-center justify-center p-8 rounded-2xl bg-black/40 border border-[#d3da0c]/20 shadow-[0_0_50px_rgba(211,218,12,0.12)] relative overflow-hidden group"
             >
+              <div className="absolute inset-0 bg-gradient-radial from-[#d3da0c]/10 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
               <img
-                src="/logo.png"
-                alt="Sound It Logo"
-                className="w-full max-w-md object-contain"
+                src={isDark ? "/brand-logo-dark.png" : "/brand-logo-light.png"}
+                alt="Sound It Official Logo"
+                className="w-full max-w-md object-contain relative z-10 drop-shadow-[0_0_25px_rgba(211,218,12,0.35)]"
               />
             </motion.div>
             <motion.div
@@ -553,9 +555,11 @@ const About = () => {
                   viewport={{ once: true }}
                   className="glass rounded-2xl p-6 hover:bg-white/10 transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-[#d3da0c]" />
-                  </div>
+                  {Icon && (
+                    <div className="w-12 h-12 rounded-xl bg-[#d3da0c]/10 flex items-center justify-center mb-4">
+                      <Icon className="w-6 h-6 text-[#d3da0c]" />
+                    </div>
+                  )}
                   <h3 className="text-xl font-semibold text-white mb-2">{value.title}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{value.description}</p>
                 </motion.div>
@@ -802,7 +806,6 @@ const About = () => {
                         <div className="absolute top-3 left-3 z-10">
                           {collab.headline ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#d3da0c] text-black text-[11px] font-bold tracking-wider uppercase shadow-lg shadow-[#d3da0c]/30">
-                              <Sparkles className="w-3 h-3" />
                               2026 BOA Headliner
                             </span>
                           ) : (
@@ -815,12 +818,6 @@ const About = () => {
                         {/* View Info Action Pill */}
                         <div className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-white/80 group-hover:text-[#d3da0c] group-hover:border-[#d3da0c]/50 group-hover:bg-black/90 transition-all">
                           <Eye className="w-4 h-4" />
-                        </div>
-
-                        {/* Click Hint Bar */}
-                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between text-[11px]">
-                          <span className="text-gray-300 font-medium">Click to view info</span>
-                          <span className="text-[#d3da0c] font-semibold">Details →</span>
                         </div>
                       </div>
 
@@ -860,7 +857,7 @@ const About = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.94, y: 16 }}
                         transition={{ duration: 0.2 }}
-                        className="relative w-full max-w-2xl bg-[#020b00] border border-[#d3da0c]/30 rounded-3xl overflow-hidden shadow-2xl my-auto text-left"
+                        className="relative w-full max-w-2xl bg-[#020b00] border border-[#d3da0c]/30 rounded-2xl overflow-hidden shadow-2xl my-auto text-left"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {/* Close Button */}
@@ -890,7 +887,7 @@ const About = () => {
                               {/* Badge */}
                               {selectedCollaborator.headline ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d3da0c] text-black text-xs font-bold tracking-wider uppercase mb-3 shadow-md shadow-[#d3da0c]/20">
-                                  <Sparkles className="w-3.5 h-3.5" /> 2026 BOA FESTIVAL HEADLINER
+                                  2026 BOA FESTIVAL HEADLINER
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-xs font-semibold uppercase mb-3 border border-[#d3da0c]/20">

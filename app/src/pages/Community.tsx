@@ -1,11 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, MessageCircle, Share2, Send, Image as ImageIcon,
-  Trash2, Calendar, X, Plus, Eye, Loader2, FolderOpen, Video, ChevronLeft
+  Heart,
+  MessageCircle,
+  Share2,
+  Send,
+  Image as ImageIcon,
+  Trash2,
+  Calendar,
+  X,
+  Plus,
+  Loader2,
+  FolderOpen,
+  Video,
+  Bookmark,
+  BadgeCheck,
+  MoreHorizontal,
+  FileText,
+  PlayCircle,
+  MapPin,
+  Users,
+  ChevronRight,
+  ChevronDown,
+  Check,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react';
 import { useCommunityStore, type CommunityPost, type CommunityComment, getGuestName, setGuestName } from '@/store/communityStore';
 import { useAuthStore } from '@/store/authStore';
@@ -14,7 +36,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { WEB_ORIGIN } from '@/lib/appUrl';
@@ -31,17 +52,26 @@ interface MediaItem {
   url: string;
 }
 
+type FeedFilter = 'for_you' | 'trending' | 'following' | 'my_posts' | 'saved';
+
 const Community = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile, isAuthenticated } = useAuthStore();
   const { events, fetchEvents } = useEventStore();
   const {
     posts, sections, selectedSection, isLoading, isCreating, hasMore,
     fetchPosts, fetchSections, fetchPostsBySection, createPost, deletePost, likePost, unlikePost,
-    addComment, deleteComment, likeComment, unlikeComment, sharePost, loadMore, uploadMedia
+    toggleBookmark, addComment, deleteComment, likeComment, unlikeComment, sharePost, loadMore, uploadMedia
   } = useCommunityStore();
 
+  const initialFilter = (searchParams.get('filter') as FeedFilter) || 'for_you';
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>(
+    ['for_you', 'trending', 'following', 'my_posts', 'saved'].includes(initialFilter)
+      ? initialFilter
+      : 'for_you'
+  );
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostSectionId, setNewPostSectionId] = useState('');
@@ -51,6 +81,15 @@ const Community = () => {
   const [isWritingPost, setIsWritingPost] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [isUploadingVideos, setIsUploadingVideos] = useState(false);
+  const [postType, setPostType] = useState<'post' | 'photo' | 'video' | 'event'>('post');
+  const [postAudience, setPostAudience] = useState<'for_you' | 'following' | 'community'>('for_you');
+  const [postLocation, setPostLocation] = useState('');
+  const [postTaggedPeople, setPostTaggedPeople] = useState('');
+  const [showLocationRow, setShowLocationRow] = useState(false);
+  const [showEventRow, setShowEventRow] = useState(false);
+  const [showPeopleRow, setShowPeopleRow] = useState(false);
+  const [showSectionRow, setShowSectionRow] = useState(false);
+  const [showAudienceDropdown, setShowAudienceDropdown] = useState(false);
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [replyInputs, setReplyInputs] = useState<Record<number, string>>({});
   const [showComments, setShowComments] = useState<Record<number, boolean>>({});
@@ -59,6 +98,24 @@ const Community = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [sharePostId, setSharePostId] = useState<number | null>(null);
   const [guestName, setGuestNameState] = useState(getGuestName() || '');
+  const [storyArtists, setStoryArtists] = useState<Array<{ id: number; stage_name?: string; name?: string; profile_image_url?: string }>>([]);
+
+  useEffect(() => {
+    const fetchStoryArtists = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1'}/artists/featured`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setStoryArtists(data.slice(0, 8));
+          }
+        }
+      } catch {
+        // Silently handle
+      }
+    };
+    fetchStoryArtists();
+  }, []);
   const [guestEmail, setGuestEmail] = useState('');
   const [commentGuestNames, setCommentGuestNames] = useState<Record<number, string>>({});
   const [replyGuestNames, setReplyGuestNames] = useState<Record<number, string>>({});
@@ -67,10 +124,29 @@ const Community = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const paramFilter = searchParams.get('filter') as FeedFilter | null;
+    if (paramFilter && ['for_you', 'trending', 'following', 'my_posts', 'saved'].includes(paramFilter)) {
+      setFeedFilter(paramFilter);
+      fetchPosts({ page: 1, feed_type: paramFilter });
+    } else {
+      fetchPosts({ page: 1, feed_type: feedFilter });
+    }
     fetchSections();
-    fetchPosts();
     fetchEvents();
-  }, [fetchSections, fetchPosts, fetchEvents]);
+  }, [searchParams]);
+
+  const handleFeedFilterChange = (nextFilter: FeedFilter) => {
+    setFeedFilter(nextFilter);
+    useCommunityStore.setState({ selectedSection: null });
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextFilter === 'for_you') {
+      nextParams.delete('filter');
+    } else {
+      nextParams.set('filter', nextFilter);
+    }
+    setSearchParams(nextParams, { replace: true });
+    fetchPosts({ page: 1, feed_type: nextFilter });
+  };
 
   // Infinite scroll
   useEffect(() => {
@@ -95,7 +171,7 @@ const Community = () => {
     if (section) {
       fetchPostsBySection(section.slug, 1);
     } else {
-      fetchPosts({ page: 1 });
+      fetchPosts({ page: 1, feed_type: feedFilter });
     }
   };
 
@@ -359,216 +435,134 @@ const Community = () => {
     ...newPostVideos.map((url) => ({ type: 'video' as const, url })),
   ];
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
-      {/* Header — title + section tabs pinned together below the app header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-3">
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              type="button"
-              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-              aria-label={t('common.back', 'Back')}
-              className="-ml-2 w-10 h-10 rounded-full flex items-center justify-center text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-display text-[#020b00] dark:text-white">{t('community.community')}</h1>
-          </div>
+  const communityStories = [
+    {
+      id: 'your-story',
+      label: 'Your Story',
+      avatar: profile?.avatar_url || '/web-hero/C48A0758.jpg',
+      isSelf: true,
+      onClick: () => setIsWritingPost(true),
+    },
+    ...storyArtists.map((artist) => ({
+      id: `artist-${artist.id}`,
+      label: artist.stage_name || artist.name || 'Artist',
+      avatar: artist.profile_image_url || '/web-hero/C48A0775.jpg',
+      isSelf: false,
+      onClick: () => navigate(`/discovery?tab=artists`),
+    })),
+  ];
 
-          {/* Section Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <button
-              onClick={() => handleSectionSelect(null)}
-              className={`min-h-[36px] px-4 rounded-full text-sm font-semibold whitespace-nowrap border transition-all ${
-                !selectedSection
-                  ? 'bg-[#020b00] text-[#d3da0c] border-[#020b00] dark:bg-[#d3da0c] dark:text-black dark:border-[#d3da0c] shadow-xs'
-                  : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 border-transparent hover:text-[#020b00] dark:hover:text-white'
-              }`}
-            >
-              {t('community.allPosts') || 'All Posts'}
-            </button>
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+      {/* Top Feed Filter Pills — Pinned below App Header */}
+      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { key: 'for_you' as FeedFilter, label: 'For You' },
+              { key: 'trending' as FeedFilter, label: 'Trending' },
+              { key: 'following' as FeedFilter, label: 'Following' },
+              ...(isAuthenticated
+                ? [
+                    { key: 'my_posts' as FeedFilter, label: 'My Posts' },
+                    { key: 'saved' as FeedFilter, label: 'Saved' },
+                  ]
+                : []),
+            ].map((pill) => {
+              const active = !selectedSection && feedFilter === pill.key;
+              return (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => handleFeedFilterChange(pill.key)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                    active
+                      ? 'bg-[#d3da0c] text-black shadow-sm'
+                      : 'bg-neutral-100 dark:bg-[#0d140a] text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
+
             {sections.map((section) => (
               <button
                 key={section.id}
+                type="button"
                 onClick={() => handleSectionSelect(section)}
-                className={`min-h-[36px] px-4 rounded-full text-sm font-medium whitespace-nowrap border transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-all ${
                   selectedSection?.id === section.id
-                    ? 'bg-[#020b00] text-[#d3da0c] border-[#020b00] dark:bg-[#d3da0c] dark:text-black dark:border-[#d3da0c] shadow-xs font-semibold'
-                    : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 border-transparent hover:text-[#020b00] dark:hover:text-white'
+                    ? 'bg-[#d3da0c] text-black border-[#d3da0c] shadow-sm'
+                    : 'bg-neutral-100 dark:bg-[#0d140a] text-gray-700 dark:text-gray-300 border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white'
                 }`}
               >
                 {section.name}
-                {typeof section.post_count === 'number' && section.post_count > 0 && (
-                  <span className="ml-1.5 text-xs opacity-80">{section.post_count}</span>
-                )}
               </button>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 py-5">
-
-        {/* Create Post Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 p-4 mb-5 w-full shadow-xs dark:shadow-none"
-        >
-          {!isWritingPost ? (
-            <div
-              onClick={() => setIsWritingPost(true)}
-              className="flex items-center gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-3 rounded-xl transition-colors"
-            >
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={profile?.avatar_url || ''} />
-                <AvatarFallback className="bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold">
-                  {getInitials(profile?.first_name, profile?.last_name)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('community.shareExperience')}</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Guest inputs */}
-              {!isAuthenticated && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input
-                    value={guestName}
-                    onChange={(e) => handleGuestNameChange(e.target.value)}
-                    placeholder={t('community.yourName') || 'Your Name *'}
-                    className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
-                  />
-                  <Input
-                    type="email"
-                    value={guestEmail}
-                    onChange={(e) => setGuestEmail(e.target.value)}
-                    placeholder={t('community.yourEmail') || 'Email (optional)'}
-                    className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
-                  />
+      <div className="max-w-3xl mx-auto px-4 pt-3 pb-5">
+        {/* Stories Row matching Reference Visual */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between gap-2 overflow-x-auto hide-scrollbar pb-1">
+            {communityStories.map((story) => (
+              <button
+                key={story.id}
+                type="button"
+                onClick={story.onClick}
+                className="flex flex-col items-center gap-1.5 flex-shrink-0"
+              >
+                <div className="relative w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
+                    <img
+                      src={story.avatar}
+                      alt={story.label}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/web-hero/C48A0758.jpg';
+                      }}
+                    />
+                  </div>
+                  {story.isSelf && (
+                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#d3da0c] text-black flex items-center justify-center border border-white dark:border-[#020b00]">
+                      <Plus className="w-2.5 h-2.5 stroke-[3]" />
+                    </span>
+                  )}
                 </div>
-              )}
+                <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate max-w-[64px]">
+                  {story.label}
+                </span>
+              </button>
+            ))}
 
-              <div className="flex items-start gap-3">
-                <Avatar className="w-10 h-10 shrink-0">
-                  <AvatarImage src={profile?.avatar_url || ''} />
-                  <AvatarFallback className="bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold">
-                    {getInitials(profile?.first_name, profile?.last_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-3 min-w-0">
-                  <Input
-                    value={newPostTitle}
-                    onChange={(e) => setNewPostTitle(e.target.value)}
-                    placeholder={t('community.postTitle') || 'Post title (optional)'}
-                    className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
-                  />
-                  <Textarea
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
-                    placeholder={t('community.shareExperiencePlaceholder')}
-                    className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm resize-none min-h-[100px]"
-                    autoFocus
-                  />
-                  <Select value={newPostSectionId} onValueChange={setNewPostSectionId}>
-                    <SelectTrigger className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white w-full">
-                      <SelectValue placeholder={t('community.selectSection') || 'Select section (optional)'} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-[#141414] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white shadow-lg">
-                      {sections.map((section) => (
-                        <SelectItem key={section.id} value={String(section.id)}>
-                          {section.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={newPostEventId} onValueChange={setNewPostEventId}>
-                    <SelectTrigger className="bg-neutral-50 dark:bg-[#020b00] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white w-full">
-                      <SelectValue placeholder={t('community.tagEvent') || 'Tag event (optional)'} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-[#141414] border-black/10 dark:border-white/10 text-[#020b00] dark:text-white max-h-60 shadow-lg">
-                      {events.map((event) => (
-                        <SelectItem key={event.id} value={String(event.id)}>
-                          {event.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            {/* More Circle */}
+            <button
+              type="button"
+              onClick={() => navigate('/reels')}
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
+            >
+              <div className="w-14 h-14 rounded-full p-[1.5px] bg-black/15 dark:bg-white/20">
+                <div className="w-full h-full rounded-full bg-neutral-100 dark:bg-[#0d140a] border-2 border-white dark:border-[#020b00] flex items-center justify-center text-[#020b00] dark:text-white">
+                  <MoreHorizontal className="w-5 h-5" />
                 </div>
               </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">More</span>
+            </button>
+          </div>
+        </div>
 
-              {/* Media previews */}
-              {allNewMedia.length > 0 && (
-                <div className="flex gap-2 flex-wrap ml-0 sm:ml-13 sm:pl-13">
-                  {allNewMedia.map((media, idx) => (
-                    <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
-                      {media.type === 'image' ? (
-                        <img src={media.url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <video src={media.url} className="w-full h-full object-cover" />
-                      )}
-                      <button
-                        onClick={() => media.type === 'image' ? removeImage(idx) : removeVideo(idx - newPostImages.length)}
-                        className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 hover:bg-black"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageSelect}
-                  />
-                  <input
-                    ref={videoInputRef}
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleVideoSelect}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingImages}
-                  >
-                    {isUploadingImages ? (
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    ) : (
-                      <ImageIcon className="w-5 h-5 mr-2" />
-                    )}
-                    {t('community.addPhoto')}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
-                    onClick={() => videoInputRef.current?.click()}
-                    disabled={isUploadingVideos}
-                  >
-                    {isUploadingVideos ? (
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    ) : (
-                      <Video className="w-5 h-5 mr-2" />
-                    )}
-                    {t('community.addVideo') || 'Video'}
-                  </Button>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button
-                    variant="ghost"
+        {/* Dedicated Full-Screen Create Community Post Page matching Reference Visual */}
+        {isWritingPost &&
+          createPortal(
+            <div className="fixed inset-0 z-[120] bg-[#020B00] text-white overflow-y-auto overscroll-contain">
+              <div className="min-h-full flex flex-col max-w-xl mx-auto px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                {/* Top Bar: Cancel (X) | Create Post | Post Button */}
+                <div className="flex items-center justify-between h-12 pb-2 border-b border-white/10 shrink-0">
+                  <button
+                    type="button"
                     onClick={() => {
                       setIsWritingPost(false);
                       setNewPostTitle('');
@@ -578,114 +572,523 @@ const Community = () => {
                       setNewPostImages([]);
                       setNewPostVideos([]);
                     }}
-                    className="flex-1 sm:flex-none text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors -ml-1"
+                    aria-label="Cancel"
                   >
-                    {t('community.cancel')}
-                  </Button>
-                  <Button
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <h2 className="text-[17px] font-bold text-white tracking-tight">Create Post</h2>
+
+                  <button
+                    type="button"
                     onClick={handleCreatePost}
-                    disabled={!newPostContent.trim() || isCreating || isUploadingImages || isUploadingVideos || (!isAuthenticated && !guestName.trim())}
-                    className="bg-[#020b00] text-[#d3da0c] hover:opacity-90 dark:bg-[#d3da0c] dark:text-black dark:hover:bg-[#bbc10b] flex-1 sm:flex-none font-bold shadow-sm"
+                    disabled={
+                      !newPostContent.trim() ||
+                      isCreating ||
+                      isUploadingImages ||
+                      isUploadingVideos ||
+                      (!isAuthenticated && !guestName.trim())
+                    }
+                    className="px-5 py-1.5 rounded-full bg-[#d3da0c] text-black font-extrabold text-xs shadow-[0_0_12px_rgba(211,218,12,0.35)] hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
                   >
                     {isCreating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="flex items-center gap-1.5">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Posting...</span>
+                      </span>
                     ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        {t('community.post')}
-                      </>
+                      'Post'
                     )}
-                  </Button>
+                  </button>
                 </div>
-              </div>
-            </div>
-          )}
-        </motion.div>
 
-        {/* Posts Feed */}
-        <div className="space-y-4">
+                {/* 4 Post Type Selection Cards: Post | Photo | Video | Event */}
+                <div className="grid grid-cols-4 gap-2.5 py-4">
+                  {[
+                    { id: 'post' as const, label: 'Post', icon: FileText },
+                    { id: 'photo' as const, label: 'Photo', icon: ImageIcon },
+                    { id: 'video' as const, label: 'Video', icon: PlayCircle },
+                    { id: 'event' as const, label: 'Event', icon: Calendar },
+                  ].map((card) => {
+                    const active = postType === card.id;
+                    const Icon = card.icon;
+                    return (
+                      <button
+                        key={card.id}
+                        type="button"
+                        onClick={() => {
+                          setPostType(card.id);
+                          if (card.id === 'photo') fileInputRef.current?.click();
+                          if (card.id === 'video') videoInputRef.current?.click();
+                          if (card.id === 'event') setShowEventRow(true);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all ${
+                          active
+                            ? 'bg-[#d3da0c] text-black font-extrabold shadow-[0_0_16px_rgba(211,218,12,0.3)]'
+                            : 'bg-[#11150E] border border-white/10 text-gray-300 hover:border-white/20'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-[11px] leading-tight font-bold">{card.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Unauthenticated Guest Inputs */}
+                {!isAuthenticated && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3 bg-[#11150E] p-3 rounded-2xl border border-white/10">
+                    <Input
+                      value={guestName}
+                      onChange={(e) => handleGuestNameChange(e.target.value)}
+                      placeholder={t('community.yourName') || 'Your Name *'}
+                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 text-xs rounded-xl"
+                    />
+                    <Input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder={t('community.yourEmail') || 'Email (optional)'}
+                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 text-xs rounded-xl"
+                    />
+                  </div>
+                )}
+
+                {/* User Info & Audience Selector Row */}
+                <div className="flex items-center gap-3 py-2">
+                  <div className="relative">
+                    <Avatar className="w-11 h-11 border border-white/15">
+                      <AvatarImage src={profile?.avatar_url || ''} />
+                      <AvatarFallback className="bg-[#242B24] text-white font-bold text-xs">
+                        {getInitials(profile?.first_name, profile?.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#d3da0c] text-black flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">Share with</span>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowAudienceDropdown((prev) => !prev)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#11150E] border border-white/15 text-xs font-semibold text-gray-200 hover:border-[#d3da0c] transition-colors"
+                      >
+                        <span>
+                          {postAudience === 'for_you'
+                            ? 'For You'
+                            : postAudience === 'following'
+                            ? 'Following'
+                            : 'Community'}
+                        </span>
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                      </button>
+
+                      {showAudienceDropdown && (
+                        <div className="absolute left-0 mt-1.5 w-36 bg-[#11150E] border border-white/15 rounded-xl shadow-2xl py-1 z-30">
+                          {(
+                            [
+                              { id: 'for_you', label: 'For You' },
+                              { id: 'following', label: 'Following' },
+                              { id: 'community', label: 'Community' },
+                            ] as const
+                          ).map((aud) => (
+                            <button
+                              key={aud.id}
+                              type="button"
+                              onClick={() => {
+                                setPostAudience(aud.id);
+                                setShowAudienceDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-white/10 ${
+                                postAudience === aud.id ? 'text-[#d3da0c] font-bold' : 'text-gray-300'
+                              }`}
+                            >
+                              {aud.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Large Text Editor with Clear Placeholder */}
+                <div className="py-2 flex-1">
+                  <textarea
+                    value={newPostContent}
+                    onChange={(e) => setNewPostContent(e.target.value)}
+                    placeholder="What's on your mind?"
+                    className="w-full bg-transparent text-white placeholder-gray-500 text-base leading-relaxed resize-none outline-none min-h-[140px]"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Media Attachments Grid (3 Columns) with Removal & Reordering */}
+                <div className="py-3">
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {allNewMedia.map((media, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/10 group"
+                      >
+                        {media.type === 'image' ? (
+                          <img src={media.url} alt="Attachment" className="w-full h-full object-cover" />
+                        ) : (
+                          <video src={media.url} className="w-full h-full object-cover" />
+                        )}
+
+                        {/* Top-Right Removal X Button */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            media.type === 'image'
+                              ? removeImage(idx)
+                              : removeVideo(idx - newPostImages.length)
+                          }
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/75 backdrop-blur-sm border border-white/20 text-white flex items-center justify-center hover:bg-black transition-colors"
+                          aria-label="Remove media"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Reordering Controls */}
+                        <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                          {idx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (media.type === 'image') {
+                                  setNewPostImages((prev) => {
+                                    const next = [...prev];
+                                    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px]"
+                            >
+                              <ArrowLeft className="w-3 h-3" />
+                            </button>
+                          )}
+                          {idx < allNewMedia.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (media.type === 'image') {
+                                  setNewPostImages((prev) => {
+                                    const next = [...prev];
+                                    [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px] ml-auto"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* + Add More (Up to 10) Tile */}
+                    {allNewMedia.length < 10 && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-square rounded-2xl border-2 border-dashed border-white/20 hover:border-[#d3da0c]/60 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-all bg-white/[0.02]"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#d3da0c]">
+                          <Plus className="w-5 h-5" />
+                        </div>
+                        <span className="text-[11px] font-bold text-gray-300">Add More</span>
+                        <span className="text-[10px] text-gray-500">(Up to 10)</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {(isUploadingImages || isUploadingVideos) && (
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[#d3da0c]">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Uploading media attachments...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4 Metadata Action Rows: Add Location | Tag Event | Tag People | Select Section */}
+                <div className="space-y-1.5 pt-2 border-t border-white/10 shrink-0">
+                  {/* Add Location */}
+                  <div className="bg-[#11150E] border border-white/10 rounded-2xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowLocationRow((prev) => !prev)}
+                      className="w-full flex items-center justify-between p-3.5 text-xs text-white hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-4 h-4 text-[#d3da0c]" />
+                        <span className="font-semibold">
+                          {postLocation ? `Location: ${postLocation}` : 'Add Location'}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {showLocationRow && (
+                      <div className="p-3 pt-0 flex gap-2">
+                        <input
+                          type="text"
+                          value={postLocation}
+                          onChange={(e) => setPostLocation(e.target.value)}
+                          placeholder="e.g. Shanghai, The Loft Club, Sanlitun..."
+                          className="flex-1 bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-[#d3da0c]"
+                        />
+                        {postLocation && (
+                          <button
+                            type="button"
+                            onClick={() => setPostLocation('')}
+                            className="px-2.5 text-xs text-gray-400 hover:text-white"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tag Event */}
+                  <div className="bg-[#11150E] border border-white/10 rounded-2xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowEventRow((prev) => !prev)}
+                      className="w-full flex items-center justify-between p-3.5 text-xs text-white hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-[#d3da0c]" />
+                        <span className="font-semibold">
+                          {newPostEventId
+                            ? `Event: ${events.find((e) => String(e.id) === newPostEventId)?.title || 'Selected'}`
+                            : 'Tag Event'}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {showEventRow && (
+                      <div className="p-3 pt-0">
+                        <select
+                          value={newPostEventId}
+                          onChange={(e) => setNewPostEventId(e.target.value)}
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#d3da0c]"
+                        >
+                          <option value="">No event selected</option>
+                          {events.map((evt) => (
+                            <option key={evt.id} value={String(evt.id)}>
+                              {evt.title} ({evt.city})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tag People */}
+                  <div className="bg-[#11150E] border border-white/10 rounded-2xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowPeopleRow((prev) => !prev)}
+                      className="w-full flex items-center justify-between p-3.5 text-xs text-white hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Users className="w-4 h-4 text-[#d3da0c]" />
+                        <span className="font-semibold">
+                          {postTaggedPeople ? `Tagged: ${postTaggedPeople}` : 'Tag People'}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {showPeopleRow && (
+                      <div className="p-3 pt-0 flex gap-2">
+                        <input
+                          type="text"
+                          value={postTaggedPeople}
+                          onChange={(e) => setPostTaggedPeople(e.target.value)}
+                          placeholder="@username, @artist, @friend..."
+                          className="flex-1 bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-[#d3da0c]"
+                        />
+                        {postTaggedPeople && (
+                          <button
+                            type="button"
+                            onClick={() => setPostTaggedPeople('')}
+                            className="px-2.5 text-xs text-gray-400 hover:text-white"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Select Section (Optional) */}
+                  <div className="bg-[#11150E] border border-white/10 rounded-2xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowSectionRow((prev) => !prev)}
+                      className="w-full flex items-center justify-between p-3.5 text-xs text-white hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-4 h-4 text-[#d3da0c]" />
+                        <span className="font-semibold">
+                          {newPostSectionId
+                            ? `Section: ${sections.find((s) => String(s.id) === newPostSectionId)?.name || 'Selected'}`
+                            : 'Select Section (Optional)'}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {showSectionRow && (
+                      <div className="p-3 pt-0">
+                        <select
+                          value={newPostSectionId}
+                          onChange={(e) => setNewPostSectionId(e.target.value)}
+                          className="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#d3da0c]"
+                        >
+                          <option value="">General / All Community</option>
+                          {sections.map((sec) => (
+                            <option key={sec.id} value={String(sec.id)}>
+                              {sec.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hidden File Inputs */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleVideoSelect}
+                />
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* Posts Feed matching Reference Visual */}
+        <div className="space-y-3.5">
           <AnimatePresence mode="popLayout">
             {posts.map((post) => {
               const mediaItems = getMediaItems(post);
+              const authorName =
+                `${post.user.first_name || ''} ${post.user.last_name || ''}`.trim() ||
+                post.user.username ||
+                'Sound It Member';
               return (
                 <motion.div
                   key={post.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 overflow-hidden shadow-xs dark:shadow-none"
+                  className="bg-neutral-50 dark:bg-[#0d140a] rounded-2xl border border-black/10 dark:border-white/10 p-3.5 overflow-hidden shadow-md"
                 >
                   {/* Post Header */}
-                  <div className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar className="w-9 h-9 border border-black/10 dark:border-white/10">
                         <AvatarImage src={post.user.avatar_url || ''} />
-                        <AvatarFallback className="bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-semibold">
+                        <AvatarFallback className="bg-[#d3da0c] text-black text-xs font-extrabold">
                           {getInitials(post.user.first_name, post.user.last_name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="text-[#020b00] dark:text-white text-sm font-semibold flex items-center gap-2">
-                          {post.user.first_name} {post.user.last_name}
+                        <h3 className="text-[#020b00] dark:text-white text-sm font-bold flex items-center gap-1.5">
+                          <span>{authorName}</span>
+                          {(post.user.is_verified || !post.user.is_guest) && (
+                            <BadgeCheck className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 fill-sky-400/20 flex-shrink-0" />
+                          )}
                           {post.user.is_guest && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-400 rounded-full font-normal">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-full font-normal">
                               {t('community.guest') || 'Guest'}
                             </span>
                           )}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
+                        <p className="text-gray-500 dark:text-gray-400 text-[11px]">
                           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
 
-                    {String(user?.id) === String(post.user.id) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                    {String(user?.id) === String(post.user.id) ? (
+                      <button
+                        type="button"
                         onClick={() => deletePost(post.id)}
-                        className="text-gray-400 hover:text-red-500"
+                        className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                        aria-label="Delete post"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openShareModal(post.id)}
+                        className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                        aria-label="More options"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
 
                   {/* Title */}
                   {post.title && (
-                    <div className="px-3 pb-1">
-                      <h4 className="text-[#020b00] dark:text-white font-semibold text-[15px] leading-snug">{post.title}</h4>
-                    </div>
+                    <h4 className="text-[#020b00] dark:text-white font-bold text-sm leading-snug mb-1.5">
+                      {post.title}
+                    </h4>
                   )}
 
                   {/* Badges */}
-                  <div className="px-3 pb-2 flex flex-wrap gap-2">
-                    {post.section && (
-                      <div className="inline-flex items-center gap-1.5 bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium">
-                        <FolderOpen className="w-3.5 h-3.5" />
-                        {post.section.name}
-                      </div>
-                    )}
-                    {post.event_title && (
-                      <div className="inline-flex items-center gap-1.5 bg-[#d3da0c]/10 text-emerald-800 dark:text-[#d3da0c] border border-[#d3da0c]/30 px-3 py-1 rounded-full text-xs font-medium">
-                        <Calendar className="w-4 h-4" />
-                        {post.event_title}
-                      </div>
-                    )}
-                  </div>
+                  {(post.section || post.event_title) && (
+                    <div className="pb-2 flex flex-wrap gap-1.5">
+                      {post.section && (
+                        <div className="inline-flex items-center gap-1 bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full text-[11px] font-medium">
+                          <FolderOpen className="w-3 h-3 text-[#9fa505] dark:text-[#d3da0c]" />
+                          {post.section.name}
+                        </div>
+                      )}
+                      {post.event_title && (
+                        <div className="inline-flex items-center gap-1 bg-[#d3da0c]/20 text-black dark:text-[#d3da0c] border border-[#d3da0c]/40 px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+                          <Calendar className="w-3 h-3" />
+                          {post.event_title}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Post Content */}
-                  <div className="px-3 pb-2">
-                    <p className="text-gray-800 dark:text-gray-200 text-[15px] leading-relaxed whitespace-pre-wrap">
+                  <div className="pb-2.5">
+                    <p className="text-gray-800 dark:text-gray-100 text-sm leading-relaxed whitespace-pre-wrap">
                       {expandedPosts[post.id]
                         ? post.content
-                        : post.content.slice(0, 300)
-                      }
+                        : post.content.slice(0, 300)}
                       {post.content.length > 300 && !expandedPosts[post.id] && (
                         <button
                           onClick={() => setExpandedPosts((prev) => ({ ...prev, [post.id]: true }))}
-                          className="text-[#020b00] dark:text-[#d3da0c] font-semibold ml-1 hover:underline"
+                          className="text-[#9fa505] dark:text-[#d3da0c] font-semibold ml-1 hover:underline"
                         >
                           {t('community.seeMore')}
                         </button>
@@ -695,141 +1098,184 @@ const Community = () => {
 
                   {/* Post Media */}
                   {mediaItems.length > 0 && (
-                    <div className="px-3 pb-2">
-                      <div className={`grid gap-1.5 rounded-lg overflow-hidden ${mediaItems.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
-                        {mediaItems.map((media, idx) => (
+                    <div className="pb-3">
+                      <div
+                        className={`grid gap-1.5 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 ${
+                          mediaItems.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                        }`}
+                      >
+                        {mediaItems.map((media, idx) =>
                           media.type === 'image' ? (
                             <img
                               key={idx}
                               src={media.url}
                               alt={t('community.postImage')}
-                              className={`w-full object-cover hover:opacity-90 transition-opacity cursor-pointer ${mediaItems.length === 1 ? 'h-64' : 'h-48'}`}
+                              className={`w-full object-cover ${
+                                mediaItems.length === 1 ? 'h-52 sm:h-64' : 'h-40'
+                              }`}
                             />
                           ) : (
                             <video
                               key={idx}
                               src={media.url}
                               controls
-                              className={`w-full object-cover rounded-lg ${mediaItems.length === 1 ? 'h-64' : 'h-48'}`}
+                              className={`w-full object-cover ${
+                                mediaItems.length === 1 ? 'h-52 sm:h-64' : 'h-40'
+                              }`}
                             />
                           )
-                        ))}
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* Post Stats */}
-                  <div className="px-3 py-2 flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-medium">
-                    <div className="flex gap-4">
-                      <span>{post.likes_count || 0} {t('community.likes')}</span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3.5 h-3.5" />
-                        {post.view_count || 0} {t('community.views') || 'views'}
-                      </span>
-                    </div>
-                    <div className="flex gap-4">
-                      <span>{post.comments_count || 0} {t('community.comments')}</span>
-                      <span>{post.shares_count || 0} {t('community.shares')}</span>
-                    </div>
-                  </div>
-
-                  <Separator className="bg-black/5 dark:bg-white/5" />
-
-                  {/* Action Buttons */}
-                  <div className="p-1 flex items-center justify-around">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleLike(post)}
-                      className={`flex-1 min-h-[36px] h-9 text-xs font-medium ${post.has_liked ? 'text-red-500' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'}`}
-                    >
-                      <Heart className={`w-4 h-4 mr-1.5 ${post.has_liked ? 'fill-current' : ''}`} />{t('community.like')}</Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: true }))}
-                      className="flex-1 min-h-[36px] h-9 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1.5" />{t('community.comment')}</Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => openShareModal(post.id)}
-                      className="flex-1 min-h-[36px] h-9 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white"
-                    >
-                      <Share2 className="w-4 h-4 mr-1.5" />{t('community.share')}</Button>
-                  </div>
-
-                  {/* Social-style comments drawer */}
-                  {showComments[post.id] && createPortal(
-                    <div className="fixed inset-0 z-[100] flex items-end" role="dialog" aria-modal="true" aria-label={t('community.comments', 'Comments')}>
+                  {/* Action Bar matching Reference Visual: Heart + count | Comment + count | Share + count | Bookmark on right */}
+                  <div className="pt-1 flex items-center justify-between text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center gap-5">
                       <button
                         type="button"
-                        aria-label={t('common.close', 'Close comments')}
-                        className="absolute inset-0 bg-black/65 backdrop-blur-sm"
-                        onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: false }))}
-                      />
-                      <motion.section
-                        initial={{ y: '100%' }}
-                        animate={{ y: 0 }}
-                        exit={{ y: '100%' }}
-                        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                        className="relative z-10 w-full h-[78dvh] max-h-[850px] rounded-t-[28px] border-t border-white/10 bg-[#17191d] text-white flex flex-col shadow-2xl"
+                        onClick={() => handleLike(post)}
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                          post.has_liked ? 'text-rose-500' : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
+                        }`}
                       >
-                        <div className="shrink-0 px-5 pt-3 pb-4 border-b border-white/10">
-                          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-gray-500" />
-                          <div className="flex items-center justify-between">
-                            <span className="w-10" />
-                            <h2 className="text-lg font-bold">{t('community.comments', 'Comments')}</h2>
-                            <button
-                              type="button"
-                              onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: false }))}
-                              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
-                              aria-label={t('common.close', 'Close comments')}
-                            ><X className="w-5 h-5" /></button>
-                          </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 space-y-5">
-                          {post.comments.length ? post.comments.map((comment) => renderComment(comment, post.id)) : (
-                            <p className="py-12 text-center text-gray-400">{t('community.noComments', 'Be the first to comment.')}</p>
-                          )}
-                        </div>
-                        <div className="shrink-0 border-t border-white/10 bg-[#17191d] px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                          <div className="flex items-center justify-between pb-3 text-[26px]">
-                            {['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'].map((emoji) => (
-                              <button key={emoji} type="button" className="active:scale-125 transition-transform" aria-label={`Add ${emoji}`} onClick={() => setCommentInputs((prev) => ({ ...prev, [post.id]: `${prev[post.id] || ''}${emoji}` }))}>{emoji}</button>
-                            ))}
-                          </div>
-                          {!isAuthenticated && !getGuestName() && (
-                            <Input
-                              type="text"
-                              value={commentGuestNames[post.id] || ''}
-                              onChange={(e) => setCommentGuestNames((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                              placeholder={t('community.yourName') || 'Your Name'}
-                              className="mb-2 bg-transparent border border-white/10 text-white rounded-full px-4 h-10"
-                            />
-                          )}
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 shrink-0">
-                              <AvatarImage src={profile?.avatar_url || ''} />
-                              <AvatarFallback className="bg-[#d3da0c] text-black text-xs font-semibold">{getInitials(profile?.first_name, profile?.last_name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-[#17191d] px-4">
-                              <input
-                                type="text"
-                                value={commentInputs[post.id] || ''}
-                                onChange={(e) => setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                                placeholder={t('community.writeComment', 'Add a comment...')}
-                                className="min-w-0 flex-1 bg-transparent py-3 text-base text-white placeholder:text-gray-400 outline-none"
-                              />
-                              <button type="button" onClick={() => handleAddComment(post.id)} disabled={!commentInputs[post.id]?.trim()} className="ml-2 text-[#d3da0c] disabled:text-gray-600" aria-label={t('community.send', 'Send comment')}>
-                                <Send className="w-5 h-5" />
+                        <Heart
+                          className={`w-4 h-4 ${
+                            post.has_liked ? 'fill-rose-500 text-rose-500' : ''
+                          }`}
+                        />
+                        <span>{post.likes_count || 0}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: true }))}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{post.comments_count || 0}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => openShareModal(post.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>{post.shares_count || 0}</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleBookmark(post.id)}
+                      aria-label="Bookmark post"
+                      className={`p-1 rounded-full transition-colors ${
+                        post.has_saved ? 'text-[#9fa505] dark:text-[#d3da0c]' : 'text-gray-600 dark:text-gray-300 hover:text-[#9fa505] dark:hover:text-[#d3da0c]'
+                      }`}
+                    >
+                      <Bookmark
+                        className={`w-4 h-4 ${
+                          post.has_saved ? 'fill-[#9fa505] dark:fill-[#d3da0c] text-[#9fa505] dark:text-[#d3da0c]' : ''
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Comments Drawer (Zero Emojis) */}
+                  {showComments[post.id] &&
+                    createPortal(
+                      <div
+                        className="fixed inset-0 z-[100] flex items-end"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t('community.comments', 'Comments')}
+                      >
+                        <button
+                          type="button"
+                          aria-label={t('common.close', 'Close comments')}
+                          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                          onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: false }))}
+                        />
+                        <motion.section
+                          initial={{ y: '100%' }}
+                          animate={{ y: 0 }}
+                          exit={{ y: '100%' }}
+                          transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                          className="relative z-10 w-full h-[75dvh] max-h-[820px] rounded-t-[28px] border-t border-white/10 bg-[#0a1207] text-white flex flex-col shadow-2xl"
+                        >
+                          <div className="shrink-0 px-5 pt-3 pb-4 border-b border-white/10">
+                            <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-white/20" />
+                            <div className="flex items-center justify-between">
+                              <span className="w-9" />
+                              <h2 className="text-base font-bold">
+                                {t('community.comments', 'Comments')} ({post.comments_count || 0})
+                              </h2>
+                              <button
+                                type="button"
+                                onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: false }))}
+                                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white"
+                                aria-label={t('common.close', 'Close comments')}
+                              >
+                                <X className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
-                        </div>
-                      </motion.section>
-                    </div>, document.body
-                  )}
-
+                          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                            {post.comments.length ? (
+                              post.comments.map((comment) => renderComment(comment, post.id))
+                            ) : (
+                              <p className="py-12 text-center text-gray-400 text-sm">
+                                {t('community.noComments', 'Be the first to comment.')}
+                              </p>
+                            )}
+                          </div>
+                          <div className="shrink-0 border-t border-white/10 bg-[#0a1207] px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                            {!isAuthenticated && !getGuestName() && (
+                              <Input
+                                type="text"
+                                value={commentGuestNames[post.id] || ''}
+                                onChange={(e) =>
+                                  setCommentGuestNames((prev) => ({ ...prev, [post.id]: e.target.value }))
+                                }
+                                placeholder={t('community.yourName') || 'Your Name'}
+                                className="mb-2 bg-[#0d140a] border border-white/10 text-white rounded-full px-4 h-10"
+                              />
+                            )}
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-9 h-9 shrink-0">
+                                <AvatarImage src={profile?.avatar_url || ''} />
+                                <AvatarFallback className="bg-[#d3da0c] text-black text-xs font-semibold">
+                                  {getInitials(profile?.first_name, profile?.last_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-[#0d140a] px-4">
+                                <input
+                                  type="text"
+                                  value={commentInputs[post.id] || ''}
+                                  onChange={(e) =>
+                                    setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                                  }
+                                  onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                                  placeholder={t('community.writeComment', 'Add a comment...')}
+                                  className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-white placeholder:text-gray-500 outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddComment(post.id)}
+                                  disabled={!commentInputs[post.id]?.trim()}
+                                  className="ml-2 text-[#d3da0c] disabled:text-gray-600"
+                                  aria-label={t('community.send', 'Send comment')}
+                                >
+                                  <Send className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.section>
+                      </div>,
+                      document.body
+                    )}
                 </motion.div>
               );
             })}
@@ -839,7 +1285,7 @@ const Community = () => {
         {/* Loading State */}
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-[#020b00] dark:text-[#d3da0c]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#d3da0c]" />
           </div>
         )}
 
@@ -849,24 +1295,26 @@ const Community = () => {
         {/* Empty State */}
         {!isLoading && posts.length === 0 && (
           <div className="text-center py-16">
-            <MessageCircle className="w-16 h-16 text-gray-300 dark:text-white/30 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-2">{t('community.noPostsYet')}</h3>
-            <p className="text-gray-500 dark:text-white/50">{t('community.beFirst')}</p>
+            <MessageCircle className="w-14 h-14 text-gray-300 dark:text-white/20 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-[#020b00] dark:text-white mb-1">{t('community.noPostsYet')}</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-xs">{t('community.beFirst')}</p>
           </div>
         )}
       </div>
 
-      {/* Guest FAB */}
-      {!isAuthenticated && !isWritingPost && (
-        <div className="fixed bottom-6 right-6 z-40">
-          <Button
-            onClick={() => setIsWritingPost(true)}
-            className="bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90 rounded-full shadow-lg px-6 py-3 h-auto font-bold"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            {t('community.joinToPost') || 'Join to Post'}
-          </Button>
-        </div>
+      {/* Floating Yellow + Action Button matching Reference Visual */}
+      {!isWritingPost && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsWritingPost(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          aria-label="Create community post"
+          className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#d3da0c] text-black flex items-center justify-center shadow-xl shadow-[#d3da0c]/30 hover:bg-[#bbc10b] active:scale-90 transition-all"
+        >
+          <Plus className="w-7 h-7 stroke-[2.5]" />
+        </button>
       )}
 
       {/* Share Modal */}
@@ -878,33 +1326,35 @@ const Community = () => {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-sm w-full text-[#020b00] dark:text-white shadow-2xl"
+            className="bg-[#0d140a] border border-white/10 rounded-2xl p-6 max-w-sm w-full text-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('community.sharePost')}</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{t('community.sharePost')}</h3>
             <div className="space-y-2">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                className="w-full justify-start text-white hover:bg-white/10"
                 onClick={() => handleShare(sharePostId!, 'native')}
               >
-                <Share2 className="w-5 h-5 mr-3 text-[#020b00] dark:text-[#d3da0c]" />
+                <Share2 className="w-5 h-5 mr-3 text-[#d3da0c]" />
                 {t('community.shareVia')}
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                className="w-full justify-start text-white hover:bg-white/10"
                 onClick={() => handleShare(sharePostId!, 'copy')}
               >
-                <MessageCircle className="w-5 h-5 mr-3 text-[#020b00] dark:text-[#d3da0c]" />
+                <MessageCircle className="w-5 h-5 mr-3 text-[#d3da0c]" />
                 {t('community.copyLink')}
               </Button>
             </div>
             <Button
               variant="ghost"
-              className="w-full mt-4 text-gray-500 hover:text-[#020b00] dark:hover:text-white"
+              className="w-full mt-4 text-gray-400 hover:text-white"
               onClick={() => setIsShareModalOpen(false)}
-            >{t('community.cancel')}</Button>
+            >
+              {t('community.cancel')}
+            </Button>
           </motion.div>
         </div>
       )}

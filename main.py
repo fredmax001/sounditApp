@@ -6,18 +6,20 @@ import traceback
 import time
 from importlib import import_module
 from contextvars import ContextVar
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from contextlib import asynccontextmanager
+from sqlalchemy.orm import Session
+from typing import Optional
 
 from config import get_settings
-from database import init_db, SessionLocal
+from database import init_db, SessionLocal, get_db
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from utils.logging_config import setup_logging
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, drinks, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, drinks, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, newsletter
 import api.reviews as reviews
 import api.event_reviews as event_reviews
 import api.two_factor as two_factor
@@ -35,6 +37,21 @@ logger = logging.getLogger(__name__)
 
 # Request ID context var for correlation
 request_id_var: ContextVar[str] = ContextVar("request_id", default="")
+
+
+def _json_safe(value):
+    """Recursively make a value JSON-serializable (pydantic >=2.10 error ctx
+    can contain raw Exception objects that stdlib json cannot encode)."""
+    import json as _json
+    try:
+        _json.dumps(value)
+        return value
+    except (TypeError, ValueError):
+        if isinstance(value, dict):
+            return {str(k): _json_safe(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple, set)):
+            return [_json_safe(v) for v in value]
+        return str(value)
 
 # ─── Sentry Error Tracking (Optional) ───────────────────────────────────────
 if settings.SENTRY_DSN:
@@ -208,7 +225,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "error": {
                 "code": "validation_error",
                 "message": "Request validation failed",
-                "details": exc.errors(),
+                "details": _json_safe(exc.errors()),
                 "request_id": request_id_var.get() or str(uuid.uuid4()),
                 "path": request.url.path,
             }
@@ -393,7 +410,22 @@ app.include_router(messaging.router, prefix="/api/v1")
 app.include_router(verification.router, prefix="/api/v1")
 app.include_router(sms_test.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
+app.include_router(newsletter.router, prefix="/api/v1")
 app.include_router(sitemap.router)
+
+
+@app.get("/api/v1/businesses")
+def list_public_businesses(
+    city: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Public endpoint to list approved businesses and organizers with stats."""
+    from api.business import get_top_businesses
+    return get_top_businesses(city=city, limit=limit, offset=offset, search=search, db=db)
+
 
 
 @app.get("/")

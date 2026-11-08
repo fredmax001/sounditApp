@@ -244,7 +244,7 @@ const Navbar = () => {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden border border-black/10 dark:border-white/10">
                       {profile?.avatar_url ? (
                         <img
                           src={profile.avatar_url}

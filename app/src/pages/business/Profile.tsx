@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin, LogOut } from 'lucide-react';
+import { Store, Camera, Link2, Instagram, Twitter, Globe, Edit, Save, Loader2, X, Plus, MapPin, LogOut, Cloud, ExternalLink } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useDashboardStore } from '@/store/dashboardStore';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
@@ -9,16 +10,25 @@ import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile, logout } = useAuthStore();
+  const { profile, session, businessProfile, uploadAvatar, uploadBanner, uploadGalleryImage, updateProfile, updateBusinessProfile, logout } = useAuthStore();
+  const { stats, fetchStats } = useDashboardStore();
   const navigate = useNavigate();
+
+  // Real event count comes from dashboard stats (businessProfile has no total_events field)
+  useEffect(() => {
+    if (session?.access_token) fetchStats(session.access_token);
+  }, [session?.access_token, fetchStats]);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [profileData, setProfileData] = useState({
     businessName: businessProfile?.business_name || '',
+    username: profile?.username || '',
     description: businessProfile?.description || '',
-    website: '',
+    website: businessProfile?.website || '',
+    photoAlbumUrl: businessProfile?.photo_album_url || '',
     instagram: profile?.instagram || '',
     twitter: profile?.twitter || '',
     location: businessProfile?.address || '',
@@ -31,8 +41,10 @@ const Profile = () => {
       setProfileData(prev => ({
         ...prev,
         businessName: businessProfile?.business_name || prev.businessName,
+        username: profile?.username || prev.username,
         description: businessProfile?.description || prev.description,
         website: businessProfile?.website || prev.website,
+        photoAlbumUrl: businessProfile?.photo_album_url || prev.photoAlbumUrl,
         location: businessProfile?.address || prev.location,
         cityId: businessProfile?.city_id || profile?.city_id || prev.cityId,
         instagram: profile?.instagram || prev.instagram,
@@ -58,6 +70,7 @@ const Profile = () => {
           description: profileData.description,
           address: profileData.location,
           website: profileData.website,
+          photo_album_url: profileData.photoAlbumUrl?.trim() || null,
         };
 
         // Only add city if selected - backend expects 'city_id' field
@@ -76,6 +89,7 @@ const Profile = () => {
       // Update social media on regular profile
       try {
         await updateProfile({
+          username: profileData.username ? profileData.username.trim().replace(/^@/, '') : null,
           instagram: profileData.instagram,
           twitter: profileData.twitter,
           city_id: profileData.cityId || null,
@@ -150,28 +164,96 @@ const Profile = () => {
     }
   };
 
+  const maxGallerySlots = 24;
+
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const rawFiles = Array.from(e.target.files || []);
+    if (rawFiles.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error(t('business.profile.pleaseUploadValidImage'));
+    const validFiles = rawFiles.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name}: ${t('business.profile.pleaseUploadValidImage')}`);
+        return false;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        toast.error(`${file.name}: Image exceeds 15MB limit`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    const currentCount = businessProfile?.gallery_images?.length || 0;
+    const remainingSlots = Math.max(0, maxGallerySlots - currentCount);
+    if (remainingSlots === 0) {
+      toast.error(`Gallery reached maximum limit of ${maxGallerySlots} photos.`);
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t('business.profile.imageSize5Mb'));
-      return;
+    const filesToUpload = validFiles.slice(0, remainingSlots);
+    if (filesToUpload.length < validFiles.length) {
+      toast.info(`Uploading first ${remainingSlots} photo(s) to stay within the ${maxGallerySlots} limit.`);
     }
 
-    setUploadingGalleryIndex(0);
+    setIsUploading(true);
+    setUploadProgress({ current: 0, total: filesToUpload.length });
+
     try {
-      await uploadGalleryImage(file);
-      toast.success(t('business.profile.photoAddedToGallery'));
+      const { session } = useAuthStore.getState();
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < filesToUpload.length; i++) {
+        setUploadProgress({ current: i + 1, total: filesToUpload.length });
+        const file = filesToUpload[i];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1'}/media/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error(`Failed to upload ${file.name}`);
+        }
+        const data = await uploadRes.json();
+        if (data.url) uploadedUrls.push(data.url);
+      }
+
+      if (uploadedUrls.length > 0) {
+        const currentGallery = businessProfile?.gallery_images || [];
+        const newGallery = [...currentGallery, ...uploadedUrls];
+
+        const updateRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1'}/business/profile`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            business_name: businessProfile?.business_name,
+            gallery_images: newGallery,
+            photo_album_url: profileData.photoAlbumUrl?.trim() || undefined,
+          }),
+        });
+
+        if (updateRes.ok) {
+          const updated = await updateRes.json();
+          useAuthStore.setState({ businessProfile: updated });
+          toast.success(`Added ${uploadedUrls.length} photo${uploadedUrls.length > 1 ? 's' : ''} to gallery!`);
+        } else {
+          throw new Error('Failed to save gallery changes');
+        }
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('business.profile.failedToUploadPhoto'));
     } finally {
-      setUploadingGalleryIndex(null);
+      setIsUploading(false);
+      setUploadProgress(null);
       if (galleryInputRef.current) {
         galleryInputRef.current.value = '';
       }
@@ -210,7 +292,6 @@ const Profile = () => {
   };
 
   const galleryImages = businessProfile?.gallery_images || [];
-  const maxGallerySlots = 8;
 
   const selectedCityName = chinaCities.find(c => c.id === profileData.cityId)?.name || t('business.profile.notSet');
 
@@ -245,7 +326,7 @@ const Profile = () => {
       {/* Profile Header Card */}
       <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden">
         {/* Cover Image */}
-        <div className="h-48 relative overflow-hidden bg-gradient-to-r from-[#d3da0c]/20 via-[#FF2D8F]/20 to-[#d3da0c]/20">
+        <div className="h-48 relative overflow-hidden bg-gradient-to-r from-[#d3da0c]/20 via-transparent to-[#d3da0c]/10">
           {(profile?.background_url || profile?.banner_url) ? (
             <img
               src={profile?.background_url || profile?.banner_url || ''}
@@ -282,7 +363,7 @@ const Profile = () => {
           {/* Avatar */}
           <div className="absolute -top-16 left-8">
             <div
-              className="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-4xl font-bold text-black border-4 border-white dark:border-[#111111] bg-cover bg-center overflow-hidden shadow-md"
+              className="w-32 h-32 rounded-2xl bg-[#d3da0c] flex items-center justify-center text-4xl font-bold text-black border-4 border-white dark:border-[#111111] bg-cover bg-center overflow-hidden shadow-md"
               style={profile?.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : {}}
             >
               {!profile?.avatar_url && (profileData.businessName ? profileData.businessName.charAt(0).toUpperCase() : '?')}
@@ -306,7 +387,7 @@ const Profile = () => {
           {/* Info */}
           <div className="pt-20">
             {isEditing ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <input
                   type="text"
                   value={profileData.businessName}
@@ -314,6 +395,16 @@ const Profile = () => {
                   className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-[#020b00] dark:text-white text-2xl font-bold focus:outline-none focus:border-[#d3da0c]"
                   placeholder={t('business.profile.businessNamePlaceholder')}
                 />
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">@</span>
+                  <input
+                    type="text"
+                    value={profileData.username}
+                    onChange={(e) => setProfileData({ ...profileData, username: e.target.value.replace(/\s+/g, '') })}
+                    className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-9 pr-4 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+                    placeholder={t('kit.editProfile.username', 'username')}
+                  />
+                </div>
                 <textarea
                   value={profileData.description}
                   onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
@@ -327,6 +418,9 @@ const Profile = () => {
                 <h3 className="text-2xl font-bold text-[#020b00] dark:text-white">
                   {businessProfile?.business_name || t('business.profile.yourBusinessName')}
                 </h3>
+                {profile?.username && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">@{profile.username}</p>
+                )}
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
                   {businessProfile?.description || t('business.profile.addDescription')}
                 </p>
@@ -336,7 +430,7 @@ const Profile = () => {
             {/* Stats */}
             <div className="flex gap-6 mt-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#020b00] dark:text-white">{businessProfile?.total_events || 0}</p>
+                <p className="text-2xl font-bold text-[#020b00] dark:text-white">{stats?.business_stats?.total_events ?? 0}</p>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">{t('business.profile.events')}</p>
               </div>
               <div className="text-center">
@@ -391,7 +485,7 @@ const Profile = () => {
                   className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
                 >
                   <option value="">{t('business.profile.selectCity')}</option>
-                  {chinaCities.map((city) => (
+                  {chinaCities.filter(c => c.id !== 'all').map((city) => (
                     <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
                       {city.name}
                     </option>
@@ -472,18 +566,73 @@ const Profile = () => {
         </div>
       </div>
 
+      {/* Cloud Photo Album & External Link */}
+      <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-lg font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-[#d3da0c]" />
+            <span>Cloud Photo Album & External Link</span>
+          </h4>
+        </div>
+        <p className="text-gray-500 dark:text-gray-400 text-xs mb-3">
+          Connect your Google Cloud bucket, Google Drive folder, Baidu Netdisk, iCloud, or Dropbox album. Visitors and attendees can open this link from your public profile and event pages to view & download high-resolution event media.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="url"
+            value={profileData.photoAlbumUrl || ''}
+            onChange={(e) => setProfileData(prev => ({ ...prev, photoAlbumUrl: e.target.value }))}
+            placeholder="https://drive.google.com/... or https://storage.googleapis.com/..."
+            className="flex-1 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+          />
+          <div className="flex items-center gap-2">
+            {profileData.photoAlbumUrl && (
+              <a
+                href={profileData.photoAlbumUrl.startsWith('http') ? profileData.photoAlbumUrl : `https://${profileData.photoAlbumUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs text-gray-700 dark:text-gray-300 font-medium flex items-center gap-1 hover:text-[#d3da0c] transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Test Link</span>
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold shadow-sm active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {isSaving ? 'Saving...' : 'Save Link'}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Photo Gallery */}
       <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('business.profile.eventPhotos')}</h4>
-          <span className="text-gray-500 dark:text-gray-400 text-sm">{galleryImages.length} / {maxGallerySlots}</span>
+          <div>
+            <h4 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('business.profile.eventPhotos')}</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Upload multiple photos from your device (JPG, PNG, WebP up to 15MB each).</p>
+          </div>
+          <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">{galleryImages.length} / {maxGallerySlots}</span>
         </div>
+
+        {uploadProgress && (
+          <div className="mb-4 p-3 rounded-xl bg-[#d3da0c]/10 border border-[#d3da0c]/30 flex items-center gap-2 text-xs text-[#020b00] dark:text-white">
+            <Loader2 className="w-4 h-4 animate-spin text-[#d3da0c]" />
+            <span>Uploading photo {uploadProgress.current} of {uploadProgress.total}...</span>
+          </div>
+        )}
 
         <input
           type="file"
           ref={galleryInputRef}
           onChange={handleGalleryUpload}
           accept="image/*"
+          multiple
           className="hidden"
         />
 
@@ -499,6 +648,7 @@ const Profile = () => {
               <button
                 onClick={() => handleRemoveGalleryImage(index)}
                 className="absolute top-2 right-2 w-8 h-8 bg-red-500/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Remove photo"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -509,30 +659,23 @@ const Profile = () => {
           {galleryImages.length < maxGallerySlots && (
             <button
               onClick={() => galleryInputRef.current?.click()}
-              disabled={uploadingGalleryIndex !== null}
-              className="aspect-square bg-neutral-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-black/10 dark:border-white/10 flex items-center justify-center hover:border-[#d3da0c]/50 transition-colors disabled:opacity-50"
+              disabled={isUploading}
+              className="aspect-square bg-neutral-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-black/10 dark:border-white/10 flex flex-col items-center justify-center hover:border-[#d3da0c]/50 transition-colors disabled:opacity-50"
             >
-              {uploadingGalleryIndex !== null ? (
-                <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-600 animate-spin" />
+              {isUploading ? (
+                <Loader2 className="w-7 h-7 text-gray-400 dark:text-gray-600 animate-spin" />
               ) : (
-                <Plus className="w-8 h-8 text-gray-400 dark:text-gray-600" />
+                <>
+                  <Plus className="w-7 h-7 text-gray-400 dark:text-gray-600" />
+                  <span className="text-[11px] text-gray-500 mt-1 font-medium">Upload Photos</span>
+                </>
               )}
             </button>
           )}
-
-          {/* Empty slots */}
-          {Array.from({ length: Math.max(0, maxGallerySlots - galleryImages.length - 1) }).map((_, index) => (
-            <div
-              key={`empty-${index}`}
-              className="aspect-square bg-neutral-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-black/5 dark:border-white/5 flex items-center justify-center"
-            >
-              <Camera className="w-8 h-8 text-gray-300 dark:text-gray-700" />
-            </div>
-          ))}
         </div>
 
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-3">
-          {t('business.profile.uploadPhotosHint')}
+        <p className="text-gray-500 dark:text-gray-400 text-xs mt-3">
+          Select one or multiple photos to upload simultaneously. These photos appear on your public organizer profile.
         </p>
       </div>
 

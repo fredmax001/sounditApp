@@ -12,7 +12,7 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3, Sparkles, Sun, Moon
+  BarChart3, Sun, Moon
 } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 
@@ -50,7 +50,7 @@ const menuGroups = [
       { id: 'reports', label: 'Moderation', icon: Flag, path: '/admin/reports', permission: 'support_read' },
       { id: 'community', label: 'Community', icon: MessageSquare, path: '/admin/community', permission: 'support_read' },
       { id: 'cms', label: 'CMS', icon: BookOpen, path: '/admin/cms', permission: 'content_read' },
-      { id: 'intro-screen', label: 'Intro Screen', icon: Sparkles, path: '/admin/intro-screen', permission: 'content_read' },
+      { id: 'intro-screen', label: 'Intro Screen', icon: undefined, path: '/admin/intro-screen', permission: 'content_read' },
       { id: 'recaps', label: 'Recaps', icon: Calendar, path: '/admin/recaps', permission: 'content_read' },
       { id: 'ads', label: 'Ads Manager', icon: Megaphone, path: '/admin/ads', permission: 'marketing_read' },
     ]
@@ -182,7 +182,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           x: isMobile && !isSidebarOpen ? -260 : 0
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={`fixed lg:static inset-y-0 left-0 bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/[0.06] z-50 flex flex-col overflow-hidden shadow-xs dark:shadow-none`}
+        className={`fixed lg:sticky lg:top-0 lg:h-screen lg:self-start inset-y-0 left-0 bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/[0.06] z-50 flex flex-col overflow-hidden shadow-xs dark:shadow-none`}
       >
         {/* Logo */}
         <div className="h-[64px] flex items-center px-4 border-b border-black/8 dark:border-white/[0.06] shrink-0">
@@ -198,8 +198,12 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                   exit={{ opacity: 0, x: -8 }}
                   className="overflow-hidden min-w-0"
                 >
-                  <h1 className="text-[#020b00] dark:text-white font-bold text-base leading-tight whitespace-nowrap">Sound It</h1>
-                  <p className="text-[#d3da0c] text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap">Admin Panel</p>
+                  <img
+                    src={isDark ? "/logo-dark.png" : "/logo-light.png"}
+                    alt="Sound It"
+                    className="h-6 w-auto object-contain"
+                  />
+                  <p className="text-[#d3da0c] text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap mt-0.5">Admin Panel</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -275,7 +279,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                                   />
                                 )}
-                                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#020b00] dark:text-[#d3da0c]' : ''}`} />
+                                {Icon && <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#020b00] dark:text-[#d3da0c]' : ''}`} />}
                                 <AnimatePresence>
                                   {isSidebarOpen && (
                                     <motion.span

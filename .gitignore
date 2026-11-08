@@ -100,3 +100,4 @@ app/android/*.jks
 # APIs (excluded per user request)
 api/
 *.tsbuildinfo
+app/ios/App/build-dd/

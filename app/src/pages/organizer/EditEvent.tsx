@@ -40,12 +40,14 @@ interface EventFormData {
   city: string;
   capacity: string;
   image: string;
+  photoAlbumUrl: string;
   tags: string[];
   eventType: string;
   refundPolicy: string;
   refundsAllowed: boolean;
   requireId: boolean;
   showRemainingTickets: boolean;
+  ticketSalesClosed: boolean;
   ticketPrice: string;
   promoterEnabled: boolean;
   commissionRate: string;
@@ -127,12 +129,14 @@ const EditEvent = () => {
     city: '',
     capacity: '',
     image: '',
+    photoAlbumUrl: '',
     tags: [],
     eventType: '',
     refundPolicy: 'Non-refundable',
     refundsAllowed: false,
     requireId: false,
     showRemainingTickets: true,
+    ticketSalesClosed: false,
     ticketPrice: '',
     promoterEnabled: false,
     commissionRate: '10',
@@ -212,12 +216,14 @@ const EditEvent = () => {
       city: currentEvent.city ? currentEvent.city.charAt(0).toUpperCase() + currentEvent.city.slice(1) : '',
       capacity: currentEvent.capacity ? String(currentEvent.capacity) : '',
       image: currentEvent.flyer_image || '',
+      photoAlbumUrl: currentEvent.photo_album_url || '',
       tags: currentEvent.tags || [],
       eventType: currentEvent.event_type || '',
       refundPolicy: currentEvent.refund_policy || 'Non-refundable',
       refundsAllowed: currentEvent.refunds_allowed || false,
       requireId: currentEvent.require_id || false,
       showRemainingTickets: currentEvent.show_remaining_tickets ?? true,
+      ticketSalesClosed: Boolean(currentEvent.ticket_sales_closed),
       ticketPrice: currentEvent.ticket_price != null ? String(currentEvent.ticket_price) : '',
       promoterEnabled: currentEvent.promoter_enabled || false,
       commissionRate: currentEvent.default_commission_rate != null ? String(currentEvent.default_commission_rate) : '10',
@@ -236,9 +242,8 @@ const EditEvent = () => {
     setSelectedDjs(currentEvent.djs?.map((dj: {id: string | number}) => Number(dj.id)) || []);
 
     // Gallery
-    if (currentEvent.gallery_images?.length) {
-      setGalleryPreviews(currentEvent.gallery_images);
-    }
+    setGalleryPreviews(currentEvent.gallery_images || []);
+    setGalleryFiles([]);
 
     // Ticket tiers
     if (currentEvent.ticket_tiers?.length) {
@@ -425,7 +430,7 @@ const EditEvent = () => {
 
   const uploadQrCodes = async (eventId: number) => {
     if (!wechatQrFile && !alipayQrFile && !paymentInstructions) return;
-    const authToken = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+    const authToken = session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
     if (!authToken) return;
 
     const formDataUpload = new FormData();
@@ -450,7 +455,7 @@ const EditEvent = () => {
   };
 
   const uploadFile = async (file: File): Promise<string> => {
-    const authToken = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+    const authToken = session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
     if (!authToken) throw new Error(t('organizer.createEvent.authRequiredError'));
     const formDataUpload = new FormData();
     formDataUpload.append('file', file);
@@ -563,7 +568,7 @@ const EditEvent = () => {
       }
     }
 
-    const authToken = localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+    const authToken = session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
     if (!authToken) {
       toast.error(t('organizer.createEvent.authRequiredError'));
       return;
@@ -573,9 +578,9 @@ const EditEvent = () => {
       const flyerImageUrl = imageFile ? await uploadFlyer() : formData.image;
       const galleryUrls = await uploadGallery();
 
-      // Build description with embedded metadata
-      let fullDescription = formData.description || '';
-      fullDescription = `${t('organizer.createEvent.venuePrefix')} ${formData.venue}${formData.address ? `, ${formData.address}` : ''}\n\n${fullDescription}`;
+      // Build description with embedded metadata (avoid duplicating prefix if already present)
+      let cleanDesc = (formData.description || '').replace(/^Venue:\s*.+?\n\n/, '');
+      const fullDescription = `${t('organizer.createEvent.venuePrefix')} ${formData.venue}${formData.address ? `, ${formData.address}` : ''}\n\n${cleanDesc}`;
 
       const startLocal = new Date(`${formData.date}T${formData.time}`);
       const endLocal = formData.endDate && formData.endTime
@@ -590,7 +595,8 @@ const EditEvent = () => {
         end_date: endLocal.toISOString(),
         city: formData.city.trim().toLowerCase(),
         flyer_image: flyerImageUrl,
-        gallery_images: galleryUrls.length > 0 ? galleryUrls : undefined,
+        gallery_images: galleryUrls,
+        photo_album_url: formData.photoAlbumUrl.trim(),
         capacity: parseInt(formData.capacity),
         address: formData.address || formData.venue,
         event_type: formData.eventType || undefined,
@@ -598,6 +604,7 @@ const EditEvent = () => {
         refunds_allowed: formData.refundsAllowed,
         require_id: formData.requireId,
         show_remaining_tickets: formData.showRemainingTickets,
+        ticket_sales_closed: formData.ticketSalesClosed,
         ticket_price: formData.ticketPrice ? parseFloat(formData.ticketPrice) : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         dj_ids: selectedDjs.length > 0 ? selectedDjs : undefined,
@@ -690,18 +697,20 @@ const EditEvent = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
+                type="button"
                 onClick={() => navigate('/dashboard/business/events')}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white transition-colors disabled:opacity-50"
+                className="px-3 sm:px-4 py-2 text-sm text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSubmit}
-                disabled={isSubmitting || !businessProfile}
-                className="px-6 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black rounded-lg hover:bg-black dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50 font-semibold shadow-xs"
+                disabled={isSubmitting}
+                className="px-4 sm:px-6 py-2 bg-[#020b00] dark:bg-[#d3da0c] text-[#d3da0c] dark:text-black rounded-lg hover:bg-black dark:hover:bg-[#bbc10b] transition-colors disabled:opacity-50 font-semibold text-sm shadow-xs"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -942,7 +951,7 @@ const EditEvent = () => {
                         name="endDate"
                         value={formData.endDate}
                         onChange={handleChange}
-                        min={formData.date || new Date().toISOString().split('T')[0]}
+                        min={formData.date || undefined}
                         className="pl-12"
                       />
                     </div>
@@ -1059,14 +1068,15 @@ const EditEvent = () => {
               </div>
             </SectionCard>
 
-            {/* Photos / Gallery */}
+            {/* Photos / Gallery & Cloud Album */}
             <SectionCard>
-              <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.photos')} />
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              <SectionTitle icon={ImageIcon} title={t('organizer.createEvent.photos', 'Photos & Cloud Album')} />
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
                 {galleryPreviews.map((preview, index) => (
                   <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-black/10 dark:border-white/10">
                     <img src={preview} alt="" className="w-full h-full object-cover" />
                     <button
+                      type="button"
                       onClick={() => removeGalleryImage(index)}
                       className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
                     >
@@ -1076,6 +1086,7 @@ const EditEvent = () => {
                 ))}
                 <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-black/20 dark:border-white/20 rounded-lg cursor-pointer hover:border-[#d3da0c] transition-colors">
                   <Plus className="w-6 h-6 text-gray-500" />
+                  <span className="text-xs text-gray-500 mt-1">Add photos</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -1085,11 +1096,68 @@ const EditEvent = () => {
                   />
                 </label>
               </div>
+              <div>
+                <Label>Cloud Photo Album Link (Google Drive, Baidu Netdisk, WeChat Album, iCloud, Dropbox)</Label>
+                <Input
+                  type="url"
+                  name="photoAlbumUrl"
+                  value={formData.photoAlbumUrl}
+                  onChange={handleChange}
+                  placeholder="https://drive.google.com/... or external cloud photo album URL"
+                />
+                <p className="text-gray-500 text-xs mt-1.5">
+                  Attendees can open this cloud link directly from the event page and recaps page to view & download photos.
+                </p>
+              </div>
             </SectionCard>
 
             {/* Tickets */}
             <SectionCard>
-              <SectionTitle icon={Ticket} title={t('organizer.createEvent.tickets')} />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-[#d3da0c]" />
+                  <h3 className="text-[#020b00] dark:text-white font-semibold text-lg">{t('organizer.createEvent.tickets')}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const nextClosed = !formData.ticketSalesClosed;
+                    setFormData(prev => ({ ...prev, ticketSalesClosed: nextClosed }));
+                    if (!eventId) return;
+                    try {
+                      const authToken = token || localStorage.getItem('auth-token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+                      const res = await fetch(`${API_BASE_URL}/tickets/events/${eventId}/toggle-sales?closed=${nextClosed}`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${authToken}` },
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        toast.success(data.message || (nextClosed ? 'Ticket sales closed' : 'Ticket sales re-opened'));
+                      } else {
+                        setFormData(prev => ({ ...prev, ticketSalesClosed: !nextClosed }));
+                        toast.error(data.detail || 'Failed to update ticket sales status');
+                      }
+                    } catch {
+                      setFormData(prev => ({ ...prev, ticketSalesClosed: !nextClosed }));
+                      toast.error('Failed to update ticket sales status');
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors ${
+                    formData.ticketSalesClosed
+                      ? 'bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/30 hover:bg-green-500/25'
+                      : 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-500/25'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
+                  {formData.ticketSalesClosed ? 'Re-open Ticket Sales' : 'Close Ticket Sales'}
+                </button>
+              </div>
+              {formData.ticketSalesClosed && (
+                <div className="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Ticket sales are currently <strong>closed</strong> for this event. Buyers cannot purchase tickets until you re-open sales.</span>
+                </div>
+              )}
               <div className="space-y-4">
                 {ticketTiers.map((tier, index) => (
                   <div key={tier.id} className="p-4 bg-neutral-50/80 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-xl">
@@ -1453,14 +1521,32 @@ const EditEvent = () => {
               </div>
             </SectionCard>
 
-            {!businessProfile && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <p className="text-red-400 text-sm">
-                  {t('organizer.createEvent.businessProfileMissing')}
-                </p>
-              </div>
-            )}
+            {/* Mobile / Bottom Save Actions */}
+            <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#111111] p-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/business/events')}
+                disabled={isSubmitting}
+                className="flex-1 min-h-12 rounded-xl border border-black/15 dark:border-white/15 text-sm font-semibold text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex-[1.5] min-h-12 rounded-xl bg-[#d3da0c] text-[#020b00] text-sm font-bold hover:bg-[#bbc10b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('organizer.manageEvents.saving')}
+                  </>
+                ) : (
+                  t('organizer.manageEvents.saveChanges')
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

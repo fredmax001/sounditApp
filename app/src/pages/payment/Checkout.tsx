@@ -4,7 +4,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import {
-  ArrowLeft, Check, Upload, X, Loader2, QrCode, Calendar, MapPin
+  ArrowLeft, Check, Upload, X, Loader2, QrCode, Calendar, MapPin, Coins
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
@@ -26,6 +26,8 @@ const Checkout = () => {
   const [paymentReference, setPaymentReference] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ order_id: number; status: string; message?: string } | null>(null);
+  const [usePointsDiscount, setUsePointsDiscount] = useState(false);
+  const userPointsBalance = Number((profile as { points_balance?: number } | null)?.points_balance || 0);
 
   useEffect(() => {
     if (eventId && !events.find(e => String(e.id) === eventId) && String(currentEvent?.id) !== eventId) {
@@ -69,7 +71,10 @@ const Checkout = () => {
   const hasQrPayment = event.wechat_qr_url || event.alipay_qr_url || event.ticket_price !== undefined && event.ticket_price !== null;
   const ticketTier = event.ticket_tiers?.find(t => String(t.id) === String((location.state as { tierId?: string | number })?.tierId)) || event.ticket_tiers?.[0];
   const ticketPrice = hasQrPayment ? (event.ticket_price || 0) : (ticketTier?.price || 0);
-  const totalAmount = ticketPrice * ticketCount;
+  const subtotalAmount = ticketPrice * ticketCount;
+  const redeemablePoints = userPointsBalance >= 500 && subtotalAmount >= 100 ? 500 : userPointsBalance >= 200 && subtotalAmount >= 40 ? 200 : 0;
+  const pointsDiscountAmount = usePointsDiscount && redeemablePoints > 0 ? Math.floor(redeemablePoints / 10) : 0;
+  const totalAmount = Math.max(0, subtotalAmount - pointsDiscountAmount);
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +120,23 @@ const Checkout = () => {
       });
       const data = await res.json();
       if (res.ok) {
+        if (usePointsDiscount && redeemablePoints > 0) {
+          try {
+            await fetch(`${API_BASE_URL}/points/redeem`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                points_cost: redeemablePoints,
+                reward_title: `Ticket Discount (¥${pointsDiscountAmount} off ${event.title})`,
+              }),
+            });
+          } catch {
+            // Non-blocking points deduction
+          }
+        }
         toast.success(data.auto_approved ? t('eventDetail.orderAutoApproved') : 'Order submitted. Awaiting approval.');
         setOrderResult(data);
         setStep('success');
@@ -193,6 +215,58 @@ const Checkout = () => {
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#d3da0c]" /> Upload screenshot for verification</li>
               </ul>
             </div>
+
+            {/* Sound It Points Redemption Toggle */}
+            {isAuthenticated && (
+              <div className="mb-5 p-4 rounded-2xl bg-[#0d140a] border border-[#d3da0c]/25 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/15 flex items-center justify-center text-[#d3da0c] shrink-0">
+                    <Coins className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Use Sound It Points</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[11px] font-extrabold">
+                        {userPointsBalance.toLocaleString()} pts
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {redeemablePoints > 0
+                        ? `Redeem ${redeemablePoints} pts for ¥${Math.floor(redeemablePoints / 10)} off this ticket`
+                        : 'Earn 200+ pts to unlock instant ticket discounts'}
+                    </p>
+                  </div>
+                </div>
+                {redeemablePoints > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setUsePointsDiscount(!usePointsDiscount)}
+                    className={`px-3.5 py-2 rounded-full text-xs font-extrabold transition-all ${
+                      usePointsDiscount
+                        ? 'bg-[#d3da0c] text-black shadow-md'
+                        : 'bg-white/10 text-white hover:bg-white/15'
+                    }`}
+                  >
+                    {usePointsDiscount ? 'Applied' : 'Apply'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/points')}
+                    className="px-3 py-1.5 rounded-full bg-white/5 text-[#d3da0c] text-xs font-bold border border-[#d3da0c]/25"
+                  >
+                    Earn Points
+                  </button>
+                )}
+              </div>
+            )}
+
+            {pointsDiscountAmount > 0 && (
+              <div className="flex justify-between items-center mb-2 text-sm">
+                <span className="text-gray-400">Points Discount ({redeemablePoints} pts)</span>
+                <span className="text-emerald-400 font-bold">-¥{pointsDiscountAmount}</span>
+              </div>
+            )}
 
             <div className="flex justify-between items-center mb-6">
               <span className="text-gray-400">Amount to Pay</span>

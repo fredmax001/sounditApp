@@ -9,6 +9,7 @@ import { Heart, Clock, MapPin, Loader2 } from 'lucide-react';
 import type { EventWithDetails } from '@/store/eventStore';
 import { useEventStore } from '@/store/eventStore';
 import { toast } from 'sonner';
+import { getEntitySlug } from '@/lib/slug';
 
 interface MobileHeroCarouselProps {
   events: EventWithDetails[];

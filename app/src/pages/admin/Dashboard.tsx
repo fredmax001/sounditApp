@@ -10,8 +10,10 @@ import {
   Ban, Check, Trash2, Lock, Unlock,
   RefreshCw,
   Activity, CreditCard, BarChart3, Shield,
-  UserPlus, X, Loader2, ShoppingBag, MapPin
+  UserPlus, X, Loader2, ShoppingBag, MapPin, Eye,
+  Briefcase
 } from 'lucide-react';
+import EntityDetailModal from '@/components/admin/EntityDetailModal';
 import { toast } from 'sonner';
 
 interface StatCardProps {
@@ -19,6 +21,7 @@ interface StatCardProps {
   value: string | number;
   icon: React.ElementType;
   loading: boolean;
+  onClick?: () => void;
 }
 
 interface TabButtonProps {
@@ -69,6 +72,23 @@ interface EventItem {
   status?: string;
 }
 
+interface BookingItem {
+  id: number;
+  artist_id?: number;
+  artist_name?: string;
+  requester_id?: number;
+  requester_name?: string;
+  event_name?: string;
+  event_type?: string;
+  event_date?: string;
+  event_city?: string;
+  budget?: number;
+  duration_hours?: number;
+  status: string;
+  agreed_price?: number;
+  created_at?: string;
+}
+
 interface PayoutItem {
   id: string;
   business?: string;
@@ -89,17 +109,25 @@ interface PendingActionItem {
 }
 
 // Stats Card Component
-const StatCard = ({ title, value, icon: Icon, loading }: StatCardProps) => (
+const StatCard = ({ title, value, icon: Icon, loading, onClick }: StatCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3 }}
-    className="bg-[#111111] border border-white/[0.07] rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-white/[0.14] transition-all group"
+    onClick={onClick}
+    className={`bg-[#111111] border border-white/[0.07] rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all group ${
+      onClick ? 'cursor-pointer hover:border-[#d3da0c]/40 hover:bg-[#151515] active:scale-[0.99]' : 'hover:border-white/[0.14]'
+    }`}
   >
     <div className="flex items-start justify-between">
       <div className="p-2.5 bg-[#d3da0c]/10 rounded-xl group-hover:bg-[#d3da0c]/15 transition-colors">
         <Icon className="w-5 h-5 text-[#d3da0c]" />
       </div>
+      {onClick && (
+        <span className="text-gray-500 group-hover:text-[#d3da0c] text-xs font-medium transition-colors flex items-center gap-0.5">
+          View →
+        </span>
+      )}
     </div>
     <div>
       <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
@@ -111,18 +139,24 @@ const StatCard = ({ title, value, icon: Icon, loading }: StatCardProps) => (
 );
 
 // Large featured stat card
-const FeaturedStatCard = ({ title, value, icon: Icon, loading, subtitle }: StatCardProps & { subtitle?: string }) => (
+const FeaturedStatCard = ({ title, value, icon: Icon, loading, subtitle, onClick }: StatCardProps & { subtitle?: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3 }}
-    className="bg-[#d3da0c]/[0.08] border border-[#d3da0c]/20 rounded-2xl p-6 flex flex-col justify-between gap-6 hover:border-[#d3da0c]/30 transition-all"
+    onClick={onClick}
+    className={`bg-[#d3da0c]/[0.08] border border-[#d3da0c]/20 rounded-2xl p-6 flex flex-col justify-between gap-6 hover:border-[#d3da0c]/30 transition-all ${
+      onClick ? 'cursor-pointer hover:bg-[#d3da0c]/[0.12] active:scale-[0.99]' : ''
+    }`}
   >
     <div className="flex items-start justify-between">
       <div className="p-3 bg-[#d3da0c]/15 rounded-xl">
         <Icon className="w-6 h-6 text-[#d3da0c]" />
       </div>
-      {subtitle && <span className="text-[#d3da0c]/60 text-xs font-medium">{subtitle}</span>}
+      <div className="flex items-center gap-2">
+        {subtitle && <span className="text-[#d3da0c]/60 text-xs font-medium">{subtitle}</span>}
+        {onClick && <span className="text-[#d3da0c] text-xs font-semibold">Financial Control →</span>}
+      </div>
     </div>
     <div>
       <p className="text-[#d3da0c]/70 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
@@ -156,6 +190,19 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    type: 'user' | 'artist' | 'vendor' | 'business';
+    id: string | number | null;
+  }>({
+    isOpen: false,
+    type: 'user',
+    id: null,
+  });
+
+  const openEntityModal = (type: 'user' | 'artist' | 'vendor' | 'business', id: string | number) => {
+    setModalConfig({ isOpen: true, type, id });
+  };
   
   // Stats state - all start at 0
   const [stats, setStats] = useState({
@@ -170,6 +217,7 @@ const AdminDashboard = () => {
     pendingVerifications: 0,
     pendingVendorApprovals: 0,
     totalCities: 0,
+    totalBookings: 0,
   });
 
   // Data states - all empty arrays
@@ -178,6 +226,7 @@ const AdminDashboard = () => {
   const [artists, setArtists] = useState<ArtistItem[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [payouts, setPayouts] = useState<PayoutItem[]>([]);
   const [admins, setAdmins] = useState<UserItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -186,6 +235,12 @@ const AdminDashboard = () => {
   // Search and filter states
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('');
+  const [businessSearch, setBusinessSearch] = useState('');
+  const [artistSearch, setArtistSearch] = useState('');
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [eventSearch, setEventSearch] = useState('');
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('');
 
   // New admin form
   const [newAdmin, setNewAdmin] = useState({
@@ -231,6 +286,7 @@ const AdminDashboard = () => {
           pendingVerifications: statsData.pending_verifications || 0,
           pendingVendorApprovals: statsData.pending_vendor_approvals || 0,
           totalCities: statsData.total_cities || 0,
+          totalBookings: statsData.total_bookings || 0,
         });
       }
 
@@ -280,6 +336,15 @@ const AdminDashboard = () => {
       if (vendorsRes.ok) {
         const vendorsData = await vendorsRes.json();
         setVendors(vendorsData || []);
+      }
+
+      // Fetch real bookings
+      const bookingsRes = await fetch(`${API_BASE_URL}/admin/bookings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (bookingsRes.ok) {
+        const bookingsData = await bookingsRes.json();
+        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
       }
 
       // Fetch payouts
@@ -513,6 +578,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateBookingStatus = async (bookingId: number, status: string, reason?: string) => {
+    setActionLoading(`booking-${status.toLowerCase()}-${bookingId}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status, reason })
+      });
+      if (res.ok) {
+        toast.success(`Booking status updated to ${status.toLowerCase()}`);
+        loadDashboardData();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Failed to update booking status');
+      }
+    } catch {
+      toast.error(t('admin.dashboard.networkError'));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Filter users based on search and role
   const filteredUsers = users.filter(user => {
     const matchesSearch = !userSearch || 
@@ -523,6 +610,62 @@ const AdminDashboard = () => {
     return matchesSearch && matchesRole;
   });
 
+  // Filter businesses
+  const filteredBusinesses = businesses.filter(b => {
+    if (!businessSearch) return true;
+    const q = businessSearch.toLowerCase();
+    return (
+      b.organization_name?.toLowerCase().includes(q) ||
+      b.business_name?.toLowerCase().includes(q) ||
+      b.user_name?.toLowerCase().includes(q) ||
+      b.email?.toLowerCase().includes(q)
+    );
+  });
+
+  // Filter artists
+  const filteredArtists = artists.filter(a => {
+    if (!artistSearch) return true;
+    const q = artistSearch.toLowerCase();
+    return (
+      a.stage_name?.toLowerCase().includes(q) ||
+      a.user_name?.toLowerCase().includes(q) ||
+      a.email?.toLowerCase().includes(q)
+    );
+  });
+
+  // Filter vendors
+  const filteredVendors = vendors.filter(v => {
+    if (!vendorSearch) return true;
+    const q = vendorSearch.toLowerCase();
+    return (
+      v.business_name?.toLowerCase().includes(q) ||
+      v.category?.toLowerCase().includes(q) ||
+      v.vendor_type?.toLowerCase().includes(q) ||
+      v.email?.toLowerCase().includes(q)
+    );
+  });
+
+  // Filter events
+  const filteredEvents = events.filter(e => {
+    if (!eventSearch) return true;
+    const q = eventSearch.toLowerCase();
+    return (
+      e.title?.toLowerCase().includes(q) ||
+      e.status?.toLowerCase().includes(q)
+    );
+  });
+
+  // Filter bookings
+  const filteredBookings = bookings.filter(b => {
+    const matchesSearch = !bookingSearch ||
+      b.event_name?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+      b.artist_name?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+      b.requester_name?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+      b.event_city?.toLowerCase().includes(bookingSearch.toLowerCase());
+    const matchesStatus = !bookingStatusFilter || b.status?.toLowerCase() === bookingStatusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
   // Overview Tab
   const OverviewTab = () => (
     <div className="space-y-4">
@@ -530,39 +673,104 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4">
         {/* Featured - Revenue */}
         <div className="col-span-2 lg:col-span-4 lg:row-span-2">
-          <FeaturedStatCard title={t('admin.dashboard.totalRevenue')} value={`¥${stats.totalRevenue.toLocaleString()}`} icon={BarChart3} loading={isLoading} subtitle="Total Revenue" />
+          <FeaturedStatCard
+            title={t('admin.dashboard.totalRevenue')}
+            value={`¥${stats.totalRevenue.toLocaleString()}`}
+            icon={BarChart3}
+            loading={isLoading}
+            subtitle="Total Revenue"
+            onClick={() => navigate('/admin/financial')}
+          />
         </div>
         {/* Users */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.totalUsers')} value={stats.totalUsers} icon={Users} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.totalUsers')}
+            value={stats.totalUsers}
+            icon={Users}
+            loading={isLoading}
+            onClick={() => setActiveTab('users')}
+          />
         </div>
         {/* Businesses */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.businesses')} value={stats.totalBusinesses} icon={Building2} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.businesses')}
+            value={stats.totalBusinesses}
+            icon={Building2}
+            loading={isLoading}
+            onClick={() => setActiveTab('businesses')}
+          />
         </div>
         {/* Artists */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.artists')} value={stats.totalArtists} icon={Music} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.artists')}
+            value={stats.totalArtists}
+            icon={Music}
+            loading={isLoading}
+            onClick={() => setActiveTab('artists')}
+          />
         </div>
         {/* Vendors */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.vendors')} value={stats.totalVendors} icon={ShoppingBag} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.vendors')}
+            value={stats.totalVendors}
+            icon={ShoppingBag}
+            loading={isLoading}
+            onClick={() => setActiveTab('vendors')}
+          />
         </div>
         {/* Events */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.events')} value={stats.totalEvents} icon={Calendar} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.events')}
+            value={stats.totalEvents}
+            icon={Calendar}
+            loading={isLoading}
+            onClick={() => setActiveTab('events')}
+          />
+        </div>
+        {/* Bookings */}
+        <div className="lg:col-span-2">
+          <StatCard
+            title={t('admin.dashboard.bookings') || 'Bookings'}
+            value={stats.totalBookings || bookings.length}
+            icon={Briefcase}
+            loading={isLoading}
+            onClick={() => setActiveTab('bookings')}
+          />
         </div>
         {/* Tickets */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.totalTickets')} value={stats.totalTickets} icon={Ticket} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.totalTickets')}
+            value={stats.totalTickets}
+            icon={Ticket}
+            loading={isLoading}
+            onClick={() => setActiveTab('events')}
+          />
         </div>
         {/* Pending Payouts */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.pendingPayouts')} value={stats.pendingPayouts} icon={CreditCard} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.pendingPayouts')}
+            value={stats.pendingPayouts}
+            icon={CreditCard}
+            loading={isLoading}
+            onClick={() => setActiveTab('payments')}
+          />
         </div>
         {/* Pending Verifications */}
         <div className="lg:col-span-2">
-          <StatCard title={t('admin.dashboard.pendingVerifications')} value={stats.pendingVerifications} icon={Shield} loading={isLoading} />
+          <StatCard
+            title={t('admin.dashboard.pendingVerifications')}
+            value={stats.pendingVerifications}
+            icon={Shield}
+            loading={isLoading}
+            onClick={() => navigate('/admin/verification-center')}
+          />
         </div>
       </div>
 
@@ -657,10 +865,13 @@ const AdminDashboard = () => {
 
   // Users Tab - Real data only
   const UsersTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto">
-      <div className="p-6 border-b border-white/10">
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.userManagement')}</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.userManagement')}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredUsers.length} users)</span>
+          </div>
           <button 
             onClick={() => setShowAddAdminModal(true)}
             className="flex items-center gap-2 px-3 py-2 bg-[#d3da0c] text-black rounded-lg font-medium text-sm hover:bg-[#bbc10b] lg:px-4"
@@ -669,26 +880,27 @@ const AdminDashboard = () => {
             {t('admin.dashboard.addAdmin')}
           </button>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
               placeholder={t('admin.dashboard.searchUsersPlaceholder')}
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
             />
           </div>
           <select 
             value={userRoleFilter}
             onChange={(e) => setUserRoleFilter(e.target.value)}
-            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white"
+            className="px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-white text-sm"
           >
             <option value="">{t('admin.dashboard.allRoles')}</option>
             <option value="user">{t('admin.dashboard.roleUser')}</option>
             <option value="business">{t('admin.dashboard.roleBusiness')}</option>
             <option value="artist">{t('admin.dashboard.roleArtist')}</option>
+            <option value="vendor">Vendor</option>
             <option value="admin">{t('admin.dashboard.roleAdmin')}</option>
           </select>
         </div>
@@ -703,9 +915,9 @@ const AdminDashboard = () => {
           <p>No users found</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.user')}</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.role')}</th>
@@ -718,8 +930,15 @@ const AdminDashboard = () => {
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-3 lg:p-4">
-                    <div>
-                      <p className="text-white font-medium">{user.first_name} {user.last_name}</p>
+                    <div
+                      onClick={() => openEntityModal('user', user.id)}
+                      className="cursor-pointer group"
+                      title="Click to view user card"
+                    >
+                      <p className="text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                        {user.first_name} {user.last_name}
+                        <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                      </p>
                       <p className="text-gray-400 text-sm">{user.email}</p>
                     </div>
                   </td>
@@ -747,6 +966,13 @@ const AdminDashboard = () => {
                   </td>
                   <td className="p-3 lg:p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEntityModal('user', user.id)}
+                        className="p-2 hover:bg-white/10 rounded-lg min-w-[36px] min-h-[36px] text-gray-400 hover:text-[#d3da0c] transition-colors"
+                        title="View User Card"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!user.is_verified ? (
                         <button
                           onClick={() => handleVerifyUser(user.id, user.role)}
@@ -795,10 +1021,13 @@ const AdminDashboard = () => {
 
   // Admin Management Tab
   const AdminsTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto">
-      <div className="p-6 border-b border-white/10">
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.adminManagement')}</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.adminManagement')}</h3>
+            <span className="text-xs text-gray-500 font-mono">({admins.length} admins)</span>
+          </div>
           <button 
             onClick={() => setShowAddAdminModal(true)}
             className="flex items-center gap-2 px-3 py-2 bg-[#d3da0c] text-black rounded-lg font-medium text-sm hover:bg-[#bbc10b] lg:px-4"
@@ -819,9 +1048,9 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.youAreTheOnlyAdmin')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.admin')}</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.email')}</th>
@@ -868,30 +1097,45 @@ const AdminDashboard = () => {
   );
 
   const BusinessesTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.businessManagement')}</h3>
-        <button
-          onClick={() => navigate('/admin/businesses')}
-          className="text-sm text-[#d3da0c] hover:underline"
-        >
-          {t('admin.dashboard.fullManagement') || 'Full Management →'}
-        </button>
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.businessManagement')}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredBusinesses.length} businesses)</span>
+          </div>
+          <button
+            onClick={() => navigate('/admin/businesses')}
+            className="text-sm text-[#d3da0c] hover:underline"
+          >
+            {t('admin.dashboard.fullManagement') || 'Full Management →'}
+          </button>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search businesses by name, email, or user..."
+            value={businessSearch}
+            onChange={(e) => setBusinessSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
+          />
+        </div>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
         </div>
-      ) : businesses.length === 0 ? (
+      ) : filteredBusinesses.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>{t('admin.dashboard.noBusinessesRegistered')}</p>
           <p className="text-sm mt-1">{t('admin.dashboard.businessesWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.business')}</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.approval') || 'Approval'}</th>
@@ -900,11 +1144,18 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {businesses.map((biz) => (
+              {filteredBusinesses.map((biz) => (
                 <tr key={biz.id} className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-3 lg:p-4">
-                    <div>
-                      <p className="text-white font-medium">{biz.organization_name || biz.business_name || 'Unnamed'}</p>
+                    <div
+                      onClick={() => openEntityModal('business', biz.id)}
+                      className="cursor-pointer group"
+                      title="Click to view business card"
+                    >
+                      <p className="text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                        {biz.organization_name || biz.business_name || 'Unnamed'}
+                        <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                      </p>
                       <p className="text-gray-500 text-sm">{biz.user_name}</p>
                     </div>
                   </td>
@@ -924,6 +1175,13 @@ const AdminDashboard = () => {
                   </td>
                   <td className="p-3 lg:p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEntityModal('business', biz.id)}
+                        className="p-2 hover:bg-white/10 rounded-lg min-w-[36px] min-h-[36px] text-gray-400 hover:text-[#d3da0c] transition-colors"
+                        title="View Business Card"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!biz.is_approved ? (
                         <button
                           onClick={() => handleApproveBusiness(biz.id)}
@@ -974,30 +1232,45 @@ const AdminDashboard = () => {
   );
 
   const ArtistsTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.artistManagement')}</h3>
-        <button
-          onClick={() => navigate('/admin/artists')}
-          className="text-sm text-[#d3da0c] hover:underline"
-        >
-          {t('admin.dashboard.fullManagement') || 'Full Management →'}
-        </button>
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.artistManagement')}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredArtists.length} artists)</span>
+          </div>
+          <button
+            onClick={() => navigate('/admin/artists')}
+            className="text-sm text-[#d3da0c] hover:underline"
+          >
+            {t('admin.dashboard.fullManagement') || 'Full Management →'}
+          </button>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search artists by stage name, email, or user..."
+            value={artistSearch}
+            onChange={(e) => setArtistSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
+          />
+        </div>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
         </div>
-      ) : artists.length === 0 ? (
+      ) : filteredArtists.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Music className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>{t('admin.dashboard.noArtistsRegistered')}</p>
           <p className="text-sm mt-1">{t('admin.dashboard.artistsWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Artist</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.approval') || 'Approval'}</th>
@@ -1006,11 +1279,18 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {artists.map((artist) => (
+              {filteredArtists.map((artist) => (
                 <tr key={artist.id} className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-3 lg:p-4">
-                    <div>
-                      <p className="text-white font-medium">{artist.stage_name || 'Unnamed'}</p>
+                    <div
+                      onClick={() => openEntityModal('artist', artist.id)}
+                      className="cursor-pointer group"
+                      title="Click to view artist card"
+                    >
+                      <p className="text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                        {artist.stage_name || 'Unnamed'}
+                        <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                      </p>
                       <p className="text-gray-500 text-sm">{artist.user_name}</p>
                     </div>
                   </td>
@@ -1030,6 +1310,13 @@ const AdminDashboard = () => {
                   </td>
                   <td className="p-3 lg:p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEntityModal('artist', artist.id)}
+                        className="p-2 hover:bg-white/10 rounded-lg min-w-[36px] min-h-[36px] text-gray-400 hover:text-[#d3da0c] transition-colors"
+                        title="View Artist Card"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!artist.is_approved ? (
                         <button
                           onClick={() => handleApproveArtist(artist.id)}
@@ -1200,30 +1487,45 @@ const AdminDashboard = () => {
   };
 
   const VendorsTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.vendorManagement') || 'Vendor Management'}</h3>
-        <button
-          onClick={() => navigate('/admin/vendors')}
-          className="text-sm text-[#d3da0c] hover:underline"
-        >
-          {t('admin.dashboard.fullManagement') || 'Full Management →'}
-        </button>
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.vendorManagement') || 'Vendor Management'}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredVendors.length} vendors)</span>
+          </div>
+          <button
+            onClick={() => navigate('/admin/vendors')}
+            className="text-sm text-[#d3da0c] hover:underline"
+          >
+            {t('admin.dashboard.fullManagement') || 'Full Management →'}
+          </button>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search vendors by business name, category, or email..."
+            value={vendorSearch}
+            onChange={(e) => setVendorSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
+          />
+        </div>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
         </div>
-      ) : vendors.length === 0 ? (
+      ) : filteredVendors.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>{t('admin.dashboard.noVendorsRegistered') || 'No vendors registered'}</p>
           <p className="text-sm mt-1">{t('admin.dashboard.vendorsWillAppear') || 'Vendors will appear here once registered'}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.vendor') || 'Vendor'}</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">{t('admin.dashboard.category') || 'Category'}</th>
@@ -1233,9 +1535,20 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {vendors.map((vendor) => (
+              {filteredVendors.map((vendor) => (
                 <tr key={vendor.id} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-3 lg:p-4 text-white font-medium">{vendor.business_name || '-'}</td>
+                  <td className="p-3 lg:p-4">
+                    <div
+                      onClick={() => openEntityModal('vendor', vendor.id)}
+                      className="cursor-pointer group"
+                      title="Click to view vendor card"
+                    >
+                      <p className="text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                        {vendor.business_name || '-'}
+                        <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                      </p>
+                    </div>
+                  </td>
                   <td className="p-3 lg:p-4 text-gray-400">{vendor.category || vendor.vendor_type || '-'}</td>
                   <td className="p-3 lg:p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -1253,6 +1566,13 @@ const AdminDashboard = () => {
                   </td>
                   <td className="p-3 lg:p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEntityModal('vendor', vendor.id)}
+                        className="p-2 hover:bg-white/10 rounded-lg min-w-[36px] min-h-[36px] text-gray-400 hover:text-[#d3da0c] transition-colors"
+                        title="View Vendor Card"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!vendor.is_approved ? (
                         <button
                           onClick={() => handleApproveVendor(vendor.id)}
@@ -1284,22 +1604,45 @@ const AdminDashboard = () => {
   );
 
   const EventsTab = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto p-6">
-      <h3 className="text-lg font-semibold text-white mb-4">{t('admin.dashboard.eventManagement')}</h3>
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.eventManagement')}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredEvents.length} events)</span>
+          </div>
+          <button
+            onClick={() => navigate('/admin/events')}
+            className="text-sm text-[#d3da0c] hover:underline"
+          >
+            {t('admin.dashboard.fullManagement') || 'Full Management →'}
+          </button>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search events by title or status..."
+            value={eventSearch}
+            onChange={(e) => setEventSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
+          />
+        </div>
+      </div>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
         </div>
-      ) : events.length === 0 ? (
+      ) : filteredEvents.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>{t('admin.dashboard.noEventsCreated')}</p>
           <p className="text-sm mt-1">{t('admin.dashboard.eventsWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Event</th>
                 <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Date</th>
@@ -1308,7 +1651,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
+              {filteredEvents.map((event) => (
                 <tr key={event.id} className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-3 lg:p-4 text-white font-medium">{event.title}</td>
                   <td className="p-3 lg:p-4 text-gray-400">
@@ -1352,9 +1695,181 @@ const AdminDashboard = () => {
     </div>
   );
 
+  // Bookings Tab
+  const BookingsTab = () => (
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.bookingManagement') || 'Booking Management'}</h3>
+            <span className="text-xs text-gray-500 font-mono">({filteredBookings.length} bookings)</span>
+          </div>
+          <button
+            onClick={() => navigate('/admin/bookings')}
+            className="text-sm text-[#d3da0c] hover:underline"
+          >
+            {t('admin.dashboard.fullManagement') || 'Full Management →'}
+          </button>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search bookings by event, artist, requester, or city..."
+              value={bookingSearch}
+              onChange={(e) => setBookingSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
+            />
+          </div>
+          <select
+            value={bookingStatusFilter}
+            onChange={(e) => setBookingStatusFilter(e.target.value)}
+            className="px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-white text-sm"
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Accepted</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Rejected</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+        </div>
+      ) : filteredBookings.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>No bookings found</p>
+          <p className="text-sm mt-1">Bookings between clients and artists will appear here</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
+              <tr>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Event / Purpose</th>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Artist</th>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Client / Requester</th>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Date & City</th>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Budget / Price</th>
+                <th className="text-left text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Status</th>
+                <th className="text-right text-gray-400 text-xs font-medium p-3 whitespace-nowrap lg:text-sm lg:p-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBookings.map((b) => (
+                <tr key={b.id} className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-3 lg:p-4">
+                    <p className="text-white font-medium">{b.event_name || 'Booking Request'}</p>
+                    <p className="text-gray-500 text-xs">{b.event_type || 'Gig'} {b.duration_hours ? `• ${b.duration_hours}h` : ''}</p>
+                  </td>
+                  <td className="p-3 lg:p-4">
+                    {b.artist_id ? (
+                      <button
+                        onClick={() => openEntityModal('artist', b.artist_id!)}
+                        className="text-[#d3da0c] hover:underline font-medium text-sm text-left flex items-center gap-1 group"
+                      >
+                        {b.artist_name || 'View Artist'}
+                        <Eye className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-sm">{b.artist_name || '-'}</span>
+                    )}
+                  </td>
+                  <td className="p-3 lg:p-4">
+                    {b.requester_id ? (
+                      <button
+                        onClick={() => openEntityModal('user', b.requester_id!)}
+                        className="text-white hover:text-[#d3da0c] text-sm text-left flex items-center gap-1 group transition-colors"
+                      >
+                        {b.requester_name || 'View Requester'}
+                        <Eye className="w-3 h-3 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-sm">{b.requester_name || '-'}</span>
+                    )}
+                  </td>
+                  <td className="p-3 lg:p-4 text-sm text-gray-400">
+                    <p>{b.event_date ? new Date(b.event_date).toLocaleDateString() : '-'}</p>
+                    {b.event_city && (
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                        <MapPin className="w-3 h-3" /> {b.event_city}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3 lg:p-4 text-sm font-semibold text-white">
+                    ¥{(b.agreed_price || b.budget || 0).toLocaleString()}
+                  </td>
+                  <td className="p-3 lg:p-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                      b.status?.toLowerCase() === 'accepted' || b.status?.toLowerCase() === 'confirmed' ? 'bg-green-500/20 text-green-400' :
+                      b.status?.toLowerCase() === 'completed' ? 'bg-blue-500/20 text-blue-400' :
+                      b.status?.toLowerCase() === 'rejected' || b.status?.toLowerCase() === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                      'bg-yellow-500/20 text-yellow-400'
+                    }`}>
+                      {b.status}
+                    </span>
+                  </td>
+                  <td className="p-3 lg:p-4">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {b.status?.toLowerCase() === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleUpdateBookingStatus(b.id, 'ACCEPTED')}
+                            disabled={actionLoading === `booking-accepted-${b.id}`}
+                            className="p-1.5 hover:bg-white/10 rounded-lg text-green-400 hover:text-green-300 disabled:opacity-50"
+                            title="Accept Booking"
+                          >
+                            {actionLoading === `booking-accepted-${b.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => {
+                              const reason = prompt('Enter rejection reason:');
+                              if (reason) handleUpdateBookingStatus(b.id, 'REJECTED', reason);
+                            }}
+                            disabled={actionLoading === `booking-rejected-${b.id}`}
+                            className="p-1.5 hover:bg-white/10 rounded-lg text-red-400 hover:text-red-300 disabled:opacity-50"
+                            title="Reject Booking"
+                          >
+                            {actionLoading === `booking-rejected-${b.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                          </button>
+                        </>
+                      )}
+                      {b.status?.toLowerCase() !== 'cancelled' && b.status?.toLowerCase() !== 'completed' && b.status?.toLowerCase() !== 'rejected' && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to cancel this booking?')) {
+                              handleUpdateBookingStatus(b.id, 'CANCELLED');
+                            }
+                          }}
+                          disabled={actionLoading === `booking-cancelled-${b.id}`}
+                          className="p-1.5 hover:bg-white/10 rounded-lg text-yellow-400 hover:text-yellow-300 disabled:opacity-50"
+                          title="Cancel Booking"
+                        >
+                          {actionLoading === `booking-cancelled-${b.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
   const PaymentsTabContent = () => (
-    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-x-auto p-6">
-      <h3 className="text-lg font-semibold text-white mb-4">{t('admin.dashboard.paymentManagement')}</h3>
+    <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 lg:p-6 border-b border-white/10 bg-[#141414] shrink-0">
+        <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.paymentManagement')}</h3>
+      </div>
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
@@ -1366,7 +1881,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.payoutRequestsWillAppear')}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="p-4 lg:p-6 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
           {payouts.map((payout) => (
             <div key={payout.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
               <div>
@@ -1404,6 +1919,8 @@ const AdminDashboard = () => {
         return <VendorsTab />;
       case 'events':
         return <EventsTab />;
+      case 'bookings':
+        return <BookingsTab />;
       case 'payments':
         return <PaymentsTabContent />;
       default:
@@ -1420,6 +1937,7 @@ const AdminDashboard = () => {
       case 'artists': return t('admin.dashboard.artistsTabTitle') || 'Artist Management';
       case 'vendors': return t('admin.dashboard.vendorsTabTitle') || 'Vendor Management';
       case 'events': return t('admin.dashboard.eventsTabTitle') || 'Event Management';
+      case 'bookings': return t('admin.dashboard.bookingsTabTitle') || 'Booking Management';
       case 'payments': return t('admin.dashboard.paymentsTabTitle') || 'Payment Management';
       default: return t('admin.dashboard.title');
     }
@@ -1432,7 +1950,9 @@ const AdminDashboard = () => {
       case 'admins': return t('admin.dashboard.adminsTabSubtitle') || 'Manage administrator accounts';
       case 'businesses': return t('admin.dashboard.businessesTabSubtitle') || 'Oversee business and organizer accounts';
       case 'artists': return t('admin.dashboard.artistsTabSubtitle') || 'Manage artist profiles and verifications';
+      case 'vendors': return t('admin.dashboard.vendorsTabSubtitle') || 'Review and manage vendor stores and goods';
       case 'events': return t('admin.dashboard.eventsTabSubtitle') || 'Review and manage platform events';
+      case 'bookings': return t('admin.dashboard.bookingsTabSubtitle') || 'Monitor and manage artist booking requests';
       case 'payments': return t('admin.dashboard.paymentsTabSubtitle') || 'Process payouts and review transactions';
       default: return t('admin.dashboard.subtitle');
     }
@@ -1441,8 +1961,8 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-[#020b00]">
       {/* Page Header */}
-      <div className="px-4 pt-6 pb-4 lg:px-8 lg:pt-8">
-        <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="px-4 pt-6 pb-2 lg:px-8 lg:pt-8">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-2xl font-bold text-white lg:text-4xl tracking-tight">{getTabTitle()}</h1>
             <p className="text-gray-500 mt-1 text-sm">{getTabSubtitle()}</p>
@@ -1456,9 +1976,11 @@ const AdminDashboard = () => {
             <span className="hidden sm:inline">{t('admin.dashboard.refresh')}</span>
           </button>
         </div>
+      </div>
 
-        {/* Tab Bar */}
-        <div className="flex overflow-x-auto gap-1.5 hide-scrollbar pb-0.5">
+      {/* Sticky Tab Navigation Bar */}
+      <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-md px-4 py-3 lg:px-8 border-y border-white/[0.08] shadow-md">
+        <div className="flex overflow-x-auto gap-1.5 hide-scrollbar py-0.5">
           <TabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={BarChart3} label={t('admin.dashboard.overview')} />
           <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={Users} label={t('admin.dashboard.users')} />
           <TabButton active={activeTab === 'admins'} onClick={() => setActiveTab('admins')} icon={Shield} label={t('admin.dashboard.admins')} />
@@ -1466,12 +1988,10 @@ const AdminDashboard = () => {
           <TabButton active={activeTab === 'artists'} onClick={() => setActiveTab('artists')} icon={Music} label={t('admin.dashboard.artists')} />
           <TabButton active={activeTab === 'vendors'} onClick={() => setActiveTab('vendors')} icon={ShoppingBag} label={t('admin.dashboard.vendors') || 'Vendors'} />
           <TabButton active={activeTab === 'events'} onClick={() => setActiveTab('events')} icon={Calendar} label={t('admin.dashboard.events')} />
+          <TabButton active={activeTab === 'bookings'} onClick={() => setActiveTab('bookings')} icon={Briefcase} label={t('admin.dashboard.bookings') || 'Bookings'} />
           <TabButton active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon={CreditCard} label={t('admin.dashboard.payments')} />
         </div>
       </div>
-
-      {/* Divider */}
-      <div className="h-px bg-white/[0.06] mb-0" />
 
       {/* Content */}
       <div className="px-4 py-5 lg:px-8 lg:py-6">
@@ -1544,6 +2064,14 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* Entity Detail & Performance Card Modal */}
+      <EntityDetailModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false, id: null })}
+        type={modalConfig.type}
+        entityId={modalConfig.id}
+        onUpdated={loadDashboardData}
+      />
     </div>
   );
 };

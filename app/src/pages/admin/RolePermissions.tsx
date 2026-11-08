@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminStore } from '@/store/adminStore';
@@ -310,13 +311,12 @@ const RolePermissions = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">Admin Roles & Permissions</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Create custom roles, assign permissions, and invite role managers</p>
-        </div>
-        {isSuperAdmin() && (
-          <div className="flex items-center gap-3">
+      <AdminPageHeader
+        chip="System"
+        title="Admin Roles & Permissions"
+        subtitle="Create custom roles, assign permissions, and invite role managers"
+        actions={isSuperAdmin() ? (
+          <>
             <button
               onClick={() => setShowInviteModal(true)}
               className="px-4 py-2 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white font-semibold rounded-lg hover:bg-neutral-200 dark:hover:bg-white/20 transition-colors flex items-center gap-2 border border-black/10 dark:border-white/10"
@@ -331,9 +331,9 @@ const RolePermissions = () => {
               <Plus className="w-4 h-4" />
               Create Role
             </button>
-          </div>
-        )}
-      </div>
+          </>
+        ) : undefined}
+      />
 
       {/* Current Admins */}
       <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none">
@@ -345,7 +345,7 @@ const RolePermissions = () => {
           {admins.map((admin) => (
             <div key={admin.id} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#d3da0c] to-green-500 rounded-full flex items-center justify-center text-black font-bold shrink-0">
+                <div className="w-10 h-10 bg-[#d3da0c] rounded-full flex items-center justify-center text-black font-bold shrink-0">
                   {(admin.first_name || admin.last_name || 'A')[0]}
                 </div>
                 <div className="min-w-0">

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -64,7 +65,7 @@ def decode_REDACTED_PLACEHOLDER(REDACTED_PLACEHOLDER: str) -> Optional[dict]:
     try:
         payload = jwt.decode(REDACTED_PLACEHOLDER, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         return payload
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 
@@ -135,7 +136,10 @@ async def get_current_user(
         }
         return user
     
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    try:
+        user = db.query(User).filter(User.id == int(user_id)).first()
+    except (ValueError, TypeError):
+        user = db.query(User).filter(User.email == str(user_id)).first()
     
     if user is None:
         raise HTTPException(
@@ -181,7 +185,10 @@ async def get_optional_user(
             return None
         return user
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    try:
+        user = db.query(User).filter(User.id == int(user_id)).first()
+    except (ValueError, TypeError):
+        user = db.query(User).filter(User.email == str(user_id)).first()
     
     if user is None or user.status != UserStatus.ACTIVE:
         return None

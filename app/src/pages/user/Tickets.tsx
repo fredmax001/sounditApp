@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { Calendar, MapPin, Clock, X, Download, Share2, Check, Loader2, Ticket, Package, ChevronLeft, ChevronRight, ExternalLink, Star, CheckCircle2 } from 'lucide-react';
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useTicketStore } from '@/store/ticketStore';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
@@ -440,21 +441,9 @@ const Tickets = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0">
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-              aria-label="Go back"
-              className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white flex-1">{t('kit.tickets.title')}</h1>
-          </div>
-
+      <MobilePageHeader wide title={t('kit.tickets.title')}>
           {/* Tab bar with accent underline */}
-          <div className="flex" role="tablist" aria-label={t('kit.tickets.title')}>
+          <div className="flex -mb-3" role="tablist" aria-label={t('kit.tickets.title')}>
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -477,8 +466,7 @@ const Tickets = () => {
               </button>
             ))}
           </div>
-        </div>
-      </section>
+      </MobilePageHeader>
 
       <section className="py-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -773,8 +761,17 @@ const Tickets = () => {
 
               {selectedProductOrder ? (
                 <>
-                  <div className="bg-white rounded-xl p-6 mb-6">
-                    {selectedProductOrder.order_qr_code ? (
+                  <div className="bg-white rounded-2xl p-5 mb-6">
+                    {selectedProductOrder.order_code ? (
+                      <QRCodeSVG
+                        value={selectedProductOrder.order_code}
+                        size={220}
+                        className="w-full h-auto"
+                        level="H"
+                        minVersion={6}
+                        marginSize={1}
+                      />
+                    ) : selectedProductOrder.order_qr_code ? (
                       <img src={selectedProductOrder.order_qr_code} alt="Order QR" className="w-full h-auto" />
                     ) : (
                       <div className="text-center text-black">{t('user.tickets.noQrAvailable')}</div>
@@ -810,16 +807,18 @@ const Tickets = () => {
                               <p className="text-center text-black text-xs font-semibold mb-2">
                                 #{idx + 1}
                               </p>
-                              {ticket.qr_code ? (
-                                <img src={ticket.qr_code} alt={`Ticket QR #${idx + 1}`} className="w-full h-auto" />
-                              ) : (
+                              {ticket.ticket_number ? (
                                 <QRCodeSVG
                                   value={ticket.ticket_number}
-                                  size={120}
-                                  className="w-full"
+                                  size={160}
+                                  className="w-full h-auto"
                                   level="H"
+                                  minVersion={6}
+                                  marginSize={1}
                                 />
-                              )}
+                              ) : ticket.qr_code ? (
+                                <img src={ticket.qr_code} alt={`Ticket QR #${idx + 1}`} className="w-full h-auto" />
+                              ) : null}
                               <p className="text-center text-black text-[10px] font-mono mt-2 truncate">
                                 {ticket.ticket_number}
                               </p>
@@ -830,23 +829,35 @@ const Tickets = () => {
                     </>
                   ) : (
                     <>
-                      <div className="bg-white rounded-xl p-6 mb-6">
-                        {selectedOrder.ticket_qr ? (
+                      <div className="bg-white rounded-2xl p-5 mb-6">
+                        {selectedOrder.status === 'pending' ? (
+                          <div className="text-center text-black">{t('user.tickets.qrAfterApproval')}</div>
+                        ) : (selectedOrder.ticket_code || orderIndividualTickets[0]?.ticket_number) ? (
+                          <QRCodeSVG
+                            value={selectedOrder.ticket_code || orderIndividualTickets[0]?.ticket_number}
+                            size={220}
+                            className="w-full h-auto"
+                            level="H"
+                            minVersion={6}
+                            marginSize={1}
+                          />
+                        ) : selectedOrder.ticket_qr ? (
                           <img src={selectedOrder.ticket_qr} alt="Ticket QR" className="w-full h-auto" />
                         ) : loadingOrderTickets ? (
                           <div className="flex justify-center py-8">
                             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                           </div>
-                        ) : orderIndividualTickets.length > 0 ? (
-                          orderIndividualTickets[0].qr_code ? (
-                            <img src={orderIndividualTickets[0].qr_code} alt="Ticket QR" className="w-full h-auto" />
-                          ) : (
-                            <QRCodeSVG value={orderIndividualTickets[0].ticket_number} size={200} className="w-full" level="H" />
-                          )
-                        ) : selectedOrder.status === 'pending' ? (
-                          <div className="text-center text-black">{t('user.tickets.qrAfterApproval')}</div>
+                        ) : orderIndividualTickets.length > 0 && orderIndividualTickets[0].qr_code ? (
+                          <img src={orderIndividualTickets[0].qr_code} alt="Ticket QR" className="w-full h-auto" />
                         ) : (
-                          <QRCodeSVG value={selectedOrder.ticket_code || `ORDER-${selectedOrder.id}`} size={200} className="w-full" level="H" />
+                          <QRCodeSVG
+                            value={`ORDER-${selectedOrder.id}`}
+                            size={220}
+                            className="w-full h-auto"
+                            level="H"
+                            minVersion={6}
+                            marginSize={1}
+                          />
                         )}
                       </div>
                       <div className="text-center">
@@ -864,12 +875,14 @@ const Tickets = () => {
                 if (!ticket) return null;
                 return (
                   <>
-                    <div className="bg-white rounded-xl p-6 mb-6">
+                    <div className="bg-white rounded-2xl p-5 mb-6">
                       <QRCodeSVG
                         value={ticket.ticket_number}
-                        size={200}
-                        className="w-full"
+                        size={220}
+                        className="w-full h-auto"
                         level="H"
+                        minVersion={6}
+                        marginSize={1}
                       />
                     </div>
                     <div className="text-center">

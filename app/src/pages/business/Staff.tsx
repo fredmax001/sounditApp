@@ -473,7 +473,7 @@ const Staff = () => {
             {staff.map((member) => (
               <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold shrink-0">
                     {member.fullName.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -655,7 +655,7 @@ const Staff = () => {
                                 onClick={() => selectExistingUser(user)}
                                 className="w-full flex items-center gap-3 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left border-b border-black/5 dark:border-white/5 last:border-0"
                               >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black text-xs font-bold shrink-0">
+                                <div className="w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center text-black text-xs font-bold shrink-0">
                                   {user.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="min-w-0">
@@ -674,7 +674,7 @@ const Staff = () => {
                     ) : (
                       <div className="bg-[#d3da0c]/10 border border-[#d3da0c]/30 rounded-xl p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center text-black font-bold shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold shrink-0">
                             {selectedUser.name.charAt(0).toUpperCase()}
                           </div>
                           <div>

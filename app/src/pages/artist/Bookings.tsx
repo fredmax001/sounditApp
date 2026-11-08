@@ -39,7 +39,8 @@ interface Booking {
   contact_email: string;
   contact_phone?: string;
   created_at: string;
-  payment_status?: 'pending' | 'paid' | 'verified' | 'rejected';
+  payment_status?: 'pending' | 'submitted' | 'paid' | 'verified' | 'rejected';
+  payment_amount?: number;
   payment_screenshot_url?: string;
   payment_instructions?: string;
   wechat_qr_url?: string;
@@ -53,6 +54,17 @@ export default function ArtistBookings() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const reviewPayment = async (bookingId: number, decision: 'verified' | 'rejected') => {
+    if (!session?.access_token) return;
+    try {
+      const body = new FormData(); body.append('decision', decision);
+      const response = await fetch(`${API_BASE_URL}/bookings/requests/${bookingId}/payment-status`, { method: 'PUT', headers: { Authorization: `Bearer ${session.access_token}` }, body });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || 'Could not review payment');
+      setBookings(current => current.map(item => item.id === bookingId ? { ...item, payment_status: decision } : item));
+      toast.success(decision === 'verified' ? 'Deposit marked verified' : 'Payment proof rejected');
+    } catch (error: any) { toast.error(error.message || 'Could not review payment'); }
+  };
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [decliningId, setDecliningId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>('');
@@ -360,7 +372,7 @@ export default function ArtistBookings() {
                   )}
 
                   {/* Payment Screenshot */}
-                  {booking.payment_screenshot_url && (booking.payment_status === 'paid' || booking.payment_status === 'verified') && (
+                  {booking.payment_screenshot_url && ['submitted', 'paid', 'verified', 'rejected'].includes(booking.payment_status || '') && (
                     <div className="mb-4">
                       <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('artist.bookings.paymentScreenshot')}</p>
                       <a href={booking.payment_screenshot_url} target="_blank" rel="noopener noreferrer">
@@ -370,6 +382,13 @@ export default function ArtistBookings() {
                           className="max-h-48 rounded-lg border border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]/50 transition-colors"
                         />
                       </a>
+                    </div>
+                  )}
+
+                  {booking.payment_status === 'submitted' && (
+                    <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-3">Deposit proof submitted{booking.payment_amount ? ` · ¥${booking.payment_amount}` : ''}. Verify the transfer in your payment app before confirming.</p>
+                      <div className="flex gap-2"><button onClick={() => void reviewPayment(booking.id, 'verified')} className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold">Verify deposit</button><button onClick={() => void reviewPayment(booking.id, 'rejected')} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold">Reject proof</button></div>
                     </div>
                   )}
 

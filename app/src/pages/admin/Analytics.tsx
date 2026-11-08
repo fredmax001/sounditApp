@@ -13,7 +13,8 @@ import {
   Zap, DollarSign, Ticket, ShoppingCart, MessageSquare, Heart,
   Eye, MousePointer, ArrowUpRight, ArrowDownRight, BarChart3,
   MapPin, Monitor, Tablet, Laptop, Sun, Moon, RefreshCw,
-  ChevronDown, FileSpreadsheet, FileText, Sparkles, Target,
+  ChevronDown, FileSpreadsheet, FileText, Target,
+  Wallet, CreditCard, ArrowRight, ShoppingBag,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://sounditent.com/api/v1";
@@ -45,6 +46,18 @@ interface SummaryData {
   entry_pages: { path: string; count: number }[];
   exit_pages: { path: string; count: number }[];
   daily: { date: string; visits: number; unique_ips: number }[];
+  total_platform_revenue?: number;
+  period_revenue?: number;
+  revenue_by_source?: {
+    channel: string;
+    amount: number;
+    percentage: number;
+    color: string;
+  }[];
+  total_followers?: number;
+  period_followers?: number;
+  total_tickets_sold?: number;
+  period_tickets_sold?: number;
 }
 
 interface GeoData {
@@ -177,11 +190,11 @@ function StatCard({
   );
 }
 
-function SectionHeader({ title, icon: Icon, action }: { title: string; icon: React.ElementType; action?: React.ReactNode }) {
+function SectionHeader({ title, icon: Icon, action }: { title: string; icon?: React.ElementType; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <Icon className="w-5 h-5 text-[#d3da0c]" />
+        {Icon && <Icon className="w-5 h-5 text-[#d3da0c]" />}
         <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{title}</h3>
       </div>
       {action}
@@ -325,7 +338,7 @@ export default function AnalyticsPage() {
     { id: "engagement", label: "Engagement", icon: Heart },
     { id: "events", label: "Events", icon: Ticket },
     { id: "roles", label: "Roles", icon: Users },
-    { id: "insights", label: "AI Insights", icon: Sparkles },
+    { id: "insights", label: "Insights", icon: undefined },
   ];
 
   if (loading && !summary) {
@@ -413,7 +426,7 @@ export default function AnalyticsPage() {
                       : "text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  {Icon && <Icon className="w-4 h-4" />}
                   {tab.label}
                 </button>
               );
@@ -433,6 +446,120 @@ export default function AnalyticsPage() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
+              {/* Platform Commercial & Audience Highlights */}
+              {summary && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-[#d3da0c]/15 via-white dark:via-[#111111] to-white dark:to-[#111111] border border-[#d3da0c]/30 rounded-2xl p-5 shadow-xs dark:shadow-none relative overflow-hidden">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/20 flex items-center justify-center">
+                        <Wallet className="w-5 h-5 text-yellow-700 dark:text-[#d3da0c]" />
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c]">
+                        All-Time
+                      </span>
+                    </div>
+                    <div className="text-2xl lg:text-3xl font-black text-[#020b00] dark:text-white mb-1">
+                      ¥{(summary.total_platform_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Platform Revenue</div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Tickets, VIP Tables, Merch & Subscriptions</p>
+                  </div>
+
+                  <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                        {days} Days
+                      </span>
+                    </div>
+                    <div className="text-2xl lg:text-3xl font-black text-[#020b00] dark:text-white mb-1">
+                      ¥{(summary.period_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Period Revenue</div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Income earned in selected date window</p>
+                  </div>
+
+                  <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                        <Heart className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                        Community
+                      </span>
+                    </div>
+                    <div className="text-2xl lg:text-3xl font-black text-[#020b00] dark:text-white mb-1">
+                      {(summary.total_followers ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Platform Followers</div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Across Artists, Venues, Vendors & Events</p>
+                  </div>
+
+                  <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                        <Ticket className="w-5 h-5 text-green-500" />
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                        Verified
+                      </span>
+                    </div>
+                    <div className="text-2xl lg:text-3xl font-black text-[#020b00] dark:text-white mb-1">
+                      {(summary.total_tickets_sold ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Tickets Sold</div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Paid & confirmed attendee admissions</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Commerce Breakdown */}
+              {summary && summary.revenue_by_source && summary.revenue_by_source.length > 0 && (
+                <ChartCard>
+                  <SectionHeader
+                    title="Platform Revenue by Channel"
+                    icon={CreditCard}
+                    action={
+                      <a
+                        href="/admin/financial"
+                        className="text-xs font-semibold text-[#d3da0c] hover:underline flex items-center gap-1"
+                      >
+                        Financial Ledger <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                    }
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    {summary.revenue_by_source.map((source, i) => (
+                      <div
+                        key={i}
+                        className="p-4 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex flex-col justify-between"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: source.color }} />
+                            {source.channel}
+                          </span>
+                          <span className="text-xs font-bold text-gray-900 dark:text-white">
+                            {source.percentage}%
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-[#020b00] dark:text-white">
+                          ¥{source.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-1.5 mt-3 overflow-hidden">
+                          <div
+                            className="h-1.5 rounded-full"
+                            style={{ width: `${Math.min(source.percentage, 100)}%`, backgroundColor: source.color }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ChartCard>
+              )}
+
               {/* Live Stats */}
               {realtime && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -484,10 +611,10 @@ export default function AnalyticsPage() {
                 </ChartCard>
               )}
 
-              {/* AI Insights */}
+              {/* Insights */}
               {insights && insights.insights.length > 0 && (
                 <ChartCard>
-                  <SectionHeader title="AI Insights" icon={Sparkles} action={<span className="text-xs text-gray-500">Generated {new Date(insights.generated_at).toLocaleTimeString()}</span>} />
+                  <SectionHeader title="Insights" action={<span className="text-xs text-gray-500">Generated {new Date(insights.generated_at).toLocaleTimeString()}</span>} />
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {insights.insights.map((insight, i) => (
                       <motion.div
@@ -1017,9 +1144,7 @@ export default function AnalyticsPage() {
                     <SectionHeader title="Growth Forecast" icon={TrendingUp} />
                     <div className="flex items-center justify-center h-48 text-gray-500">
                       <div className="text-center">
-                        <Sparkles className="w-8 h-8 mx-auto mb-3 text-[#d3da0c]/50" />
-                        <p className="text-sm">AI-powered growth forecasting coming in next update</p>
-                        <p className="text-xs text-gray-600 mt-1">Based on historical trends and seasonal patterns</p>
+                        <p className="text-sm">Growth forecast data will appear as historical trends accumulate</p>
                       </div>
                     </div>
                   </ChartCard>

@@ -260,6 +260,7 @@
   },
   "nav": {
     "home": "Home",
+    "explore": "Explore",
     "events": "Events",
     "artists": "Artists",
     "cityGuide": "City Guide",
@@ -452,7 +453,8 @@
         "followers": "Followers",
         "avgRating": "Avg Rating",
         "totalGigs": "Total Gigs",
-        "earnings": "Earnings"
+        "earnings": "Earnings",
+        "pending": "Pending"
       },
       "upcomingPerformances": "Upcoming Performances",
       "manageAll": "Manage All",
@@ -511,6 +513,7 @@
         "artist": "Artist",
         "dj": "DJ",
         "mc": "MC",
+        "singer": "Singer / Vocalist",
         "dancer": "Dancer",
         "photographer": "Photographer"
       },
@@ -580,7 +583,8 @@
       "savePaymentSetup": "Save Payment Setup",
       "uploadQr": "Upload QR",
       "bookingRequests": "Booking Requests",
-      "manageBookingRequests": "Manage and respond to event organizer invitations."
+      "manageBookingRequests": "Manage and respond to event organizer invitations.",
+      "workspaceLabel": "Your workspace"
     },
     "bookings": {
       "title": "Bookings",
@@ -1657,7 +1661,13 @@
       "maxDiscountAmount": "Max Discount Amount",
       "changeQr": "Change QR",
       "ticketPriceLabel": "Ticket Price",
-      "paymentInstructionsPlaceholder": "e.g. Pay via WeChat or Alipay, then upload your payment screenshot"
+      "paymentInstructionsPlaceholder": "e.g. Pay via WeChat or Alipay, then upload your payment screenshot",
+      "autoFillFromFlyer": "Autofill from Flyer",
+      "autoFillHint": "Upload an event poster to pre-fill title, date, venue, and ticket details.",
+      "extracting": "Reading flyer...",
+      "extractSuccess": "Flyer details imported. Review and publish when ready.",
+      "extractMissing": "Could not read",
+      "extractError": "Could not read flyer. Please enter details manually."
     },
     "eventPromoters": {
       "title": "Promoter Management",
@@ -2077,7 +2087,13 @@
       "boothAppliedSuccess": "Booth application submitted!",
       "boothApplyError": "Failed to apply for booth",
       "approved": "Approved",
-      "pendingApproval": "Pending Approval"
+      "pendingApproval": "Pending Approval",
+      "workspaceLabel": "Your workspace",
+      "importMenu": "Import Menu",
+      "paymentQrCodes": "Payment QR Codes",
+      "analyticsLink": "Analytics",
+      "menuImportBanner": "Import Menu",
+      "menuImportBannerHint": "Upload a menu photo, PDF, or text list to add items in bulk."
     },
     "products": {
       "title": "My Products",
@@ -3571,7 +3587,6 @@
     "valuesHighlight": "VALUES",
     "values": [
       {
-        "icon": "Sparkles",
         "title": "Creativity & Innovation",
         "description": "We constantly explore new ways to entertain, connect, and empower communities."
       },
@@ -4395,27 +4410,27 @@
     "cameraPermission": "Camera permission is required to scan tickets.",
     "enableCamera": "Enable Camera",
     "noCamera": "No camera found on this device.",
-    "invalidTicketTitle": "Invalid Ticket Title",
+    "invalidTicketTitle": "Invalid Ticket",
     "enterCodeManually": "Enter Code Manually",
     "ticketNotFound": "Ticket Not Found",
     "invalidTicket": "Invalid Ticket",
     "flashlightNotAvailable": "Flashlight Not Available",
     "validTicket": "Valid Ticket",
-    "invalidQRCode": "Invalid Q R Code",
+    "invalidQRCode": "Invalid QR Code",
     "enterTicketCode": "Enter Ticket Code",
     "cameraDenied": "Camera Denied",
     "cameraNotAvailable": "Camera Not Available",
     "validationFailed": "Validation Failed",
     "back": "Back",
-    "codePlaceholder": "Code Placeholder",
-    "invalidQRCodeFormat": "Invalid Q R Code Format",
+    "codePlaceholder": "TKT-XXX-XXX-XXXXXXXX-X",
+    "invalidQRCodeFormat": "Invalid QR Code Format",
     "done": "Done",
-    "ticketValidatedSuccess": "Ticket Validated Success",
+    "ticketValidatedSuccess": "Ticket Validated Successfully",
     "ticketValidationFailed": "Ticket Validation Failed",
     "networkError": "Network Error",
     "user": "User",
     "ticketCancelled": "Ticket Cancelled",
-    "positionQR": "Position Q R",
+    "positionQR": "Point camera at ticket QR code",
     "ticketValidated": "Ticket Validated",
     "ticketAlreadyUsed": "Ticket Already Used",
     "scanAnother": "Scan Another",
@@ -4468,7 +4483,26 @@
     "perMonth": "Per Month",
     "oneTime": "One-Time",
     "subscribe": "Subscribe",
-    "failedToSubscribe": "Failed To Subscribe"
+    "failedToSubscribe": "Failed To Subscribe",
+    "restorePurchases": "Restore Purchases",
+    "restoringPurchases": "Restoring Purchases...",
+    "cancelConfirmTitle": "Cancel Subscription",
+    "cancelConfirmText": "Are you sure you want to cancel your subscription? You will retain full access until the end of your paid billing period.",
+    "cancelPendingConfirmText": "Are you sure you want to withdraw your pending subscription request?",
+    "cancelTrialConfirmText": "Are you sure you want to cancel your free trial? Your trial access will end immediately.",
+    "keepSubscription": "Keep Subscription",
+    "confirmCancel": "Confirm Cancellation",
+    "confirmWithdraw": "Withdraw Request",
+    "cancelling": "Cancelling...",
+    "cancelSuccess": "Subscription cancelled",
+    "withdrawSuccess": "Subscription request withdrawn",
+    "cancelledNotice": "Subscription cancelled — full access remains active until {{date}}.",
+    "resumeSubscription": "Resume Subscription",
+    "resuming": "Resuming...",
+    "resumeSuccess": "Subscription resumed successfully",
+    "pendingPayment": "Pending Payment",
+    "pendingApprovalNotice": "You have a pending subscription request awaiting payment confirmation or approval.",
+    "cancelPendingRequest": "Withdraw Request"
   },
   "receipt": {
     "title": "E-Receipt",
@@ -5018,6 +5052,7 @@
     "pickForYou": "Pick For You",
     "topEvents": "Top Events",
     "topArtists": "Top Artists",
+    "topBusinesses": "Top Businesses",
     "topSpots": "Top Spots",
     "topVendors": "Top Vendors",
     "seeAll": "See all",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import {
     ShieldCheck,
     FileText,
@@ -11,7 +12,11 @@ import {
     X,
     XCircle,
     Award,
-    User
+    User,
+    Coins,
+    Film,
+    CheckCircle2,
+    Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -58,7 +63,7 @@ interface BadgeUser {
 const VerificationCenter = () => {
     const { t } = useTranslation();
     const { session } = useAuthStore();
-    const [activeTab, setActiveTab] = useState<'documents' | 'badges'>('documents');
+    const [activeTab, setActiveTab] = useState<'documents' | 'badges' | 'reels' | 'points'>('documents');
 
     // Document verification state
     const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
@@ -77,6 +82,35 @@ const VerificationCenter = () => {
     const [isLoadingVerified, setIsLoadingVerified] = useState(false);
     const [isSearchingUsers, setIsSearchingUsers] = useState(false);
     const [badgeActionLoading, setBadgeActionLoading] = useState<number | null>(null);
+
+    // Admin Reels & Points state
+    const [adminReels, setAdminReels] = useState<Array<{
+        id: number;
+        title?: string;
+        caption?: string;
+        video_url?: string;
+        thumbnail_url?: string;
+        status?: string;
+        likes_count?: number;
+        comments_count?: number;
+        author?: { name?: string; username?: string };
+    }>>([]);
+    const [isLoadingReels, setIsLoadingReels] = useState(false);
+    const [pointsOverview, setPointsOverview] = useState<{
+        total_points_circulating?: number;
+        total_transactions?: number;
+        recent_transactions?: Array<{
+            id: number;
+            user_name: string;
+            user_email: string;
+            points: number;
+            description: string;
+            created_at: string;
+        }>;
+    }>({});
+    const [adjustUserId, setAdjustUserId] = useState('');
+    const [adjustPointsDelta, setAdjustPointsDelta] = useState('');
+    const [adjustReason, setAdjustReason] = useState('');
 
     const loadVerificationRequests = useCallback(async () => {
         setIsLoadingRequests(true);
@@ -122,6 +156,91 @@ const VerificationCenter = () => {
         }
     }, [session?.access_token]);
 
+    const loadAdminReels = useCallback(async () => {
+        setIsLoadingReels(true);
+        try {
+            const token = session?.access_token;
+            const res = await fetch(`${API_BASE_URL}/reels/admin/list`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAdminReels(Array.isArray(data) ? data : []);
+            }
+        } catch {
+            // silent fallback
+        } finally {
+            setIsLoadingReels(false);
+        }
+    }, [session?.access_token]);
+
+    const loadPointsOverview = useCallback(async () => {
+        try {
+            const token = session?.access_token;
+            const res = await fetch(`${API_BASE_URL}/points/admin/overview`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPointsOverview(data || {});
+            }
+        } catch {
+            // silent fallback
+        }
+    }, [session?.access_token]);
+
+    const handleModerateReel = async (reelId: number, action: 'approve' | 'hide' | 'delete') => {
+        try {
+            const token = session?.access_token;
+            const res = await fetch(`${API_BASE_URL}/reels/admin/${reelId}/moderate`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action })
+            });
+            if (res.ok) {
+                toast.success(`Reel ${action}d`);
+                loadAdminReels();
+            }
+        } catch {
+            toast.error('Failed to moderate reel');
+        }
+    };
+
+    const handleAdjustPoints = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!adjustUserId || !adjustPointsDelta) return;
+        try {
+            const token = session?.access_token;
+            const res = await fetch(`${API_BASE_URL}/points/admin/adjust`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: Number(adjustUserId),
+                    points_delta: Number(adjustPointsDelta),
+                    description: adjustReason || 'Admin Points Adjustment'
+                })
+            });
+            if (res.ok) {
+                toast.success('Points updated');
+                setAdjustUserId('');
+                setAdjustPointsDelta('');
+                setAdjustReason('');
+                loadPointsOverview();
+            } else {
+                const err = await res.json();
+                toast.error(err.detail || 'Failed to adjust points');
+            }
+        } catch {
+            toast.error('Failed to adjust points');
+        }
+    };
+
     useEffect(() => {
         loadVerificationRequests();
     }, [loadVerificationRequests]);
@@ -129,8 +248,12 @@ const VerificationCenter = () => {
     useEffect(() => {
         if (activeTab === 'badges') {
             loadVerifiedUsers();
+        } else if (activeTab === 'reels') {
+            loadAdminReels();
+        } else if (activeTab === 'points') {
+            loadPointsOverview();
         }
-    }, [activeTab, loadVerifiedUsers]);
+    }, [activeTab, loadVerifiedUsers, loadAdminReels, loadPointsOverview]);
 
     const searchUsers = useCallback(async () => {
         if (!badgeSearchQuery.trim()) {
@@ -310,7 +433,7 @@ const VerificationCenter = () => {
     const renderBadgeManagement = () => (
         <div className="space-y-8">
             {/* Search Section */}
-            <div className="bg-white dark:bg-[#111111] rounded-3xl p-8 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+            <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                 <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
                     <Search className="w-5 h-5 text-yellow-700 dark:text-[#d3da0c]" />
                     Find User & Manage Badge
@@ -386,7 +509,7 @@ const VerificationCenter = () => {
             </div>
 
             {/* Verified Users List */}
-            <div className="bg-white dark:bg-[#111111] rounded-3xl p-8 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+            <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-[#020b00] dark:text-white flex items-center gap-2">
                         <Award className="w-5 h-5 text-yellow-700 dark:text-[#d3da0c]" />
@@ -410,7 +533,7 @@ const VerificationCenter = () => {
                                     {user.avatar_url ? (
                                         <img src={user.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d3da0c] to-blue-500 flex items-center justify-center text-black font-bold">
+                                        <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold">
                                             {(user.first_name || user.email || '?').charAt(0).toUpperCase()}
                                         </div>
                                     )}
@@ -457,12 +580,9 @@ const VerificationCenter = () => {
     return (
         <div className="space-y-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.verificationCenter.title')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('admin.verificationCenter.subtitle')}</p>
-                </div>
-                <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/5 p-1 rounded-xl">
-                    {(['documents', 'badges'] as const).map((tab) => (
+                <AdminPageHeader chip="Support" title={t('admin.verificationCenter.title')} subtitle={t('admin.verificationCenter.subtitle')} />
+                <div className="flex flex-wrap bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/5 p-1 rounded-xl gap-1">
+                    {(['documents', 'badges', 'reels', 'points'] as const).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -470,7 +590,13 @@ const VerificationCenter = () => {
                                 activeTab === tab ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black' : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
                             }`}
                         >
-                            {tab === 'documents' ? t('admin.verificationCenter.tabDocuments') : t('admin.verificationCenter.tabBadges')}
+                            {tab === 'documents'
+                                ? t('admin.verificationCenter.tabDocuments')
+                                : tab === 'badges'
+                                ? t('admin.verificationCenter.tabBadges')
+                                : tab === 'reels'
+                                ? 'Reels Moderation'
+                                : 'Points & Rewards'}
                         </button>
                     ))}
                 </div>
@@ -478,6 +604,140 @@ const VerificationCenter = () => {
 
             {activeTab === 'badges' ? (
                 renderBadgeManagement()
+            ) : activeTab === 'reels' ? (
+                <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10">
+                    <h2 className="text-xl font-semibold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
+                        <Film className="w-5 h-5 text-[#d3da0c]" />
+                        Reels Moderation ({adminReels.length})
+                    </h2>
+                    {isLoadingReels ? (
+                        <div className="flex justify-center py-12">
+                            <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
+                        </div>
+                    ) : (
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {adminReels.map((reel) => (
+                                <div key={reel.id} className="p-4 rounded-2xl bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/10 flex flex-col justify-between gap-3">
+                                    <div className="flex gap-3">
+                                        <img
+                                            src={reel.thumbnail_url || '/web-hero/C48A0758.jpg'}
+                                            alt={reel.title || 'Reel'}
+                                            className="w-20 h-28 rounded-xl object-cover shrink-0 bg-black"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-1 ${
+                                                reel.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                                            }`}>
+                                                {reel.status || 'approved'}
+                                            </span>
+                                            <h3 className="text-sm font-bold text-[#020b00] dark:text-white truncate">
+                                                {reel.title || 'Untitled Reel'}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
+                                                {reel.caption}
+                                            </p>
+                                            <p className="text-[11px] text-[#d3da0c] mt-1">
+                                                @{reel.author?.username || 'creator'} • {reel.likes_count || 0} likes
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                                        <button
+                                            onClick={() => handleModerateReel(reel.id, 'approve')}
+                                            className="flex-1 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1"
+                                        >
+                                            <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                                        </button>
+                                        <button
+                                            onClick={() => handleModerateReel(reel.id, 'hide')}
+                                            className="flex-1 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-bold"
+                                        >
+                                            Hide
+                                        </button>
+                                        <button
+                                            onClick={() => handleModerateReel(reel.id, 'delete')}
+                                            className="px-2.5 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : activeTab === 'points' ? (
+                <div className="grid lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1 bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10">
+                        <h2 className="text-lg font-bold text-[#020b00] dark:text-white mb-4 flex items-center gap-2">
+                            <Coins className="w-5 h-5 text-[#d3da0c]" />
+                            Adjust User Points
+                        </h2>
+                        <form onSubmit={handleAdjustPoints} className="space-y-3">
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">User ID</label>
+                                <input
+                                    type="number"
+                                    value={adjustUserId}
+                                    onChange={(e) => setAdjustUserId(e.target.value)}
+                                    placeholder="e.g. 1"
+                                    required
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-[#020b00] dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Points Delta (+ to award, - to deduct)</label>
+                                <input
+                                    type="number"
+                                    value={adjustPointsDelta}
+                                    onChange={(e) => setAdjustPointsDelta(e.target.value)}
+                                    placeholder="e.g. 500 or -200"
+                                    required
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-[#020b00] dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Reason / Activity</label>
+                                <input
+                                    type="text"
+                                    value={adjustReason}
+                                    onChange={(e) => setAdjustReason(e.target.value)}
+                                    placeholder="e.g. Attended Event Bonus"
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-[#020b00] dark:text-white"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full py-3 rounded-xl bg-[#d3da0c] text-black font-bold text-sm"
+                            >
+                                Apply Points Adjustment
+                            </button>
+                        </form>
+                    </div>
+                    <div className="lg:col-span-2 bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-bold text-[#020b00] dark:text-white">
+                                Recent Points Activity
+                            </h2>
+                            <span className="px-3 py-1 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-xs font-extrabold">
+                                {(pointsOverview.total_points_circulating || 0).toLocaleString()} pts in circulation
+                            </span>
+                        </div>
+                        <div className="space-y-2.5">
+                            {(pointsOverview.recent_transactions || []).map((tx) => (
+                                <div key={tx.id} className="p-3 rounded-xl bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-semibold text-[#020b00] dark:text-white">{tx.description}</p>
+                                        <p className="text-xs text-gray-500">{tx.user_name} ({tx.user_email})</p>
+                                    </div>
+                                    <span className={`text-sm font-extrabold ${tx.points >= 0 ? 'text-[#d3da0c]' : 'text-red-400'}`}>
+                                        {tx.points >= 0 ? `+${tx.points}` : tx.points} pts
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             ) : (
                 <>
                     <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/5 p-1 rounded-xl w-fit">
@@ -555,11 +815,11 @@ const VerificationCenter = () => {
                                         initial={{ opacity: 0, scale: 0.98 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         key={selectedRequest.id}
-                                        className="bg-white dark:bg-[#111111] rounded-3xl p-8 sticky top-24 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none"
+                                        className="bg-white dark:bg-[#111111] rounded-2xl p-8 sticky top-24 border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none"
                                     >
                                         <div className="flex items-start justify-between mb-8">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-blue-500 flex items-center justify-center text-black font-display text-2xl font-bold">
+                                                <div className="w-16 h-16 rounded-2xl bg-[#d3da0c] flex items-center justify-center text-black font-display text-2xl font-bold">
                                                     {selectedRequest.name.charAt(0)}
                                                 </div>
                                                 <div>
@@ -593,23 +853,35 @@ const VerificationCenter = () => {
                                                 </h3>
                                                 <div className="space-y-3">
                                                     {selectedRequest.documents?.map((doc, idx) => (
-                                                        <div key={idx} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between group hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg">
-                                                                    <FileText className="w-4 h-4" />
+                                                        <div key={idx} className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl space-y-2.5 group hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg">
+                                                                        <FileText className="w-4 h-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-[#020b00] dark:text-white text-sm block font-medium">{doc.title}</span>
+                                                                        <span className="text-gray-500 dark:text-gray-400 text-xs uppercase">{doc.type}</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div>
-                                                                    <span className="text-[#020b00] dark:text-white text-sm block font-medium">{doc.title}</span>
-                                                                    <span className="text-gray-500 dark:text-gray-400 text-xs uppercase">{doc.type}</span>
-                                                                </div>
+                                                                {doc.url && (
+                                                                    <button
+                                                                        onClick={() => openDocument(doc.url)}
+                                                                        className="text-gray-400 group-hover:text-yellow-700 dark:group-hover:text-[#d3da0c] transition-colors"
+                                                                        title={t('admin.verificationCenter.viewDocumentTitle')}
+                                                                    >
+                                                                        <ExternalLink className="w-4 h-4" />
+                                                                    </button>
+                                                                )}
                                                             </div>
-                                                            <button
-                                                                onClick={() => openDocument(doc.url)}
-                                                                className="text-gray-400 group-hover:text-yellow-700 dark:group-hover:text-[#d3da0c] transition-colors"
-                                                                title={t('admin.verificationCenter.viewDocumentTitle')}
-                                                            >
-                                                                <ExternalLink className="w-4 h-4" />
-                                                            </button>
+                                                            {doc.url && (doc.type === 'id_document' || doc.type === 'selfie' || /\.(jpg|jpeg|png|webp|gif)$/i.test(doc.url)) && (
+                                                                <img
+                                                                    src={doc.url}
+                                                                    alt={doc.title}
+                                                                    onClick={() => openDocument(doc.url)}
+                                                                    className="w-full h-36 object-cover rounded-xl border border-white/10 cursor-pointer"
+                                                                />
+                                                            )}
                                                         </div>
                                                     ))}
                                                     {(!selectedRequest.documents || selectedRequest.documents.length === 0) && (
@@ -661,7 +933,7 @@ const VerificationCenter = () => {
                                         )}
                                     </motion.div>
                                 ) : (
-                                    <div className="h-full min-h-[400px] bg-white dark:bg-[#111111] rounded-3xl border border-dashed border-black/15 dark:border-white/10 flex flex-col items-center justify-center text-center p-12 shadow-xs dark:shadow-none">
+                                    <div className="h-full min-h-[400px] bg-white dark:bg-[#111111] rounded-2xl border border-dashed border-black/15 dark:border-white/10 flex flex-col items-center justify-center text-center p-12 shadow-xs dark:shadow-none">
                                         <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-6">
                                             <ShieldCheck className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                                         </div>

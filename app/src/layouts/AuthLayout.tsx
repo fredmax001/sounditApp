@@ -52,12 +52,12 @@ const AuthLayout = () => {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md px-6">
-        {/* Logo - hidden on mobile */}
+        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-8 hidden md:block"
+          className="text-center mb-6 md:mb-8"
         >
           <Link to="/" className="inline-block">
             <img

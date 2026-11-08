@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
@@ -185,12 +186,7 @@ const APIIntegrations = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.apiIntegrations.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.apiIntegrations.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="System" title={t('admin.apiIntegrations.title')} subtitle={t('admin.apiIntegrations.subtitle')} />
 
       {/* API Keys */}
       <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">

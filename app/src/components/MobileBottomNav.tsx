@@ -1,9 +1,10 @@
 /**
- * Mobile Bottom Navigation - Eventix-inspired 5-tab dock
- * Clean flat bar: Home | Discover | Ticket | Saved | Profile
- * Dashboard roles retain their own nav sets.
+ * Floating Mobile Bottom Navigation for PWA, iOS, and Android
+ * - Floating pill / dock design detached from screen edges
+ * - Dynamically expands when scrolling down, decreases to normal size when scrolling up
+ * - Supports regular users, staff scanners, and role dashboards
  */
-import React from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
@@ -17,15 +18,15 @@ import {
   Calendar,
   MessageCircle,
   Compass,
-  User,
+  PlaySquare,
   ScanLine,
   LayoutDashboard,
-  Ticket,
+  Wallet,
   Store,
   ShoppingBag,
   BarChart3,
-  Bookmark,
   Users,
+  Settings,
 } from 'lucide-react';
 
 interface NavItem {
@@ -40,7 +41,7 @@ const MobileBottomNav = () => {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
   const { isDark } = useThemeStore();
-  const { memberships, canScan, fetchMemberships } = useStaffStore();
+  const { fetchMemberships, canScan } = useStaffStore();
   const { t } = useTranslation();
   const { trigger } = useHaptic();
 
@@ -51,80 +52,115 @@ const MobileBottomNav = () => {
   const isAdmin = role === 'admin' || role === 'super_admin';
   const isStaffScanner = canScan();
 
-  const isDashboardRoute = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+  const isDashboardRoute =
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/admin') ||
+    ((isBusiness || isArtist || isVendor) && location.pathname.startsWith('/settings'));
 
-  React.useEffect(() => {
+  // Dynamic scroll state: expands on scroll down, decreases on scroll up to normal size
+  const [isExpanded, setIsExpanded] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const diff = currentScrollY - lastScrollY.current;
+
+      // Filter micro-jitters
+      if (Math.abs(diff) > 4) {
+        if (diff > 0 && currentScrollY > 40) {
+          // Scrolling down: expand
+          setIsExpanded(true);
+        } else if (diff < -5 || currentScrollY < 20) {
+          // Scrolling up or at top: decrease to normal size
+          setIsExpanded(false);
+        }
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     if (profile) {
       fetchMemberships();
     }
   }, [profile, fetchMemberships]);
 
-  const navItems = React.useMemo<NavItem[]>(() => {
-    // If inside a dashboard/admin route, show the role-specific operational workspace
+  const navItems = useMemo<NavItem[]>(() => {
+    const pathname = location.pathname;
+    const onBusinessRoute = pathname.startsWith('/dashboard/business') || pathname.startsWith('/dashboard/organizer');
+    const onVendorRoute = pathname.startsWith('/dashboard/vendor');
+    const onArtistRoute = pathname.startsWith('/dashboard/artist');
+
+    // Role operational workspace inside dashboard / admin routes
     if (isDashboardRoute) {
-      if (isBusiness) {
+      if (onBusinessRoute || (isBusiness && !onVendorRoute && !onArtistRoute)) {
         return [
-          { path: '/dashboard/business', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
-          { path: '/dashboard/business/events', label: t('nav.events') || 'Events', icon: Calendar },
-          { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine, isCenter: true },
-          { path: '/dashboard/business/ticket-orders', label: t('business.dashboard.ticketOrders') || 'Tickets', icon: Ticket },
-          { path: '/events', label: t('nav.explore') || 'Explore', icon: Compass },
+          { path: '/dashboard/business', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
+          { path: '/dashboard/business/events', label: t('nav.events', 'Events'), icon: Calendar },
+          { path: '/dashboard/business/ticket-orders', label: 'Orders', icon: Wallet },
+          { path: '/dashboard/business/analytics', label: 'Analytics', icon: BarChart3 },
+          { path: '/settings', label: t('nav.settings', 'Settings'), icon: Settings },
         ];
       }
 
-      if (isArtist) {
+      if (onVendorRoute || (isVendor && !onBusinessRoute && !onArtistRoute)) {
         return [
-          { path: '/dashboard/artist', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
-          { path: '/dashboard/artist/bookings', label: t('artist.bookings.title') || 'Bookings', icon: Calendar },
-          { path: '/dashboard/artist/messages', label: t('nav.message') || 'Messages', icon: MessageCircle },
-          { path: '/dashboard/artist/performances', label: t('artist.performances.title') || 'Gigs', icon: BarChart3 },
-          { path: '/events', label: t('nav.explore') || 'Explore', icon: Compass },
+          { path: '/dashboard/vendor', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
+          { path: '/dashboard/vendor/products', label: 'My Products', icon: Store },
+          { path: '/scan', label: t('nav.scan', 'Scan'), icon: ScanLine },
+          { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel', 'Orders'), icon: ShoppingBag },
+          { path: '/settings', label: t('nav.settings', 'Settings'), icon: Settings },
         ];
       }
 
-      if (isVendor) {
+      if (onArtistRoute || isArtist) {
         return [
-          { path: '/dashboard/vendor', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
-          { path: '/dashboard/vendor/products', label: t('vendor.myProducts') || 'Products', icon: Store },
-          { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine },
-          { path: '/dashboard/vendor/orders', label: t('vendor.orders.navLabel') || 'Orders', icon: ShoppingBag },
-          { path: '/events', label: t('nav.explore') || 'Explore', icon: Compass },
+          { path: '/dashboard/artist', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
+          { path: '/dashboard/artist/bookings', label: t('artist.bookings.title', 'Bookings'), icon: Calendar },
+          { path: '/dashboard/artist/messages', label: t('nav.message', 'Messages'), icon: MessageCircle },
+          { path: '/dashboard/artist/performances', label: t('artist.performances.title', 'Gigs'), icon: BarChart3 },
+          { path: '/settings', label: t('nav.settings', 'Settings'), icon: Settings },
         ];
       }
 
       if (isAdmin) {
         return [
-          { path: '/admin', label: t('nav.dashboard') || 'Dashboard', icon: LayoutDashboard },
-          { path: '/admin/events', label: t('nav.events') || 'Events', icon: Calendar },
-          { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine },
-          { path: '/dashboard/organizer/checkin', label: t('nav.checkIn') || 'Check In', icon: Users },
-          { path: '/events', label: t('nav.explore') || 'Explore', icon: Compass },
+          { path: '/admin', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
+          { path: '/admin/events', label: t('nav.events', 'Events'), icon: Calendar },
+          { path: '/scan', label: t('nav.scan', 'Scan'), icon: ScanLine },
+          { path: '/dashboard/organizer/checkin', label: t('nav.checkIn', 'Check In'), icon: Users },
+          { path: '/admin/settings', label: t('nav.settings', 'Settings'), icon: Settings },
         ];
       }
     }
 
-    if (isStaffScanner) {
-      return [
-        { path: '/', label: t('nav.home') || 'Home', icon: Home },
-        { path: '/events', label: t('nav.events') || 'Events', icon: Calendar },
-        { path: '/scan', label: t('nav.scan') || 'Scan', icon: ScanLine, isCenter: true },
-        { path: '/community', label: t('nav.community') || 'Community', icon: MessageCircle },
-        { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
-      ];
-    }
-
-    // Platform routes (all users, DJs, artists, vendors, businesses) - Eventix-style 5-tab dock
+    // Platform routes (EXACTLY FIVE destinations: Home, Discover, Events, Reels, Community)
     return [
-      { path: '/', label: t('nav.home') || 'Home', icon: Home },
-      { path: '/discovery', label: t('nav.discovery') || 'Discover', icon: Compass },
-      { path: '/tickets', label: t('nav.myTickets') || 'Ticket', icon: Ticket },
-      { path: '/favorites', label: t('nav.favorites') || 'Saved', icon: Bookmark },
-      { path: '/profile', label: t('nav.profile') || 'Profile', icon: User },
+      { path: '/', label: 'Home', icon: Home },
+      { path: '/discovery', label: 'Discover', icon: Compass },
+      { path: '/events', label: 'Events', icon: Calendar },
+      { path: '/reels', label: 'Reels', icon: PlaySquare },
+      { path: '/community', label: 'Community', icon: Users },
     ];
-  }, [isDashboardRoute, isBusiness, isArtist, isVendor, isAdmin, isStaffScanner, t]);
+  }, [location.pathname, isDashboardRoute, isBusiness, isArtist, isVendor, isAdmin, t]);
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (
+      path === '/' ||
+      path === '/dashboard/business' ||
+      path === '/dashboard/artist' ||
+      path === '/dashboard/vendor' ||
+      path === '/admin'
+    ) {
+      return location.pathname === path;
+    }
+    if (path === '/settings' && location.pathname === '/dashboard/business/profile') {
+      return true;
+    }
     return location.pathname.startsWith(path);
   };
 
@@ -133,20 +169,55 @@ const MobileBottomNav = () => {
     navigate(path);
   };
 
-  const isDashboardRole = isBusiness || isArtist || isVendor || isAdmin;
-
-  // Event detail pages render their own sticky purchase bar — hide the tab bar
+  // Event detail pages render their own sticky purchase bar — hide tab bar
   const hideOnEventDetail = /^\/events\/[^/]+/.test(location.pathname);
   if (hideOnEventDetail) return null;
 
-  /* ── Dashboard operational routes: anchored bottom bar ── */
-  if (isDashboardRoute && isDashboardRole) {
-    return (
-      <>
-        <nav className="fixed bottom-0 left-0 right-0 z-50">
-          <div className="absolute inset-0 bg-white/95 dark:bg-gradient-to-t dark:from-[#020b00] dark:via-[#111111] dark:to-[#111111]/95 border-t border-black/8 dark:border-white/10 shadow-lg" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d3da0c]/30 to-transparent" />
-          <div className="relative flex items-end justify-around max-w-lg mx-auto px-2 pt-2 pb-safe">
+  return (
+    <>
+      {/* Floating Bottom Nav Container for PWA, iOS, and Android */}
+      <div
+        className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none px-3 sm:px-4"
+        style={{
+          bottom: 'calc(10px + max(0.25rem, env(safe-area-inset-bottom, 0px)))',
+        }}
+      >
+        <motion.nav
+          initial={false}
+          animate={{
+            maxWidth: isExpanded ? '440px' : '385px',
+            height: isExpanded ? '66px' : '58px',
+            scale: isExpanded ? 1.02 : 1.0,
+            boxShadow: isDark
+              ? isExpanded
+                ? '0 20px 48px -4px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(211, 218, 12, 0.2), inset 0 1px 0 rgba(211, 218, 12, 0.3)'
+                : '0 14px 34px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+              : isExpanded
+                ? '0 20px 48px -4px rgba(0, 0, 0, 0.20), 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9)'
+                : '0 14px 34px -4px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 380,
+            damping: 32,
+          }}
+          className="pointer-events-auto relative w-full flex items-center justify-between rounded-full border overflow-hidden transition-colors"
+          style={{
+            background: isDark
+              ? 'rgba(7, 14, 4, 0.88)'
+              : 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            borderColor: isDark
+              ? 'rgba(255, 255, 255, 0.12)'
+              : 'rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          {/* Subtle top hairline highlight */}
+          <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#d3da0c]/35 to-transparent pointer-events-none" />
+
+          {/* Navigation Items */}
+          <div className="relative flex items-center justify-around w-full h-full px-1.5 sm:px-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -156,14 +227,22 @@ const MobileBottomNav = () => {
                   <button
                     key={item.path + '-center'}
                     onClick={() => handleNavClick(item.path)}
-                    className="relative -top-3 flex flex-col items-center group touch-feedback"
+                    className="relative flex flex-col items-center justify-center group touch-feedback px-1 -my-1"
                     aria-label={item.label}
                   >
-                    <div className="absolute inset-0 rounded-full bg-[#d3da0c]/20 blur-xl animate-pulse-slow" />
-                    <div className="relative w-14 h-14 bg-gradient-to-br from-[#d3da0c] to-[#bbc10b] rounded-full flex items-center justify-center shadow-lg shadow-[#d3da0c]/20 border-4 border-white dark:border-[#020b00]">
-                      <Icon className="w-6 h-6 text-black" />
-                    </div>
-                    <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-1">{item.label}</span>
+                    <div className="absolute inset-0 rounded-full bg-[#d3da0c]/25 blur-md animate-pulse-slow" />
+                    <motion.div
+                      animate={{
+                        scale: isExpanded ? 1.08 : 1.0,
+                      }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                      className="relative w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-[#d3da0c] to-[#b8be09] rounded-full flex items-center justify-center shadow-md shadow-[#d3da0c]/30 border-2 border-[#020b00] dark:border-[#020b00]"
+                    >
+                      <Icon className="w-5 h-5 text-black" strokeWidth={2.5} />
+                    </motion.div>
+                    <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-300 mt-0.5 leading-none">
+                      {item.label}
+                    </span>
                   </button>
                 );
               }
@@ -172,90 +251,59 @@ const MobileBottomNav = () => {
                 <button
                   key={item.path}
                   onClick={() => handleNavClick(item.path)}
-                  className={`relative flex flex-col items-center justify-center min-w-[48px] min-h-[48px] rounded-xl touch-feedback ${
-                    active ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-gray-500'
-                  }`}
+                  className="relative flex-1 flex flex-col items-center justify-center h-full py-1 rounded-full touch-feedback group"
                   aria-label={item.label}
                 >
-                  <Icon className={`w-5 h-5 relative z-10 transition-all ${active ? 'scale-110 mb-0.5' : ''}`} strokeWidth={active ? 2.5 : 2} />
+                  {/* Active highlight background capsule pill */}
                   {active && (
-                    <span className="text-[10px] font-semibold mt-0.5 relative z-10 text-[#020b00] dark:text-[#d3da0c]">
-                      {item.label}
-                    </span>
+                    <motion.div
+                      layoutId="floating-nav-active-pill"
+                      className="absolute inset-x-1 inset-y-1 bg-[#d3da0c]/15 dark:bg-[#d3da0c]/20 rounded-full border border-[#d3da0c]/30 pointer-events-none"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    />
                   )}
-                  {active && <div className="absolute -bottom-1.5 w-1 h-1 bg-[#d3da0c] rounded-full" />}
+
+                  {/* Icon */}
+                  <motion.div
+                    animate={
+                      active
+                        ? { scale: isExpanded ? 1.15 : 1.1, y: -1 }
+                        : { scale: 1, y: 0 }
+                    }
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    className="relative z-10"
+                  >
+                    <Icon
+                      className={`transition-colors duration-150 ${
+                        isExpanded ? 'w-[21px] h-[21px]' : 'w-[19px] h-[19px]'
+                      } ${
+                        active
+                          ? 'text-[#020b00] dark:text-[#d3da0c]'
+                          : 'text-[#020b00]/60 dark:text-white/45 group-hover:text-black dark:group-hover:text-white'
+                      }`}
+                      strokeWidth={active ? 2.5 : 1.9}
+                    />
+                  </motion.div>
+
+                  {/* Label */}
+                  <span
+                    className={`relative z-10 text-[9.5px] sm:text-[10px] tracking-tight mt-0.5 leading-none transition-colors duration-150 ${
+                      active
+                        ? 'text-[#020b00] dark:text-[#d3da0c] font-semibold'
+                        : 'text-[#020b00]/60 dark:text-white/45 font-medium'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
           </div>
-        </nav>
-        <div className="h-20" />
-      </>
-    );
-  }
+        </motion.nav>
+      </div>
 
-  /* ── Regular users - Eventix-style flat bottom bar ── */
-  return (
-    <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50">
-        {/* Background */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: isDark ? 'rgba(2, 11, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
-          }}
-        />
-        {/* Lime accent line at top */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d3da0c]/25 to-transparent" />
-
-        <div className="relative flex items-center justify-around max-w-lg mx-auto pb-safe">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-
-            return (
-              <button
-                key={item.path}
-                onClick={() => handleNavClick(item.path)}
-                className="relative flex flex-col items-center justify-center flex-1 py-3 min-h-[56px] touch-feedback"
-                aria-label={item.label}
-              >
-                {/* Icon */}
-                <motion.div
-                  animate={active ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                >
-                  <Icon
-                    className={`w-[22px] h-[22px] transition-colors duration-150 ${
-                      active
-                        ? 'text-[#020b00] dark:text-[#d3da0c]'
-                        : 'text-[#020b00]/60 dark:text-white/35'
-                    }`}
-                    strokeWidth={active ? 2.5 : 1.75}
-                  />
-                </motion.div>
-
-                {/* Label - always visible */}
-                <span
-                  className={`text-[10px] font-medium mt-1 transition-colors duration-150 ${
-                    active
-                      ? 'text-[#020b00] dark:text-[#d3da0c] font-semibold'
-                      : 'text-[#020b00]/60 dark:text-white/35'
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Spacer */}
-      <div className="h-20" />
+      {/* Spacer so page content at bottom is not obscured by the floating nav bar */}
+      <div className="h-24 pointer-events-none" />
     </>
   );
 };

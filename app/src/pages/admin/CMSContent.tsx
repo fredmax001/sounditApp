@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
@@ -149,10 +150,7 @@ const CMSContent = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.cmsContent.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.cmsContent.subtitle')}</p>
-        </div>
+        <AdminPageHeader chip="Content" title={t('admin.cmsContent.title')} subtitle={t('admin.cmsContent.subtitle')} />
         {activeTab === 'pages' && (
           <button
             onClick={() => {

@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { Share as CapShare } from '@capacitor/share';
 import { toast } from 'sonner';
+import { useThemeStore } from '@/store/themeStore';
 import {
   X,
   Copy,
   Share2,
   Download,
-  Sparkles,
   QrCode,
   Calendar,
   MapPin,
@@ -25,10 +25,12 @@ import {
   TikTokIcon,
   RedNoteIcon
 } from './SocialMediaIcons';
+import { slugify } from '@/lib/slug';
 
 export interface ShareableItem {
   type: 'event' | 'artist' | 'vendor' | 'business' | 'user';
   id: string | number;
+  slug?: string;
   title: string;
   subtitle?: string;
   image?: string;
@@ -57,6 +59,7 @@ export default function UniversalShareModal({
   item
 }: UniversalShareModalProps) {
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
   const [copied, setCopied] = useState(false);
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   const [activeTab, setActiveTab] = useState<'quick' | 'poster'>('quick');
@@ -65,7 +68,7 @@ export default function UniversalShareModal({
   
   // Resolve image URL cleanly
   const resolveImageUrl = (imgUrl?: string) => {
-    if (!imgUrl) return '/logo.png';
+    if (!imgUrl) return isDark ? '/brand-logo-dark.png' : '/brand-logo-light.png';
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://') || imgUrl.startsWith('data:')) {
       return imgUrl;
     }
@@ -75,18 +78,19 @@ export default function UniversalShareModal({
 
   // Construct canonical route URL based on item type
   const getItemPath = () => {
+    const slug = item.slug || slugify(item.title) || item.id;
     switch (item.type) {
       case 'event':
-        return `/events/${item.id}`;
+        return `/events/${item.id || slug}`;
       case 'artist':
-        return `/artists/${item.id}`;
+        return `/artists/${slug}`;
       case 'vendor':
-        return `/vendors/${item.id}`;
+        return `/vendors/${slug}`;
       case 'business':
       case 'user':
-        return `/profiles/${item.id}`;
+        return `/profiles/${slug}`;
       default:
-        return `/events/${item.id}`;
+        return `/events/${slug}`;
     }
   };
 
@@ -206,15 +210,6 @@ export default function UniversalShareModal({
         ? item.description.replace(/<[^>]*>/g, '').trim()
         : '';
 
-      // Top Sound It Header Brand Bar
-      ctx.fillStyle = '#d3da0c';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText('SOUND IT', 80, 100);
-
-      ctx.fillStyle = '#888888';
-      ctx.font = '24px sans-serif';
-      ctx.fillText('• ENTERTAINMENT PLATFORM', 270, 100);
-
       // Robust Image Loader (Tries CORS anonymous first, then fallback without crossOrigin)
       const loadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
@@ -230,6 +225,29 @@ export default function UniversalShareModal({
           img.src = src;
         });
       };
+
+      // Top Sound It Header Brand Bar with official logo image
+      try {
+        const logoImg = await loadImage('/brand-logo-dark.png');
+        ctx.drawImage(logoImg, 80, 50, 205, 90);
+      } catch {
+        ctx.fillStyle = '#d3da0c';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.fillText('SOUND IT', 80, 100);
+      }
+
+      // Top-Right Official VIP Pass Badge
+      ctx.fillStyle = 'rgba(211, 218, 12, 0.12)';
+      ctx.beginPath();
+      ctx.roundRect(740, 68, 260, 48, 24);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(211, 218, 12, 0.45)';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = '#d3da0c';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('OFFICIAL SOUND IT PASS', 762, 98);
 
       // Draw Main Avatar / Image Section on Poster
       const isProfileType = item.type === 'artist' || item.type === 'user' || item.type === 'vendor' || item.type === 'business';
@@ -552,7 +570,6 @@ export default function UniversalShareModal({
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#171717]">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#d3da0c]" />
               <h3 className="text-base sm:text-lg font-bold text-white truncate max-w-[280px]">
                 {t('common.shareItemTitle', { title: item.title, defaultValue: `Share ${item.title}` })}
               </h3>
@@ -599,7 +616,7 @@ export default function UniversalShareModal({
                       src={displayImage}
                       alt={item.title}
                       className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = isDark ? '/brand-logo-dark.png' : '/brand-logo-light.png'; }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -725,30 +742,39 @@ export default function UniversalShareModal({
             {activeTab === 'poster' && (
               <div className="space-y-4">
                 {/* Visual Poster Preview Card */}
-                <div className="relative bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-white/10 rounded-2xl overflow-hidden p-4 shadow-xl">
+                <div className="relative bg-gradient-to-br from-[#181818] via-[#101010] to-[#080808] border border-[#d3da0c]/30 rounded-2xl overflow-hidden p-4 shadow-[0_0_35px_rgba(0,0,0,0.8)]">
+                  {/* Neon top accent line */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d3da0c] to-transparent opacity-80" />
+
                   {/* Poster Header */}
-                  <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
+                  <div className="flex items-center justify-between mb-3.5 border-b border-white/8 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <img src="/logo.png" alt="Sound It" className="h-5 w-auto" />
-                      <span className="text-[11px] font-bold tracking-wider text-[#d3da0c] uppercase">SOUND IT PLATFORM</span>
+                      <img
+                        src={isDark ? "/brand-logo-dark.png" : "/brand-logo-light.png"}
+                        alt="Sound It"
+                        className="h-6 w-auto object-contain drop-shadow-[0_0_10px_rgba(211,218,12,0.3)]"
+                      />
                     </div>
-                    <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-medium rounded-full uppercase">
-                      {item.type}
+                    <span className="px-2.5 py-0.5 bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                      OFFICIAL {item.type}
                     </span>
                   </div>
 
                   {/* Poster Image / Avatar Container */}
-                  <div className="relative rounded-xl overflow-hidden mb-3 border border-white/10 bg-black/60 flex items-center justify-center min-h-[180px]">
+                  <div className="relative rounded-xl overflow-hidden mb-3 border border-white/10 bg-black/80 flex items-center justify-center min-h-[190px]">
                     <img
                       src={displayImage}
                       alt={item.title}
-                      className={`object-cover ${item.type === 'event' ? 'w-full h-48' : 'w-36 h-36 rounded-2xl my-3 shadow-2xl border-2 border-[#d3da0c]/40'}`}
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+                      className={`object-cover ${item.type === 'event' ? 'w-full h-48' : 'w-36 h-36 rounded-2xl my-3 shadow-[0_0_25px_rgba(211,218,12,0.35)] border-2 border-[#d3da0c]'}`}
+                      onError={(e) => { (e.target as HTMLImageElement).src = isDark ? '/brand-logo-dark.png' : '/brand-logo-light.png'; }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
                       <div>
-                        <h3 className="text-base font-bold text-white line-clamp-1">{item.title}</h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-base font-bold text-white line-clamp-1">{item.title}</h3>
+                          <span className="w-4 h-4 rounded-full bg-[#d3da0c] text-black text-[10px] font-black flex items-center justify-center">✓</span>
+                        </div>
                         {item.subtitle && <p className="text-xs text-gray-300 line-clamp-1">{item.subtitle}</p>}
                       </div>
                     </div>

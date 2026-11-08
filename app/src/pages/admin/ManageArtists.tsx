@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
-  Music, Search, Check, Trash2, Loader2, Users, Calendar, Sparkles, XCircle, Lock, Unlock
+  Music, Search, Check, Trash2, Loader2, Users, Calendar, XCircle, Lock, Unlock, Eye, MapPin
 } from 'lucide-react';
+import EntityDetailModal from '@/components/admin/EntityDetailModal';
 
 interface Artist {
   id: number;
   stage_name?: string;
   genre?: string;
+  city?: string;
   is_verified?: boolean;
   is_approved?: boolean;
   verification_badge?: boolean;
@@ -29,7 +32,15 @@ const ManageArtists = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedArtistId, setSelectedArtistId] = useState<string | number | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewArtistCard = (artistId: string | number) => {
+    setSelectedArtistId(artistId);
+    setIsDetailModalOpen(true);
+  };
 
   useEffect(() => {
     loadArtists();
@@ -218,21 +229,20 @@ const ManageArtists = () => {
   const filteredArtists = artists.filter(artist => {
     const matchesSearch = !searchQuery || 
       artist.stage_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      artist.genre?.toLowerCase().includes(searchQuery.toLowerCase());
+      artist.genre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      artist.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      artist.city?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre = !genreFilter || artist.genre === genreFilter;
-    return matchesSearch && matchesGenre;
+    const matchesCity = !cityFilter || artist.city?.toLowerCase() === cityFilter.toLowerCase();
+    return matchesSearch && matchesGenre && matchesCity;
   });
 
   const genres = [...new Set(artists.map(a => a.genre).filter(Boolean))];
+  const artistCities = [...new Set(artists.map(a => a.city).filter(Boolean))] as string[];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageArtists.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageArtists.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="Management" title={t('admin.manageArtists.title')} subtitle={t('admin.manageArtists.subtitle')} />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -301,9 +311,6 @@ const ManageArtists = () => {
         </div>
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 rounded-xl">
-              <Sparkles className="w-5 h-5" />
-            </div>
             <div>
               <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageArtists.featured')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
@@ -334,6 +341,18 @@ const ManageArtists = () => {
           <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageArtists.allGenres')}</option>
           {genres.map(g => <option key={g} value={g} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{g}</option>)}
         </select>
+        <select
+          value={cityFilter}
+          onChange={(e) => setCityFilter(e.target.value)}
+          className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+        >
+          <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">All Cities</option>
+          {artistCities.map(c => (
+            <option key={c} value={c} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
+              {c.charAt(0).toUpperCase() + c.slice(1)}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Artists Table */}
@@ -358,13 +377,28 @@ const ManageArtists = () => {
               {filteredArtists.map((artist) => (
                 <tr key={artist.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div 
+                      onClick={() => handleViewArtistCard(artist.id)}
+                      className="flex items-center gap-3 cursor-pointer group"
+                      title="Click to view artist card"
+                    >
+                      <div className="w-10 h-10 bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30 rounded-full flex items-center justify-center font-bold group-hover:ring-2 group-hover:ring-[#d3da0c] transition-all">
                         {artist.stage_name?.[0] || 'A'}
                       </div>
                       <div>
-                        <p className="text-[#020b00] dark:text-white font-medium">{artist.stage_name}</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">{artist.user_name}</p>
+                        <p className="text-[#020b00] dark:text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                          {artist.stage_name}
+                          <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1.5 flex-wrap">
+                          <span>{artist.user_name}</span>
+                          {artist.city && (
+                            <span className="inline-flex items-center gap-0.5 text-[11px] text-[#020b00] dark:text-[#d3da0c] font-medium bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                              <MapPin className="w-2.5 h-2.5" />
+                              {artist.city.charAt(0).toUpperCase() + artist.city.slice(1)}
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -397,6 +431,13 @@ const ManageArtists = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleViewArtistCard(artist.id)}
+                        className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-[#d3da0c] transition-colors"
+                        title="View Artist Card & Performance"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!artist.is_verified ? (
                         <button
                           onClick={() => handleVerify(artist.id)}
@@ -438,10 +479,10 @@ const ManageArtists = () => {
                       <button
                         onClick={() => handleFeature(artist.id)}
                         disabled={actionLoading === `feature-${artist.id}`}
-                        className={`p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${artist.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
+                        className={`px-2 py-1 text-xs font-medium hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${artist.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
                         title={artist.is_featured ? t('admin.manageArtists.unfeature') : t('admin.manageArtists.feature')}
                       >
-                        {actionLoading === `feature-${artist.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {actionLoading === `feature-${artist.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : (artist.is_featured ? 'Featured' : 'Feature')}
                       </button>
                       {artist.status === 'suspended' ? (
                         <button
@@ -478,6 +519,17 @@ const ManageArtists = () => {
           </table>
         )}
       </div>
+      {/* Artist Detail Modal */}
+      <EntityDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedArtistId(null);
+        }}
+        type="artist"
+        entityId={selectedArtistId}
+        onUpdated={loadArtists}
+      />
     </div>
   );
 };

@@ -55,6 +55,7 @@ const formatErrorMessage = (error: unknown): string => {
 // ============================================
 export interface Event {
   id: string;
+  slug?: string;
   title: string;
   title_cn?: string;
   description: string;
@@ -62,9 +63,14 @@ export interface Event {
   start_date: string;
   end_date?: string;
   city: string;
+  city_name?: string;
+  venue_name?: string;
   address?: string;
   flyer_image: string;
+  banner_url?: string;
+  cover_image?: string;
   gallery_images?: string[];
+  photo_album_url?: string;
   capacity?: number;
   tickets_sold: number;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'live';
@@ -98,6 +104,7 @@ export interface Event {
 export interface EventWithDetails extends Event {
   business?: {
     id: string;
+    slug?: string;
     business_name: string;
     logo_url?: string;
     verified: boolean;
@@ -181,6 +188,8 @@ export interface CreateEventData {
   start_date: string;
   city: string;
   flyer_image: string;
+  gallery_images?: string[];
+  photo_album_url?: string;
   business_id: string;
   venue_id?: string;
   capacity?: number;
@@ -211,7 +220,7 @@ export const useEventStore = create<EventState>((set, get) => ({
 
     try {
       const params: Record<string, unknown> = {};
-      if (filters?.city) params.city = filters.city;
+      if (filters?.city && filters.city !== 'all') params.city = filters.city;
       if (filters?.startDate) params.date_from = filters.startDate;
       if (filters?.endDate) params.date_to = filters.endDate;
       if (filters?.status) params.status = filters.status;
@@ -252,7 +261,7 @@ export const useEventStore = create<EventState>((set, get) => ({
 
     try {
       const params: Record<string, unknown> = {};
-      if (city) params.city = city;
+      if (city && city !== 'all') params.city = city;
 
       const response = await axios.get(`${API_URL}/events/featured`, { params });
       set({ featuredEvents: response.data || [], isLoading: false });
@@ -267,7 +276,7 @@ export const useEventStore = create<EventState>((set, get) => ({
 
     try {
       const params: Record<string, unknown> = {};
-      if (city) params.city = city;
+      if (city && city !== 'all') params.city = city;
 
       const response = await axios.get(`${API_URL}/events/past`, { params });
       set({ events: response.data || [], isLoading: false });

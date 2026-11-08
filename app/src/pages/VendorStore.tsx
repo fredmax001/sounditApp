@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useVendorMarketplaceStore } from '@/store/vendorMarketplaceStore';
 import ProductCard from '@/components/ProductCard';
 import VendorCart from '@/components/VendorCart';
+import { slugify } from '@/lib/slug';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -24,6 +25,7 @@ interface Product {
 
 interface Vendor {
     id: number;
+    slug?: string;
     business_name: string;
     description?: string;
     vendor_type?: string;
@@ -59,6 +61,10 @@ export default function VendorStore() {
                 if (res.ok) {
                     const data = await res.json();
                     setVendor(data);
+                    const canonicalSlug = data.slug || slugify(data.business_name);
+                    if (canonicalSlug && vendorId !== canonicalSlug) {
+                        window.history.replaceState(null, '', `/vendor-store/${canonicalSlug}`);
+                    }
                 }
             } catch {
                 // silent

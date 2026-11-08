@@ -1197,3 +1197,43 @@ html.light {
     filter: none !important;
   }
 }
+
+/* ============================================
+   Native App Feel (iOS/Android/PWA)
+   ============================================ */
+
+/* Kill double-tap-zoom delay globally → taps feel instant like native */
+html {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* No pull-to-refresh glow / overscroll bounce at document level */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* No iOS long-press callout (copy/paste magnifier) or link preview on UI chrome…
+   but keep text selectable inside real inputs */
+button, a, [role="button"], label, select, .mobile-bottom-nav, header, nav {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* No image drag ghosts */
+img, video, svg {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* Native apps don't show focus rings on touch; keep them for keyboards */
+@media (hover: none) and (pointer: coarse) {
+  *:focus:not(input):not(textarea):not(select) {
+    outline: none;
+  }
+}

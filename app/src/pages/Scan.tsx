@@ -78,13 +78,24 @@ const ScanPage = () => {
 
   // Start camera scanner
   const startScanner = useCallback(async () => {
+    setIsScanning(false);
     if (html5QrCodeRef.current) {
       try {
         await html5QrCodeRef.current.stop();
       } catch {
         // ignore
       }
+      try {
+        await html5QrCodeRef.current.clear();
+      } catch {
+        // ignore
+      }
       html5QrCodeRef.current = null;
+    }
+
+    const containerEl = document.getElementById('scan-video-container');
+    if (containerEl) {
+      containerEl.innerHTML = '';
     }
 
     setCameraError(null);
@@ -96,7 +107,10 @@ const ScanPage = () => {
 
       await scanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        {
+          fps: 15,
+          aspectRatio: 1.0,
+        },
         (decodedText) => {
           // QR code successfully decoded
           handleScan(decodedText);
@@ -105,6 +119,21 @@ const ScanPage = () => {
           // No QR found in frame - ignore
         }
       );
+
+      // Ensure video stream is actively playing before showing scan frame
+      const videoEl = document.querySelector('#scan-video-container video') as HTMLVideoElement | null;
+      if (videoEl && videoEl.readyState < 2) {
+        await new Promise<void>((resolve) => {
+          const onReady = () => {
+            videoEl.removeEventListener('loadeddata', onReady);
+            videoEl.removeEventListener('playing', onReady);
+            resolve();
+          };
+          videoEl.addEventListener('loadeddata', onReady, { once: true });
+          videoEl.addEventListener('playing', onReady, { once: true });
+          setTimeout(onReady, 300);
+        });
+      }
 
       setIsScanning(true);
       setHasCamera(true);
@@ -226,18 +255,26 @@ const ScanPage = () => {
 
   const toggleFlashlight = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as unknown as { torch?: boolean };
-
-      if (capabilities.torch) {
-        await track.applyConstraints({ advanced: [{ torch: !flashlightOn }] } as unknown);
+      const scanner = html5QrCodeRef.current as any;
+      if (scanner && typeof scanner.applyVideoConstraints === 'function') {
+        await scanner.applyVideoConstraints({
+          advanced: [{ torch: !flashlightOn }],
+        });
         setFlashlightOn(!flashlightOn);
-      } else {
-        toast.error(t('scan.flashlightNotAvailable') || 'Flashlight not available');
+        return;
       }
-      // Stop the temporary stream
-      stream.getTracks().forEach((t) => t.stop());
+      const videoEl = document.querySelector('#scan-video-container video') as HTMLVideoElement | null;
+      const mediaStream = videoEl?.srcObject as MediaStream | null;
+      const track = mediaStream?.getVideoTracks?.()?.[0];
+      if (track) {
+        const capabilities = (track.getCapabilities?.() || {}) as { torch?: boolean };
+        if (capabilities.torch) {
+          await track.applyConstraints({ advanced: [{ torch: !flashlightOn }] } as any);
+          setFlashlightOn(!flashlightOn);
+          return;
+        }
+      }
+      toast.error(t('scan.flashlightNotAvailable') || 'Flashlight not available');
     } catch {
       toast.error(t('scan.flashlightNotAvailable') || 'Flashlight not available');
     }
@@ -400,39 +437,47 @@ const ScanPage = () => {
                 </div>
               )}
 
-              {/* Scanner Viewport */}
-              <div className="flex-1 relative bg-black">
-                <div
-                  ref={videoContainerRef}
-                  id="scan-video-container"
-                  className="w-full h-full"
-                />
+              {/* Scanner Viewport — Single Centered Square Box */}
+              <div className="flex-1 flex flex-col items-center justify-center bg-black px-6 py-4">
+                <p className="text-white/80 text-sm font-medium mb-5 text-center">
+                  {t('scan.positionQR') === 'Position Q R'
+                    ? 'Point camera at ticket QR code'
+                    : t('scan.positionQR') || 'Point camera at ticket QR code'}
+                </p>
 
-                {/* Scan Frame Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="relative w-64 h-64">
-                    {/* Corner markers */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-[#d3da0c]" />
-                    <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-[#d3da0c]" />
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-[#d3da0c]" />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-[#d3da0c]" />
+                <div className="relative w-72 h-72 sm:w-80 sm:h-80 aspect-square rounded-2xl overflow-hidden bg-[#0a0a0a] shadow-2xl">
+                  <div
+                    ref={videoContainerRef}
+                    id="scan-video-container"
+                    className="w-full h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover [&_#qr-shaded-region]:!hidden"
+                  />
 
-                    {/* Scan line animation */}
+                  {/* Camera initializing state before stream is ready */}
+                  {!isScanning && !cameraError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10">
+                      <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin mb-3" />
+                      <span className="text-xs text-gray-400 font-medium">
+                        {t('organizer.scanner.startingCamera') || 'Starting camera...'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Single aligned scan frame overlay */}
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    <div className="absolute top-0 left-0 w-9 h-9 border-l-4 border-t-4 border-[#d3da0c] rounded-tl-2xl" />
+                    <div className="absolute top-0 right-0 w-9 h-9 border-r-4 border-t-4 border-[#d3da0c] rounded-tr-2xl" />
+                    <div className="absolute bottom-0 left-0 w-9 h-9 border-l-4 border-b-4 border-[#d3da0c] rounded-bl-2xl" />
+                    <div className="absolute bottom-0 right-0 w-9 h-9 border-r-4 border-b-4 border-[#d3da0c] rounded-br-2xl" />
+
+                    {/* Scan line animation — only active once camera stream is playing */}
                     {isScanning && (
                       <motion.div
-                        animate={{ top: ['0%', '100%', '0%'] }}
+                        animate={{ top: ['4%', '96%', '4%'] }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                        className="absolute left-0 right-0 h-0.5 bg-[#d3da0c] shadow-[0_0_10px_#d3da0c]"
+                        className="absolute left-3 right-3 h-0.5 bg-[#d3da0c] shadow-[0_0_12px_#d3da0c]"
                       />
                     )}
                   </div>
-                </div>
-
-                {/* Top hint */}
-                <div className="absolute top-6 left-0 right-0 text-center pointer-events-none">
-                  <p className="text-white/70 text-sm font-medium">
-                    {t('scan.positionQR') || 'Point camera at ticket QR code'}
-                  </p>
                 </div>
               </div>
 

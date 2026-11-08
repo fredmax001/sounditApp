@@ -10,6 +10,11 @@ interface Product {
     description?: string;
     image_url?: string;
     stock_quantity?: number;
+    is_preorder_enabled?: boolean;
+    preorder_open_date?: string;
+    preorder_close_date?: string;
+    preorder_fulfilment_date?: string;
+    preorder_quantity?: number;
     status?: string;
     category?: string;
     is_featured?: boolean;
@@ -93,16 +98,27 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
                         <ImageOff className="w-10 h-10 text-gray-600" />
                     </div>
                 )}
-                {(isOutOfStock || isInactive) && (
+                {(isOutOfStock || isInactive) ? (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                         <span className="text-white font-bold text-sm px-3 py-1 bg-red-500/80 rounded-full">Out of Stock</span>
                     </div>
-                )}
+                ) : product.is_preorder_enabled ? (
+                    <div className="absolute top-2 left-2">
+                        <span className="text-black font-extrabold text-[10px] px-2.5 py-0.5 bg-[#d3da0c] rounded-full shadow-md">
+                            PREORDER
+                        </span>
+                    </div>
+                ) : null}
             </div>
             <div className="p-4">
                 <h3 className="text-white font-semibold truncate">{product.name}</h3>
                 {vendorName && (
                     <p className="text-gray-500 text-xs mt-0.5">{vendorName}</p>
+                )}
+                {product.is_preorder_enabled && product.preorder_fulfilment_date && (
+                    <p className="text-[#d3da0c] text-[11px] font-medium mt-1">
+                        Est. Collection: {product.preorder_fulfilment_date}
+                    </p>
                 )}
                 {product.description && (
                     <p className="text-gray-400 text-sm mt-1 line-clamp-2">{product.description}</p>
@@ -137,7 +153,7 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
                                     : 'bg-[#d3da0c] text-black hover:bg-[#c4cb0b]'
                             }`}
                         >
-                            {added ? 'Added' : 'Add'}
+                            {added ? 'Added' : product.is_preorder_enabled ? 'Preorder' : 'Add'}
                         </motion.button>
                     </div>
                 </div>

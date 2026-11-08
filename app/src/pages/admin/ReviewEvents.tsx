@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import {
     CheckCircle2,
     XCircle,
@@ -220,10 +221,7 @@ const ReviewEvents = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.reviewEvents.title')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('admin.reviewEvents.subtitle')}</p>
-                </div>
+                <AdminPageHeader chip="Management" title={t('admin.reviewEvents.title')} subtitle={t('admin.reviewEvents.subtitle')} />
                 <div className="flex items-center gap-3">
                     <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-blue-500 dark:text-blue-400" />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
@@ -150,12 +151,7 @@ const ManageEvents = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageEvents.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageEvents.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="Management" title={t('admin.manageEvents.title')} subtitle={t('admin.manageEvents.subtitle')} />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

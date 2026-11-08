@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share, PlusSquare, Check } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 
 const STORAGE_KEY = 'soundit_pwa_prompt_dismissed_v2';
 
@@ -83,7 +84,21 @@ export default function PWAInstallPrompt() {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
-    // Only show on iOS, not in standalone mode, and if not previously dismissed
+    // Never show on native iOS / Android apps (Capacitor)
+    if (
+      Capacitor.isNativePlatform() ||
+      (window as any).__capacitor?.isNativePlatform?.() === true ||
+      (window as any).Capacitor?.isNativePlatform?.() === true ||
+      (window as any).Capacitor?.getPlatform?.() === 'ios' ||
+      (window as any).Capacitor?.getPlatform?.() === 'android'
+    ) {
+      return;
+    }
+
+    // PWA pop-up should only show for PWA on mobile layout (< 768px)
+    if (window.innerWidth >= 768) return;
+
+    // Only show on iOS web, not in standalone mode, and if not previously dismissed
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (!dismissed && isIOS() && !isStandalone()) {
       const timer = setTimeout(() => setVisible(true), 2000);
@@ -158,7 +173,7 @@ export default function PWAInstallPrompt() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.15 }}
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#d3da0c] to-[#FF2D8F] flex items-center justify-center shadow-lg shadow-[#d3da0c]/20 mb-5"
+                  className="w-20 h-20 rounded-2xl bg-[#d3da0c] flex items-center justify-center shadow-lg shadow-[#d3da0c]/20 mb-5"
                 >
                   <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="5,3 19,12 5,21 5,3" />

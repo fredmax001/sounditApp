@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
@@ -116,10 +117,7 @@ const ManageCommunityPosts = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageCommunityPosts.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageCommunityPosts.subtitle')}</p>
-        </div>
+        <AdminPageHeader chip="Community" title={t('admin.manageCommunityPosts.title')} subtitle={t('admin.manageCommunityPosts.subtitle')} />
         <div className="flex bg-neutral-100 dark:bg-white/5 border border-black/5 dark:border-white/10 p-1 rounded-xl w-fit">
           {[
             { id: 'metrics', label: t('admin.communityMetrics.tabMetrics'), path: '/admin/community' },

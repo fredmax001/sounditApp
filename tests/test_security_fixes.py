@@ -186,7 +186,8 @@ def test_ticket_race_condition_protection(db_session):
         title="Test Event",
         description="Test",
         start_date=datetime.utcnow(),
-        location="Test Venue",
+        address="Test Venue",
+        city="shanghai",
         tickets_sold=0
     )
     db_session.add(event)

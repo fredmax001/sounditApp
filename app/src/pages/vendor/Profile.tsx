@@ -246,7 +246,7 @@ const VendorProfile = () => {
         className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden shadow-xs dark:shadow-none"
       >
         {/* Vendor Cover / Background Image Banner */}
-        <div className="relative h-44 sm:h-52 overflow-hidden bg-gradient-to-r from-[#d3da0c]/20 via-[#FF2D8F]/15 to-[#020b00] border-b border-black/10 dark:border-white/10">
+        <div className="relative h-44 sm:h-52 overflow-hidden bg-gradient-to-r from-[#d3da0c]/20 via-transparent to-[#020b00] border-b border-black/10 dark:border-white/10">
           {bannerPreview ? (
             <img src={bannerPreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : profileLogoPreview ? (
@@ -400,7 +400,7 @@ const VendorProfile = () => {
                   className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white focus:border-[#d3da0c] outline-hidden"
                 >
                   <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Select city</option>
-                  {chinaCities.map((city) => (
+                  {chinaCities.filter(c => c.id !== 'all').map((city) => (
                     <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
                       {city.name}
                     </option>

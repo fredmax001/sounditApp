@@ -15,6 +15,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Camera,
   Handshake,
   Mic2,
@@ -25,18 +26,24 @@ import {
   Palette,
   PartyPopper,
   Radio,
-  Sparkles,
   Headphones,
   Disc3,
   Store,
+  Play,
+  Plus,
+  MoreHorizontal,
+  Search,
+  Sparkles,
+  X,
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
+import { getEntitySlug } from '@/lib/slug';
+import { chinaCities } from '@/data/constants';
 import EventCard from '@/components/EventCard';
 import ArtistCard from '@/components/ArtistCard';
 import AdBanner from '@/components/AdBanner';
-import MobileHeroCarousel from '@/components/ui/MobileHeroCarousel';
 import MobileEventCard from '@/components/ui/MobileEventCard';
 import MobileListRow from '@/components/ui/MobileListRow';
 import MobileSectionHeader from '@/components/ui/MobileSectionHeader';
@@ -111,6 +118,34 @@ const Home = () => {
     artists: 0,
   });
 
+  const [trendingReels, setTrendingReels] = useState<Array<{
+    id: number;
+    title?: string;
+    caption?: string;
+    thumbnail_url?: string;
+    video_url?: string;
+    likes_count?: number;
+    author?: { name?: string; username?: string; avatar_url?: string };
+  }>>([]);
+  const [activeStoryPreview, setActiveStoryPreview] = useState<{
+    title: string;
+    image: string;
+    subtitle: string;
+    ctaPath: string;
+    ctaLabel: string;
+  } | null>(null);
+
+  const fetchTrendingReels = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/reels`, { params: { limit: 8 } });
+      if (Array.isArray(data) && data.length > 0) {
+        setTrendingReels(data);
+      }
+    } catch {
+      // Fallback handled in render
+    }
+  }, []);
+
   const fetchDJs = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_URL}/artists/featured`);
@@ -139,7 +174,7 @@ const Home = () => {
 
   const fetchCityGuideCounts = useCallback(async () => {
     try {
-      const city = selectedCity || profile?.city?.name || 'Shanghai';
+      const city = selectedCity && selectedCity !== 'all' ? selectedCity : 'all';
       const { data } = await axios.get(`${API_URL}/cities/${encodeURIComponent(city)}/guide`);
       if (data) {
         setCityGuideCounts({
@@ -153,14 +188,15 @@ const Home = () => {
     } catch (e) {
       console.error('Failed to fetch city guide counts:', e);
     }
-  }, [selectedCity, profile?.city?.name]);
+  }, [selectedCity]);
 
   useEffect(() => {
-    fetchFeaturedEvents(selectedCity || undefined);
+    fetchFeaturedEvents(selectedCity && selectedCity !== 'all' ? selectedCity : undefined);
     fetchDJs();
     fetchPlatformStats();
     fetchCityGuideCounts();
-  }, [fetchFeaturedEvents, selectedCity, fetchDJs, fetchPlatformStats, fetchCityGuideCounts]);
+    fetchTrendingReels();
+  }, [fetchFeaturedEvents, selectedCity, fetchDJs, fetchPlatformStats, fetchCityGuideCounts, fetchTrendingReels]);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,7 +204,7 @@ const Home = () => {
       setPastEventsLoading(true);
       try {
         const { data } = await axios.get(`${API_URL}/events/past`, {
-          params: selectedCity ? { city: selectedCity } : undefined,
+          params: selectedCity && selectedCity !== 'all' ? { city: selectedCity } : undefined,
         });
         if (!cancelled) setPastEvents(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -182,7 +218,7 @@ const Home = () => {
     return () => { cancelled = true; };
   }, [selectedCity]);
 
-  const userCity = selectedCity || profile?.city?.name || 'China';
+  const userCity = selectedCity && selectedCity !== 'all' ? (chinaCities.find(c => c.id === selectedCity)?.name || selectedCity) : 'China';
 
   const heroRef = useRef<HTMLDivElement>(null);
   const upcomingScrollRef = useRef<HTMLDivElement>(null);
@@ -292,7 +328,7 @@ const Home = () => {
     {
       name: 'Sound It DJ',
       tagline: 'Professional DJ Library & Mix Intelligence',
-      description: 'Import, analyze, and export your music across all DJ platforms. AI-powered mix analysis, visualizer creation, and USB export for CDJs.',
+      description: 'Import, analyze, and export your music across all DJ platforms. Mix analysis, visualizer creation, and USB export for CDJs.',
       url: 'https://sounditdj.cloud/',
       domain: 'sounditdj.cloud',
       screenshot: '/web-hero/site-sounditdj.png',
@@ -411,35 +447,326 @@ const Home = () => {
     <div className="relative">
 
       {/* ==================== MOBILE HOME (hidden on desktop) ==================== */}
-      <section className="md:hidden pt-16 pb-2">
-        {/* Greeting + headline */}
-        <div className="px-4 mb-4">
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            {t(greetingKey)}{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
-          </p>
-          <h1 className="text-[#020b00] dark:text-white font-display font-bold text-[28px] leading-tight">
-            {t('home.headlineFind', 'Find your next')}{' '}
-            <span className="text-[#d3da0c]">{t('home.headlineExperience', 'experience')}</span>
+      <section className="md:hidden pt-1 pb-4">
+        {/* Headline matching reference visual */}
+        <div className="px-4 mb-3">
+          {profile?.first_name && (
+            <p className="text-gray-600 dark:text-gray-400 text-xs font-medium mb-0.5">
+              {t(greetingKey)}, {profile.first_name}
+            </p>
+          )}
+          <h1 className="text-[#020b00] dark:text-white font-display font-extrabold text-[22px] tracking-tight leading-tight uppercase">
+            {t('home.headlineFind', 'FIND YOUR NEXT')}{' '}
+            <span className="text-[#9fa505] dark:text-[#d3da0c]">{t('home.headlineExperience', 'EXPERIENCE')}</span>
           </h1>
         </div>
 
-        {/* Search bar */}
-        <div className="px-4 mb-4">
-          <div className="flex items-center gap-2.5 h-11 px-3.5 bg-neutral-100 dark:bg-[#1A1A1A] border border-black/8 dark:border-white/8 rounded-2xl shadow-xs">
-            <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        {/* Search bar + Location Filter */}
+        <div className="px-4 mb-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            className="flex-1 min-w-0 flex items-center gap-2.5 h-11 px-3.5 bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 rounded-xl shadow-xs text-left active:scale-[0.99] transition-transform"
+          >
+            <Search className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span className="flex-1 text-gray-500 dark:text-gray-400 text-sm truncate">
+              {t('home.searchPlaceholder', 'Search events, artists, venues...')}
+            </span>
+          </button>
+
+          {/* Location / City Filter (moved from top-left header) */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-city-picker'))}
+            aria-label="Filter by location"
+            className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 text-xs font-bold text-[#020b00] dark:text-white shrink-0 active:scale-95 transition-transform shadow-xs cursor-pointer"
+          >
+            <MapPin className="w-3.5 h-3.5 text-[#d3da0c] shrink-0" />
+            <span className="max-w-[75px] truncate">
+              {(chinaCities.find((c) => c.id === selectedCity) || chinaCities[0]).name.split(' ')[0]}
+            </span>
+            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
+          </button>
+        </div>
+
+        {/* Stories & Quick Discovery Circles Row */}
+        <div className="px-4 mb-5">
+          <div className="flex items-center justify-between gap-2 overflow-x-auto hide-scrollbar pb-1">
+            {/* Your Story */}
+            <button
+              type="button"
+              onClick={() =>
+                setActiveStoryPreview({
+                  title: profile?.first_name ? `${profile.first_name}'s Story` : 'Sound It Stories',
+                  image: featuredEvents[0]?.banner_url || featuredEvents[0]?.cover_image || '/web-hero/C48A0758.jpg',
+                  subtitle: 'Share your nightlife moments & event recaps with the Sound It community.',
+                  ctaPath: '/reels',
+                  ctaLabel: 'Post a Reel or Story',
+                })
+              }
+              className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
+            >
+              <div className="relative w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] to-[#65a30d]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
+                  <img
+                    src={profile?.avatar_url || '/web-hero/C48A0758.jpg'}
+                    alt="Your Story"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#d3da0c] text-black flex items-center justify-center border border-white dark:border-[#020b00]">
+                  <Plus className="w-2.5 h-2.5 stroke-[3]" />
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Your Story</span>
+            </button>
+
+            {/* Events Story Circle */}
             <button
               type="button"
               onClick={() => navigate('/events')}
-              className="flex-1 bg-transparent text-left text-gray-500 dark:text-gray-600 text-base focus:outline-none cursor-pointer"
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
             >
-              {t('home.searchPlaceholder', 'Search events, artists, venues...')}
+              <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
+                  <img
+                    src={featuredEvents[0]?.banner_url || featuredEvents[0]?.cover_image || '/web-hero/C48A0775.jpg'}
+                    alt="Events"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Events</span>
+            </button>
+
+            {/* Artists Story Circle */}
+            <button
+              type="button"
+              onClick={() => navigate('/discovery?tab=artists')}
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
+            >
+              <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
+                  <img
+                    src={featuredDJs[0]?.avatar_url || '/web-hero/C48A0916.jpg'}
+                    alt="Artists"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Artists</span>
+            </button>
+
+            {/* Venues Story Circle */}
+            <button
+              type="button"
+              onClick={() => navigate('/discovery?tab=venues')}
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
+            >
+              <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
+                  <img
+                    src="/web-hero/C48A0889.jpg"
+                    alt="Venues"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Venues</span>
+            </button>
+
+            {/* More Circle */}
+            <button
+              type="button"
+              onClick={() => navigate('/discovery')}
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
+            >
+              <div className="w-14 h-14 rounded-full p-[1.5px] bg-black/15 dark:bg-white/20">
+                <div className="w-full h-full rounded-full bg-neutral-100 dark:bg-[#0d140a] border-2 border-white dark:border-[#020b00] flex items-center justify-center text-[#020b00] dark:text-white">
+                  <MoreHorizontal className="w-5 h-5" />
+                </div>
+              </div>
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">More</span>
             </button>
           </div>
         </div>
 
-        {/* Filter pills (Date only, category row removed per user request) */}
+        {/* Primary Featured Event Hero Card (Matches Reference Visual) */}
+        {!isLoading && (
+          <div className="px-4 mb-5">
+            {(() => {
+              const heroEvent = filteredMobileEvents[0] || featuredEvents[0];
+              if (heroEvent) {
+                const heroSlug = getEntitySlug(heroEvent);
+                const eventDateStr = heroEvent.start_date
+                  ? new Date(heroEvent.start_date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : 'Upcoming';
+                const heroVenue = heroEvent.venue_name || heroEvent.city_name || userCity;
+                const heroImage =
+                  heroEvent.banner_url ||
+                  heroEvent.cover_image ||
+                  '/web-hero/C48A0775.jpg';
+
+                return (
+                  <div
+                    onClick={() => navigate(`/events/${heroSlug}`)}
+                    className="relative h-[205px] rounded-2xl overflow-hidden border border-white/10 shadow-xl cursor-pointer group active:scale-[0.99] transition-transform"
+                  >
+                    <img
+                      src={heroImage}
+                      alt={heroEvent.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-white font-display font-extrabold text-xl leading-tight truncate mb-1">
+                          {heroEvent.title}
+                        </h2>
+                        <div className="flex items-center gap-1.5 text-gray-300 text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-[#d3da0c] flex-shrink-0" />
+                          <span className="truncate">
+                            {eventDateStr} • {heroVenue}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/events/${heroSlug}`);
+                        }}
+                        className="flex-shrink-0 px-4 py-2 rounded-full bg-[#d3da0c] text-black font-extrabold text-xs shadow-lg active:scale-95 transition-transform"
+                      >
+                        Get Tickets
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              const latestRecap = pastEvents[0];
+              if (latestRecap) {
+                const recapSlug = getEntitySlug(latestRecap);
+                return (
+                  <div
+                    onClick={() => navigate(`/events/${recapSlug}`)}
+                    className="relative h-[205px] rounded-2xl overflow-hidden border border-white/10 shadow-xl cursor-pointer group active:scale-[0.99] transition-transform"
+                  >
+                    <img
+                      src={latestRecap.cover_image || latestRecap.banner_url || '/web-hero/C48A0775.jpg'}
+                      alt={latestRecap.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#d3da0c] text-[10px] font-extrabold uppercase mb-1">
+                          Featured Event
+                        </span>
+                        <h2 className="text-white font-display font-extrabold text-xl leading-tight truncate mb-1">
+                          {latestRecap.title}
+                        </h2>
+                        <div className="flex items-center gap-1.5 text-gray-300 text-xs">
+                          <Camera className="w-3.5 h-3.5 text-[#d3da0c] flex-shrink-0" />
+                          <span className="truncate">View Photos & Highlights</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/events/${recapSlug}`);
+                        }}
+                        className="flex-shrink-0 px-4 py-2 rounded-full bg-[#d3da0c] text-black font-extrabold text-xs shadow-lg active:scale-95 transition-transform"
+                      >
+                        View Event
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  onClick={() => navigate('/events')}
+                  className="relative h-[160px] rounded-2xl overflow-hidden border border-white/10 shadow-xl cursor-pointer flex flex-col justify-end p-5 bg-gradient-to-tr from-[#0a1207] via-[#111c0c] to-[#0a1207]"
+                >
+                  <div className="flex items-end justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-white font-display font-extrabold text-lg leading-tight truncate mb-1">
+                        Discover Events & Nightlife
+                      </h2>
+                      <p className="text-gray-400 text-xs">
+                        Stay tuned for upcoming parties, club nights and live performances.
+                      </p>
+                    </div>
+                    <span className="flex-shrink-0 px-3.5 py-1.5 rounded-full bg-[#d3da0c] text-black font-extrabold text-xs shadow-lg">
+                      Explore
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Loading skeleton for hero */}
+        {isLoading && (
+          <div className="mb-5 px-4">
+            <div className="h-[205px] rounded-2xl shimmer-glass" />
+          </div>
+        )}
+
+        {/* Trending Reels Section (Only shown when reels exist) */}
+        {trendingReels.length > 0 && (
+          <div className="mb-6">
+            <div className="px-4 mb-2.5 flex items-center justify-between">
+              <h2 className="text-[#020b00] dark:text-white font-bold text-base tracking-tight">Trending Reels</h2>
+              <button
+                type="button"
+                onClick={() => navigate('/reels')}
+                className="text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-[#d3da0c] p-1 transition-colors"
+                aria-label="View all reels"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-1">
+              {trendingReels.slice(0, 6).map((reel) => (
+                <button
+                  key={reel.id}
+                  type="button"
+                  onClick={() => navigate(`/reels?id=${reel.id}`)}
+                  className="relative w-28 h-40 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10 group active:scale-95 transition-transform text-left"
+                >
+                  <img
+                    src={reel.thumbnail_url || '/web-hero/C48A0758.jpg'}
+                    alt={reel.title || 'Reel'}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/15">
+                    <Play className="w-3 h-3 text-[#d3da0c] fill-[#d3da0c] ml-0.5" />
+                  </div>
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="text-[10px] font-bold text-[#d3da0c] truncate">
+                      @{reel.author?.username || 'soundit'}
+                    </p>
+                    <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">
+                      {reel.title || reel.caption || 'Watch Reel'}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Date Filter Pills */}
         <div className="mb-4">
           <MobileFilterPills
             activeDate={mobileDateFilter}
@@ -450,33 +777,14 @@ const Home = () => {
           />
         </div>
 
-        {/* Recommended - Hero Carousel */}
-        {!isLoading && mobileDateFilter !== 'past' && filteredMobileEvents.length > 0 && (
-          <div className="mb-6">
-            <MobileSectionHeader
-              title="Recommended"
-              seeAllPath="/events"
-              accentColor="#d3da0c"
-            />
-            <MobileHeroCarousel events={filteredMobileEvents} />
-          </div>
-        )}
-
-        {/* Loading skeleton for hero */}
-        {isLoading && (
-          <div className="mb-6 px-4">
-            <div className="h-[240px] rounded-2xl shimmer-glass" />
-          </div>
-        )}
-
         {/* Popular Events - horizontal scroll cards */}
         {!isLoading && mobileDateFilter === 'all' && featuredEvents.length > 0 && (
           <div className="mb-6">
             <MobileSectionHeader
               label="Hot this week"
-              title="Popular"
+              title="Popular Events"
               seeAllPath="/events"
-              accentColor="#FF2D8F"
+              accentColor="#d3da0c"
             />
             <div className="flex gap-3 overflow-x-auto hide-scrollbar pl-4 pr-4 pb-1">
               {featuredEvents.slice(0, 8).map((event) => (
@@ -491,14 +799,14 @@ const Home = () => {
           <div className="mb-6">
             <MobileSectionHeader
               label="Don't miss out"
-              title={mobileDateFilter === 'past' ? 'Past Events' : 'Upcoming Events'}
+              title={mobileDateFilter === 'past' ? 'Past Event Recaps' : 'Upcoming Events'}
               seeAllPath="/events"
               seeAllLabel="View all"
-              accentColor="#00E5FF"
+              accentColor="#d3da0c"
             />
             {mobileDateFilter === 'past' && (
               <div className="px-4 mb-3">
-                <Link to="/recaps" className="inline-flex items-center gap-2 rounded-full border border-[#d3da0c]/30 bg-[#d3da0c]/10 px-3.5 py-2 text-xs font-semibold text-[#695f00] dark:text-[#d3da0c]">
+                <Link to="/recaps" className="inline-flex items-center gap-2 rounded-full border border-[#d3da0c]/30 bg-[#d3da0c]/10 px-3.5 py-2 text-xs font-semibold text-[#d3da0c]">
                   <Camera className="h-3.5 w-3.5" />
                   Browse event photos & recaps
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -512,7 +820,7 @@ const Home = () => {
                 ))}
               </div>
             ) : (
-              <p className="px-4 text-sm text-gray-500 dark:text-gray-400">
+              <p className="px-4 text-sm text-gray-400">
                 {mobileDateFilter === 'past' ? 'No past events found in this city.' : 'No events match this filter.'}
               </p>
             )}
@@ -525,7 +833,7 @@ const Home = () => {
             <MobileSectionHeader
               label="Top performers"
               title="Featured Artists"
-              seeAllPath="/artists"
+              seeAllPath="/discovery?tab=artists"
               accentColor="#d3da0c"
             />
             <div className="flex gap-3 overflow-x-auto hide-scrollbar pl-4 pr-4 pb-1">
@@ -541,68 +849,88 @@ const Home = () => {
           <AdBanner position="mobile_banner" />
         </div>
 
-        {/* City Guide mini grid */}
+        {/* Discover Categories mini grid */}
         <div className="mb-6">
           <MobileSectionHeader
             label="Explore"
-            title="City Guide"
-            seeAllPath="/city-guide"
+            title="Discover Ecosystem"
+            seeAllPath="/discovery"
             accentColor="#d3da0c"
           />
           <div className="grid grid-cols-2 gap-3 px-4">
             {[
-              { title: 'Businesses', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.businesses || 0}`, color: '#d3da0c' },
-              { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0}`, color: '#FF2D8F' },
-              { title: 'Events', image: '/hero-bg.jpg', count: `${cityGuideCounts.events || 0}`, color: '#00E5FF' },
-              { title: 'Artists', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.artists || 0}`, color: '#C8A000' },
+              { title: 'Artists', image: '/web-hero/C48A0916.jpg', count: `${cityGuideCounts.artists || 0}`, path: '/discovery?tab=artists' },
+              { title: 'Businesses', image: '/party_crowd_bg.jpg', count: `${cityGuideCounts.businesses || 0}`, path: '/discovery?tab=businesses' },
+              { title: 'Venues', image: '/web-hero/C48A0889.jpg', count: `${cityGuideCounts.venues || 0}`, path: '/discovery?tab=venues' },
+              { title: 'Vendors', image: '/about-bg.jpg', count: `${cityGuideCounts.vendors || 0}`, path: '/discovery?tab=vendors' },
             ].map((item) => (
               <Link
                 key={item.title}
-                to="/city-guide"
-                className="group relative h-28 rounded-2xl overflow-hidden active:scale-[0.97] transition-transform"
+                to={item.path}
+                className="group relative h-28 rounded-2xl overflow-hidden border border-white/10 active:scale-[0.97] transition-transform"
               >
                 <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                  <div className="text-white font-semibold text-sm">{item.title}</div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-gray-300 text-[11px]">{item.count}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between">
+                  <div>
+                    <div className="text-white font-bold text-sm">{item.title}</div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
+                      <span className="text-gray-300 text-[11px]">{item.count} listed</span>
+                    </div>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-[#d3da0c]" />
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Stats row */}
-        <div className="px-4 mb-6">
-          <div className="grid grid-cols-4 gap-2">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div key={stat.label} className="bg-[#111111] border border-white/5 rounded-2xl p-2.5 text-center">
-                  <Icon className="w-4 h-4 text-[#d3da0c] mx-auto mb-1" />
-                  <div className="text-white font-bold text-sm">{stat.value}</div>
-                  <div className="text-gray-500 text-[9px] leading-tight">{stat.label}</div>
+        {/* Story Preview Modal */}
+        {activeStoryPreview && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-white/15 bg-[#091206] shadow-2xl">
+              <div className="relative h-80">
+                <img
+                  src={activeStoryPreview.image}
+                  alt={activeStoryPreview.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#091206] via-black/30 to-black/40" />
+                <button
+                  type="button"
+                  onClick={() => setActiveStoryPreview(null)}
+                  className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center border border-white/15"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[10px] font-extrabold uppercase tracking-wider mb-2">
+                    <Sparkles className="w-3 h-3" /> Sound It Story
+                  </span>
+                  <h3 className="text-white font-bold text-xl">{activeStoryPreview.title}</h3>
+                  <p className="text-gray-300 text-xs mt-1">{activeStoryPreview.subtitle}</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Mobile CTA */}
-        {!user && (
-          <div className="px-4 mb-6">
-            <div className="relative rounded-2xl overflow-hidden p-5 text-center" style={{ background: 'linear-gradient(135deg, #1A1A00 0%, #020b00 50%, #1A0010 100%)' }}>
-              <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(circle at 30% 50%, rgba(211,218,12,0.15) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,45,143,0.1) 0%, transparent 60%)' }} />
-              <div className="relative z-10">
-                <h3 className="text-white font-bold text-lg mb-1">Find your favorite events.</h3>
-                <p className="text-gray-400 text-sm mb-4">Join Sound It to discover events based on your interests.</p>
-                <div className="flex gap-2 justify-center">
-                  <Link to="/login" className="px-5 py-2.5 bg-[#d3da0c] text-black text-sm font-bold rounded-full active:scale-95 transition-transform">Login</Link>
-                  <Link to="/register" className="px-5 py-2.5 bg-white/10 border border-white/20 text-white text-sm font-semibold rounded-full active:scale-95 transition-transform">Sign up</Link>
-                </div>
+              </div>
+              <div className="p-4 flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = activeStoryPreview.ctaPath;
+                    setActiveStoryPreview(null);
+                    navigate(target);
+                  }}
+                  className="flex-1 py-3 rounded-full bg-[#d3da0c] text-black font-extrabold text-xs uppercase tracking-wider"
+                >
+                  {activeStoryPreview.ctaLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveStoryPreview(null)}
+                  className="px-4 py-3 rounded-full bg-white/10 text-white font-semibold text-xs"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
@@ -769,10 +1097,10 @@ const Home = () => {
                   </span>
                   <span className="h-[1.5px] w-10 bg-[#38bdf8]/60 rounded-full" />
                 </div>
-                <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-2.5">
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-[#020b00] dark:text-white tracking-tight mb-2.5">
                   One company, many ways to create
                 </h2>
-                <p className="text-gray-400 text-base">
+                <p className="text-gray-600 dark:text-gray-400 text-base">
                   Connecting people through music, culture and unforgettable experiences.
                 </p>
               </motion.div>
@@ -815,7 +1143,7 @@ const Home = () => {
                     opacity="0.6"
                   />
                 </svg>
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                   Sound It is an entertainment platform and creative brand that brings the community
                   together through events, culture and technology.
                 </p>
@@ -952,7 +1280,6 @@ const Home = () => {
 
                     {/* Testing Version Pill inside Button */}
                     <span className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-gray-100 inline-flex items-center gap-1.5 group-hover:border-[#d3da0c]/60 group-hover:text-[#d3da0c] transition-colors">
-                      <Sparkles className="w-3.5 h-3.5 text-[#d3da0c]" />
                       Testing Version
                     </span>
                   </Link>
@@ -1023,7 +1350,7 @@ const Home = () => {
                   </span>
                   <span className="h-[1.5px] w-10 bg-[#d3da0c]/70 rounded-full" />
                 </div>
-                <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-[#020b00] dark:text-white tracking-tight">
                   Events You Don&apos;t Want to Miss
                 </h2>
               </div>
@@ -1088,7 +1415,7 @@ const Home = () => {
                     const d = ev.start_date ? new Date(ev.start_date) : new Date();
                     const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
                     const day = String(d.getDate()).padStart(2, '0');
-                    const city = ev.city || selectedCity || 'Shanghai';
+                    const city = ev.city || (selectedCity && selectedCity !== 'all' ? selectedCity : 'China');
 
                     return (
                       <Link key={ev.id} to={`/events/${ev.id}`}>
@@ -1151,7 +1478,7 @@ const Home = () => {
                 <span className="inline-block text-[#00E5FF] text-xs font-bold tracking-[0.22em] uppercase mb-1">
                   Top Performers
                 </span>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-white">Featured DJs &amp; Artists</h2>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-[#020b00] dark:text-white">Featured DJs &amp; Artists</h2>
               </div>
               <Link to="/artists" className="flex items-center gap-1 text-[#00E5FF] text-sm font-semibold">
                 All Artists <ChevronRight className="w-4 h-4" />
@@ -1197,7 +1524,7 @@ const Home = () => {
                 <span className="inline-block text-[#d3da0c] text-xs font-bold tracking-[0.22em] uppercase mb-1.5">
                   {t('home.brand.ecoKicker') || 'THE SOUND IT ECOSYSTEM'}
                 </span>
-                <h2 className="text-2xl lg:text-4xl font-extrabold text-white">
+                <h2 className="text-2xl lg:text-4xl font-extrabold text-[#020b00] dark:text-white">
                   {t('home.brand.ecoTitle') || 'One brand, many platforms'}
                 </h2>
               </div>

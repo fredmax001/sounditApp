@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Send, Bot, Image, FileText, X, Loader2, Upload, Sparkles,
+  Send, Bot, Image, FileText, X, Loader2, Upload,
   Calendar, ShoppingBag, MessageSquare, HelpCircle, Ticket, Music, Mail
 } from 'lucide-react';
 import { useAssistantStore } from '@/store/assistantStore';
@@ -104,9 +104,9 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
     }
   };
 
-  const publicWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA**, your Sound It Assistant.\n\nI can help you discover events, find DJs, buy tickets, and answer platform questions. Try the quick actions below or ask me anything.`;
+  const publicWelcome = `Hi${profile?.first_name ? ` ${profile.first_name}` : ''}. How can I help you find events, artists, or tickets today?`;
 
-  const dashboardWelcome = `👋 Hi${profile?.first_name ? ` ${profile.first_name}` : ''}, I'm **SIA**, your dashboard assistant.\n\nI can speed up your workflow: upload a flyer to create an event draft, or upload a menu to generate product drafts. Everything stays as a draft until you review and publish.`;
+  const dashboardWelcome = `Hi${profile?.first_name ? ` ${profile.first_name}` : ''}. Upload an event flyer or menu to create drafts, or ask a question about your dashboard.`;
 
   const welcomeMessage = isDashboard ? dashboardWelcome : publicWelcome;
 
@@ -134,9 +134,6 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#111111]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#d3da0c]/10 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-[#d3da0c]" />
-                </div>
                 <div>
                   <h3 className="text-white font-semibold text-sm">SIA</h3>
                   <p className="text-gray-500 text-xs">Sound It Assistant</p>
@@ -358,7 +355,7 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
                       </button>
                     </div>
                     {!isAuthenticated && (
-                      <p className="text-xs text-gray-500 mt-2">Please log in to use SIA's AI features.</p>
+                      <p className="text-xs text-gray-500 mt-2">Sign in to use the assistant.</p>
                     )}
                   </div>
                 </div>

@@ -1,29 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, Loader2, Mail, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Loader2, Mail, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import GoogleAuthButton from '@/components/GoogleAuthButton';
 import { API_BASE_URL } from '@/config/api';
 
-type AuthMethod = 'email' | 'phone';
-
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { setSelectedCity, isLoading, loginWithEmail } = useAuthStore();
+  const { setSelectedCity, loginWithEmail } = useAuthStore();
 
-  const [authMethod, setAuthMethod] = useState<AuthMethod>('email');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [twoFactor, setTwoFactor] = useState<{ token: string; mode: AuthMethod } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [twoFactor, setTwoFactor] = useState<{ token: string; mode: string } | null>(null);
   const [otpCode, setOtpCode] = useState('');
   const [pinMode, setPinMode] = useState(false);
   const [pinIdentifier, setPinIdentifier] = useState('');
   const [pinCode, setPinCode] = useState('');
+
+  // Preload dashboard chunks while user enters credentials so post-login navigation is instant
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('@/pages/business/Dashboard').catch(() => {});
+      import('@/pages/artist/Dashboard').catch(() => {});
+      import('@/pages/vendor/Dashboard').catch(() => {});
+      import('@/pages/user/Dashboard').catch(() => {});
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   interface Profile {
     role?: string;
@@ -81,10 +89,8 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const currentIdentifier = authMethod === 'email' ? email : phone;
-
-    if (!currentIdentifier) {
-      toast.error(t('auth.login.enterIdentifierError', { method: authMethod === 'email' ? t('auth.login.email') : t('auth.login.phoneNumber') }));
+    if (!email) {
+      toast.error(t('auth.login.enterIdentifierError', { method: t('auth.login.email') }));
       return;
     }
 
@@ -93,50 +99,40 @@ const Login = () => {
       return;
     }
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
-      if (authMethod === 'email') {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (data?.requires_2fa) {
-          setTwoFactor({ token: data.two_factor_token, mode: 'email' });
-          setOtpCode('');
-          setPassword('');
-          return;
-        }
-        if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
-
-        const userProfile = await loginWithEmail(email, password, data);
-        import('@/lib/analytics').then(({ Analytics }) => {
-          Analytics.trackEvent('login', 'engagement', { method: 'email' });
-        });
-        finalizeLogin(userProfile || useAuthStore.getState().profile);
-      } else {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, password })
-        });
-
-        const data = await response.json();
-        if (data?.requires_2fa) {
-          setTwoFactor({ token: data.two_factor_token, mode: 'phone' });
-          setOtpCode('');
-          setPassword('');
-          return;
-        }
-        if (!response.ok) {
-          throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
-        }
-
-        const userProfile = await loginWithEmail(data.user?.email || '', password, data);
-        finalizeLogin(userProfile || profileFromBackendUser(data));
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
+      const data = await res.json();
+      if (data?.requires_2fa) {
+        setTwoFactor({ token: data.two_factor_token, mode: 'email' });
+        setOtpCode('');
+        setPassword('');
+        setIsSubmitting(false);
+        return;
       }
+      if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
+
+      const userProfile = await loginWithEmail(email.trim().toLowerCase(), password, data);
+      import('@/lib/analytics').then(({ Analytics }) => {
+        Analytics.trackEvent('login', 'engagement', { method: 'email' });
+      }).catch(() => {});
+      finalizeLogin(userProfile || useAuthStore.getState().profile);
     } catch (error) {
-      toast.error((error as Error).message || t('auth.login.loginFailed'));
+      const errMsg = (error as Error)?.name === 'AbortError'
+        ? 'Connection timed out. Please check your network and try again.'
+        : (error as Error).message || t('auth.login.loginFailed');
+      toast.error(errMsg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -177,17 +173,16 @@ const Login = () => {
   };
 
   const finalizeLogin = (userProfile: any) => {
-    if (authMethod === 'email') {
-      const storeProfile = useAuthStore.getState().profile;
-      const profileCity = (storeProfile as any)?.preferred_city || (storeProfile as any)?.city_id || '';
-      if (profileCity) setSelectedCity(profileCity);
-    }
+    const storeProfile = useAuthStore.getState().profile;
+    const profileCity = (storeProfile as any)?.preferred_city || (storeProfile as any)?.city_id || '';
+    if (profileCity) setSelectedCity(profileCity);
     toast.success(t('auth.login.welcomeBack'));
     navigate(getRedirectPath(userProfile));
   };
 
   const handleVerify2fa = async () => {
-    if (!twoFactor || otpCode.length !== 6) return;
+    if (!twoFactor || otpCode.length !== 6 || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/auth/2fa/login`, {
         method: 'POST',
@@ -196,19 +191,18 @@ const Login = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('kit.security.wrongCode'));
-      if (twoFactor.mode === 'phone') {
-        finalizeLogin(profileFromBackendUser(data));
-      } else {
-        const userProfile = await loginWithEmail(email, password, data);
-        finalizeLogin(userProfile || useAuthStore.getState().profile);
-      }
+      const userProfile = await loginWithEmail(email, password, data);
+      finalizeLogin(userProfile || useAuthStore.getState().profile);
     } catch (error) {
       toast.error((error as Error).message || t('kit.security.wrongCode'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handlePinLogin = async () => {
-    if (!pinIdentifier || !pinCode) return;
+    if (!pinIdentifier || !pinCode || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/auth/pin/login`, {
         method: 'POST',
@@ -221,6 +215,8 @@ const Login = () => {
       finalizeLogin(userProfile || useAuthStore.getState().profile);
     } catch (error) {
       toast.error((error as Error).message || t('auth.login.loginFailed'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -292,10 +288,10 @@ const Login = () => {
             />
             <button
               onClick={handleVerify2fa}
-              disabled={isLoading || otpCode.length !== 6}
+              disabled={isSubmitting || otpCode.length !== 6}
               className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('kit.security.verify')}
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('kit.security.verify')}
             </button>
             <button
               onClick={() => { setTwoFactor(null); setOtpCode(''); }}
@@ -307,64 +303,23 @@ const Login = () => {
         </div>
       ) : (
         <>
-          {/* Auth Method Tabs */}
-          <div className="flex gap-2 p-1 bg-neutral-100 dark:bg-white/5 rounded-lg mb-4">
-        <button
-          type="button"
-          onClick={() => setAuthMethod('email')}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${authMethod === 'email'
-            ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
-            }`}
-        >
-          <Mail className="w-4 h-4" />
-          {t('auth.login.emailTab')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setAuthMethod('phone')}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${authMethod === 'phone'
-            ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
-            }`}
-        >
-          <Phone className="w-4 h-4" />
-          {t('auth.login.phoneTab')}
-        </button>
-      </div>
-
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email/Phone Input */}
-        {authMethod === 'email' ? (
-          <div>
-            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.login.emailLabel')}</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('auth.login.emailPlaceholder')}
-                className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
-              />
-            </div>
+        {/* Email Input */}
+        <div>
+          <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.login.emailLabel')}</label>
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('auth.login.emailPlaceholder')}
+              required
+              className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
+            />
           </div>
-        ) : (
-          <div>
-            <label className="block text-[#020b00] dark:text-white text-sm font-medium mb-2">{t('auth.login.phoneLabel')}</label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={t('auth.login.phonePlaceholder')}
-                className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none transition-colors"
-              />
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Password Input */}
         <div>
@@ -395,10 +350,10 @@ const Login = () => {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
           className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
               {t('auth.login.signingIn')}
@@ -449,10 +404,10 @@ const Login = () => {
               </div>
               <button
                 onClick={handlePinLogin}
-                disabled={isLoading || !pinIdentifier || !pinCode}
+                disabled={isSubmitting || !pinIdentifier || !pinCode}
                 className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('kit.security.pinLogin')}
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t('kit.security.pinLogin')}
               </button>
             </div>
           )}
@@ -486,6 +441,20 @@ const Login = () => {
           {t('auth.login.signUpLink')}
         </Link>
       </p>
+
+      {/* Explore Platform as Guest */}
+      <div className="mt-4 pt-4 border-t border-black/10 dark:border-white/10 text-center">
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.setItem('soundit_onboarding_completed', 'true');
+            navigate('/');
+          }}
+          className="w-full py-2.5 px-4 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-[#d3da0c] text-xs font-bold tracking-wide transition-colors cursor-pointer"
+        >
+          Continue as Guest &amp; Explore Platform
+        </button>
+      </div>
     </div>
   );
 };

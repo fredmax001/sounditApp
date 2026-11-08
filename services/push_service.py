@@ -145,7 +145,7 @@ class PushService:
             return False
         try:
             import time
-            from jose import jwt
+            import jwt
             import httpx
             key = settings.APNS_AUTH_KEY.replace('\\n', '\n')
             bearer = jwt.encode(

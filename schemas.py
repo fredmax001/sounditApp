@@ -125,8 +125,13 @@ class UserBase(BaseModel):
     bio: Optional[str] = Field(None, max_length=2000)
     instagram: Optional[str] = Field(None, max_length=255)
     twitter: Optional[str] = Field(None, max_length=255)
+    tiktok: Optional[str] = Field(None, max_length=255)
     wechat_id: Optional[str] = Field(None, max_length=100)
     website: Optional[str] = Field(None, max_length=500)
+    gender: Optional[str] = Field(None, max_length=30)
+    date_of_birth: Optional[Any] = None
+    profile_data: Optional[Dict[str, Any]] = None
+    points_balance: int = 0
     preferred_city: Optional[str] = Field(None, max_length=100)  # Changed from City enum to str
     city_id: Optional[str] = Field(None, max_length=100)  # Frontend sends city_id, maps to preferred_city
     preferred_language: str = Field("en", max_length=10)
@@ -159,7 +164,8 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    pass
+    business_name: Optional[str] = Field(None, max_length=200)
+    stage_name: Optional[str] = Field(None, max_length=200)
 
 
 class UserResponse(UserBase):
@@ -209,7 +215,8 @@ class UserRegistration(BaseModel):
     email: str = Field(..., max_length=255)
     password: str = Field(..., min_length=6, max_length=128)
     first_name: str = Field(..., max_length=100)
-    last_name: str = Field(..., max_length=100)
+    last_name: str = Field("", max_length=100)
+    username: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=30)
     # Public signup must never permit privileged admin roles.
     role: SignupRole
@@ -340,6 +347,7 @@ class MusicLinkItem(BaseModel):
 
 class ArtistProfileBase(BaseModel):
     stage_name: str
+    slug: Optional[str] = None
     genre: Optional[str] = None
     genre_tags: Optional[List[str]] = []
     bio: Optional[str] = None
@@ -400,16 +408,19 @@ class BusinessType(str, Enum):
 
 class BusinessProfileBase(BaseModel):
     business_name: str
+    slug: Optional[str] = None
     business_type: Optional[List[str]] = []
     description: Optional[str] = None
     website: Optional[str] = None
     address: Optional[str] = None
     city: Optional[City] = None
     city_id: Optional[str] = None  # Frontend sends city_id, maps to city
+    photo_album_url: Optional[str] = None
 
 
 class BusinessProfileCreate(BusinessProfileBase):
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
 
 
 class BusinessProfileResponse(BusinessProfileBase):
@@ -419,6 +430,7 @@ class BusinessProfileResponse(BusinessProfileBase):
     total_revenue: Optional[float] = 0.0
     events_count: Optional[int] = 0
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
     created_at: datetime
     
     class Config:
@@ -429,12 +441,15 @@ class BusinessProfileResponse(BusinessProfileBase):
 
 class OrganizerProfileBase(BaseModel):
     organization_name: str
+    slug: Optional[str] = None
     description: Optional[str] = None
     website: Optional[str] = None
+    photo_album_url: Optional[str] = None
 
 
 class OrganizerProfileCreate(OrganizerProfileBase):
-    pass
+    gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
 
 
 class OrganizerProfileResponse(OrganizerProfileBase):
@@ -443,6 +458,8 @@ class OrganizerProfileResponse(OrganizerProfileBase):
     is_verified: bool = False
     events_count: int = 0
     total_revenue: float = 0.0
+    gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
     created_at: datetime
     
     class Config:
@@ -513,12 +530,22 @@ class VendorType(str, Enum):
     BEVERAGE = "beverage"
     MERCH = "merch"
     SERVICE = "service"
+    FASHION = "fashion"
+    BEAUTY = "beauty"
+    ACCESSORIES = "accessories"
+    ELECTRONICS = "electronics"
+    ARTS = "arts"
+    LIFESTYLE = "lifestyle"
+    OTHER = "other"
 
 
 class VendorProfileBase(BaseModel):
     business_name: str
+    slug: Optional[str] = None
     description: Optional[str] = None
-    vendor_type: Optional[VendorType] = None
+    vendor_type: Optional[str] = None
+    categories: Optional[List[str]] = None
+    business_profile_id: Optional[int] = None
     logo_url: Optional[str] = None
     banner_url: Optional[str] = None
     city_id: Optional[str] = None
@@ -555,8 +582,16 @@ class ProductBase(BaseModel):
     price: float
     currency: str = "CNY"
     image_url: Optional[str] = None
+    images: Optional[List[str]] = None
     category: Optional[str] = None
+    product_type: Optional[str] = None
+    variations: Optional[List[dict]] = None
     stock_quantity: int = 0
+    is_preorder_enabled: bool = False
+    preorder_open_date: Optional[str] = None
+    preorder_close_date: Optional[str] = None
+    preorder_fulfilment_date: Optional[str] = None
+    preorder_quantity: Optional[int] = None
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
     payment_instructions: Optional[str] = None
@@ -573,8 +608,16 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     currency: Optional[str] = None
     image_url: Optional[str] = None
+    images: Optional[List[str]] = None
     category: Optional[str] = None
+    product_type: Optional[str] = None
+    variations: Optional[List[dict]] = None
     stock_quantity: Optional[int] = None
+    is_preorder_enabled: Optional[bool] = None
+    preorder_open_date: Optional[str] = None
+    preorder_close_date: Optional[str] = None
+    preorder_fulfilment_date: Optional[str] = None
+    preorder_quantity: Optional[int] = None
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
     payment_instructions: Optional[str] = None
@@ -709,6 +752,7 @@ class EventCreate(EventBase):
     status: Optional[EventStatus] = None
     flyer_image: Optional[str] = Field(None, max_length=1000)
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = Field(None, max_length=1000)
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     wechat_qr_url: Optional[str] = Field(None, max_length=1000)
@@ -736,6 +780,7 @@ class EventUpdate(BaseModel):
     longitude: Optional[float] = None
     flyer_image: Optional[str] = Field(None, max_length=1000)
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = Field(None, max_length=1000)
     wechat_qr_url: Optional[str] = Field(None, max_length=1000)
     alipay_qr_url: Optional[str] = Field(None, max_length=1000)
     ticket_price: Optional[float] = Field(None, ge=0)
@@ -757,10 +802,12 @@ class EventUpdate(BaseModel):
 
 class EventResponse(EventBase):
     id: int
+    slug: Optional[str] = None
     organizer_id: Optional[int] = None
     venue_id: Optional[int] = None
     flyer_image: Optional[str] = None
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
     status: EventStatus
     views_count: int
     tickets_sold: int
@@ -792,6 +839,7 @@ class EventResponse(EventBase):
 
 class EventBusiness(BaseModel):
     id: int
+    slug: Optional[str] = None
     business_name: str
     logo_url: Optional[str] = None
     verification_badge: bool = False
@@ -817,6 +865,7 @@ class EventDetailResponse(EventResponse):
 
 class EventListResponse(BaseModel):
     id: int
+    slug: Optional[str] = None
     title: str
     start_date: datetime
     end_date: Optional[datetime] = None
@@ -824,6 +873,7 @@ class EventListResponse(BaseModel):
     address: Optional[str] = None
     flyer_image: Optional[str] = None
     gallery_images: Optional[List[str]] = None
+    photo_album_url: Optional[str] = None
     status: EventStatus
     tickets_sold: int
     capacity: Optional[int] = None
@@ -836,6 +886,7 @@ class EventListResponse(BaseModel):
     ticket_tiers: Optional[List[TicketTierResponse]] = None
     venue: Optional[VenueResponse] = None
     promoter_enabled: bool = False
+    ticket_sales_closed: bool = False
     
     class Config:
         from_attributes = True
@@ -1438,9 +1489,10 @@ class BookingRequestBase(BaseModel):
     event_date: Optional[datetime] = None
     event_time: Optional[str] = None
     event_city: Optional[str] = None
+    event_time: Optional[str] = None
     event_location: Optional[str] = None
     budget: Optional[float] = None
-    duration_hours: Optional[int] = None
+    duration_hours: Optional[float] = None
     message: Optional[str] = None
     contact_name: Optional[str] = None
     contact_phone: Optional[str] = None
@@ -1463,12 +1515,17 @@ class BookingRequestUpdate(BaseModel):
 
 class ArtistInfo(BaseModel):
     id: int
+    slug: Optional[str] = None
     stage_name: str
     artist_type: Optional[str] = None
     genre: Optional[str] = None
     avatar_url: Optional[str] = None
     wechat_qr_url: Optional[str] = None
     alipay_qr_url: Optional[str] = None
+    wechat_pay_url: Optional[str] = None
+    alipay_pay_url: Optional[str] = None
+    payment_instructions: Optional[str] = None
+    deposit_eligible: Optional[bool] = None
     
     class Config:
         from_attributes = True
@@ -1487,12 +1544,14 @@ class BookingRequestResponse(BaseModel):
     event_name: Optional[str] = None
     event_type: Optional[str] = None
     event_date: Optional[datetime] = None
+    event_time: Optional[str] = None
     event_city: Optional[str] = None
     event_location: Optional[str] = None
+    creative_role: Optional[str] = None
     
     # Booking Details
     budget: Optional[float] = None
-    duration_hours: Optional[int] = None
+    duration_hours: Optional[float] = None
     message: Optional[str] = None
     
     # Contact Info
@@ -1513,6 +1572,11 @@ class BookingRequestResponse(BaseModel):
     payer_name: Optional[str] = None
     payer_notes: Optional[str] = None
     payment_status: Optional[str] = "pending"
+    deposit_amount: Optional[float] = None
+    payment_currency: Optional[str] = "CNY"
+    payment_submitted_at: Optional[datetime] = None
+    payment_reviewed_at: Optional[datetime] = None
+    payment_verified_at: Optional[datetime] = None
     reviewed_at: Optional[datetime] = None
     rejection_reason: Optional[str] = None
     
@@ -1595,14 +1659,16 @@ class RecapStatus(str, Enum):
 class RecapCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = None
-    photos: List[str] = Field(..., min_items=1, max_items=20)
+    photos: List[str] = Field(default_factory=list, max_items=20)
+    photo_album_url: Optional[str] = Field(None, max_length=1000)
     event_id: Optional[int] = None
 
 
 class RecapUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
-    photos: Optional[List[str]] = Field(None, min_items=1, max_items=20)
+    photos: Optional[List[str]] = Field(None, max_items=20)
+    photo_album_url: Optional[str] = Field(None, max_length=1000)
     event_id: Optional[int] = None
 
 
@@ -1610,7 +1676,8 @@ class RecapResponse(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
-    photos: List[str]
+    photos: List[str] = []
+    photo_album_url: Optional[str] = None
     views_count: int
     likes_count: int
     status: RecapStatus
@@ -1765,7 +1832,9 @@ class CommunityAuthor(BaseModel):
     id: Optional[int] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    username: Optional[str] = None
     avatar_url: Optional[str] = None
+    is_verified: bool = False
     is_guest: bool = False
     
     class Config:
@@ -1808,6 +1877,7 @@ class CommunityPostResponse(BaseModel):
     shares_count: int = 0
     view_count: int = 0
     has_liked: bool = False
+    has_saved: bool = False
     
     # Comments (limited preview)
     comments: List[CommunityCommentResponse] = []
@@ -2234,3 +2304,23 @@ class UpgradeResolve(BaseModel):
     final_price: Optional[float] = Field(None, ge=0)
     payment_status: Optional[str] = Field(None, max_length=30)  # pending/paid_online/at_venue/waived
     reason: Optional[str] = Field(None, max_length=500)
+
+
+class NewsletterSubscribeRequest(BaseModel):
+    email: EmailStr
+    name: Optional[str] = Field(None, max_length=120)
+    source: Optional[str] = Field("footer", max_length=60)
+    frequency: Optional[str] = Field("weekly", max_length=30)
+
+
+class NewsletterSubscriberResponse(BaseModel):
+    id: int
+    email: str
+    name: Optional[str] = None
+    is_active: bool
+    source: str
+    created_at: Any
+
+    class Config:
+        from_attributes = True
+

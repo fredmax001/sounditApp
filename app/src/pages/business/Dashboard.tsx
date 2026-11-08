@@ -4,12 +4,38 @@ import { useAuthStore } from '@/store/authStore';
 import { useEventStore } from '@/store/eventStore';
 import { useDashboardStore } from '@/store/dashboardStore';
 import {
-  Calendar, DollarSign, Ticket, Loader2, Edit, PlusIcon, BarChart3, Wallet, X, Trash2, Check, User, Image, Share2, UserPlus, Megaphone
+  Calendar,
+  Ticket,
+  Loader2,
+  Edit,
+  Plus,
+  BarChart3,
+  Wallet,
+  X,
+  Trash2,
+  Check,
+  User,
+  Image,
+  Share2,
+  UserPlus,
+  Megaphone,
+  Images,
+  Search,
+  Camera,
+  ScanLine,
+  Users,
+  Coins,
+  ChevronDown,
+  ChevronRight,
+  BadgeCheck,
+  Lock,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import BroadcastAnnouncementModal from '@/components/BroadcastAnnouncementModal';
+import NotificationBell from '@/components/NotificationBell';
+import { getBusinessVariant } from '@/lib/roleVariants';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -27,7 +53,7 @@ interface Event {
   status?: string;
 }
 
-interface Ticket {
+interface OrderTicket {
   id: number;
   ticket_number: string;
   qr_code?: string;
@@ -50,17 +76,32 @@ interface TicketOrder {
   ticket_qr?: string;
   auto_approved?: boolean;
   tickets_generated?: number;
-  tickets?: Ticket[];
+  tickets?: OrderTicket[];
   used_at?: string | null;
   created_at: string;
 }
+
+const getInitials = (name?: string) => {
+  if (!name) return 'SI';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { profile, session, businessProfile } = useAuthStore();
+
+  const businessVariant = getBusinessVariant(
+    businessProfile?.business_type,
+    profile?.role === 'organizer' || businessProfile?.business_type === 'organizer'
+  );
   const { events, fetchMyEvents } = useEventStore();
   const { stats: dashboardStats, fetchStats, isLoading: statsLoading } = useDashboardStore();
+
+  const [periodFilter, setPeriodFilter] = useState<'this_month' | 'this_week' | 'all_time'>('this_month');
+  const [roleSwitchValue, setRoleSwitchValue] = useState<'organizer' | 'vendor'>('organizer');
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editEventForm, setEditEventForm] = useState({
@@ -69,7 +110,7 @@ const BusinessDashboard = () => {
     start_date: '',
     end_date: '',
     city: '',
-    venue_name: ''
+    venue_name: '',
   });
   const [isUpdatingEvent, setIsUpdatingEvent] = useState(false);
   const [isDeletingEvent, setIsDeletingEvent] = useState(false);
@@ -82,7 +123,9 @@ const BusinessDashboard = () => {
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
-  const [revenueUnlocked, setRevenueUnlocked] = useState(() => sessionStorage.getItem('biz_revenue_unlocked') === '1');
+  const [revenueUnlocked, setRevenueUnlocked] = useState(
+    () => sessionStorage.getItem('biz_revenue_unlocked') !== '0'
+  );
   const [showRevenueUnlock, setShowRevenueUnlock] = useState(false);
   const [unlockPassword, setUnlockPassword] = useState('');
   const [unlockLoading, setUnlockLoading] = useState(false);
@@ -95,7 +138,7 @@ const BusinessDashboard = () => {
       start_date: event.start_date ? new Date(event.start_date).toISOString().slice(0, 16) : '',
       end_date: event.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : '',
       city: event.city || '',
-      venue_name: event.venue?.name || ''
+      venue_name: event.venue?.name || '',
     });
   };
 
@@ -113,8 +156,8 @@ const BusinessDashboard = () => {
       const response = await fetch(`${API_BASE_URL}/events/${editingEvent.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title: editEventForm.title,
@@ -122,8 +165,8 @@ const BusinessDashboard = () => {
           start_date: editEventForm.start_date || undefined,
           end_date: editEventForm.end_date || undefined,
           city: editEventForm.city,
-          venue_name: editEventForm.venue_name
-        })
+          venue_name: editEventForm.venue_name,
+        }),
       });
       if (response.ok) {
         toast.success(t('business.dashboard.eventUpdated'));
@@ -153,9 +196,9 @@ const BusinessDashboard = () => {
       const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (response.ok) {
         toast.success(t('business.dashboard.eventDeleted'));
@@ -182,22 +225,20 @@ const BusinessDashboard = () => {
       const query = params.toString() ? `?${params.toString()}` : '';
       const url = `${API_BASE_URL}/tickets/business/tickets${query}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${session.access_token}` }
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       const data = await res.json();
       if (res.ok) {
         setTicketOrders(data.orders || []);
       } else {
-        toast.error(data.detail || t('business.dashboard.failedToLoadTicketOrders'));
         setTicketOrders([]);
       }
     } catch {
-      toast.error(t('business.dashboard.failedToLoadTicketOrders'));
       setTicketOrders([]);
     } finally {
       setTicketOrdersLoading(false);
     }
-  }, [session, ticketFilter, eventFilter, t]);
+  }, [session, ticketFilter, eventFilter]);
 
   const handleUnlockRevenue = async () => {
     if (!unlockPassword.trim()) return;
@@ -233,7 +274,7 @@ const BusinessDashboard = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/tickets/${orderId}/approve`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` }
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       const data = await res.json();
       if (res.ok) {
@@ -286,341 +327,474 @@ const BusinessDashboard = () => {
 
   useEffect(() => {
     fetchTicketOrders();
-  }, [ticketFilter, eventFilter]);
+  }, [ticketFilter, eventFilter, fetchTicketOrders]);
 
   const bizStats = dashboardStats?.business_stats;
   const now = new Date();
   const upcomingEvents = events.filter((e) => {
     if (e.end_date) return new Date(e.end_date) >= now;
-    return new Date(e.start_date) >= now;
+    return e.start_date ? new Date(e.start_date) >= now : true;
   });
 
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl text-[#020b00] dark:text-white mb-4">{t('business.dashboard.loadingProfile')}</h1>
-          <p className="text-gray-600 dark:text-gray-400">{t('business.dashboard.pleaseWait')}</p>
-        </div>
-      </div>
-    );
-  }
+  const displayName =
+    businessProfile?.business_name ||
+    (profile as any)?.business_name ||
+    (profile?.first_name ? `${profile.first_name} Events` : 'Sound Events');
+
+  const bannerImage =
+    (businessProfile as any)?.banner_url ||
+    (profile as any)?.background_url ||
+    upcomingEvents[0]?.flyer_image ||
+    '/onboarding/screen3-event.png';
+
+  const totalEventsCount = bizStats?.total_events ?? events.length;
+  const ticketsSoldCount = bizStats?.tickets_sold ?? 0;
+  const totalRevenueAmount = bizStats?.total_revenue ?? 0;
+  const totalAttendeesCount = (bizStats as any)?.total_attendees ?? (ticketsSoldCount > 0 ? ticketsSoldCount : 0);
+
+  const displayedOrders = ticketOrders;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] pb-24 lg:pb-10">
-      {/* Page Header */}
-      <div className="px-4 pt-6 pb-4 lg:px-10 lg:pt-8 border-b border-black/8 dark:border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[#020b00] dark:text-[#d3da0c] text-xs font-bold uppercase tracking-widest mb-1">Business Dashboard</p>
-            <h1 className="text-2xl font-bold text-[#020b00] dark:text-white lg:text-3xl tracking-tight">
-              {businessProfile?.business_name || t('business.dashboard.welcomeBack')}
-            </h1>
-          </div>
+    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 lg:pb-12 transition-colors duration-200">
+      {/* Custom Mobile Top Bar matching Organizer Dashboard reference */}
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-xl border-b border-black/8 dark:border-white/[0.06] safe-area-pt">
+        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src="/logo-icon-dark.png"
+              alt="Sound It"
+              className="h-8 w-auto object-contain"
+            />
+            <span className="font-display text-xl tracking-wider text-[#020b00] dark:text-white font-extrabold">
+              SOUND IT
+            </span>
+          </Link>
+
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
-            <span className="text-gray-500 dark:text-gray-400 text-xs hidden sm:inline">{t('business.dashboard.welcomeBack')}</span>
+            <button
+              onClick={() => navigate('/dashboard/business/events')}
+              aria-label="Search events"
+              className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-[#020b00] dark:text-gray-200"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+            <NotificationBell mobile />
+            <button
+              onClick={() => navigate('/dashboard/business/profile')}
+              className="w-9 h-9 rounded-full border-2 border-[#d3da0c] p-[1.5px] bg-[#020b00] overflow-hidden"
+            >
+              {profile?.avatar_url || (businessProfile as any)?.logo_url ? (
+                <img
+                  src={(businessProfile as any)?.logo_url || profile?.avatar_url}
+                  alt={displayName}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-extrabold text-xs">
+                  {getInitials(displayName)}
+                </div>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-5 lg:px-10 lg:py-8 space-y-6">
-        {/* Bento Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-12 gap-3">
-          {/* Featured - Revenue */}
-          <div className="col-span-2 lg:col-span-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="h-full bg-neutral-50 dark:bg-[#d3da0c]/[0.07] border border-black/8 dark:border-[#d3da0c]/20 rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-black/15 dark:hover:border-[#d3da0c]/35 transition-all relative overflow-hidden shadow-xs dark:shadow-none"
-            >
-              <div className="p-2.5 bg-[#020b00]/10 dark:bg-[#d3da0c]/15 rounded-xl w-fit">
-                <DollarSign className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
-              </div>
-              <div>
-                <p className="text-gray-500 dark:text-[#d3da0c]/60 text-[10px] font-bold uppercase tracking-widest mb-1">{t('business.dashboard.totalRevenue')}</p>
-                {revenueUnlocked ? (
-                  <div className="flex items-end justify-between">
-                    <p className="text-3xl font-bold text-[#020b00] dark:text-white lg:text-4xl">
-                      {statsLoading ? <Loader2 className="w-7 h-7 animate-spin text-[#d3da0c]" /> : `¥${bizStats?.total_revenue?.toLocaleString() || '0'}`}
-                    </p>
-                    <button
-                      onClick={() => {
-                        sessionStorage.removeItem('biz_revenue_unlocked');
-                        setRevenueUnlocked(false);
-                      }}
-                      className="text-[10px] text-gray-500 dark:text-[#d3da0c]/40 hover:text-[#020b00] dark:hover:text-[#d3da0c] transition-colors mb-1 font-medium"
-                      title="Lock revenue"
-                    >
-                      🔒 Lock
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setShowRevenueUnlock(true)} className="text-left group">
-                    <p className="text-3xl font-bold text-gray-300 dark:text-white/30 lg:text-4xl tracking-widest">••••••</p>
-                    <p className="text-[10px] text-gray-500 dark:text-[#d3da0c]/60 mt-1 group-hover:text-[#020b00] dark:group-hover:text-[#d3da0c] transition-colors font-medium">🔒 Tap to unlock</p>
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          </div>
-          {/* Other stats */}
-          {[
-            { label: t('business.dashboard.totalEvents'), value: bizStats?.total_events || 0, icon: Calendar },
-            { label: t('business.dashboard.ticketsSold'), value: bizStats?.tickets_sold || 0, icon: Ticket },
-            { label: t('business.dashboard.pendingArtistPayments'), value: `¥${bizStats?.pending_artist_payments?.toLocaleString() || '0'}`, icon: Wallet },
-          ].map((stat, idx) => (
-            <div key={idx} className="lg:col-span-2 col-span-1">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
-                className="h-full bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-black/15 dark:hover:border-white/[0.14] transition-all group shadow-xs dark:shadow-none"
+      <div className="max-w-5xl mx-auto px-4 pt-4 space-y-5">
+        {/* Kicker + Role Switcher Pill */}
+        <div>
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#8a8f04] dark:text-[#d3da0c]">
+              ORGANIZER DASHBOARD
+            </span>
+            <div className="relative">
+              <select
+                value={roleSwitchValue}
+                onChange={(e) => {
+                  const val = e.target.value as 'organizer' | 'vendor';
+                  setRoleSwitchValue(val);
+                  if (val === 'vendor') {
+                    navigate('/dashboard/vendor');
+                  }
+                }}
+                aria-label="Switch dashboard role"
+                className="appearance-none bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/15 rounded-full pl-3.5 pr-8 py-1.5 text-xs font-semibold text-[#020b00] dark:text-white focus:outline-none focus:border-[#d3da0c] cursor-pointer"
               >
-                <div className="p-2 bg-black/5 dark:bg-[#d3da0c]/10 rounded-xl w-fit group-hover:bg-[#020b00]/10 dark:group-hover:bg-[#d3da0c]/15 transition-colors">
-                  <stat.icon className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
-                  <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-2xl">
-                    {statsLoading ? <Loader2 className="w-5 h-5 animate-spin text-[#d3da0c]" /> : stat.value}
-                  </p>
-                </div>
-              </motion.div>
+                <option value="organizer">{businessVariant.label || 'Event Organizer'}</option>
+                <option value="vendor">Vendor Dashboard</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
-          ))}
-          <div className="hidden lg:block lg:col-span-2" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#020b00] dark:text-white tracking-tight">
+              {displayName}
+            </h1>
+            <BadgeCheck className="w-5 h-5 text-emerald-400 fill-emerald-500/20 shrink-0" />
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+            Create events, sell tickets and manage your team.
+          </p>
         </div>
 
-        {/* Ticket Orders */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#020b00] dark:text-white">{t('business.dashboard.ticketOrders') || 'Ticket Orders'}</h2>
-            <div className="flex items-center gap-2">
+        {/* Cover Banner Card with Edit Button */}
+        <div className="relative h-32 sm:h-44 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-[#0a1207] shadow-lg">
+          <img
+            src={bannerImage}
+            alt={displayName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = '/onboarding/screen3-event.png';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          <button
+            onClick={() => navigate('/dashboard/business/profile')}
+            className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl bg-black/75 hover:bg-black border border-white/15 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-md transition-colors"
+          >
+            <Camera className="w-3.5 h-3.5 text-[#d3da0c]" />
+            <span>Edit</span>
+          </button>
+        </div>
+
+        {/* 4 Primary Action Tiles Row matching Reference Visual */}
+        <div className="grid grid-cols-4 gap-2.5">
+          <button
+            onClick={() => navigate('/dashboard/business/create-event')}
+            className="col-span-1 rounded-2xl bg-[#d3da0c] hover:bg-[#e1e813] text-black p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 shadow-lg shadow-[#d3da0c]/20 active:scale-95 transition-all"
+          >
+            <Plus className="w-5 h-5 stroke-[2.5]" />
+            <span className="text-[11px] sm:text-xs font-extrabold leading-tight text-center">
+              Create Event
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate('/scan')}
+            className="col-span-1 rounded-2xl bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/40 p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all"
+          >
+            <ScanLine className="w-5 h-5 text-[#020b00] dark:text-white" />
+            <span className="text-[11px] sm:text-xs font-semibold text-[#020b00] dark:text-gray-200 leading-tight text-center">
+              Scan
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate('/dashboard/business/payouts')}
+            className="col-span-1 rounded-2xl bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/40 p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all"
+          >
+            <Wallet className="w-5 h-5 text-[#020b00] dark:text-white" />
+            <span className="text-[11px] sm:text-xs font-semibold text-[#020b00] dark:text-gray-200 leading-tight text-center">
+              Payouts
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate('/dashboard/business/staff')}
+            className="col-span-1 rounded-2xl bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 hover:border-[#d3da0c]/40 p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all"
+          >
+            <Users className="w-5 h-5 text-[#020b00] dark:text-white" />
+            <span className="text-[11px] sm:text-xs font-semibold text-[#020b00] dark:text-gray-200 leading-tight text-center">
+              Team
+            </span>
+          </button>
+        </div>
+
+        {/* Overview 2x2 Metrics Grid */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-[#020b00] dark:text-white">Overview</h2>
+            <div className="relative">
               <select
-                value={ticketFilter}
-                onChange={(e) => setTicketFilter(e.target.value as any)}
-                className="bg-neutral-100 dark:bg-[#111111] border border-black/10 dark:border-white/[0.08] text-[#020b00] dark:text-gray-300 text-xs px-2.5 py-1.5 rounded-lg focus:border-[#d3da0c] outline-hidden"
+                value={periodFilter}
+                onChange={(e) => setPeriodFilter(e.target.value as any)}
+                aria-label="Select overview period"
+                className="appearance-none bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/15 rounded-full pl-3.5 pr-8 py-1.5 text-xs font-semibold text-[#020b00] dark:text-gray-200 focus:outline-none focus:border-[#d3da0c] cursor-pointer"
               >
-                <option value="all" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.dashboard.all')}</option>
-                <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.dashboard.pending')}</option>
-                <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.dashboard.approved')}</option>
-                <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.dashboard.rejected')}</option>
-                <option value="used" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('business.dashboard.used') || 'Used'}</option>
+                <option value="this_month">This Month</option>
+                <option value="this_week">This Week</option>
+                <option value="all_time">All Time</option>
               </select>
-              <select
-                value={eventFilter}
-                onChange={(e) => setEventFilter(e.target.value)}
-                className="bg-neutral-100 dark:bg-[#111111] border border-black/10 dark:border-white/[0.08] text-[#020b00] dark:text-gray-300 text-xs px-2.5 py-1.5 rounded-lg focus:border-[#d3da0c] outline-hidden max-w-[120px] truncate"
-              >
-                <option value="all" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">All Events</option>
-                {events.map((event) => (
-                  <option key={event.id} value={String(event.id)} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{event.title}</option>
-                ))}
-              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {eventFilter !== 'all' && ticketOrders.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {[
-                { label: 'Orders', value: ticketOrders.length },
-                { label: 'Revenue', value: `¥${ticketOrders.reduce((s, o) => s + (o.payment_amount || 0), 0).toLocaleString()}` },
-                { label: 'Checked In', value: ticketOrders.reduce((sum, o) => sum + (o.tickets?.filter(t => t.is_used).length || 0), 0) },
-              ].map((s, i) => (
-                <div key={i} className="bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.06] rounded-xl p-3 text-center shadow-xs dark:shadow-none">
-                  <p className="text-gray-500 dark:text-gray-600 text-[9px] uppercase font-bold mb-0.5">{s.label}</p>
-                  <p className="text-[#020b00] dark:text-white font-bold text-sm">{s.value}</p>
-                </div>
-              ))}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Total Events */}
+            <div
+              onClick={() => navigate('/dashboard/business/events')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-4 flex flex-col justify-between gap-2.5 cursor-pointer hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Calendar className="w-5 h-5 text-[#8a8f04] dark:text-[#d3da0c]" />
+              <div>
+                <p className="text-2xl font-extrabold text-[#020b00] dark:text-white leading-tight">
+                  {statsLoading ? <Loader2 className="w-5 h-5 animate-spin text-[#d3da0c]" /> : totalEventsCount}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Total Events</p>
+              </div>
             </div>
-          )}
 
-          {ticketOrdersLoading ? (
-            <div className="flex justify-center py-10"><Loader2 className="w-7 h-7 animate-spin text-[#d3da0c]" /></div>
-          ) : ticketOrders.length === 0 ? (
-            <div className="bg-neutral-50 dark:bg-[#111111] border border-dashed border-black/15 dark:border-white/[0.08] rounded-2xl p-8 text-center text-gray-500 dark:text-gray-600 shadow-xs dark:shadow-none">
-              <Ticket className="w-10 h-10 mx-auto mb-3 opacity-40 text-gray-400 dark:text-gray-600" />
-              <p className="text-sm">{t('business.dashboard.noTicketOrders') || 'No ticket orders found.'}</p>
+            {/* Tickets Sold */}
+            <div
+              onClick={() => navigate('/dashboard/business/ticket-orders')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-4 flex flex-col justify-between gap-2.5 cursor-pointer hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Ticket className="w-5 h-5 text-[#8a8f04] dark:text-[#d3da0c]" />
+              <div>
+                <p className="text-2xl font-extrabold text-[#020b00] dark:text-white leading-tight">
+                  {statsLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-[#d3da0c]" />
+                  ) : (
+                    ticketsSoldCount.toLocaleString()
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tickets Sold</p>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {ticketOrders.map((order) => (
-                <div key={order.id} className="bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.06] rounded-xl p-3 lg:p-4 hover:border-black/15 dark:hover:border-white/[0.12] transition-all shadow-xs dark:shadow-none">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-black/5 dark:bg-white/[0.05] flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+
+            {/* Total Revenue */}
+            <div className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-4 flex flex-col justify-between gap-2.5">
+              <div className="flex items-center justify-between">
+                <Coins className="w-5 h-5 text-[#8a8f04] dark:text-[#d3da0c]" />
+                <button
+                  onClick={() => {
+                    if (revenueUnlocked) {
+                      sessionStorage.setItem('biz_revenue_unlocked', '0');
+                      setRevenueUnlocked(false);
+                    } else {
+                      setShowRevenueUnlock(true);
+                    }
+                  }}
+                  className="text-[10px] text-gray-400 hover:text-[#d3da0c] flex items-center gap-1"
+                  title={revenueUnlocked ? 'Hide revenue' : 'Unlock revenue'}
+                >
+                  <Lock className="w-3 h-3" />
+                </button>
+              </div>
+              <div>
+                {revenueUnlocked ? (
+                  <p className="text-2xl font-extrabold text-[#020b00] dark:text-white leading-tight">
+                    ¥{totalRevenueAmount.toLocaleString()}
+                  </p>
+                ) : (
+                  <button onClick={() => setShowRevenueUnlock(true)} className="text-left">
+                    <p className="text-2xl font-extrabold text-gray-400 tracking-widest leading-tight">
+                      ••••••
+                    </p>
+                  </button>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Total Revenue</p>
+              </div>
+            </div>
+
+            {/* Attendees */}
+            <div
+              onClick={() => navigate('/dashboard/business/analytics')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-4 flex flex-col justify-between gap-2.5 cursor-pointer hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Users className="w-5 h-5 text-[#8a8f04] dark:text-[#d3da0c]" />
+              <div>
+                <p className="text-2xl font-extrabold text-[#020b00] dark:text-white leading-tight">
+                  {totalAttendeesCount.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Attendees</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Ticket Orders Section matching Reference Visual */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-[#020b00] dark:text-white">
+              Recent Ticket Orders
+            </h2>
+            <Link
+              to="/dashboard/business/ticket-orders"
+              className="inline-flex items-center gap-1 text-xs font-extrabold text-[#8a8f04] dark:text-[#d3da0c]"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 divide-y divide-black/8 dark:divide-white/10 overflow-hidden">
+            {ticketOrdersLoading ? (
+              <div className="py-10 flex justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-[#d3da0c]" />
+              </div>
+            ) : displayedOrders.length === 0 ? (
+              <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">
+                No ticket orders yet.
+              </div>
+            ) : (
+              displayedOrders.slice(0, 5).map((order) => {
+                const customerName = order.payer_name || order.user?.name || 'Guest Attendee';
+                const usedCount = order.tickets?.filter((t) => t.is_used).length || 0;
+                const totalCount = order.tickets?.length || order.quantity || 1;
+                const isCheckedIn =
+                  order.status === 'used' || (usedCount > 0 && usedCount === totalCount);
+
+                return (
+                  <div
+                    key={order.id}
+                    onClick={() => navigate('/dashboard/business/ticket-orders')}
+                    className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center text-xs font-extrabold text-[#020b00] dark:text-gray-200 shrink-0">
+                        {getInitials(customerName)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[#020b00] dark:text-white truncate">
+                          {customerName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                          {order.event?.title || 'Sound It Event'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[#020b00] dark:text-white font-medium text-sm truncate">{order.payer_name || order.user?.name || 'Unknown'}</p>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{order.event?.title} · Qty {order.quantity || 1} · {new Date(order.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {(() => {
-                        const usedCount = order.tickets?.filter(t => t.is_used).length || 0;
-                        const totalCount = order.tickets?.length || order.quantity || 1;
-                        const isFullyUsed = order.status === 'used' || (usedCount > 0 && usedCount === totalCount);
-                        const isPartiallyUsed = usedCount > 0 && usedCount < totalCount;
-                        if (isFullyUsed) {
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">Used</span>;
-                        }
-                        if (isPartiallyUsed) {
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">{usedCount}/{totalCount} Used</span>;
-                        }
-                        return (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            order.status === 'approved' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' :
-                            order.status === 'rejected' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' :
-                            order.status === 'cancelled' ? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20' :
-                            'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
-                          }`}>{order.status}</span>
-                        );
-                      })()}
-                      <p className="text-[#020b00] dark:text-white font-semibold text-xs">¥{order.payment_amount}</p>
-                      {order.status === 'pending' && !order.auto_approved && (
-                        <div className="flex gap-1">
-                          <button onClick={() => handleApproveOrder(order.id)} disabled={processingOrderId === order.id}
-                            className="w-8 h-8 bg-green-500/10 text-green-600 dark:bg-green-500/15 dark:text-green-400 rounded-lg hover:bg-green-500/20 dark:hover:bg-green-500/25 disabled:opacity-50 flex items-center justify-center transition-all border border-green-500/20">
-                            {processingOrderId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                          </button>
-                          <button onClick={() => handleRejectOrder(order.id)} disabled={processingOrderId === order.id}
-                            className="w-8 h-8 bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400 rounded-lg hover:bg-red-500/20 dark:hover:bg-red-500/25 disabled:opacity-50 flex items-center justify-center transition-all border border-red-500/20">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-sm font-extrabold text-[#020b00] dark:text-white">
+                        ¥{order.payment_amount}
+                      </span>
+                      {isCheckedIn ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                          Checked In
+                        </span>
+                      ) : order.status === 'approved' ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          Approved
+                        </span>
+                      ) : order.status === 'rejected' ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                          Rejected
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            Pending
+                          </span>
+                          {session?.access_token && (
+                            <>
+                              <button
+                                onClick={() => handleApproveOrder(order.id)}
+                                disabled={processingOrderId === order.id}
+                                className="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center"
+                                title="Approve"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleRejectOrder(order.id)}
+                                disabled={processingOrderId === order.id}
+                                className="w-6 h-6 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"
+                                title="Reject"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    {order.payment_screenshot && (
-                      <button onClick={() => setSelectedScreenshot(order.payment_screenshot)}
-                        className="flex items-center gap-1 px-2 py-1 bg-black/5 dark:bg-white/[0.04] rounded-lg text-[10px] text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/[0.08] transition-all">
-                        <Image className="w-3 h-3" /> Screenshot
-                      </button>
-                    )}
-                    {order.ticket_code && (
-                      <span className="px-2 py-1 bg-[#020b00]/5 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-lg text-[10px] font-mono font-medium">{order.ticket_code}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Events */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#020b00] dark:text-white">{t('business.dashboard.liveEvents')}</h2>
-            <div className="flex items-center gap-3">
-              <Link to="/dashboard/business/events?tab=past" className="text-gray-600 dark:text-gray-400 text-xs font-medium hover:text-[#020b00] dark:hover:text-white transition-colors">Past Events</Link>
-              <Link to="/dashboard/business/events" className="text-[#020b00] dark:text-[#d3da0c] text-xs font-semibold hover:underline">{t('business.dashboard.manageAll')} →</Link>
-            </div>
+                );
+              })
+            )}
           </div>
-
-          {upcomingEvents.length === 0 ? (
-            <div className="bg-neutral-50 dark:bg-[#111111] border border-dashed border-black/15 dark:border-white/[0.08] rounded-2xl p-10 text-center shadow-xs dark:shadow-none">
-              <Calendar className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-              <h3 className="text-[#020b00] dark:text-white font-semibold mb-1">{t('business.dashboard.noEventsYet')}</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t('business.dashboard.createFirstEventPrompt')}</p>
-              <Link to="/dashboard/business/create-event"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-xs">
-                <PlusIcon className="w-4 h-4" /> {t('business.dashboard.createEvent')}
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {upcomingEvents.slice(0, 5).map((event) => (
-                <div key={event.id} className="bg-neutral-50 dark:bg-[#111111] border border-black/8 dark:border-white/[0.06] rounded-xl p-3 lg:p-4 flex items-center gap-3 hover:border-[#d3da0c]/30 transition-all group shadow-xs dark:shadow-none">
-                  <div className="w-11 h-11 rounded-xl overflow-hidden bg-white dark:bg-white/[0.05] border border-black/5 dark:border-transparent flex items-center justify-center shrink-0">
-                    {event.flyer_image
-                      ? <img src={event.flyer_image} alt={event.title} className="w-full h-full object-cover" />
-                      : <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-600" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-[#020b00] dark:text-white font-medium text-sm truncate">{event.title}</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs">
-                      {event.start_date ? new Date(event.start_date).toLocaleDateString() : t('business.dashboard.tbd')} · {event.venue?.name || event.city || t('business.dashboard.tbd')}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="hidden sm:block text-right">
-                      <p className="text-gray-500 dark:text-gray-400 text-[9px] uppercase font-bold">Sales</p>
-                      <p className="text-[#020b00] dark:text-white font-bold text-xs">{event.tickets_sold || 0}/{event.capacity || '∞'}</p>
-                    </div>
-                    <span className={`hidden sm:inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                      event.status === 'live' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' :
-                      event.status === 'draft' ? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                    }`}>{event.status || t('business.dashboard.active')}</span>
-                    <div className="flex gap-1">
-                      <button onClick={() => handleEditEvent(event)}
-                        className="w-8 h-8 bg-black/5 dark:bg-white/[0.05] hover:bg-black/10 dark:hover:bg-white/[0.1] rounded-lg flex items-center justify-center transition-all text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white">
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDeleteEvent(event.id, event.title)} disabled={isDeletingEvent}
-                        className="w-8 h-8 bg-black/5 dark:bg-white/[0.05] hover:bg-red-500/20 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 text-red-500 dark:text-red-400">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
-        {/* Quick Actions */}
-        <section>
-          <h2 className="text-base font-semibold text-[#020b00] dark:text-white mb-4">{t('business.dashboard.quickActions')}</h2>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-3">
-            {[
-              { icon: PlusIcon, color: 'text-[#d3da0c]', bg: 'bg-[#d3da0c]/10', label: t('business.dashboard.createEvent'), sub: t('business.dashboard.launchNewEvent'), path: '/dashboard/business/create-event', border: 'hover:border-[#d3da0c]/30' },
-              { icon: Calendar, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500/10', label: t('business.dashboard.myEvents'), sub: t('business.dashboard.manageYourEvents'), path: '/dashboard/business/events', border: 'hover:border-blue-400/30' },
-              { icon: UserPlus, color: 'text-pink-500 dark:text-pink-400', bg: 'bg-pink-500/10', label: t('business.dashboard.addGuestTicket') || 'Add Guest Ticket', sub: t('business.dashboard.addGuestTicketDesc') || 'Create tickets for walk-ins', path: '/dashboard/business/ticket-orders', border: 'hover:border-pink-400/30' },
-              { icon: Share2, color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-500/10', label: t('business.dashboard.promoters') || 'Promoters', sub: t('business.dashboard.promotersDesc') || 'Referral codes', path: '/dashboard/business/promoters', border: 'hover:border-purple-400/30' },
-              { icon: BarChart3, color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-500/10', label: t('business.dashboard.analytics'), sub: t('business.dashboard.viewInsights'), path: '/dashboard/business/analytics', border: 'hover:border-orange-400/30' },
-              { icon: Wallet, color: 'text-green-500 dark:text-green-400', bg: 'bg-green-500/10', label: t('business.dashboard.payouts'), sub: t('business.dashboard.viewEarnings'), path: '/dashboard/business/payouts', border: 'hover:border-green-400/30' },
-              { icon: Megaphone, color: 'text-amber-500 dark:text-amber-400', bg: 'bg-amber-500/10', label: 'Send Broadcast', sub: 'Notify attendees & followers', path: null, border: 'hover:border-amber-400/30', action: () => setIsBroadcastOpen(true) },
-            ].map((a, i) => (
-              <motion.button key={i} whileHover={{ scale: 1.02 }} onClick={() => a.action ? a.action() : navigate(a.path)}
-                className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/[0.07] rounded-xl p-4 text-left ${a.border} transition-all shadow-xs dark:shadow-none`}>
-                <div className={`w-9 h-9 ${a.bg} rounded-xl flex items-center justify-center mb-3`}>
-                  <a.icon className={`w-4 h-4 ${a.color}`} />
-                </div>
-                <p className="text-[#020b00] dark:text-white font-semibold text-xs lg:text-sm">{a.label}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5">{a.sub}</p>
-              </motion.button>
-            ))}
+        {/* Additional Organizer Workspace Tools */}
+        <section className="pt-2 space-y-3">
+          <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Workspace & Media Tools
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button
+              onClick={() => navigate('/dashboard/business/gallery')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-3.5 text-left hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Images className="w-4 h-4 text-[#8a8f04] dark:text-[#d3da0c] mb-2" />
+              <p className="text-xs font-bold text-[#020b00] dark:text-white">Gallery & Media</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Photos & cloud links</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/business/promoters')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-3.5 text-left hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Share2 className="w-4 h-4 text-[#8a8f04] dark:text-[#d3da0c] mb-2" />
+              <p className="text-xs font-bold text-[#020b00] dark:text-white">Promoters</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Referral tracking</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard/business/analytics')}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-3.5 text-left hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 text-[#8a8f04] dark:text-[#d3da0c] mb-2" />
+              <p className="text-xs font-bold text-[#020b00] dark:text-white">Analytics</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Sales & insights</p>
+            </button>
+
+            <button
+              onClick={() => setIsBroadcastOpen(true)}
+              className="rounded-2xl bg-neutral-50 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 p-3.5 text-left hover:border-[#d3da0c]/40 transition-colors"
+            >
+              <Megaphone className="w-4 h-4 text-[#8a8f04] dark:text-[#d3da0c] mb-2" />
+              <p className="text-xs font-bold text-[#020b00] dark:text-white">Broadcast</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Notify attendees</p>
+            </button>
           </div>
         </section>
       </div>
 
       {/* Revenue Unlock Modal */}
       {showRevenueUnlock && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4" onClick={() => setShowRevenueUnlock(false)}>
+        <div
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowRevenueUnlock(false)}
+        >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/[0.08] rounded-2xl p-6 w-full max-w-sm shadow-xl"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-[#020b00] dark:text-white">Unlock Revenue</h3>
-              <button onClick={() => setShowRevenueUnlock(false)} className="w-8 h-8 bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/[0.1] rounded-lg flex items-center justify-center transition-all text-gray-500 dark:text-gray-400">
+              <button
+                onClick={() => setShowRevenueUnlock(false)}
+                className="w-8 h-8 bg-black/5 dark:bg-white/10 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Enter your account password to view total revenue.</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              Enter your account password to view total revenue.
+            </p>
             <input
               type="password"
               value={unlockPassword}
               onChange={(e) => setUnlockPassword(e.target.value)}
               placeholder="Enter password"
-              className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all mb-4"
+              className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none mb-4"
               onKeyDown={(e) => e.key === 'Enter' && handleUnlockRevenue()}
             />
             <button
               onClick={handleUnlockRevenue}
               disabled={unlockLoading || !unlockPassword.trim()}
-              className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#d3da0c] text-black text-sm font-extrabold rounded-xl hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {unlockLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : 'Unlock'}
+              {unlockLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                </>
+              ) : (
+                'Unlock'
+              )}
             </button>
           </motion.div>
         </div>
@@ -628,66 +802,67 @@ const BusinessDashboard = () => {
 
       {/* Edit Event Modal */}
       {editingEvent && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex flex-col justify-end md:justify-center z-50 p-0 md:p-4">
-          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/[0.08] rounded-t-2xl md:rounded-2xl p-5 w-full max-w-lg md:mx-auto max-h-[88vh] overflow-y-auto shadow-xl">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex flex-col justify-end md:justify-center z-50 p-0 md:p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-t-2xl md:rounded-2xl p-5 w-full max-w-lg md:mx-auto max-h-[88vh] overflow-y-auto shadow-xl"
+          >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('business.dashboard.editEventTitle')}</h3>
-              <button onClick={() => setEditingEvent(null)} className="w-8 h-8 bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/[0.1] rounded-lg flex items-center justify-center transition-all text-gray-500 dark:text-gray-400">
+              <h3 className="text-lg font-bold text-[#020b00] dark:text-white">
+                {t('business.dashboard.editEventTitle')}
+              </h3>
+              <button
+                onClick={() => setEditingEvent(null)}
+                className="w-8 h-8 bg-black/5 dark:bg-white/10 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.eventTitleLabel')}</label>
-                <input type="text" value={editEventForm.title}
-                  onChange={(e) => setEditEventForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder={t('business.dashboard.eventTitlePlaceholder')}
-                  className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
+                <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">
+                  {t('business.dashboard.eventTitleLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={editEventForm.title}
+                  onChange={(e) => setEditEventForm((prev) => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none"
+                />
               </div>
               <div>
-                <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.descriptionLabel')}</label>
-                <textarea value={editEventForm.description}
-                  onChange={(e) => setEditEventForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder={t('business.dashboard.descriptionPlaceholder')} rows={3}
-                  className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all resize-none" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.startDate')}</label>
-                  <input type="datetime-local" value={editEventForm.start_date}
-                    onChange={(e) => setEditEventForm(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-3 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.endDate')}</label>
-                  <input type="datetime-local" value={editEventForm.end_date}
-                    onChange={(e) => setEditEventForm(prev => ({ ...prev, end_date: e.target.value }))}
-                    className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-3 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.city')}</label>
-                  <input type="text" value={editEventForm.city}
-                    onChange={(e) => setEditEventForm(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder={t('business.dashboard.cityPlaceholder')}
-                    className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-3 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">{t('business.dashboard.venueName')}</label>
-                  <input type="text" value={editEventForm.venue_name}
-                    onChange={(e) => setEditEventForm(prev => ({ ...prev, venue_name: e.target.value }))}
-                    placeholder={t('business.dashboard.venueNamePlaceholder')}
-                    className="w-full bg-neutral-50 dark:bg-white/[0.05] border border-black/10 dark:border-white/[0.08] rounded-xl px-3 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none transition-all" />
-                </div>
+                <label className="text-gray-600 dark:text-gray-400 text-xs mb-1.5 block font-medium">
+                  {t('business.dashboard.descriptionLabel')}
+                </label>
+                <textarea
+                  value={editEventForm.description}
+                  onChange={(e) =>
+                    setEditEventForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  rows={3}
+                  className="w-full bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] outline-none resize-none"
+                />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setEditingEvent(null)}
-                  className="flex-1 py-3 bg-neutral-100 dark:bg-white/[0.06] text-[#020b00] dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/[0.1] transition-all">
+                <button
+                  onClick={() => setEditingEvent(null)}
+                  className="flex-1 py-3 bg-neutral-100 dark:bg-white/10 text-[#020b00] dark:text-white text-sm font-semibold rounded-xl"
+                >
                   {t('business.dashboard.cancel')}
                 </button>
-                <button onClick={handleUpdateEvent} disabled={isUpdatingEvent}
-                  className="flex-1 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                  {isUpdatingEvent ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('business.dashboard.saving')}</> : t('business.dashboard.saveChanges')}
+                <button
+                  onClick={handleUpdateEvent}
+                  disabled={isUpdatingEvent}
+                  className="flex-1 py-3 bg-[#d3da0c] text-black text-sm font-extrabold rounded-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isUpdatingEvent ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> {t('business.dashboard.saving')}
+                    </>
+                  ) : (
+                    t('business.dashboard.saveChanges')
+                  )}
                 </button>
               </div>
             </div>
@@ -697,9 +872,15 @@ const BusinessDashboard = () => {
 
       {/* Screenshot Modal */}
       {selectedScreenshot && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedScreenshot(null)}>
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedScreenshot(null)}
+        >
           <div className="relative max-w-3xl w-full">
-            <button onClick={() => setSelectedScreenshot(null)} className="absolute top-3 right-3 z-10 w-9 h-9 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-all">
+            <button
+              onClick={() => setSelectedScreenshot(null)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 bg-black/60 rounded-full flex items-center justify-center text-white"
+            >
               <X className="w-5 h-5" />
             </button>
             <img src={selectedScreenshot} alt="Screenshot" className="w-full h-auto rounded-2xl" />
@@ -709,15 +890,20 @@ const BusinessDashboard = () => {
 
       {/* QR Modal */}
       {selectedQr && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedQr(null)}>
-          <div className="bg-white p-6 rounded-2xl text-center max-w-xs w-full" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedQr(null)}
+        >
+          <div
+            className="bg-white p-6 rounded-2xl text-center max-w-xs w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img src={selectedQr} alt="Ticket QR" className="w-full aspect-square mx-auto" />
             <p className="text-black mt-3 font-semibold text-sm">Ticket QR Code</p>
           </div>
         </div>
       )}
 
-      {/* Broadcast Modal */}
       <BroadcastAnnouncementModal
         isOpen={isBroadcastOpen}
         onClose={() => setIsBroadcastOpen(false)}

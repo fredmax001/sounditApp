@@ -4,15 +4,33 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
+export const VENDOR_CATEGORIES = [
+    'Food and Beverages',
+    'Fashion and Clothing',
+    'Beauty and Cosmetics',
+    'Accessories and Jewellery',
+    'Electronics',
+    'Arts and Crafts',
+    'Merchandise',
+    'Lifestyle Products',
+    'Other Products and Services',
+] as const;
+
+export type VendorCategoryName = (typeof VENDOR_CATEGORIES)[number];
+
 function getErrorMessage(err: unknown): string {
-  if (typeof err === 'string') return err;
-  if (err && typeof err === 'object') {
-    const e = err as { response?: { data?: { detail?: string } }; message?: string };
-    return e.response?.data?.detail || e.message || 'Unknown error';
-  }
-  return 'Unknown error';
+    if (typeof err === 'string') return err;
+    if (err && typeof err === 'object') {
+        const e = err as { response?: { data?: { detail?: string } }; message?: string };
+        return e.response?.data?.detail || e.message || 'Unknown error';
+    }
+    return 'Unknown error';
 }
 
+export interface ProductVariation {
+    name: string; // e.g., "Size", "Color", "Option"
+    options: string[]; // e.g., ["S", "M", "L"]
+}
 
 export interface Product {
     id: number;
@@ -24,7 +42,14 @@ export interface Product {
     image_url?: string;
     images?: string[];
     category?: string;
+    product_type?: string;
+    variations?: ProductVariation[];
     stock_quantity: number;
+    is_preorder_enabled?: boolean;
+    preorder_open_date?: string;
+    preorder_close_date?: string;
+    preorder_fulfilment_date?: string;
+    preorder_quantity?: number;
     status: 'active' | 'inactive' | 'sold_out';
     wechat_qr_url?: string;
     alipay_qr_url?: string;
@@ -38,7 +63,8 @@ export interface VendorProfile {
     user_id: number;
     business_name: string;
     description?: string;
-    vendor_type?: 'food' | 'merch' | 'service' | 'beverage';
+    vendor_type?: string;
+    categories?: string[];
     logo_url?: string;
     banner_url?: string;
     city_id?: string;
@@ -70,7 +96,9 @@ export interface Order {
     }[];
     total_amount: number;
     currency: string;
-    status: 'pending' | 'confirmed' | 'ready' | 'completed' | 'cancelled';
+    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'ready_for_collection' | 'completed' | 'cancelled';
+    is_preorder?: boolean;
+    fulfilment_date?: string;
     event_id?: string;
     event_name?: string;
     created_at: string;
@@ -182,11 +210,10 @@ export const useVendorStore = create<VendorState>()(
             },
 
             uploadProductImage: async (token, file) => {
-                // Validate file
                 if (!file.type.startsWith('image/')) {
                     throw new Error('Please select a valid image file');
                 }
-                if (file.size > 5 * 1024 * 1024) { // 5MB
+                if (file.size > 5 * 1024 * 1024) {
                     throw new Error('Image size must be less than 5MB');
                 }
 
@@ -236,7 +263,7 @@ export const useVendorStore = create<VendorState>()(
         }),
         {
             name: 'vendor-storage',
-            partialize: (state) => ({ profile: state.profile }),
+            partialize: (state) => ({ profile: state.profile, products: state.products }),
         }
     )
 );

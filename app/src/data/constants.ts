@@ -1,4 +1,5 @@
 export const chinaCities = [
+    { id: 'all', name: 'All Cities', nameCN: '全国城市', description: 'Explore events, artists, businesses and vendors across all cities in China.', venues: [], neighborhoods: [] },
     { id: 'shanghai', name: 'Shanghai', nameCN: '上海', description: 'China\'s biggest city and a global financial hub with a vibrant nightlife scene.', venues: ['Synth Club', 'Corner Bar'], neighborhoods: ['Jing\'an', 'Xuhui'] },
     { id: 'beijing', name: 'Beijing', nameCN: '北京', description: 'The capital city, blending ancient history with modern culture.', venues: ['Lantern', 'Dada'], neighborhoods: ['Sanlitun', 'Gulou'] },
     { id: 'guangzhou', name: 'Guangzhou', nameCN: '广州', description: 'A major port city and commercial hub in southern China.', venues: ['Baallers Club', 'Kiki\'s Club'], neighborhoods: ['Zhujiang New Town', 'Taojin'] },
@@ -76,6 +77,8 @@ export const allChinaCities = [
     'Dongguan', 'Foshan', 'Zhuhai', 'Zhongshan', 'Jiangmen', 'Huizhou',
     'Shantou', 'Zhanjiang', 'Zhaoqing', 'Maoming', 'Meizhou', 'Qingyuan'
 ];
+
+export const specificChinaCities = chinaCities.filter(c => c.id !== 'all');
 
 export const genres = [
     'Afrobeats',

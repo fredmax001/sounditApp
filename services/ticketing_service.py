@@ -55,7 +55,12 @@ def get_ticket_price(db: Session, order: TicketOrder, event: Event) -> float:
 def _generate_qr_code(ticket_code: str) -> str:
     """Generate a base64 PNG QR code for a ticket code"""
     qr_data = ticket_code
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr = qrcode.QRCode(
+        version=6,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=2,
+    )
     qr.add_data(qr_data)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")

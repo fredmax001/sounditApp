@@ -6,6 +6,7 @@ import {
   Search, SlidersHorizontal, LayoutGrid, List, Calendar, X,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
@@ -200,32 +201,28 @@ const Favorites = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate(-1)}
-              aria-label={t('kit.common.back')}
-              className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white flex-1">{t('kit.favorites.title')}</h1>
-            <button
-              onClick={() => { setSearchOpen(o => !o); setFilterOpen(false); }}
-              aria-label={t('kit.favorites.searchPlaceholder')}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${searchOpen ? 'text-[#020b00] dark:text-[#d3da0c] bg-black/5 dark:bg-[#d3da0c]/10' : 'text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => { setFilterOpen(o => !o); setSearchOpen(false); }}
-              aria-label={t('kit.favorites.filter')}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${filterOpen ? 'text-[#020b00] dark:text-[#d3da0c] bg-black/5 dark:bg-[#d3da0c]/10' : 'text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-              <SlidersHorizontal className="w-5 h-5" />
-            </button>
-          </div>
+      <MobilePageHeader
+        wide
+        title={t('kit.favorites.title')}
+        right={
+          <>
+              <button
+                onClick={() => { setSearchOpen(o => !o); setFilterOpen(false); }}
+                aria-label={t('kit.favorites.searchPlaceholder')}
+                className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${searchOpen ? 'text-[#020b00] dark:text-[#d3da0c] bg-black/5 dark:bg-[#d3da0c]/10' : 'text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => { setFilterOpen(o => !o); setSearchOpen(false); }}
+                aria-label={t('kit.favorites.filter')}
+                className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${filterOpen ? 'text-[#020b00] dark:text-[#d3da0c] bg-black/5 dark:bg-[#d3da0c]/10' : 'text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+              >
+                <SlidersHorizontal className="w-5 h-5" />
+              </button>
+          </>
+        }
+      >
 
           {searchOpen && (
             <motion.div
@@ -276,8 +273,7 @@ const Favorites = () => {
               ))}
             </motion.div>
           )}
-        </div>
-      </section>
+      </MobilePageHeader>
 
       <section className="py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

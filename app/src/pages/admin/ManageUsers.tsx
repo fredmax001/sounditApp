@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import {
     Search,
@@ -12,13 +13,15 @@ import {
     X,
     Trash2,
     Award,
-    MapPin
+    MapPin,
+    Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminStore } from '@/store/adminStore';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import type { AdminUser } from '@/store/adminStore';
+import EntityDetailModal from '@/components/admin/EntityDetailModal';
 
 const ManageUsers = () => {
     const { t } = useTranslation();
@@ -32,6 +35,13 @@ const ManageUsers = () => {
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
     const [roleFilter, setRoleFilter] = useState('');
     const [cityFilter, setCityFilter] = useState('');
+    const [selectedUserId, setSelectedUserId] = useState<string | number | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    const handleViewUserCard = (userId: string | number) => {
+        setSelectedUserId(userId);
+        setIsDetailModalOpen(true);
+    };
 
     // Invite form state
     const [inviteForm, setInviteForm] = useState({
@@ -256,10 +266,7 @@ const ManageUsers = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-display text-[#020b00] dark:text-white mb-2">{t('admin.manageUsers.title')}</h1>
-                    <p className="text-gray-600 dark:text-gray-400">{t('admin.manageUsers.subtitle')}</p>
-                </div>
+                <AdminPageHeader chip="Management" title={t('admin.manageUsers.title')} subtitle={t('admin.manageUsers.subtitle')} />
                 <button
                     onClick={() => setShowInviteModal(true)}
                     className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-white transition-colors flex items-center gap-2"
@@ -314,7 +321,7 @@ const ManageUsers = () => {
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-[#111111] rounded-3xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
+            <div className="bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
                 {isLoading ? (
                     <div className="flex justify-center py-20">
                         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
@@ -345,12 +352,16 @@ const ManageUsers = () => {
                             {filteredUsers.map((user: AdminUser) => (
                                 <tr key={user.id} className={`hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors ${isFrozen(user.id) ? 'opacity-50' : ''}`}>
                                     <td className="px-6 py-4">
-                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 relative overflow-hidden">
+                                         <div 
+                                            onClick={() => handleViewUserCard(user.id)}
+                                            className="flex items-center gap-4 cursor-pointer group"
+                                            title="Click to view detailed user card"
+                                         >
+                                            <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 relative overflow-hidden group-hover:ring-2 group-hover:ring-[#d3da0c] transition-all">
                                                 {user.avatar_url ? (
                                                     <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <User className="w-5 h-5" />
+                                                    <User className="w-5 h-5 group-hover:text-[#d3da0c] transition-colors" />
                                                 )}
                                                 {isFrozen(user.id) && (
                                                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
@@ -359,7 +370,10 @@ const ManageUsers = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-[#020b00] dark:text-white font-medium">{`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'}</p>
+                                                <p className="text-[#020b00] dark:text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                                                    {`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'}
+                                                    <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                                                </p>
                                                 <p className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</p>
                                             </div>
                                         </div>
@@ -408,6 +422,13 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleViewUserCard(user.id)}
+                                                className="p-2 rounded-lg bg-neutral-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:text-[#d3da0c] hover:bg-[#d3da0c]/10 transition-colors"
+                                                title="View User Card & Performance"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
                                                 disabled={actionLoading === `delete-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
@@ -621,6 +642,17 @@ const ManageUsers = () => {
                     </div>
                 </div>
             )}
+            {/* User Detail & Performance Card Modal */}
+            <EntityDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => {
+                    setIsDetailModalOpen(false);
+                    setSelectedUserId(null);
+                }}
+                type="user"
+                entityId={selectedUserId}
+                onUpdated={loadUsers}
+            />
         </div>
     );
 };

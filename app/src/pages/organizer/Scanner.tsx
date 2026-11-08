@@ -51,7 +51,7 @@ const Scanner = () => {
   const { isMobile, isTablet, isTouchDevice } = useDeviceDetection();
   const isAllowedDevice = isMobile || isTablet || isTouchDevice;
 
-  const [scanning, setScanning] = useState(false);
+  const [scanning, setScanning] = useState(true);
   const [scannedTicket, setScannedTicket] = useState<ScannedTicket | null>(null);
   const [scanResult, setScanResult] = useState<'valid' | 'invalid' | 'used' | null>(null);
   const [isValidating, setIsValidating] = useState(false);
@@ -90,7 +90,7 @@ const Scanner = () => {
       scanner
         .start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+          { fps: 15, aspectRatio: 1.0 },
           (decodedText) => {
             // Success
             handleScan(decodedText);
@@ -369,21 +369,34 @@ const Scanner = () => {
                 className="text-center"
               >
                 {/* Camera Scanner */}
-                <div className="relative mx-auto mb-6 max-w-sm rounded-2xl overflow-hidden bg-black min-h-[300px]">
+                <div className="relative mx-auto mb-6 w-72 h-72 sm:w-80 sm:h-80 aspect-square rounded-2xl overflow-hidden bg-black">
                   <div
                     id="scanner-video"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover [&_#qr-shaded-region]:!hidden"
                   ></div>
                   {!cameraReady && !scannerError && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 text-white z-10">
                       <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin mb-3" />
                       <span className="text-sm text-gray-300">
                         {t('organizer.scanner.startingCamera') || 'Starting camera...'}
                       </span>
                     </div>
                   )}
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    <div className="absolute top-0 left-0 w-9 h-9 border-l-4 border-t-4 border-[#d3da0c] rounded-tl-2xl" />
+                    <div className="absolute top-0 right-0 w-9 h-9 border-r-4 border-t-4 border-[#d3da0c] rounded-tr-2xl" />
+                    <div className="absolute bottom-0 left-0 w-9 h-9 border-l-4 border-b-4 border-[#d3da0c] rounded-bl-2xl" />
+                    <div className="absolute bottom-0 right-0 w-9 h-9 border-r-4 border-b-4 border-[#d3da0c] rounded-br-2xl" />
+                    {cameraReady && !isValidating && (
+                      <motion.div
+                        animate={{ top: ['4%', '96%', '4%'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="absolute left-3 right-3 h-0.5 bg-[#d3da0c] shadow-[0_0_12px_#d3da0c]"
+                      />
+                    )}
+                  </div>
                   {isValidating && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30">
                       <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin" />
                     </div>
                   )}

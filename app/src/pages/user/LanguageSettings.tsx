@@ -1,3 +1,4 @@
+import MobilePageHeader from '@/components/MobilePageHeader';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -120,19 +121,15 @@ const LanguageSettings = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
-          <button
-            onClick={() => navigate('/settings')}
-            aria-label={t('kit.common.back')}
-            className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold font-display text-[#020b00] dark:text-white flex-1">{t('kit.language.title')}</h1>
-          {isSaving && <Loader2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] animate-spin" />}
-        </div>
-      </section>
+      <MobilePageHeader
+        title={t('kit.language.title')}
+        onBack={() => navigate('/settings')}
+        right={
+          <>
+  {isSaving && <Loader2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] animate-spin" />}
+          </>
+        }
+      />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         <motion.div

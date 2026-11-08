@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Building2, Search, Check, Trash2,
-  Loader2, Calendar, DollarSign, Sparkles, XCircle, Lock, Unlock
+  Loader2, Calendar, DollarSign, XCircle, Lock, Unlock, Eye
 } from 'lucide-react';
+import EntityDetailModal from '@/components/admin/EntityDetailModal';
 
 interface Business {
   id: number;
@@ -31,6 +33,13 @@ const ManageBusinesses = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState(''); // kept for compatibility but unused
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | number | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewBusinessCard = (bizId: string | number) => {
+    setSelectedBusinessId(bizId);
+    setIsDetailModalOpen(true);
+  };
 
   useEffect(() => {
     loadBusinesses();
@@ -207,12 +216,7 @@ const ManageBusinesses = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{t('admin.manageBusinesses.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('admin.manageBusinesses.subtitle')}</p>
-        </div>
-      </div>
+      <AdminPageHeader chip="Management" title={t('admin.manageBusinesses.title')} subtitle={t('admin.manageBusinesses.subtitle')} />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -281,9 +285,6 @@ const ManageBusinesses = () => {
         </div>
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 rounded-xl">
-              <Sparkles className="w-5 h-5" />
-            </div>
             <div>
               <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageBusinesses.featured')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
@@ -329,12 +330,19 @@ const ManageBusinesses = () => {
               {filteredBusinesses.map((business) => (
                 <tr key={business.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div 
+                      onClick={() => handleViewBusinessCard(business.id)}
+                      className="flex items-center gap-3 cursor-pointer group"
+                      title="Click to view business card"
+                    >
+                      <div className="w-10 h-10 bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30 rounded-full flex items-center justify-center font-bold group-hover:ring-2 group-hover:ring-[#d3da0c] transition-all">
                         {business.organization_name?.[0] || 'B'}
                       </div>
                       <div>
-                        <p className="text-[#020b00] dark:text-white font-medium">{business.organization_name}</p>
+                        <p className="text-[#020b00] dark:text-white font-medium group-hover:text-[#d3da0c] transition-colors flex items-center gap-1.5">
+                          {business.organization_name}
+                          <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#d3da0c] transition-opacity" />
+                        </p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs">{business.user_name}</p>
                       </div>
                     </div>
@@ -367,6 +375,13 @@ const ManageBusinesses = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleViewBusinessCard(business.id)}
+                        className="p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-[#d3da0c] transition-colors"
+                        title="View Business Card & Performance"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {!business.is_verified ? (
                         <button
                           onClick={() => handleVerify(business.id)}
@@ -408,10 +423,10 @@ const ManageBusinesses = () => {
                       <button
                         onClick={() => handleFeature(business.id)}
                         disabled={actionLoading === `feature-${business.id}`}
-                        className={`p-2 hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${business.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
+                        className={`px-2 py-1 text-xs font-medium hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors ${business.is_featured ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'}`}
                         title={business.is_featured ? t('admin.manageBusinesses.unfeature') : t('admin.manageBusinesses.feature')}
                       >
-                        {actionLoading === `feature-${business.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {actionLoading === `feature-${business.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : (business.is_featured ? 'Featured' : 'Feature')}
                       </button>
                       {business.status === 'suspended' ? (
                         <button
@@ -448,6 +463,17 @@ const ManageBusinesses = () => {
           </table>
         )}
       </div>
+      {/* Business Detail Modal */}
+      <EntityDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedBusinessId(null);
+        }}
+        type="business"
+        entityId={selectedBusinessId}
+        onUpdated={loadBusinesses}
+      />
     </div>
   );
 };

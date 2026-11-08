@@ -24,8 +24,7 @@ const MobileSectionHeader = ({
       <div>
         {label && (
           <span
-            className="block text-[10px] font-semibold uppercase tracking-widest mb-0.5"
-            style={{ color: accentColor }}
+            className="block text-[10px] font-semibold uppercase tracking-widest mb-0.5 text-[#8a8f04] dark:text-[#d3da0c]"
           >
             {label}
           </span>
@@ -35,8 +34,7 @@ const MobileSectionHeader = ({
       {seeAllPath && (
         <Link
           to={seeAllPath}
-          className="flex items-center gap-0.5 text-sm font-medium"
-          style={{ color: accentColor }}
+          className="flex items-center gap-0.5 text-sm font-medium text-[#8a8f04] dark:text-[#d3da0c]"
         >
           {seeAllLabel}
           <ChevronRight className="w-4 h-4" />
