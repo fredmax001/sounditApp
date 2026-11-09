@@ -383,7 +383,7 @@ function App() {
             <Route path="/discovery" element={<CityGuide />} />
             <Route path="/recaps" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />
             <Route path="/food" element={<Food />} />
-            <Route path="/community" element={<Community />} />
+            <Route path="/community" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />
             <Route path="/reels" element={<Suspense fallback={<PageLoader />}><Recaps /></Suspense>} />
             <Route path="/about" element={<About />} />
             <Route path="/download" element={<Download />} />

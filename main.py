@@ -30,6 +30,8 @@ import api.sms_test as sms_test
 import api.monitoring as monitoring
 import api.reels as reels
 import api.points as points
+import api.smart_notifications as smart_notifications
+from services.notification_worker import start_smart_notification_worker
 
 settings = get_settings()
 
@@ -149,15 +151,21 @@ async def lifespan(app: FastAPI):
         except PermissionError:
             logger.warning("[warn] Cannot create /var/www/soundit-uploads — ensure the directory exists in production")
     
-    # Start background auto-cancel worker
+    # Start background auto-cancel worker and smart notification worker
     task = asyncio.create_task(_auto_cancel_worker())
+    smart_notif_task = asyncio.create_task(start_smart_notification_worker(interval_seconds=300))
     
     yield
     
     # Shutdown
     task.cancel()
+    smart_notif_task.cancel()
     try:
         await task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await smart_notif_task
     except asyncio.CancelledError:
         pass
 
@@ -415,6 +423,7 @@ app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(newsletter.router, prefix="/api/v1")
 app.include_router(reels.router, prefix="/api/v1")
 app.include_router(points.router, prefix="/api/v1")
+app.include_router(smart_notifications.router, prefix="/api/v1")
 app.include_router(sitemap.router)
 
 

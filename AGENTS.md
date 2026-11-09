@@ -9,6 +9,56 @@
 
 ---
 
+### 160. Smart Notification Engine: Complete Backend & Frontend Implementation — All 9 Components (2026-11-09)
+- **User Requirements & System Scope**:
+  - Full end-to-end backend implementation of the autonomous Smart Notification Engine across all 9 components with zero mockups, strictly connected to live PostgreSQL and real production data.
+- **Components Built, Validated, and Deployed**:
+  1. **User Behaviour Tracking (`services/activity_tracker.py`, `app/src/lib/activityTracker.ts`)**:
+     - Created `user_activities` table with weighted actions: profile view (1.0), video/reel view (2.0), like (3.0), follow/save (5.0), ticket purchase (10.0), attendance (12.0).
+     - Built 5-minute debouncing window and automated interest piping.
+     - Hooked client-side activity tracking into `EventDetail.tsx` and `Recaps.tsx` (reel views, likes, shares, event saves).
+  2. **Dynamic Interest Scoring Engine (`services/interest_engine.py`)**:
+     - Created `user_interests` table storing category scores, interaction counts, and timestamps.
+     - Implemented exponential recency decay with 21-day half-life ($e^{-\lambda \Delta t}$, $\lambda = \ln(2)/21 \approx 0.033$).
+     - Multi-category attribution across Afrobeats, Hip-hop, DJs, Live music, Nightlife, Restaurants, Venues, and Community.
+  3. **Automated Event Triggers (`services/notification_triggers.py`)**:
+     - Created `smart_notification_rules` table and seeded 6 core automated rules: `event_interest_match`, `followed_artist_update`, `event_countdown_48h`, `event_countdown_24h`, `ticket_closing_soon`, and `inactive_reengagement`.
+     - Automated generators for interest matches, creator updates, ticket sale closing warnings (<12h), 48h/24h attendee countdowns, and weekly re-engagement for dormant users (>14 days).
+  4. **Complete Time Zone Intelligence (`services/timezone_service.py`)**:
+     - Migrated `users.timezone` (IANA format, default `'Asia/Shanghai'`).
+     - Polymorphic quiet hours detection (`is_in_quiet_hours`) enforcing quiet spans (e.g. 22:00 to 08:00) including overnight boundaries.
+     - Bidirectional UTC conversion and next available wake-hour delivery calculation (`get_next_suitable_delivery_utc`).
+  5. **Smart Notification Delivery Optimization (`services/delivery_optimizer.py`)**:
+     - Learned user engagement peak hours from activity logs.
+     - Instant delivery bypass for critical/transactional alerts (event cancellations, 24h countdowns).
+  6. **Anti-Spam & Frequency Control (`services/anti_spam.py`)**:
+     - Strict caps: maximum 3 promotional notifications per day, maximum 10 per week.
+     - Idempotency key tracking (`scheduled_notifications.idempotency_key`) preventing duplicate notifications.
+     - Ticket purchase exclusion: automatically skips event recommendations and sales alerts for users who already hold confirmed tickets.
+  7. **Background Scheduler Worker (`services/notification_worker.py`, `main.py`)**:
+     - Durable queue processor running continuously in FastAPI lifespan (`asyncio.create_task(start_smart_notification_worker)`).
+     - Periodically evaluates trigger rules and flushes pending notifications where `scheduled_for_utc <= now()`.
+     - Dispatches through in-app Notification records, Apple Push Notification service (APNs), and pywebpush.
+     - Exponential backoff retry mechanism (retries up to 3 times before recording failure).
+  8. **Admin Automation Dashboard (`api/smart_notifications.py`, `app/src/components/admin/SmartNotificationAutomation.tsx`, `NotificationCenter.tsx`)**:
+     - Real-time aggregated stats: tracked activities, interest scores modeled, scheduled queue, delivery rate (%), and pause status.
+     - Interactive rule toggles for all 6 trigger rules.
+     - Queue audit log table with status filtering (pending, sent, failed, skipped), error reasons, and manual retry action.
+     - Emergency system switch to instantly pause/resume all promotional notifications.
+     - "Run Worker Cycle Now" manual trigger execution.
+  9. **User Notification Settings (`app/src/pages/user/NotificationSettings.tsx`)**:
+     - Time Zone Selector with browser auto-detection (`Intl.DateTimeFormat().resolvedOptions().timeZone`) and popular IANA zones.
+     - Quiet Hours controls (enable/disable, custom start time, custom end time).
+     - Smart Personalization toggles for Event Recommendations, Followed Artists/DJs, Social notifications, and Special Perks.
+- **Production Verification & Sync**:
+  - Successfully executed `scripts/test_smart_notifications.py` directly against production database (`soundit_prod`) verifying all 9 components.
+  - Recompiled production frontend bundle on server: `index-NgF8tOO1.js` and `index-B11wxztc.css`.
+  - Restarted `soundit.service` and confirmed HTTP 200 on `https://sounditent.com/`.
+  - Synchronized dist bundle into local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+
+---
+
 ### 159. Recaps Redesign: Unified Continuous Social Feed (2026-11-09)
 - **User Requirements & Screenshots Addressed**:
   - **Screenshot (`media_1794205994692_960ac5fc.jpg`) — Complete Removal of Top Navigation Header**:

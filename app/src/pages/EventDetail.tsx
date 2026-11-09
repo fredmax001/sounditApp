@@ -13,6 +13,7 @@ import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import { API_BASE_URL } from '@/config/api';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 import { Analytics } from '@/lib/analytics';
+import { trackActivity } from '@/lib/activityTracker';
 import { slugify, getEntitySlug } from '@/lib/slug';
 import { saveImageToDevice } from '@/lib/downloadImage';
 
@@ -146,6 +147,17 @@ export default function EventDetail() {
       Analytics.trackEvent("event_view", "engagement", { event_id: id });
     }
   }, [id, fetchEventById]);
+
+  useEffect(() => {
+    if (currentEvent?.id) {
+      trackActivity({
+        action_type: 'view',
+        entity_type: 'event',
+        entity_id: currentEvent.id,
+        category: (currentEvent as any).category || (currentEvent as any).music_genre || (currentEvent as any).genre,
+      });
+    }
+  }, [currentEvent?.id]);
 
   // Save the payment session whenever the QR screen is shown (mobile only)
   useEffect(() => {

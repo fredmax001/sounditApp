@@ -26,6 +26,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { useCommunityStore, type CommunityPost, getGuestName, setGuestName } from '@/store/communityStore';
 import { useEventStore } from '@/store/eventStore';
+import { trackActivity } from '@/lib/activityTracker';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -294,6 +295,12 @@ export default function Recaps() {
     const currentItem = feedItems[activeIndex];
     if (currentItem && currentItem.type === 'reel') {
       fetch(`${API_BASE_URL}/reels/${currentItem.data.id}/view`, { method: 'POST' }).catch(() => {});
+      trackActivity({
+        action_type: 'watch',
+        entity_type: 'reel',
+        entity_id: currentItem.data.id,
+        category: currentItem.data.music_tag || 'afrobeats',
+      });
     }
   }, [activeIndex, feedItems]);
 
@@ -328,6 +335,9 @@ export default function Recaps() {
           method: 'POST',
           headers: { Authorization: `Bearer ${session?.access_token}` },
         });
+        if (willLike) {
+          trackActivity({ action_type: 'like', entity_type: 'reel', entity_id: item.data.id, category: item.data.music_tag || 'afrobeats' });
+        }
       } catch {
         // silent rollback if error
       }
@@ -349,11 +359,15 @@ export default function Recaps() {
       );
       if (willLike) {
         likePost(item.data.id);
+        trackActivity({ action_type: 'like', entity_type: 'community_post', entity_id: item.data.id });
       } else {
         unlikePost(item.data.id);
       }
     } else if (item.type === 'event_collection') {
       const willLike = !item.data.has_liked;
+      if (willLike) {
+        trackActivity({ action_type: 'like', entity_type: 'event', entity_id: item.data.event_id, category: item.data.category });
+      }
       setFeedItems((prev) =>
         prev.map((it) =>
           it.id === item.id && it.type === 'event_collection'

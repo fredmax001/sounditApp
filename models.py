@@ -232,6 +232,7 @@ class User(Base):
     preferred_city = Column(Enum(City), nullable=True)
     preferred_language = Column(String(10), default="en")
     notifications_enabled = Column(Boolean, default=True)
+    timezone = Column(String(50), default="Asia/Shanghai")
     
     # Push notification relationships
     push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
@@ -1891,6 +1892,10 @@ class NotificationPreference(Base):
     subscriptions = Column(Boolean, default=True)
     events = Column(Boolean, default=True)
     marketing = Column(Boolean, default=False)
+    artist_updates = Column(Boolean, default=True)
+    recommendations = Column(Boolean, default=True)
+    social = Column(Boolean, default=True)
+    reengagement = Column(Boolean, default=True)
     
     # Global toggles
     push_enabled = Column(Boolean, default=True)
@@ -1900,10 +1905,112 @@ class NotificationPreference(Base):
     # Quiet hours (stored as "HH:MM" strings)
     quiet_hours_start = Column(String(5), nullable=True)
     quiet_hours_end = Column(String(5), nullable=True)
+    preferred_delivery_hour = Column(Integer, default=18)
     
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     user = relationship("User", back_populates="notification_preferences")
+
+
+class UserActivity(Base):
+    """Real activity tracking with weighted event points for smart personalization."""
+    __tablename__ = "user_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    action_type = Column(String(50), nullable=False, index=True)
+    entity_type = Column(String(50), nullable=True)
+    entity_id = Column(Integer, nullable=True)
+    weight = Column(Float, default=1.0)
+    metadata_json = Column("metadata", JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User")
+
+
+class UserInterest(Base):
+    """Dynamic interest scores calculated with recency decay across music genres & categories."""
+    __tablename__ = "user_interests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    category = Column(String(50), nullable=False, index=True)
+    score = Column(Float, default=0.0)
+    interaction_count = Column(Integer, default=0)
+    last_interaction_at = Column(DateTime(timezone=True), nullable=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+
+class ScheduledNotification(Base):
+    """Durable queue & dispatch history for automated smart notifications."""
+    __tablename__ = "scheduled_notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    category = Column(String(50), nullable=False)
+    priority = Column(String(20), default="normal")  # critical, high, normal, low
+    channel = Column(String(20), default="all")      # all, push, in_app, email
+    scheduled_for_utc = Column(DateTime(timezone=True), nullable=False, index=True)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(20), default="pending", index=True)  # pending, delivered, skipped, failed, cancelled
+    idempotency_key = Column(String(255), unique=True, index=True, nullable=True)
+    error_reason = Column(Text, nullable=True)
+    retry_count = Column(Integer, default=0)
+    data = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+
+
+class SmartNotificationRule(Base):
+    """Configurable automated notification rules managed in Admin Dashboard."""
+    __tablename__ = "smart_notification_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    rule_key = Column(String(50), unique=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(50), nullable=False)
+    is_enabled = Column(Boolean, default=True)
+    frequency_cap_daily = Column(Integer, default=3)
+    frequency_cap_weekly = Column(Integer, default=10)
+    min_interest_score = Column(Float, default=2.0)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    @property
+    def is_active(self) -> bool:
+        return bool(self.is_enabled)
+
+    @is_active.setter
+    def is_active(self, value: bool):
+        self.is_enabled = bool(value)
+
+    @property
+    def priority(self) -> str:
+        if self.rule_key in ("event_countdown_24h", "event_cancellation"):
+            return "critical"
+        elif self.rule_key in ("event_countdown_48h", "ticket_closing_soon"):
+            return "high"
+        return "normal"
+
+    @property
+    def cooldown_hours(self) -> int:
+        return 24
+
+    @property
+    def config(self) -> dict:
+        return {
+            "frequency_cap_daily": self.frequency_cap_daily,
+            "frequency_cap_weekly": self.frequency_cap_weekly,
+            "min_interest_score": self.min_interest_score,
+        }
+
 
 
 # ===========================================================================
