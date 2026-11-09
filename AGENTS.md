@@ -9,6 +9,18 @@
 
 ---
 
+### 161. Backend Dependency Fix: `require_admin` Resolution & Service Recovery (2026-11-09)
+- **Issue**:
+  - `sounditent.com/discovery` rendered the fallback Error Boundary screen (`"Something went wrong"`).
+  - Cause: In [`api/smart_notifications.py`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/api/smart_notifications.py), `from auth import get_current_admin` was called, but the actual FastAPI dependency in `auth.py` is `require_admin`. This caused uvicorn worker processes to crash on boot (`ImportError: cannot import name 'get_current_admin' from 'auth'`), causing API requests to fail.
+- **Fix**:
+  - Replaced `get_current_admin` with `require_admin` across all admin route dependencies in `api/smart_notifications.py`.
+  - Deployed `api/smart_notifications.py` to production and restarted `soundit.service`.
+  - Verified `systemctl is-active soundit.service` returns `active`.
+  - Confirmed all live API endpoints (`/api/v1/events`, `/api/v1/artists`, `/api/v1/businesses`) return HTTP 200 with real production data.
+
+---
+
 ### 160. Smart Notification Engine: Complete Backend & Frontend Implementation — All 9 Components (2026-11-09)
 - **User Requirements & System Scope**:
   - Full end-to-end backend implementation of the autonomous Smart Notification Engine across all 9 components with zero mockups, strictly connected to live PostgreSQL and real production data.
