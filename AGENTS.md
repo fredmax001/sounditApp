@@ -9,6 +9,43 @@
 
 ---
 
+### 157. Opaque Intro Screen Restoration, App Startup Optimization & More Menu Design Alignment (2026-11-09)
+- **User Requirements & Issues Addressed**:
+  - **Task 1: Restore Original Intro Screen**:
+    - Restore completely opaque solid background `#020b00` covering entire screen including safe areas.
+    - Keep original Sound It logo asset (`/intro_drum.png` and `/intro_sound.png`) centered with original proportions.
+    - Keep yellow-green ambient glow layers behind the logo.
+    - Keep existing animated circular loading indicator and `"Loading Sound It…"`.
+    - Preserve existing entrance animation without modification or redesign.
+  - **Task 2: Improve App Loading Speed**:
+    - Eliminate main UI thread contention caused by mounting `<Router>` and 15+ background page queries concurrently during splash screen.
+    - Wrap `<LoadingScreen>` so it renders exclusively while `isLoading` is true, ensuring smooth 60/120fps animation.
+    - Reduce splash screen display window to 1.9s (from 2.7s) with immediate skip handler (200ms).
+    - Guard `fetch('/system/intro-screen')` and `fetch('/system/status')` with `AbortController` 2s timeout and absolute `API_BASE_URL` so native iOS/Android apps do not stall on relative network paths.
+  - **Task 3: More Menu Exact Design Alignment**:
+    - Header: Sound It stylized wordmark logo + `|` + `More`, and circular `X` close button on right.
+    - Section Order strictly aligned:
+      1. **COMPANY** (`LayoutGrid` icon in `#d3da0c`, About Us, Get the App, Careers, Press, Contact).
+      2. **SUPPORT & LEGAL** (`Headphones` icon in `#d3da0c`, Help Center, Terms of Service, Privacy Policy, Refund Policy, User Agreement, Organizer Agreement).
+      3. **ECOSYSTEM** (`Building2` icon in `#d3da0c`, Sound It DJ, Sound It Tech, BOA Festival, RNB & Slow Sessions, Deck Salone, Fred Max Hub).
+    - Ecosystem design rules: positioned strictly below the other two, brand names only, external-link icons on right, no descriptions/subtitles, no brand counters, no alphabetical prefixes.
+    - Rounded list card styling (`rounded-2xl bg-[#071205]/90 border border-white/10`) with subtle dividers and chevron right arrows.
+    - Independent accordion collapse/expand with smooth transitions.
+    - Social Media Footer: 4 squircle buttons (`rounded-2xl border border-[#d3da0c]/40 text-[#d3da0c]`) for Instagram, X (Twitter), TikTok, YouTube, plus `© 2026 Sound It Entertainment`.
+    - Sits cleanly above floating bottom nav with safe-area spacing.
+- **Architectural & Design Solutions Completed**:
+  - `LoadingScreen.tsx`: Replaced semi-transparent `radial-gradient` with `backgroundColor: '#020b00'`, set `initial={{ opacity: 1 }}`, and reduced duration to 1900ms.
+  - `index.html`: Set `<body>` and `#root` background to `#020b00`, and set `#static-loader` to `position: fixed; inset: 0; background-color: #020b00; z-index: 99999;` to eliminate any white/transparent flash before React boots.
+  - `App.tsx`: Isolated `<LoadingScreen>` during `isLoading`, added `API_BASE_URL` and `AbortController` timeout guards to system fetches.
+  - `MoreMenuSheet.tsx`: Completely rebuilt according to `media_1794188256393_7a740dee.jpg`.
+- **Production Deployment & Verification**:
+  - Built bundle `index-C0lyo8ka.js` and `index-DIhoWESM.css` on server.
+  - Deployed to `/var/www/soundit/current/app/dist/` and verified HTTP 200 on `https://sounditent.com/`.
+  - Synchronized dist to local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Updated and re-signed Xcode `Debug-iphoneos/App.app`.
+
+---
+
 ### 156. Navigation Update: Recaps & More Bottom Navigation, and Bulletproof Profile Dropdown Avatar (2026-11-09)
 - **User Requirements & Issues Addressed**:
   - Merge Reels and Community into one unified section called **Recaps** (`/recaps`) while preserving all existing social media features, layout, styling, and backend integrations.
