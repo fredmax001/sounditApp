@@ -48,6 +48,8 @@ import EmailVerification from './pages/auth/EmailVerification';
 import LoadingScreen from './components/LoadingScreen';
 import GlobalAudioPlayer from './components/ui/GlobalAudioPlayer';
 import ProtectedRoute from './components/ProtectedRoute';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AndroidAppPrompt from './components/AndroidAppPrompt';
@@ -236,19 +238,31 @@ function App() {
     // Initialize auth state
     initialize();
 
-    // Fetch admin-configured intro/splash screen content
-    fetch('/api/v1/system/intro-screen')
+    // Fetch admin-configured intro/splash screen content (with 2s timeout guard)
+    const introCtrl = new AbortController();
+    const introTimeout = setTimeout(() => introCtrl.abort(), 2000);
+    fetch(`${API_BASE_URL}/system/intro-screen`, { signal: introCtrl.signal })
       .then(res => (res.ok ? res.json() : null))
-      .then(data => setIntroScreen(data || {}))
-      .catch(() => setIntroScreen({}));
+      .then(data => {
+        clearTimeout(introTimeout);
+        setIntroScreen(data || {});
+      })
+      .catch(() => {
+        clearTimeout(introTimeout);
+        setIntroScreen({});
+      });
 
     const checkMaintenance = () => {
-      fetch('/api/v1/system/status')
+      const statusCtrl = new AbortController();
+      const statusTimeout = setTimeout(() => statusCtrl.abort(), 2000);
+      fetch(`${API_BASE_URL}/system/status`, { signal: statusCtrl.signal })
         .then(res => res.ok ? res.json() : null)
         .then(data => {
+          clearTimeout(statusTimeout);
           setMaintenanceMode(!!(data && data.maintenance_mode));
         })
         .catch(() => {
+          clearTimeout(statusTimeout);
           // Silent fail - don't block app if status endpoint is unreachable
         });
     };
@@ -291,7 +305,15 @@ function App() {
 
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  if (!isLoading && maintenanceMode && !isAdminUser) {
+  if (isLoading) {
+    return (
+      <ErrorBoundary>
+        <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
+      </ErrorBoundary>
+    );
+  }
+
+  if (maintenanceMode && !isAdminUser) {
     return (
       <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
@@ -316,9 +338,6 @@ function App() {
 
   return (
     <ErrorBoundary>
-    {isLoading && (
-      <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
-    )}
     <Router>
       <GlobalAudioPlayer />
       <Toaster

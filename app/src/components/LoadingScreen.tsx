@@ -40,8 +40,8 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
 
   const hasAd = Boolean(settings?.show_ad && settings?.ad_image_url);
   const totalDuration = hasAd
-    ? Math.max(Number(settings?.duration_seconds || 3.5) * 1000, 3400)
-    : 2700;
+    ? Math.max(Number(settings?.duration_seconds || 3.0) * 1000, 3000)
+    : 1900;
 
   useEffect(() => {
     // Hide native OS launch screen smoothly once our animated splash is mounted
@@ -57,13 +57,13 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
     if (hasAd) {
       tAd = setTimeout(() => {
         setShowAdCard(true);
-      }, 1100);
+      }, 1000);
     }
 
     // Begin gentle fade-out transition before completing
     const tExit = setTimeout(() => {
       setIsExiting(true);
-    }, totalDuration - 400);
+    }, totalDuration - 300);
 
     // Trigger completion to transition smoothly into Onboarding / App
     const tFinish = setTimeout(() => {
@@ -82,7 +82,7 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
     setIsExiting(true);
     setTimeout(() => {
       onFinish?.();
-    }, 320);
+    }, 200);
   };
 
   const handleAdClick = (e: React.MouseEvent) => {
@@ -108,18 +108,17 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: isExiting ? 0 : 1, scale: isExiting ? 1.015 : 1 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       onClick={handleSkip}
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between bg-[#020b00] text-white select-none overflow-hidden cursor-pointer ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between text-white select-none overflow-hidden cursor-pointer ${
         isExiting ? 'pointer-events-none' : ''
       }`}
       style={{
+        backgroundColor: '#020b00',
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-        background:
-          'radial-gradient(circle at 50% 44%, rgba(16, 42, 6, 0.95) 0%, rgba(4, 15, 1, 0.98) 52%, #020b00 100%)',
       }}
     >
       {/* Holiday Seasonal Decorations (if active) */}

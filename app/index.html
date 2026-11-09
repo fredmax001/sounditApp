@@ -155,7 +155,7 @@
       });
     </script>
   </head>
-  <body>
+  <body style="background-color: #020b00; margin: 0; padding: 0; overflow-x: hidden;">
     <!-- WeChat in-app browser detection & redirect helper -->
     <script>
       (function() {
@@ -180,20 +180,23 @@
          search engine bots BEFORE JavaScript loads. React replaces this once
          the app mounts. Keep this in sync with what the app actually does.
     ═══════════════════════════════════════════════════════════════════════ -->
-    <div id="root">
+    <div id="root" style="background-color: #020b00;">
       <!-- Branded loading screen shown while React initialises -->
       <div id="static-loader" style="
-        min-height: 100vh;
-        background: radial-gradient(circle at 50% 44%, rgba(16, 42, 6, 0.95) 0%, rgba(4, 15, 1, 0.98) 52%, #020b00 100%);
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #020b00;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: relative;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         padding: 24px;
         box-sizing: border-box;
         overflow: hidden;
+        z-index: 99999;
       ">
         <!-- Subtle brand-colour glow behind logo -->
         <div style="
