@@ -462,57 +462,15 @@ const Reels = ({
 
   return (
     <div className="relative h-[100dvh] w-full bg-black text-white overflow-hidden select-none">
-      {/* Top Overlay Header matching reference Reels Page */}
-      <div className="fixed top-0 left-0 right-0 z-40 safe-area-pt bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
-        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 pointer-events-auto gap-2">
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => navigate('/')}
-              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center text-white"
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex-1 flex justify-center min-w-0">
-            <RecapsSegmentNav
-              activeTab={activeTab || 'reels'}
-              onTabChange={onTabChange || ((t) => navigate(`/recaps?tab=${t}`))}
-            />
-          </div>
-
-          {/* Right Header Controls: Search, Notification Bell, Profile Avatar */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => navigate('/discovery')}
-              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center text-white"
-              aria-label="Search"
-            >
-              <Search className="w-[18px] h-[18px]" />
-            </button>
-
-            <NotificationBell mobile />
-
-            <button
-              onClick={() => window.dispatchEvent(new Event('open-profile-drawer'))}
-              className="w-9 h-9 rounded-full border-[1.5px] border-[#d3da0c] p-[1.5px] bg-[#020b00] overflow-hidden"
-              aria-label="Profile Menu"
-            >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt=""
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full rounded-full bg-[#d3da0c]/20 flex items-center justify-center">
-                  <User className="w-4 h-4 text-[#d3da0c]" />
-                </div>
-              )}
-            </button>
-          </div>
-        </div>
+      {/* Top-Left Floating Back Button (No tabs, no search, no notification bell, no profile) */}
+      <div className="fixed top-0 left-0 z-40 safe-area-pt p-3 sm:p-4 pointer-events-auto">
+        <button
+          onClick={() => navigate('/')}
+          className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all shadow-lg hover:border-[#d3da0c]/50"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
       </div>
 
       {/* Vertical Snap Scroll Feed */}

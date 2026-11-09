@@ -15,11 +15,9 @@ const MainLayout = () => {
   useAnalytics();
 
   // Pages that render their own top bar (full-screen / detail views)
-  const isReels =
-    location.pathname === '/reels' ||
-    (location.pathname === '/recaps' && (!location.search || location.search.includes('tab=reels')));
+  const isRecapsFeed = location.pathname === '/reels' || location.pathname === '/recaps';
   const immersive =
-    isReels ||
+    isRecapsFeed ||
     location.pathname.startsWith('/notifications') ||
     location.pathname === '/points' ||
     location.pathname === '/get-verified' ||

@@ -9,6 +9,35 @@
 
 ---
 
+### 159. Recaps Redesign: Unified Continuous Social Feed (2026-11-09)
+- **User Requirements & Screenshots Addressed**:
+  - **Screenshot (`media_1794205994692_960ac5fc.jpg`) — Complete Removal of Top Navigation Header**:
+    - Completely removed the top navigation bar highlighted in red:
+      - Removed Reels tab, Community tab, and Event Recaps tab.
+      - Removed Search button, Notification bell, and Profile avatar.
+      - Retained ONLY a simple, sleek floating back button at the top-left (`<ArrowLeft />`).
+      - Verified zero title bars, category selectors, or horizontal navigation tabs inside the Recaps feed.
+  - **Unified Continuous Social Feed**:
+    - Rebuilt [`Recaps.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/pages/Recaps.tsx) into a single, continuous vertical discovery feed that intelligently interleaves three content types:
+      1. **Reels / Videos**: Fullscreen vertical video playback with autoplay/mute toggle, creator username & avatar, verified badge, Follow button, caption, hashtags, original sound audio tag, and interactive right-side action rail (Like, Comment, Share, Save, Create).
+      2. **Community Posts**: Social text and photo updates appearing seamlessly between videos. Displays author information, post title/content, attached media grid (1–4 photos or video), and engagement actions.
+      3. **Event Photo Collections**: Grouped photo albums from past events displaying a maximum of 4–5 photos in the feed with a `+N more` badge, event title, date, venue, city, organizer info, and a prominent yellow action button: `View All Photos & Event Details →` that navigates directly to the real past event page (`/events/:id`).
+  - **Shared Engagement Architecture**:
+    - Centralized comments drawer supporting both Reels and Community posts with real database persistence.
+    - Native `navigator.share` integration with clipboard fallback.
+    - Unified Create Modal supporting both Reel video upload and Community post creation.
+  - **Layout & Routing**:
+    - Updated [`MainLayout.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/layouts/MainLayout.tsx) so `/recaps` is classified as `isRecapsFeed` and hides the standard mobile header, ensuring the floating back button owns the top area.
+    - Preserved bottom navigation bar smoothly across all views.
+- **Production Deployment & Synchronization**:
+  - Compiled production bundle on server: `index-SkQXybD_.js` and `index-_2Vi2-D6.css`.
+  - Deployed live to `/var/www/soundit/current/app/dist/` and restarted `soundit.service`.
+  - Verified live HTTP 200 response on `https://sounditent.com/`.
+  - Downloaded and synchronized production bundle into local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Updated and re-signed the Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+
+---
+
 ### 158. More Menu Design Exact Reference Alignment & Hardened WebKit Avatar Dimensions (2026-11-09)
 - **User Requirements & Screenshots Addressed**:
   - **Image 1 (`media_1794151340554_d860c82d.jpg`) — Profile Dropdown Avatar Constraint**:
