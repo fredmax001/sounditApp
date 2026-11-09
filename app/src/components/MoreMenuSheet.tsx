@@ -36,11 +36,11 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
   const navigate = useNavigate();
   const { trigger } = useHaptic();
 
-  // Collapsible state for each section: Company & Support open by default, Ecosystem collapsed or expandable
+  // Collapsible state matching Image 2 reference: Company & Support open, Ecosystem collapsed
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    ecosystem: false,
     company: true,
     support: true,
-    ecosystem: true,
   });
 
   const toggleSection = (section: string) => {
@@ -151,7 +151,56 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-              {/* SECTION 1: COMPANY (FIRST) */}
+              {/* SECTION 1: ECOSYSTEM (FIRST, matching Image 2 reference) */}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('ecosystem')}
+                  className="w-full flex items-center justify-between py-1 text-left group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#d3da0c] shrink-0" />
+                    <span className="text-xs font-black uppercase tracking-wider text-[#d3da0c]">
+                      ECOSYSTEM
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-[#d3da0c] transition-transform duration-200 ${
+                      openSections.ecosystem ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {openSections.ecosystem && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="rounded-2xl bg-[#071205]/90 border border-white/10 overflow-hidden divide-y divide-white/[0.08] shadow-inner">
+                        {ecosystemItems.map((item) => (
+                          <button
+                            key={item.label}
+                            type="button"
+                            onClick={() => handleExternalNav(item.url)}
+                            className="w-full px-4 py-3 flex items-center justify-between text-left group hover:bg-white/[0.04] active:bg-white/[0.08] transition-colors"
+                          >
+                            <span className="text-sm font-medium text-white group-hover:text-[#d3da0c] transition-colors">
+                              {item.label}
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#d3da0c] transition-colors" />
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* SECTION 2: COMPANY (SECOND, matching Image 2 reference) */}
               <div className="space-y-2">
                 <button
                   type="button"
@@ -160,7 +209,7 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
                 >
                   <div className="flex items-center gap-2">
                     <LayoutGrid className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#d3da0c]">
                       COMPANY
                     </span>
                   </div>
@@ -200,7 +249,7 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
                 </AnimatePresence>
               </div>
 
-              {/* SECTION 2: SUPPORT & LEGAL (SECOND) */}
+              {/* SECTION 3: SUPPORT & LEGAL (THIRD, matching Image 2 reference) */}
               <div className="space-y-2">
                 <button
                   type="button"
@@ -209,7 +258,7 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
                 >
                   <div className="flex items-center gap-2">
                     <Headphones className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#d3da0c]">
                       SUPPORT & LEGAL
                     </span>
                   </div>
@@ -241,55 +290,6 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
                               {item.label}
                             </span>
                             <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* SECTION 3: ECOSYSTEM (LAST - BELOW THE OTHER TWO) */}
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('ecosystem')}
-                  className="w-full flex items-center justify-between py-1 text-left group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#d3da0c] shrink-0" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-white">
-                      ECOSYSTEM
-                    </span>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#d3da0c] transition-transform duration-200 ${
-                      openSections.ecosystem ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {openSections.ecosystem && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="rounded-2xl bg-[#071205]/90 border border-white/10 overflow-hidden divide-y divide-white/[0.08] shadow-inner">
-                        {ecosystemItems.map((item) => (
-                          <button
-                            key={item.label}
-                            type="button"
-                            onClick={() => handleExternalNav(item.url)}
-                            className="w-full px-4 py-3 flex items-center justify-between text-left group hover:bg-white/[0.04] active:bg-white/[0.08] transition-colors"
-                          >
-                            <span className="text-sm font-medium text-white group-hover:text-[#d3da0c] transition-colors">
-                              {item.label}
-                            </span>
-                            <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-[#d3da0c] transition-colors" />
                           </button>
                         ))}
                       </div>

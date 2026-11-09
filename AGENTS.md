@@ -9,6 +9,28 @@
 
 ---
 
+### 158. More Menu Design Exact Reference Alignment & Hardened WebKit Avatar Dimensions (2026-11-09)
+- **User Requirements & Screenshots Addressed**:
+  - **Image 1 (`media_1794151340554_d860c82d.jpg`) — Profile Dropdown Avatar Constraint**:
+    - Ensure user avatar in the profile dropdown/drawer cannot blow up across the screen under WebKit/iOS flexbox calculation.
+    - Added inline hard constraints directly onto the `<img>` tag: `style={{ width: '52px', height: '52px', minWidth: '52px', minHeight: '52px', maxWidth: '52px', maxHeight: '52px', objectFit: 'cover', borderRadius: '9999px', display: 'block', flexShrink: 0 }}`. Applied identical constraints (`32px`) to the trigger button in `MobileHeader.tsx`.
+  - **Image 2 (`media_1794188256393_7a740dee.jpg`) — More Menu Exact Visual Reference Alignment**:
+    - Aligned section hierarchy and order strictly to the live device screenshot:
+      1. **ECOSYSTEM** (`Building2` icon in `#d3da0c`, header text `ECOSYSTEM` in `#d3da0c`, chevron in `#d3da0c`, collapsed by default).
+      2. **COMPANY** (`LayoutGrid` icon in `#d3da0c`, header text `COMPANY` in `#d3da0c`, chevron in `#d3da0c`, expanded by default with 5 items: About Us, Get the App, Careers, Press, Contact).
+      3. **SUPPORT & LEGAL** (`Headphones` icon in `#d3da0c`, header text `SUPPORT & LEGAL` in `#d3da0c`, chevron in `#d3da0c`, expanded by default with 6 items: Help Center, Terms of Service, Privacy Policy, Refund Policy, User Agreement, Organizer Agreement).
+    - Section headers styled in bold uppercase yellow (`text-[#d3da0c] font-black tracking-wider`) with matching yellow chevrons (`text-[#d3da0c]`).
+    - Items rendered inside rounded dark cards (`rounded-2xl bg-[#071205]/90 border border-white/10`) with subtle dividers (`divide-white/[0.08]`) and right chevron indicators (`ChevronRight`).
+    - Footer retains the 4 squircle brand buttons (Instagram, X, TikTok, YouTube) and centered `© 2026 Sound It Entertainment` with subtle bottom ambient glow.
+- **Production Deployment & Synchronization**:
+  - Recompiled production bundle on server: `index-C64p5Ouy.js` and `index-DIhoWESM.css`.
+  - Deployed live to `/var/www/soundit/current/app/dist/` and restarted `soundit.service`.
+  - Verified live HTTP 200 response on `https://sounditent.com/`.
+  - Downloaded and synchronized production bundle into local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Updated and re-signed the Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+
+---
+
 ### 157. Opaque Intro Screen Restoration, App Startup Optimization & More Menu Design Alignment (2026-11-09)
 - **User Requirements & Issues Addressed**:
   - **Task 1: Restore Original Intro Screen**:

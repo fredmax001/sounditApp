@@ -342,7 +342,18 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                     width={32}
                     height={32}
                     className="rounded-full object-cover"
-                    style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', borderRadius: '9999px', display: 'block' }}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      minWidth: '32px',
+                      minHeight: '32px',
+                      maxWidth: '32px',
+                      maxHeight: '32px',
+                      objectFit: 'cover',
+                      borderRadius: '9999px',
+                      display: 'block',
+                      flexShrink: 0,
+                    }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/default-avatar.png';
                     }}
@@ -472,7 +483,18 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                           width={52}
                           height={52}
                           className="rounded-full object-cover"
-                          style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', borderRadius: '9999px', display: 'block' }}
+                          style={{
+                            width: '52px',
+                            height: '52px',
+                            minWidth: '52px',
+                            minHeight: '52px',
+                            maxWidth: '52px',
+                            maxHeight: '52px',
+                            objectFit: 'cover',
+                            borderRadius: '9999px',
+                            display: 'block',
+                            flexShrink: 0,
+                          }}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = '/default-avatar.png';
                           }}
