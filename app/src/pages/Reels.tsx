@@ -37,6 +37,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
+import RecapsSegmentNav, { type RecapsTab } from '@/components/recaps/RecapsSegmentNav';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -104,7 +105,13 @@ interface ReelItem {
   created_at: string;
 }
 
-const Reels = () => {
+const Reels = ({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab?: RecapsTab;
+  onTabChange?: (tab: RecapsTab) => void;
+} = {}) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const filterParam = searchParams.get('filter') || 'for_you';
@@ -457,25 +464,26 @@ const Reels = () => {
     <div className="relative h-[100dvh] w-full bg-black text-white overflow-hidden select-none">
       {/* Top Overlay Header matching reference Reels Page */}
       <div className="fixed top-0 left-0 right-0 z-40 safe-area-pt bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
-        <div className="flex items-center justify-between px-4 py-3 pointer-events-auto">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 pointer-events-auto gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/')}
               className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center text-white"
               aria-label="Back"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-extrabold tracking-tight text-white drop-shadow">Reels</h1>
-            {filterParam === 'my_reels' && (
-              <span className="px-2.5 py-0.5 rounded-full bg-[#d3da0c] text-black text-[10px] font-bold">
-                My Reels
-              </span>
-            )}
+          </div>
+
+          <div className="flex-1 flex justify-center min-w-0">
+            <RecapsSegmentNav
+              activeTab={activeTab || 'reels'}
+              onTabChange={onTabChange || ((t) => navigate(`/recaps?tab=${t}`))}
+            />
           </div>
 
           {/* Right Header Controls: Search, Notification Bell, Profile Avatar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => navigate('/discovery')}
               className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center text-white"

@@ -20,6 +20,9 @@ import { useRecapsStore } from '../store/recapsStore';
 import { saveImageToDevice } from '@/lib/downloadImage';
 import { slugify } from '@/lib/slug';
 import { toast } from 'sonner';
+import Reels from './Reels';
+import Community from './Community';
+import RecapsSegmentNav, { type RecapsTab } from '@/components/recaps/RecapsSegmentNav';
 
 interface Recap {
   id: number;
@@ -42,17 +45,34 @@ interface Recap {
   user_liked?: boolean;
 }
 
-export default function Recaps() {
+export default function Recaps({ defaultTab }: { defaultTab?: RecapsTab } = {}) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as RecapsTab | null;
   const eventIdParam = searchParams.get('event_id');
+
+  const activeTab: RecapsTab =
+    tabParam && ['reels', 'community', 'events'].includes(tabParam)
+      ? tabParam
+      : defaultTab || (eventIdParam ? 'events' : 'reels');
+
+  const handleTabChange = (newTab: RecapsTab) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', newTab);
+      return next;
+    });
+  };
+
   const { recaps, isLoading: loading, fetchRecaps, fetchRecapById, likeRecap } = useRecapsStore();
   const [selectedRecap, setSelectedRecap] = useState<Recap | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   useEffect(() => {
-    fetchRecaps();
-  }, [fetchRecaps]);
+    if (activeTab === 'events') {
+      fetchRecaps();
+    }
+  }, [fetchRecaps, activeTab]);
 
   const displayedRecaps = eventIdParam
     ? recaps.filter(r => String(r.event_id) === String(eventIdParam))
@@ -60,10 +80,18 @@ export default function Recaps() {
 
   // Auto-open if event_id param matches a single recap
   useEffect(() => {
-    if (eventIdParam && displayedRecaps.length === 1 && !selectedRecap) {
+    if (activeTab === 'events' && eventIdParam && displayedRecaps.length === 1 && !selectedRecap) {
       openRecap(displayedRecaps[0]);
     }
-  }, [eventIdParam, displayedRecaps.length]);
+  }, [eventIdParam, displayedRecaps.length, activeTab]);
+
+  if (activeTab === 'reels') {
+    return <Reels activeTab="reels" onTabChange={handleTabChange} />;
+  }
+
+  if (activeTab === 'community') {
+    return <Community activeTab="community" onTabChange={handleTabChange} />;
+  }
 
   const openRecap = async (recap: Recap) => {
     try {
@@ -114,6 +142,14 @@ export default function Recaps() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200 pb-20">
+      {/* Top Recaps Sub-Navigation */}
+      <div className="py-2.5 flex justify-center px-4 bg-white/95 dark:bg-[#020b00]/95 border-b border-black/5 dark:border-white/5 sticky top-0 z-35">
+        <RecapsSegmentNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
+      </div>
+
       {/* Header */}
       <div className="bg-neutral-50 dark:bg-gradient-to-b dark:from-[#111] dark:to-[#020b00] border-b border-black/8 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">

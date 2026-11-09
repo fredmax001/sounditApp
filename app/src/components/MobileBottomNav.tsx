@@ -27,7 +27,9 @@ import {
   BarChart3,
   Users,
   Settings,
+  Menu,
 } from 'lucide-react';
+import MoreMenuSheet from './MoreMenuSheet';
 
 interface NavItem {
   path: string;
@@ -59,7 +61,14 @@ const MobileBottomNav = () => {
 
   // Dynamic scroll state: expands on scroll down, decreases on scroll up to normal size
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleOpenMore = () => setShowMoreMenu(true);
+    window.addEventListener('open-more-menu', handleOpenMore);
+    return () => window.removeEventListener('open-more-menu', handleOpenMore);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -138,17 +147,27 @@ const MobileBottomNav = () => {
       }
     }
 
-    // Platform routes (EXACTLY FIVE destinations: Home, Discover, Events, Reels, Community)
+    // Platform routes (EXACTLY FIVE destinations: Home, Discover, Events, Recaps, More)
     return [
       { path: '/', label: 'Home', icon: Home },
       { path: '/discovery', label: 'Discover', icon: Compass },
       { path: '/events', label: 'Events', icon: Calendar },
-      { path: '/reels', label: 'Reels', icon: PlaySquare },
-      { path: '/community', label: 'Community', icon: Users },
+      { path: '/recaps', label: 'Recaps', icon: PlaySquare },
+      { path: '#more', label: 'More', icon: Menu },
     ];
   }, [location.pathname, isDashboardRoute, isBusiness, isArtist, isVendor, isAdmin, t]);
 
   const isActive = (path: string) => {
+    if (path === '#more') {
+      return showMoreMenu;
+    }
+    if (path === '/recaps') {
+      return (
+        location.pathname.startsWith('/recaps') ||
+        location.pathname.startsWith('/reels') ||
+        location.pathname.startsWith('/community')
+      );
+    }
     if (
       path === '/' ||
       path === '/dashboard/business' ||
@@ -166,6 +185,11 @@ const MobileBottomNav = () => {
 
   const handleNavClick = (path: string) => {
     trigger('light');
+    if (path === '#more') {
+      setShowMoreMenu(true);
+      return;
+    }
+    setShowMoreMenu(false);
     navigate(path);
   };
 
@@ -304,6 +328,12 @@ const MobileBottomNav = () => {
 
       {/* Spacer so page content at bottom is not obscured by the floating nav bar */}
       <div className="h-24 pointer-events-none" />
+
+      {/* More Menu Sheet */}
+      <MoreMenuSheet
+        isOpen={showMoreMenu}
+        onClose={() => setShowMoreMenu(false)}
+      />
     </>
   );
 };

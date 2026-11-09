@@ -181,7 +181,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
   const getPageTitle = () => {
     if (location.pathname === '/discovery') return 'Discover';
     if (location.pathname === '/events') return 'Events';
-    if (location.pathname === '/community') return 'Community';
+    if (location.pathname === '/recaps' || location.pathname === '/community') return 'Recaps';
     return null;
   };
   const pageTitle = getPageTitle();
@@ -328,14 +328,21 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                 setShowDrawer(true);
               }}
               aria-label="Account Menu"
-              className="relative w-9 h-9 rounded-full flex items-center justify-center overflow-hidden active:scale-90 transition-transform"
+              className="relative shrink-0 rounded-full flex items-center justify-center overflow-hidden active:scale-90 transition-transform"
+              style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px', maxWidth: '36px', maxHeight: '36px' }}
             >
-              <div className="w-full h-full rounded-full border-[1.5px] border-[#d3da0c] p-[1.5px] bg-[#020b00]">
+              <div
+                className="w-full h-full rounded-full border-[1.5px] border-[#d3da0c] p-[1.5px] bg-[#020b00] overflow-hidden flex items-center justify-center"
+                style={{ width: '36px', height: '36px', boxSizing: 'border-box' }}
+              >
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
                     alt={fullName}
-                    className="w-full h-full rounded-full object-cover"
+                    width={32}
+                    height={32}
+                    className="rounded-full object-cover"
+                    style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', borderRadius: '9999px', display: 'block' }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/default-avatar.png';
                     }}
@@ -450,19 +457,31 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                   }}
                   className="flex items-center gap-3.5 mt-1 mb-4 pb-4 border-b border-black/10 dark:border-white/10 cursor-pointer group"
                 >
-                  <div className="relative w-14 h-14 shrink-0">
-                    <div className="w-14 h-14 rounded-full border-2 border-[#d3da0c] p-[2px] bg-[#020b00] overflow-hidden flex items-center justify-center">
+                  <div
+                    className="relative shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+                    style={{ width: '56px', height: '56px', minWidth: '56px', minHeight: '56px', maxWidth: '56px', maxHeight: '56px' }}
+                  >
+                    <div
+                      className="rounded-full border-2 border-[#d3da0c] p-[2px] bg-[#020b00] overflow-hidden flex items-center justify-center"
+                      style={{ width: '56px', height: '56px', minWidth: '56px', minHeight: '56px', maxWidth: '56px', maxHeight: '56px', boxSizing: 'border-box' }}
+                    >
                       {profile?.avatar_url ? (
                         <img
                           src={profile.avatar_url}
                           alt={fullName}
-                          className="w-full h-full rounded-full object-cover"
+                          width={52}
+                          height={52}
+                          className="rounded-full object-cover"
+                          style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', borderRadius: '9999px', display: 'block' }}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = '/default-avatar.png';
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full rounded-full bg-[#d3da0c] flex items-center justify-center">
+                        <div
+                          className="rounded-full bg-[#d3da0c] flex items-center justify-center"
+                          style={{ width: '100%', height: '100%' }}
+                        >
                           <User className="w-7 h-7 text-black" />
                         </div>
                       )}

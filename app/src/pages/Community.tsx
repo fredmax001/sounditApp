@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import RecapsSegmentNav, { type RecapsTab } from '@/components/recaps/RecapsSegmentNav';
 
 interface MediaItem {
   type: 'image' | 'video';
@@ -54,7 +55,13 @@ interface MediaItem {
 
 type FeedFilter = 'for_you' | 'trending' | 'following' | 'my_posts' | 'saved';
 
-const Community = () => {
+const Community = ({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab?: RecapsTab;
+  onTabChange?: (tab: RecapsTab) => void;
+} = {}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -454,8 +461,16 @@ const Community = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+      {/* Top Recaps Sub-Navigation */}
+      <div className="py-2.5 flex justify-center px-4 bg-white/95 dark:bg-[#020b00]/95 border-b border-black/5 dark:border-white/5 sticky top-0 z-35">
+        <RecapsSegmentNav
+          activeTab={activeTab || 'community'}
+          onTabChange={onTabChange || ((t) => navigate(`/recaps?tab=${t}`))}
+        />
+      </div>
+
       {/* Top Feed Filter Pills — Pinned below App Header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors">
+      <section className="sticky top-[45px] z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {[

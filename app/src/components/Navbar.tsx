@@ -25,6 +25,7 @@ import {
   Globe,
   MessageCircle,
   ScanLine,
+  PlaySquare,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { useStaffStore } from '@/store/staffStore';
@@ -93,12 +94,21 @@ const Navbar = () => {
     { path: '/events', label: t('nav.events'), icon: Calendar },
     { path: '/discovery', label: t('nav.discovery') || 'Discovery', icon: Users },
     { path: '/food', label: t('nav.food'), icon: Utensils },
-    { path: '/community', label: t('nav.community'), icon: MessageCircle },
+    { path: '/recaps', label: t('nav.recaps', 'Recaps'), icon: PlaySquare },
     { path: '/about', label: t('nav.about'), icon: Info },
     { path: '/contact', label: t('nav.contact'), icon: Mail },
   ];
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+    if (path === '/recaps') {
+      return (
+        location.pathname.startsWith('/recaps') ||
+        location.pathname.startsWith('/reels') ||
+        location.pathname.startsWith('/community')
+      );
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>

@@ -15,13 +15,15 @@ const MainLayout = () => {
   useAnalytics();
 
   // Pages that render their own top bar (full-screen / detail views)
-  const immersive =
+  const isReels =
     location.pathname === '/reels' ||
+    (location.pathname === '/recaps' && (!location.search || location.search.includes('tab=reels')));
+  const immersive =
+    isReels ||
     location.pathname.startsWith('/notifications') ||
     location.pathname === '/points' ||
     location.pathname === '/get-verified' ||
     location.pathname === '/profile/edit';
-  const isReels = location.pathname === '/reels';
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative transition-colors duration-200">
