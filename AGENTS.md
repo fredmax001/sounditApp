@@ -5,7 +5,38 @@
 ---
 
 ## Last Updated
-2026-11-08
+2026-11-09
+
+---
+
+### 156. Navigation Update: Recaps & More Bottom Navigation, and Bulletproof Profile Dropdown Avatar (2026-11-09)
+- **User Requirements & Issues Addressed**:
+  - Merge Reels and Community into one unified section called **Recaps** (`/recaps`) while preserving all existing social media features, layout, styling, and backend integrations.
+  - Replace Community on the bottom navigation bar with a menu icon consisting of three horizontal lines labeled **More**.
+  - Tapping **More** opens a compact, collapsible mobile drawer containing:
+    - **A. ECOSYSTEM**: Sound It DJ, Sound It Tech, BOA Festival, RNB & Slow Sessions, Deck Salone, Fred Max Hub.
+    - **B. COMPANY**: About Us, Get the App, Careers, Press, Contact.
+    - **C. SUPPORT & LEGAL**: Help Center, Terms of Service, Privacy Policy, Refund Policy, User Agreement, Organizer Agreement.
+    - **D. SOCIAL MEDIA**: Instagram, X (Twitter), TikTok, YouTube.
+  - Fix profile dropdown avatar blowing up to full-screen circular arc on iOS/WebKit when opened.
+- **Architectural & Design Solutions Completed**:
+  - **Bulletproof Profile Dropdown Avatar (`MobileHeader.tsx`)**:
+    - Replaced flex-dependent CSS dimensions with explicit inline styles: `style={{ width: '56px', height: '56px', minWidth: '56px', minHeight: '56px', maxWidth: '56px', maxHeight: '56px', borderRadius: '9999px', overflow: 'hidden' }}` and applied `width={52} height={52}` directly to the `<img>` tag with `boxSizing: 'border-box'`.
+    - Applied identical strict constraints to the header trigger button avatar (`36px`). Eliminates any WebKit layout explosion regardless of avatar resolution.
+  - **Recaps Unified Navigation (`Recaps.tsx`, `RecapsSegmentNav.tsx`, `App.tsx`, `MainLayout.tsx`)**:
+    - Created `RecapsSegmentNav.tsx` featuring an animated pill switcher (`Reels` | `Community` | `Event Recaps`) styled in Sound It dark mode (`#020b00`, `#d3da0c`).
+    - Merged `Reels` and `Community` into `Recaps.tsx`. The page dynamically renders the vertical video feed (`tab=reels`), the full community discussion and stories feed (`tab=community`), or the event photo albums gallery (`tab=events`).
+    - Maintained backward compatibility in `App.tsx`: `/reels` routes to `<Recaps defaultTab="reels" />`, `/community` routes to `<Recaps defaultTab="community" />`, and `/recaps` defaults smoothly. All comments, likes, video uploads, audio info, guest posts, and share modals remain 100% active.
+    - Updated `MainLayout.tsx` so immersive mode dynamically handles full-height Reels inside Recaps.
+  - **More Bottom Menu Sheet (`MoreMenuSheet.tsx`, `MobileBottomNav.tsx`)**:
+    - Built `MoreMenuSheet.tsx` with collapsible accordion sections for Ecosystem (6 external brands), Company (5 pages), and Support & Legal (6 policies), plus bottom social icons (Instagram, X, TikTok, YouTube).
+    - Replaced Community on `MobileBottomNav.tsx` with `Menu` (3 horizontal lines icon) labeled **More**.
+    - Updated bottom nav active indicator to highlight **Recaps** for `/recaps`, `/reels`, `/community`, and **More** when the sheet is open.
+  - **Production Build, Multi-Platform Sync & Xcode Re-signing**:
+    - Built production bundle (`index-BiXdg_6v.js`, `index-D5RXoVCT.css`) on server.
+    - Deployed to `/var/www/soundit/current/app/dist/` and verified HTTP 200 on `https://sounditent.com/`.
+    - Synchronized bundle to local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+    - Updated and re-signed the Xcode `DerivedData/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
 
 ---
 
