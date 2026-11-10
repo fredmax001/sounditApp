@@ -9,6 +9,20 @@
 
 ---
 
+### 176. Native App Intro Loading Freeze Investigation, Complete Bundle Recovery & iPhone Deployment (2026-11-10)
+- **Root Cause Identified**:
+  - During the preceding rsync step, an interrupted file transfer deleted the primary entry JavaScript bundle (`assets/index-Dne5vbUa.js`) from local `app/dist/assets/` while `index.html` still referenced it.
+  - When the app bundle was packaged into Xcode `App.app`, `index-Dne5vbUa.js` was absent, causing WKWebView to throw a 404 on the JavaScript entrypoint.
+  - The static pre-rendered `#static-loader` ("Loading Sound It…") remained permanently on screen because React never mounted to replace it.
+- **Remediation & Execution**:
+  - Packaged the complete, verified production dist from the server (`/var/www/soundit/current/app/dist`) into a unified archive (`soundit_dist_complete.tar.gz`).
+  - Extracted the archive cleanly into `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app/public/`.
+  - Verified `assets/index-Dne5vbUa.js` (2,238,097 bytes) and all vendor chunks (`react-vendor`, `ui-vendor`, `viz-3d`, `admin-vendor`) exist in the application bundle.
+  - Stripped extended attributes (`xattr -cr`), re-signed `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+  - Re-installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`. App boots past intro into onboarding/home seamlessly.
+
+---
+
 ### 175. Master Cybersecurity Audit, RBAC Hardening, Admin SPA Route Protection & Native iPhone Deployment (2026-11-10)
 - **Objectives & Issues Addressed**:
   1. **Rollback Condition Elimination**:
