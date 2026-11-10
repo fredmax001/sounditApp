@@ -1017,7 +1017,7 @@ const ArtistDetail = () => {
       {/* Hero Section */}
       <div className="relative h-[400px] md:h-[500px] overflow-hidden bg-neutral-900 dark:bg-[#141414]">
         <img
-          src={artist.background_url || artist.avatar_url || '/default-artist.png'}
+          src={artist.background_url || artist.avatar_url || '/default-avatar.png'}
           alt={artist.stage_name}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -1044,7 +1044,7 @@ const ArtistDetail = () => {
                 <h1 className="text-4xl md:text-6xl font-display text-[#020b00] dark:text-white">
                   {artist.stage_name}
                 </h1>
-                {artist.verification_badge && (
+                {(artist.verification_badge || artist.is_verified) && (
                   <VerificationBadge size="lg" className="flex-shrink-0" />
                 )}
               </div>

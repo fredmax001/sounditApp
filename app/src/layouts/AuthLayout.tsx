@@ -66,9 +66,6 @@ const AuthLayout = () => {
               className="h-12 md:h-16 w-auto mx-auto object-contain"
             />
           </Link>
-          <p className="text-gray-500 text-sm mt-2 tracking-wider">
-            5 YEARS OF EXCELLENCE IN ENTERTAINMENT
-          </p>
         </motion.div>
 
         {/* Auth Form Container */}

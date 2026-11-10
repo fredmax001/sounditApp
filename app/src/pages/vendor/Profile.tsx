@@ -9,6 +9,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
+import VerificationBadge from '@/components/VerificationBadge';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -38,6 +39,21 @@ const VendorProfile = () => {
   const [profileLogoPreview, setProfileLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+  // Defense-in-depth: Redirect non-vendors away from vendor profile
+  useEffect(() => {
+    const role = authProfile?.role_type || authProfile?.role;
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    if (authProfile && role !== 'vendor' && !isAdmin) {
+      if (role === 'business' || role === 'organizer') {
+        navigate('/dashboard/business', { replace: true });
+      } else if (role === 'artist' || role === 'dj') {
+        navigate('/dashboard/artist', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [authProfile, navigate]);
+
   useEffect(() => {
     if (session?.access_token) {
       fetchProfile(session.access_token).finally(() => setIsLoading(false));
@@ -54,7 +70,7 @@ const VendorProfile = () => {
         address: vendorProfile.address || '',
         website: vendorProfile.website || '',
         city_id: vendorProfile.city_id || '',
-        vendor_type: vendorProfile.vendor_type || ''
+        vendor_type: (vendorProfile.vendor_type as 'food' | 'merch' | 'service' | 'beverage' | '') || ''
       });
       setProfileLogoPreview(vendorProfile.logo_url || authProfile?.avatar_url || null);
       setBannerPreview(vendorProfile.banner_url || authProfile?.background_url || authProfile?.banner_url || null);
@@ -230,8 +246,8 @@ const VendorProfile = () => {
             </span>
           )}
           {vendorProfile?.is_verified && (
-            <span className="px-4 py-2 bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full text-sm font-bold flex items-center gap-2 border border-green-500/20">
-              <Check className="w-4 h-4" />
+            <span className="px-4 py-2 bg-[#d3da0c]/15 text-[#8a8f04] dark:text-[#d3da0c] rounded-full text-sm font-bold flex items-center gap-2 border border-[#d3da0c]/30">
+              <VerificationBadge size="xs" />
               {t('vendor.profile.verifiedVendor')}
             </span>
           )}
@@ -305,8 +321,8 @@ const VendorProfile = () => {
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-600 dark:text-gray-400">{t('vendor.profile.verificationStatus') || 'Verification Status'}</span>
                   {vendorProfile?.is_verified ? (
-                    <span className="font-bold text-green-500 dark:text-green-400">
-                      {t('vendor.profile.verified') || 'Verified'}
+                    <span className="font-bold flex items-center gap-1.5 text-[#8a8f04] dark:text-[#d3da0c]">
+                      <VerificationBadge size="xs" /> {t('vendor.profile.verified') || 'Verified'}
                     </span>
                   ) : (
                     <button

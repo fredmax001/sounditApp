@@ -319,10 +319,11 @@ const CityGuide = () => {
     if (!map || !infoWindow) return;
 
     // Only map events, venues, and food - NOT artists/vendors/businesses
+    const list = Array.isArray(guideItems) ? guideItems : [];
     const mappable =
       activeTab === 'all'
-        ? guideItems.filter((i) => MAPPABLE_TYPES.has(i.type))
-        : guideItems.filter((i) => i.type === activeTab && MAPPABLE_TYPES.has(i.type));
+        ? list.filter((i) => i && i.lat && i.lng && MAPPABLE_TYPES.has(i.type))
+        : list.filter((i) => i && i.lat && i.lng && i.type === activeTab && MAPPABLE_TYPES.has(i.type));
 
     mappable.forEach((item) => {
       const marker = new window.google.maps.Marker({
@@ -382,25 +383,30 @@ const CityGuide = () => {
   }, [mapReady, guideItems, activeTab, selectedItem, mapCenter, t, setSelectedItem]);
 
   const displayItems = useMemo(() => {
-    let items = activeTab === 'all' ? guideItems : guideItems.filter((i) => i.type === activeTab);
+    const list = Array.isArray(guideItems) ? guideItems : [];
+    let items = activeTab === 'all' ? list : list.filter((i) => i && i.type === activeTab);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter(
         (i) =>
-          i.name.toLowerCase().includes(q) ||
-          (i.address && i.address.toLowerCase().includes(q)) ||
-          (i.description && i.description.toLowerCase().includes(q))
+          i &&
+          ((i.name && i.name.toLowerCase().includes(q)) ||
+            (i.address && i.address.toLowerCase().includes(q)) ||
+            (i.description && i.description.toLowerCase().includes(q)))
       );
     }
     return items;
   }, [guideItems, activeTab, searchQuery]);
 
   const featuredItems = useMemo(() => {
-    return guideItems.filter((i) => {
-      const isVerified = Boolean(i.meta.is_verified);
-      const followers = Number(i.meta.followers_count || 0);
-      const rating = Number(i.meta.rating || 0);
-      const events = Number(i.meta.events_count || 0);
+    const list = Array.isArray(guideItems) ? guideItems : [];
+    return list.filter((i) => {
+      if (!i) return false;
+      const meta = i.meta || {};
+      const isVerified = Boolean(meta.is_verified);
+      const followers = Number(meta.followers_count || 0);
+      const rating = Number(meta.rating || 0);
+      const events = Number(meta.events_count || 0);
       if (i.type === 'artist') return isVerified || followers > 0;
       if (i.type === 'vendor') return isVerified || rating >= 4;
       if (i.type === 'business') return isVerified || events > 0;
@@ -424,28 +430,28 @@ const CityGuide = () => {
       key: 'artist',
       title: 'Artists',
       image:
-        guideItems.find((i) => i.type === 'artist' && i.image)?.image ||
+        (Array.isArray(guideItems) ? guideItems : []).find((i) => i && i.type === 'artist' && i.image)?.image ||
         '/web-hero/C48A0916.jpg',
     },
     {
       key: 'business',
       title: 'Businesses',
       image:
-        guideItems.find((i) => i.type === 'business' && i.image)?.image ||
+        (Array.isArray(guideItems) ? guideItems : []).find((i) => i && i.type === 'business' && i.image)?.image ||
         '/web-hero/C48A0889.jpg',
     },
     {
       key: 'venue',
       title: 'Venues',
       image:
-        guideItems.find((i) => i.type === 'venue' && i.image)?.image ||
+        (Array.isArray(guideItems) ? guideItems : []).find((i) => i && i.type === 'venue' && i.image)?.image ||
         '/web-hero/C48A0775.jpg',
     },
     {
       key: 'vendor',
       title: 'Vendors',
       image:
-        guideItems.find((i) => i.type === 'vendor' && i.image)?.image ||
+        (Array.isArray(guideItems) ? guideItems : []).find((i) => i && i.type === 'vendor' && i.image)?.image ||
         '/about-bg.jpg',
     },
   ];
@@ -758,7 +764,7 @@ const CityGuide = () => {
 
                       {item.type === 'event' ? (
                         <div className="mt-1 space-y-0.5">
-                          {item.meta.venue_name && (
+                          {item.meta?.venue_name && (
                             <p className="text-xs text-gray-400 truncate">{String(item.meta.venue_name)}</p>
                           )}
                           {item.address && (
@@ -774,14 +780,17 @@ const CityGuide = () => {
                               <ExternalLink className="w-2.5 h-2.5" />
                             </button>
                           )}
-                          {item.meta.start_date && (
+                          {item.meta?.start_date && (
                             <p className="text-[11px] text-gray-400">
-                              {new Date(String(item.meta.start_date)).toLocaleDateString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {(() => {
+                                const d = new Date(String(item.meta.start_date));
+                                return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                });
+                              })()}
                             </p>
                           )}
                         </div>

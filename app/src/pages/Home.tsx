@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -101,6 +101,15 @@ const Home = () => {
   const [featuredDJs, setFeaturedDJs] = useState<DJ[]>([]);
   const [pastEvents, setPastEvents] = useState<EventWithDetails[]>([]);
   const [pastEventsLoading, setPastEventsLoading] = useState(false);
+  const [pastSlideIndex, setPastSlideIndex] = useState(0);
+
+  useEffect(() => {
+    if (pastEvents.length <= 1) return;
+    const interval = setInterval(() => {
+      setPastSlideIndex((prev) => (prev + 1) % pastEvents.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [pastEvents.length]);
   const [mobileDateFilter, setMobileDateFilter] = useState<DateFilter>('all');
   const [mobileCategoryFilter, setMobileCategoryFilter] = useState('');
   const [platformStats, setPlatformStats] = useState({
@@ -443,6 +452,19 @@ const Home = () => {
     return passDate && passCat;
   });
 
+  const now = new Date();
+  const activeUpcomingEvents = (featuredEvents || []).filter((event) => {
+    const eventDate = new Date(event.start_date);
+    const eventEnd = event.end_date ? new Date(event.end_date) : new Date(eventDate.getTime() + 4 * 60 * 60 * 1000);
+    const isCompleted = event.status === 'completed' || (eventEnd < now && event.status !== 'live');
+    return !isCompleted;
+  });
+  const hasActiveUpcoming = activeUpcomingEvents.length > 0;
+
+  const displayListEvents = mobileDateFilter === 'past'
+    ? pastEvents
+    : (filteredMobileEvents.length > 0 ? filteredMobileEvents : pastEvents);
+
   return (
     <div className="relative">
 
@@ -591,12 +613,13 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Primary Featured Event Hero Card (Matches Reference Visual) */}
+        {/* Primary Featured Event Hero Card (Matches Reference Visual & Past Events Slideshow) */}
         {!isLoading && (
           <div className="px-4 mb-5">
             {(() => {
-              const heroEvent = filteredMobileEvents[0] || featuredEvents[0];
-              if (heroEvent) {
+              // 1. If active upcoming or ongoing events exist, show them first
+              if (hasActiveUpcoming) {
+                const heroEvent = activeUpcomingEvents[0];
                 const heroSlug = getEntitySlug(heroEvent);
                 const eventDateStr = heroEvent.start_date
                   ? new Date(heroEvent.start_date).toLocaleDateString('en-US', {
@@ -607,8 +630,9 @@ const Home = () => {
                   : 'Upcoming';
                 const heroVenue = heroEvent.venue_name || heroEvent.city_name || userCity;
                 const heroImage =
-                  heroEvent.banner_url ||
+                  heroEvent.flyer_image ||
                   heroEvent.cover_image ||
+                  heroEvent.banner_url ||
                   '/web-hero/C48A0775.jpg';
 
                 return (
@@ -624,6 +648,9 @@ const Home = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
                       <div className="min-w-0 flex-1">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#d3da0c] text-[10px] font-extrabold uppercase mb-1">
+                          Upcoming Event
+                        </span>
                         <h2 className="text-white font-display font-extrabold text-xl leading-tight truncate mb-1">
                           {heroEvent.title}
                         </h2>
@@ -648,27 +675,99 @@ const Home = () => {
                   </div>
                 );
               }
-              const latestRecap = pastEvents[0];
-              if (latestRecap) {
-                const recapSlug = getEntitySlug(latestRecap);
+
+              // 2. When there are no upcoming or ongoing events, render a slideshow of past events with real data
+              if (pastEvents.length > 0) {
+                const currentSlide = pastEvents[pastSlideIndex % pastEvents.length];
+                const recapSlug = getEntitySlug(currentSlide);
+                const eventCover =
+                  currentSlide.flyer_image ||
+                  currentSlide.cover_image ||
+                  currentSlide.banner_url ||
+                  '/web-hero/C48A0775.jpg';
+
                 return (
                   <div
                     onClick={() => navigate(`/events/${recapSlug}`)}
-                    className="relative h-[205px] rounded-2xl overflow-hidden border border-white/10 shadow-xl cursor-pointer group active:scale-[0.99] transition-transform"
+                    className="relative h-[215px] sm:h-[230px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl cursor-pointer group active:scale-[0.99] transition-transform select-none"
                   >
-                    <img
-                      src={latestRecap.cover_image || latestRecap.banner_url || '/web-hero/C48A0775.jpg'}
-                      alt={latestRecap.title}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentSlide.id}
+                        src={eventCover}
+                        alt={currentSlide.title}
+                        initial={{ opacity: 0.35, scale: 1.03 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0.25 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = '/web-hero/C48A0775.jpg';
+                        }}
+                      />
+                    </AnimatePresence>
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent" />
+
+                    {/* Top slide controls & indicators */}
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md border border-[#d3da0c]/40 text-[#d3da0c] text-[10px] font-extrabold uppercase">
+                        <Sparkles className="w-3 h-3 text-[#d3da0c]" />
+                        Featured Event
+                      </span>
+
+                      {/* Dots pagination */}
+                      <div className="flex items-center gap-1.5 pointer-events-auto bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                        {pastEvents.slice(0, 6).map((_, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPastSlideIndex(idx);
+                            }}
+                            className={`h-1.5 rounded-full transition-all ${
+                              idx === (pastSlideIndex % Math.min(pastEvents.length, 6))
+                                ? 'w-4 bg-[#d3da0c]'
+                                : 'w-1.5 bg-white/35 hover:bg-white/60'
+                            }`}
+                            aria-label={`Slide ${idx + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Navigation Chevrons */}
+                    <div className="absolute inset-y-0 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPastSlideIndex((prev) => (prev - 1 + pastEvents.length) % pastEvents.length);
+                        }}
+                        className="pointer-events-auto w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+                        aria-label="Previous slide"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPastSlideIndex((prev) => (prev + 1) % pastEvents.length);
+                        }}
+                        className="pointer-events-auto w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+                        aria-label="Next slide"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Bottom Title & View Event CTA */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3 z-10">
                       <div className="min-w-0 flex-1">
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#d3da0c] text-[10px] font-extrabold uppercase mb-1">
-                          Featured Event
-                        </span>
-                        <h2 className="text-white font-display font-extrabold text-xl leading-tight truncate mb-1">
-                          {latestRecap.title}
+                        <h2 className="text-white font-display font-extrabold text-xl sm:text-2xl leading-tight truncate mb-1 drop-shadow-md">
+                          {currentSlide.title}
                         </h2>
                         <div className="flex items-center gap-1.5 text-gray-300 text-xs">
                           <Camera className="w-3.5 h-3.5 text-[#d3da0c] flex-shrink-0" />
@@ -689,6 +788,8 @@ const Home = () => {
                   </div>
                 );
               }
+
+              // 3. Complete Empty Fallback
               return (
                 <div
                   onClick={() => navigate('/events')}
@@ -794,18 +895,22 @@ const Home = () => {
           </div>
         )}
 
-        {/* Events list rows */}
+        {/* Events list rows (Real Data, no mockups) */}
         {!(mobileDateFilter === 'past' ? pastEventsLoading : isLoading) && (
           <div className="mb-6">
             <MobileSectionHeader
-              title={mobileDateFilter === 'past' ? 'Past Event Recaps' : 'Upcoming Events'}
+              title={
+                mobileDateFilter === 'past' || (!hasActiveUpcoming && filteredMobileEvents.length === 0)
+                  ? 'Past Events'
+                  : 'Upcoming Events'
+              }
               seeAllPath="/events"
               seeAllLabel="View all"
               accentColor="#d3da0c"
             />
-            {filteredMobileEvents.length > 0 ? (
+            {displayListEvents.length > 0 ? (
               <div className="flex flex-col gap-2 px-4">
-                {filteredMobileEvents.slice(0, 5).map((event, index) => (
+                {displayListEvents.slice(0, 6).map((event, index) => (
                   <MobileListRow key={event.id} event={event} index={index} />
                 ))}
               </div>

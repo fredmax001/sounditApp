@@ -27,6 +27,8 @@ import {
 import VerificationBadge from '@/components/VerificationBadge';
 import ReviewsSection from '@/components/ReviewsSection';
 import UniversalShareModal from '@/components/ui/UniversalShareModal';
+import FollowButton from '@/components/social/FollowButton';
+import FollowersModal from '@/components/social/FollowersModal';
 import { useAuthStore } from '@/store/authStore';
 import { slugify } from '@/lib/slug';
 import { saveImageToDevice } from '@/lib/downloadImage';
@@ -34,6 +36,7 @@ import { saveImageToDevice } from '@/lib/downloadImage';
 interface PublicProfileData {
   id: number;
   slug?: string;
+  username?: string;
   first_name: string;
   last_name: string;
   avatar_url?: string;
@@ -130,6 +133,10 @@ export default function PublicProfile() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [galleryFilter, setGalleryFilter] = useState<'all' | 'general' | number>('all');
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+  const [showFollowersModal, setShowFollowersModal] = useState<boolean>(false);
+  const [followersModalTab, setFollowersModalTab] = useState<'followers' | 'following'>('followers');
   const { user } = useAuthStore();
   const isOrganizer = user?.role === 'organizer' || user?.role === 'business';
 
@@ -156,6 +163,19 @@ export default function PublicProfile() {
             const eventsData = await eventsRes.json();
             setEvents(eventsData || []);
           }
+        }
+
+        // Fetch universal follow counts
+        if (data.id) {
+          fetch(`${API_BASE_URL}/social/users/${data.id}/follow-counts`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((counts) => {
+              if (counts) {
+                setFollowersCount(counts.followers_count || 0);
+                setFollowingCount(counts.following_count || 0);
+              }
+            })
+            .catch(() => {});
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load profile');
@@ -375,39 +395,37 @@ export default function PublicProfile() {
       <div className="max-w-3xl mx-auto px-4 -mt-12 relative z-10">
         <div className="flex items-end gap-4 mb-4">
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white dark:border-[#020b00] bg-neutral-100 dark:bg-[#1a1a1a] shadow-md">
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-[#d3da0c] flex items-center justify-center text-black text-2xl font-bold">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <img
+              src={profile.avatar_url || '/default-avatar.png'}
+              alt={displayName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/default-avatar.png';
+              }}
+            />
           </div>
           <div className="pb-1 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl md:text-2xl font-bold text-[#020b00] dark:text-white">{displayName}</h1>
               {isVerified && <VerificationBadge size="sm" />}
-              {(profile.organizer_profile || profile.business_profile) && (
+              <div className="ml-auto flex items-center gap-2">
+                <FollowButton
+                  targetUserId={profile.id}
+                  targetUsername={profile.username}
+                  size="sm"
+                  variant="pill"
+                  onFollowChange={(_, delta) => {
+                    setFollowersCount((prev) => Math.max(0, prev + delta));
+                  }}
+                />
                 <button
-                  onClick={handleFollowToggle}
-                  disabled={followLoading}
-                  className={`ml-auto md:ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                    isFollowing
-                      ? 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30'
-                      : 'bg-neutral-100 dark:bg-white/10 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/10 dark:border-white/10'
-                  } disabled:opacity-50`}
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-neutral-100 dark:bg-white/10 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/10 dark:border-white/10 transition-colors"
                 >
-                  <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current text-pink-500' : ''}`} />
-                  {isFollowing ? 'Following' : 'Follow'}
+                  <Share2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
+                  <span>Share</span>
                 </button>
-              )}
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-neutral-100 dark:bg-white/10 text-gray-800 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20 border border-black/10 dark:border-white/10 transition-colors"
-              >
-                <Share2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
-                <span>Share</span>
-              </button>
+              </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-700 dark:text-gray-300 font-medium capitalize">
@@ -419,6 +437,35 @@ export default function PublicProfile() {
                   {profile.city}
                 </span>
               )}
+            </div>
+
+            {/* Followers / Following clickable counters */}
+            <div className="flex items-center gap-4 mt-2.5">
+              <button
+                onClick={() => {
+                  setFollowersModalTab('followers');
+                  setShowFollowersModal(true);
+                }}
+                className="text-xs text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-[#d3da0c] transition-colors flex items-center gap-1 group"
+              >
+                <span className="font-black text-black dark:text-white group-hover:text-[#d3da0c] transition-colors">
+                  {followersCount}
+                </span>
+                <span>Followers</span>
+              </button>
+              <span className="text-gray-300 dark:text-white/20">•</span>
+              <button
+                onClick={() => {
+                  setFollowersModalTab('following');
+                  setShowFollowersModal(true);
+                }}
+                className="text-xs text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-[#d3da0c] transition-colors flex items-center gap-1 group"
+              >
+                <span className="font-black text-black dark:text-white group-hover:text-[#d3da0c] transition-colors">
+                  {followingCount}
+                </span>
+                <span>Following</span>
+              </button>
             </div>
           </div>
         </div>
@@ -789,6 +836,17 @@ export default function PublicProfile() {
               location: profile.city,
               description: profile.bio || profile.organizer_profile?.description || profile.business_profile?.description || profile.vendor_profile?.description
             }}
+          />
+        )}
+
+        {/* Universal Followers / Following Modal */}
+        {showFollowersModal && profile && (
+          <FollowersModal
+            isOpen={showFollowersModal}
+            onClose={() => setShowFollowersModal(false)}
+            userId={profile.id}
+            userName={displayName}
+            initialTab={followersModalTab}
           />
         )}
       </div>

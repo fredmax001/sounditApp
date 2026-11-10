@@ -211,7 +211,7 @@ export default function EventDetail() {
     const title = currentEvent.title || 'Sound It';
     const description = currentEvent.description
       ? currentEvent.description.replace(/<[^>]+>/g, '').slice(0, 160)
-      : '5 years of Excellence in Entertainment';
+      : 'Sound It — Discover live events, nightlife, and entertainment';
     const image = currentEvent.flyer_image
       ? (currentEvent.flyer_image.startsWith('http') ? currentEvent.flyer_image : `${WEB_ORIGIN}${currentEvent.flyer_image}`)
       : `${WEB_ORIGIN}/logo.png`;
@@ -701,7 +701,7 @@ export default function EventDetail() {
                           <div className="min-w-0">
                             <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2 truncate">
                               {dj.stage_name}
-                              {dj.verification_badge && <VerificationBadge size="sm" />}
+                              {(dj.verification_badge || (dj as any).is_verified) && <VerificationBadge size="sm" />}
                             </p>
                             <p className="text-gray-500 dark:text-white/50 text-sm capitalize truncate">
                               {genreLine || djAny.artist_type || t('eventDetail.artist')}
@@ -733,7 +733,7 @@ export default function EventDetail() {
                     <div>
                       <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2">
                         {currentEvent.business.business_name}
-                        {currentEvent.business.verification_badge && <VerificationBadge size="sm" />}
+                        {(currentEvent.business.verification_badge || (currentEvent.business as any).is_verified || currentEvent.business.verified) && <VerificationBadge size="sm" />}
                       </p>
                       <p className="text-gray-500 dark:text-white/50 text-sm">
                         {currentEvent.business.verification_badge ? t('eventDetail.verifiedBusiness') : t('eventDetail.business')}
@@ -773,7 +773,7 @@ export default function EventDetail() {
                         <div className="flex-1 min-w-0">
                           <p className="text-[#020b00] dark:text-white font-semibold flex items-center gap-2 truncate">
                             {vendor.business_name}
-                            {vendor.is_verified && <VerificationBadge size="sm" />}
+                            {(vendor.is_verified || (vendor as any).verification_badge) && <VerificationBadge size="sm" />}
                           </p>
                           <p className="text-gray-500 dark:text-white/50 text-sm capitalize">
                             {vendor.vendor_type || 'Vendor'}

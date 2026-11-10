@@ -430,7 +430,7 @@ const Notifications = () => {
             {/* Notification Rows */}
             {notifications.map((notif) => {
               const rawImg = notif.image_url || notif.data?.image_url;
-              const thumbUrl = resolveImageUrl(rawImg) || '/onboarding/screen3-event.png';
+              const thumbUrl = rawImg ? resolveImageUrl(rawImg) : null;
               const cleanTitle = stripEmojis(notif.title);
               const cleanMessage = stripEmojis(notif.message);
 
@@ -471,16 +471,18 @@ const Notifications = () => {
 
                   {/* Right Thumbnail + Delete */}
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="w-14 h-12 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
-                      <img
-                        src={thumbUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = '/onboarding/screen3-event.png';
-                        }}
-                      />
-                    </div>
+                    {thumbUrl && (
+                      <div className="w-14 h-12 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+                        <img
+                          src={thumbUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                     <button
                       onClick={(e) => handleDeleteOne(e, notif.id)}
                       className="p-1.5 text-gray-500 hover:text-red-400 transition-colors opacity-70 group-hover:opacity-100"

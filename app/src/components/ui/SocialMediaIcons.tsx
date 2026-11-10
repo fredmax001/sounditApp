@@ -48,8 +48,8 @@ export function TikTokIcon({ className = "w-6 h-6" }: { className?: string }) {
 
 export function RedNoteIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.88 13.88c-.35.35-.92.35-1.27 0L12 13.27l-2.61 2.61c-.35.35-.92.35-1.27 0-.35-.35-.35-.92 0-1.27L10.73 12 8.12 9.39c-.35-.35-.35-.92 0-1.27.35-.35.92-.35 1.27 0L12 10.73l2.61-2.61c.35-.35.92-.35 1.27 0 .35.35.35.92 0 1.27L13.27 12l2.61 2.61c.35.35.35.92 0 1.27z"/>
-    </svg>
+    <span className={`inline-flex items-center justify-center font-black tracking-tighter select-none font-sans ${className} text-[13px] leading-none text-current`}>
+      小红书
+    </span>
   );
 }

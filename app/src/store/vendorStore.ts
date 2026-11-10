@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
@@ -120,152 +119,161 @@ interface VendorState {
     uploadProductImage: (token: string, file: File) => Promise<string>;
     fetchOrders: (token: string, status?: string) => Promise<void>;
     updateOrderStatus: (token: string, orderId: number, status: Order['status']) => Promise<void>;
+    resetVendorStore: () => void;
 }
 
-export const useVendorStore = create<VendorState>()(
-    persist(
-        (set) => ({
-            profile: null,
-            products: [],
-            orders: [],
-            isLoading: false,
-            error: null,
+const initialState = {
+    profile: null,
+    products: [],
+    orders: [],
+    isLoading: false,
+    error: null,
+};
 
-            fetchProfile: async (token) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await axios.get(`${API_URL}/vendors/profile`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set({ profile: response.data, isLoading: false });
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
+export const useVendorStore = create<VendorState>((set) => ({
+    ...initialState,
 
-            updateProfile: async (token, data) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await axios.put(`${API_URL}/vendors/profile`, data, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set({ profile: response.data, isLoading: false });
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
+    resetVendorStore: () => {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                window.localStorage.removeItem('vendor-storage');
+            }
+        } catch {}
+        set(initialState);
+    },
 
-            fetchProducts: async (token) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await axios.get(`${API_URL}/vendors/products`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set({ products: response.data || [], isLoading: false });
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-
-            addProduct: async (token, product) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await axios.post(`${API_URL}/vendors/products`, product, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set((state) => ({ products: [...state.products, response.data], isLoading: false }));
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-
-            updateProduct: async (token, productId, updates) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await axios.put(`${API_URL}/vendors/products/${productId}`, updates, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set((state) => ({
-                        products: state.products.map((p) => (p.id === productId ? response.data : p)),
-                        isLoading: false
-                    }));
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-
-            deleteProduct: async (token, productId) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await axios.delete(`${API_URL}/vendors/products/${productId}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set((state) => ({
-                        products: state.products.filter((p) => p.id !== productId),
-                        isLoading: false
-                    }));
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-
-            uploadProductImage: async (token, file) => {
-                if (!file.type.startsWith('image/')) {
-                    throw new Error('Please select a valid image file');
-                }
-                if (file.size > 5 * 1024 * 1024) {
-                    throw new Error('Image size must be less than 5MB');
-                }
-
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await axios.post(`${API_URL}/media/upload`, formData, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data',
-                    }
-                });
-
-                return response.data.url;
-            },
-
-            fetchOrders: async (token, status) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const params: Record<string, unknown> = {};
-                    if (status) params.status = status;
-
-                    const response = await axios.get(`${API_URL}/vendors/orders`, {
-                        params,
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set({ orders: response.data || [], isLoading: false });
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-
-            updateOrderStatus: async (token, orderId, status) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await axios.patch(`${API_URL}/vendors/orders/${orderId}`, { status }, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    set((state) => ({
-                        orders: state.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
-                        isLoading: false
-                    }));
-                } catch (err: unknown) {
-                    set({ error: getErrorMessage(err), isLoading: false });
-                }
-            },
-        }),
-        {
-            name: 'vendor-storage',
-            partialize: (state) => ({ profile: state.profile, products: state.products }),
+    fetchProfile: async (token) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get(`${API_URL}/vendors/profile`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ profile: response.data, isLoading: false });
+        } catch (err: unknown) {
+            // Strict tenant isolation: clear profile on 401/403/404 or any retrieval error
+            set({ profile: null, products: [], orders: [], error: getErrorMessage(err), isLoading: false });
         }
-    )
-);
+    },
+
+    updateProfile: async (token, data) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.put(`${API_URL}/vendors/profile`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ profile: response.data, isLoading: false });
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    fetchProducts: async (token) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get(`${API_URL}/vendors/products`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ products: response.data || [], isLoading: false });
+        } catch (err: unknown) {
+            set({ products: [], error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    addProduct: async (token, product) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.post(`${API_URL}/vendors/products`, product, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set((state) => ({ products: [...state.products, response.data], isLoading: false }));
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    updateProduct: async (token, productId, updates) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.put(`${API_URL}/vendors/products/${productId}`, updates, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set((state) => ({
+                products: state.products.map((p) => (p.id === productId ? response.data : p)),
+                isLoading: false
+            }));
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    deleteProduct: async (token, productId) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.delete(`${API_URL}/vendors/products/${productId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set((state) => ({
+                products: state.products.filter((p) => p.id !== productId),
+                isLoading: false
+            }));
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    uploadProductImage: async (token, file) => {
+        if (!file.type.startsWith('image/')) {
+            throw new Error('Please select a valid image file');
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            throw new Error('Image size must be less than 5MB');
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post(`${API_URL}/media/upload`, formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+            }
+        });
+
+        return response.data.url;
+    },
+
+    fetchOrders: async (token, status) => {
+        set({ isLoading: true, error: null });
+        try {
+            const params: Record<string, unknown> = {};
+            if (status) params.status = status;
+
+            const response = await axios.get(`${API_URL}/vendors/orders`, {
+                params,
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set({ orders: response.data || [], isLoading: false });
+        } catch (err: unknown) {
+            set({ orders: [], error: getErrorMessage(err), isLoading: false });
+        }
+    },
+
+    updateOrderStatus: async (token, orderId, status) => {
+        set({ isLoading: true, error: null });
+        try {
+            await axios.patch(`${API_URL}/vendors/orders/${orderId}`, { status }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            set((state) => ({
+                orders: state.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
+                isLoading: false
+            }));
+        } catch (err: unknown) {
+            set({ error: getErrorMessage(err), isLoading: false });
+        }
+    },
+}));
+
+export const resetVendorStore = () => useVendorStore.getState().resetVendorStore();
 
 export default useVendorStore;

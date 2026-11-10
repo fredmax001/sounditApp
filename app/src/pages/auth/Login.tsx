@@ -18,9 +18,6 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [twoFactor, setTwoFactor] = useState<{ token: string; mode: string } | null>(null);
   const [otpCode, setOtpCode] = useState('');
-  const [pinMode, setPinMode] = useState(false);
-  const [pinIdentifier, setPinIdentifier] = useState('');
-  const [pinCode, setPinCode] = useState('');
 
   // Preload dashboard chunks while user enters credentials so post-login navigation is instant
   useEffect(() => {
@@ -200,25 +197,6 @@ const Login = () => {
     }
   };
 
-  const handlePinLogin = async () => {
-    if (!pinIdentifier || !pinCode || isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/pin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: pinIdentifier.trim().toLowerCase(), pin: pinCode })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || data?.detail || t('auth.login.loginFailed'));
-      const userProfile = await loginWithEmail(pinIdentifier, '', data);
-      finalizeLogin(userProfile || useAuthStore.getState().profile);
-    } catch (error) {
-      toast.error((error as Error).message || t('auth.login.loginFailed'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleGoogleSuccess = async (token: string) => {
     try {
@@ -367,52 +345,6 @@ const Login = () => {
       </>
       )}
 
-      {/* Quick PIN login */}
-      {!twoFactor && (
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setPinMode(m => !m)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-gray-700 dark:text-[#d3da0c] text-sm font-medium hover:underline"
-          >
-            <KeyRound className="w-4 h-4" />
-            {t('kit.security.loginWithPin')}
-          </button>
-          {pinMode && (
-            <div className="space-y-3 mt-2 bg-neutral-100 dark:bg-white/5 rounded-xl p-4">
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="email"
-                  value={pinIdentifier}
-                  onChange={e => setPinIdentifier(e.target.value)}
-                  placeholder={t('kit.security.pinEmail')}
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#020b00] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
-                />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  value={pinCode}
-                  onChange={e => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                  onKeyDown={e => { if (e.key === 'Enter') handlePinLogin(); }}
-                  placeholder={t('kit.security.pinCode')}
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#020b00] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={handlePinLogin}
-                disabled={isSubmitting || !pinIdentifier || !pinCode}
-                className="w-full py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t('kit.security.pinLogin')}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Divider */}
       <div className="relative my-6">

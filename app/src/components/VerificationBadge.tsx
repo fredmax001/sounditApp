@@ -1,24 +1,30 @@
 import { Check } from 'lucide-react';
 
 interface VerificationBadgeProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
+  title?: string;
 }
 
-export const VerificationBadge = ({ size = 'md', className = '' }: VerificationBadgeProps) => {
+export const VerificationBadge = ({
+  size = 'md',
+  className = '',
+  title = 'Verified by Sound It',
+}: VerificationBadgeProps) => {
   const sizes = {
-    sm: { container: 'w-4 h-4', icon: 'w-2.5 h-2.5' },
-    md: { container: 'w-5 h-5', icon: 'w-3 h-3' },
-    lg: { container: 'w-6 h-6', icon: 'w-3.5 h-3.5' },
+    xs: { container: 'w-3.5 h-3.5 min-w-[14px]', icon: 'w-2 h-2' },
+    sm: { container: 'w-4 h-4 min-w-[16px]', icon: 'w-2.5 h-2.5' },
+    md: { container: 'w-5 h-5 min-w-[20px]', icon: 'w-3 h-3' },
+    lg: { container: 'w-6 h-6 min-w-[24px]', icon: 'w-3.5 h-3.5' },
   };
 
   return (
-    <div 
-      className={`inline-flex items-center justify-center rounded-full bg-[#d3da0c] ${sizes[size].container} ${className}`}
-      title="Verified by Sound It"
+    <span
+      className={`inline-flex items-center justify-center rounded-full bg-[#d3da0c] text-black shrink-0 select-none shadow-xs ${sizes[size].container} ${className}`}
+      title={title}
     >
-      <Check className={`${sizes[size].icon} text-black stroke-[3]`} />
-    </div>
+      <Check className={`${sizes[size].icon} text-black stroke-[3.5]`} />
+    </span>
   );
 };
 

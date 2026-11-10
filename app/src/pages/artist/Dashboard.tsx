@@ -15,6 +15,7 @@ import { getMediaUrl } from '@/lib/appUrl';
 import { getArtistVariant } from '@/lib/roleVariants';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import VerificationBadge from '@/components/VerificationBadge';
 import {
   SpotifyIcon,
   AppleMusicIcon,
@@ -778,9 +779,7 @@ const ArtistDashboard = () => {
               <div className="flex items-center gap-2 mb-0.5">
                 <h1 className="text-xl font-bold text-[#020b00] dark:text-white lg:text-3xl tracking-tight truncate">{getDisplayName()}</h1>
                 {(profile?.is_verified || artistProfile?.is_verified) ? (
-                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-full flex items-center justify-center flex-shrink-0 shadow-xs" title={t('artist.dashboard.verified')}>
-                    <Check className="w-3 h-3 lg:w-3.5 lg:h-3.5 font-black" />
-                  </div>
+                  <VerificationBadge size="md" className="shrink-0" />
                 ) : (
                   <button
                     onClick={async () => {

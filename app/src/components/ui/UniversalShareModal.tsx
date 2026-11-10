@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
@@ -14,7 +15,10 @@ import {
   Calendar,
   MapPin,
   Check,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Play,
+  ChevronRight,
+  Link2
 } from 'lucide-react';
 import {
   WeChatIcon,
@@ -26,9 +30,10 @@ import {
   RedNoteIcon
 } from './SocialMediaIcons';
 import { slugify } from '@/lib/slug';
+import VerificationBadge from '@/components/VerificationBadge';
 
 export interface ShareableItem {
-  type: 'event' | 'artist' | 'vendor' | 'business' | 'user';
+  type: 'event' | 'artist' | 'vendor' | 'business' | 'user' | 'reel' | 'post';
   id: string | number;
   slug?: string;
   title: string;
@@ -64,6 +69,17 @@ export default function UniversalShareModal({
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   const [activeTab, setActiveTab] = useState<'quick' | 'poster'>('quick');
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+      window.dispatchEvent(new CustomEvent('modal-state-change'));
+      return () => {
+        document.body.classList.remove('modal-open');
+        window.dispatchEvent(new CustomEvent('modal-state-change'));
+      };
+    }
+  }, [isOpen]);
+
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sounditent.com';
   
   // Resolve image URL cleanly
@@ -89,6 +105,10 @@ export default function UniversalShareModal({
       case 'business':
       case 'user':
         return `/profiles/${slug}`;
+      case 'reel':
+        return `/recaps?id=${item.id}`;
+      case 'post':
+        return `/recaps?post=${item.id}`;
       default:
         return `/events/${slug}`;
     }
@@ -99,7 +119,18 @@ export default function UniversalShareModal({
 
   // Formatted share message text
   const getShareText = () => {
-    const typeLabel = item.type === 'event' ? '🎉 Event' : item.type === 'artist' ? '🎧 Artist' : item.type === 'vendor' ? '🛍️ Vendor' : '👤 Profile';
+    const typeLabel =
+      item.type === 'event'
+        ? '🎉 Event'
+        : item.type === 'reel'
+        ? '🎬 Reel'
+        : item.type === 'post'
+        ? '📝 Post'
+        : item.type === 'artist'
+        ? '🎧 Artist'
+        : item.type === 'vendor'
+        ? '🛍️ Vendor'
+        : '👤 Profile';
     let text = `${typeLabel}: ${item.title}`;
     if (item.subtitle) text += ` (${item.subtitle})`;
     if (item.date) text += `\n📅 Date: ${item.date}`;
@@ -117,13 +148,15 @@ export default function UniversalShareModal({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Native System Share
+  // Native System Share (Hardened against WeChat and iOS UIActivityViewController failures)
   const handleNativeShare = async () => {
+    // When sharing a URL with native share, avoid repeating raw URL in text to prevent WeChat crash
+    const nativeText = item.subtitle ? `${item.title} • ${item.subtitle}` : item.title;
     try {
       if (CapShare) {
         await CapShare.share({
           title: item.title,
-          text: getShareText(),
+          text: nativeText,
           url: shareUrl,
           dialogTitle: `Share ${item.title}`
         });
@@ -137,7 +170,7 @@ export default function UniversalShareModal({
       try {
         await navigator.share({
           title: item.title,
-          text: getShareText(),
+          text: nativeText,
           url: shareUrl
         });
       } catch {
@@ -558,184 +591,224 @@ export default function UniversalShareModal({
 
   if (!isOpen) return null;
 
-  return (
+  const cleanDisplayUrl = shareUrl.replace(/^https?:\/\//, '');
+
+  const modalElement = (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+      <div
+        data-modal-open="true"
+        className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center z-[100000] p-0 sm:p-4 overflow-y-auto"
+      >
+        {/* Backdrop dismiss */}
+        <div className="fixed inset-0" onClick={onClose} />
+
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="bg-[#121212] border border-white/10 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl my-auto"
+          initial={{ opacity: 0, y: 60, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 60, scale: 0.98 }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          className="relative z-10 bg-[#0e110d] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6 my-0 sm:my-auto"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#171717]">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-bold text-white truncate max-w-[280px]">
-                {t('common.shareItemTitle', { title: item.title, defaultValue: `Share ${item.title}` })}
-              </h3>
+          {/* Top Drag Handle */}
+          <div className="pt-3 pb-1">
+            <div className="w-12 h-1 bg-white/20 rounded-full mx-auto" />
+          </div>
+
+          {/* Header Row */}
+          <div className="flex items-center justify-between px-5 pt-2 pb-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-[#d3da0c]/10 border border-[#d3da0c]/30 flex items-center justify-center shrink-0">
+                <Share2 className="w-5 h-5 text-[#d3da0c]" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-black text-white leading-tight">
+                  Share this recap
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5 truncate">
+                  Let your friends experience what happened.
+                </p>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors shrink-0 ml-2"
+              aria-label="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Mode Switcher Tabs */}
-          <div className="flex border-b border-white/5 bg-black/30 p-1">
-            <button
-              onClick={() => setActiveTab('quick')}
-              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                activeTab === 'quick' ? 'bg-[#d3da0c] text-black shadow' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Share2 className="w-4 h-4" />
-              <span>{t('common.quickShare', 'Quick Share & Links')}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('poster')}
-              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                activeTab === 'poster' ? 'bg-[#d3da0c] text-black shadow' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <QrCode className="w-4 h-4" />
-              <span>{t('common.shareCardPoster', 'Share Card & Poster')}</span>
-            </button>
+          {/* Two Balanced Tabs */}
+          <div className="px-5 mb-4">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-[#141812] border border-white/10 rounded-2xl">
+              <button
+                onClick={() => setActiveTab('quick')}
+                className={`py-3 px-3 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 ${
+                  activeTab === 'quick'
+                    ? 'bg-[#d3da0c] text-black shadow-md'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                <Share2 className="w-4 h-4 stroke-[2.5]" />
+                <span>Quick Share</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('poster')}
+                className={`py-3 px-3 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 ${
+                  activeTab === 'poster'
+                    ? 'bg-[#d3da0c] text-black shadow-md'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                <QrCode className="w-4 h-4 stroke-[2.5]" />
+                <span>Share Card</span>
+              </button>
+            </div>
           </div>
 
-          {/* Content */}
-          <div className="p-5 max-h-[75vh] overflow-y-auto hide-scrollbar space-y-5">
-            {/* Quick Share Tab */}
+          {/* Tab Content */}
+          <div className="px-5 max-h-[70vh] overflow-y-auto space-y-4 no-scrollbar pb-8">
             {activeTab === 'quick' && (
-              <div className="space-y-4">
-                {/* Item Card Preview */}
-                <div className="flex items-center gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 shrink-0 border border-white/10">
+              <>
+                {/* 1. Recap Preview Card */}
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[#131711] border border-white/10 shadow-lg">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-black shrink-0 relative border border-white/10">
                     <img
                       src={displayImage}
                       alt={item.title}
                       className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = isDark ? '/brand-logo-dark.png' : '/brand-logo-light.png'; }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = isDark
+                          ? '/brand-logo-dark.png'
+                          : '/brand-logo-light.png';
+                      }}
                     />
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-black/60 border border-white/20 flex items-center justify-center">
+                        <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#d3da0c]/15 text-[#d3da0c] rounded-md uppercase tracking-wider">
-                      {item.type}
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <span className="inline-block px-2 py-0.5 text-[10px] font-black bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/40 rounded-full uppercase tracking-wider">
+                      {item.type === 'reel' ? 'REEL' : (item.type === 'post' ? 'POST' : item.type.toUpperCase())}
                     </span>
-                    <h4 className="text-sm font-bold text-white truncate mt-1">{item.title}</h4>
-                    {item.subtitle && (
-                      <p className="text-xs text-gray-400 truncate">{item.subtitle}</p>
-                    )}
-                    {item.date && (
-                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                        <Calendar className="w-3 h-3 text-gray-500" />
-                        <span>{item.date}</span>
-                      </p>
-                    )}
-                    {item.location && (
-                      <p className="text-xs text-gray-400 flex items-center gap-1 truncate">
-                        <MapPin className="w-3 h-3 text-gray-500 shrink-0" />
-                        <span className="truncate">{item.location}</span>
-                      </p>
-                    )}
+                    <h4 className="text-sm font-black text-white truncate">{item.title}</h4>
+                    <p className="text-xs text-gray-400 truncate">
+                      {item.subtitle ? (item.subtitle.startsWith('By') ? item.subtitle : `By ${item.subtitle}`) : 'By creator'}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[#d3da0c] text-[11px] font-extrabold">
+                      <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                        <path d="M4 10h2v4H4zm4-4h2v12H8zm4-2h2v16h-2zm4 4h2v12h-2zm4 4h2v4h-2z" />
+                      </svg>
+                      <span>Sound It Recap</span>
+                    </div>
                   </div>
+
+                  <ChevronRight className="w-5 h-5 text-gray-500 shrink-0" />
                 </div>
 
-                {/* Social Share Grid */}
+                {/* 2. Section Title */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
-                    {t('common.shareToSocials', 'Share to Social Media')}
-                  </p>
+                  <h4 className="text-sm font-extrabold text-white mb-2.5">
+                    Share with friends
+                  </h4>
+
+                  {/* 3. Social Sharing Grid (8 tiles, strictly neon-lime icons) */}
                   <div className="grid grid-cols-4 gap-2.5">
                     {/* WeChat */}
                     <button
                       onClick={() => setActiveTab('poster')}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#07C160]/10 hover:bg-[#07C160]/20 border border-[#07C160]/20 transition-all text-[#07C160]"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <WeChatIcon className="w-6 h-6 text-[#07C160]" />
-                      <span className="text-[11px] font-medium text-white">WeChat</span>
+                      <WeChatIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">WeChat</span>
                     </button>
 
                     {/* WhatsApp */}
                     <button
                       onClick={shareToWhatsApp}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/20 transition-all text-[#25D366]"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <WhatsAppIcon className="w-6 h-6 text-[#25D366]" />
-                      <span className="text-[11px] font-medium text-white">WhatsApp</span>
+                      <WhatsAppIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">WhatsApp</span>
                     </button>
 
-                    {/* iMessage / SMS */}
+                    {/* iMessage */}
                     <button
                       onClick={shareToSMS}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all text-blue-400"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <IMessageIcon className="w-6 h-6 text-blue-400" />
-                      <span className="text-[11px] font-medium text-white">iMessage</span>
+                      <IMessageIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">iMessage</span>
                     </button>
 
-                    {/* X (Twitter) */}
+                    {/* X */}
                     <button
                       onClick={shareToX}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <XIcon className="w-5 h-5 text-white" />
-                      <span className="text-[11px] font-medium text-white">X</span>
+                      <XIcon className="w-6 h-6 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">X</span>
                     </button>
 
                     {/* Instagram */}
                     <button
                       onClick={() => handlePlatformPosterShare('Instagram', 'Poster saved & link copied! Upload to Story or Feed.')}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-purple-500/15 via-pink-500/15 to-orange-500/15 hover:opacity-90 border border-pink-500/30 transition-all text-pink-400"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <InstagramIcon className="w-6 h-6 text-pink-400" />
-                      <span className="text-[11px] font-medium text-white">Instagram</span>
+                      <InstagramIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">Instagram</span>
                     </button>
 
-                    {/* TikTok / Douyin */}
+                    {/* TikTok */}
                     <button
-                      onClick={() => handlePlatformPosterShare('TikTok / 抖音', 'Poster saved & link copied! Attach to your video post.')}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#00f2fe]/10 hover:bg-[#00f2fe]/20 border border-[#00f2fe]/20 transition-all text-[#00f2fe]"
+                      onClick={() => handlePlatformPosterShare('TikTok', 'Poster saved & link copied! Attach to your video post.')}
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <TikTokIcon className="w-6 h-6 text-[#ff0050]" />
-                      <span className="text-[11px] font-medium text-white">TikTok/抖音</span>
+                      <TikTokIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">TikTok</span>
                     </button>
 
-                    {/* RedNote (Xiaohongshu) */}
+                    {/* 小红书 */}
                     <button
-                      onClick={() => handlePlatformPosterShare('RedNote / 小红书', 'Poster saved & link copied! Publish Note on RedNote.')}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#ff2442]/10 hover:bg-[#ff2442]/20 border border-[#ff2442]/20 transition-all text-[#ff2442]"
+                      onClick={() => handlePlatformPosterShare('小红书', 'Poster saved & link copied! Publish Note on 小红书.')}
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <RedNoteIcon className="w-6 h-6 text-[#ff2442]" />
-                      <span className="text-[11px] font-medium text-white">小红书</span>
+                      <RedNoteIcon className="w-7 h-7 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">小红书</span>
                     </button>
 
-                    {/* Native Share */}
+                    {/* More / Native */}
                     <button
                       onClick={handleNativeShare}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-[#d3da0c]/10 hover:bg-[#d3da0c]/20 border border-[#d3da0c]/20 transition-all text-[#d3da0c]"
+                      className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141712] border border-white/10 hover:border-[#d3da0c]/50 active:scale-95 transition-all aspect-square group"
                     >
-                      <Share2 className="w-6 h-6 text-[#d3da0c]" />
-                      <span className="text-[11px] font-medium text-white">More</span>
+                      <Share2 className="w-6 h-6 text-[#d3da0c] group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-semibold text-gray-200">More</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Copy Link Input Bar */}
-                <div className="pt-1">
-                  <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-1.5 pl-3">
-                    <span className="text-xs text-gray-400 truncate flex-1 font-mono">{shareUrl}</span>
-                    <button
-                      onClick={handleCopyLink}
-                      className="px-3 py-1.5 bg-[#d3da0c] text-black text-xs font-bold rounded-lg hover:bg-[#bbc10b] transition-colors flex items-center gap-1 shrink-0"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? t('common.copied', 'Copied!') : t('common.copyLink', 'Copy Link')}</span>
-                    </button>
+                {/* 4. Recap Link Section */}
+                <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#141712] border border-white/10">
+                  <Link2 className="w-5 h-5 text-[#d3da0c] shrink-0 stroke-[2.5]" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-extrabold text-white">Recap link</p>
+                    <p className="text-xs text-gray-400 truncate font-mono mt-0.5">
+                      {cleanDisplayUrl}
+                    </p>
                   </div>
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-4 py-2.5 rounded-xl bg-[#d3da0c] text-black font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md shrink-0 hover:bg-[#bbc10b]"
+                  >
+                    {copied ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Copy className="w-4 h-4 stroke-[2.5]" />}
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                  </button>
                 </div>
-              </div>
+              </>
             )}
 
             {/* Share Card & Poster Tab */}
@@ -773,7 +846,7 @@ export default function UniversalShareModal({
                       <div>
                         <div className="flex items-center gap-1.5">
                           <h3 className="text-base font-bold text-white line-clamp-1">{item.title}</h3>
-                          <span className="w-4 h-4 rounded-full bg-[#d3da0c] text-black text-[10px] font-black flex items-center justify-center">✓</span>
+                          <VerificationBadge size="xs" />
                         </div>
                         {item.subtitle && <p className="text-xs text-gray-300 line-clamp-1">{item.subtitle}</p>}
                       </div>
@@ -819,7 +892,7 @@ export default function UniversalShareModal({
                 <button
                   onClick={handleDownloadPoster}
                   disabled={isGeneratingPoster}
-                  className="w-full py-3 bg-[#d3da0c] text-black font-bold text-sm rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                  className="w-full py-3.5 bg-[#d3da0c] text-black font-extrabold text-sm rounded-xl hover:bg-[#bbc10b] transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 active:scale-98"
                 >
                   <Download className="w-4 h-4" />
                   <span>{isGeneratingPoster ? (t('common.generatingPoster', 'Generating Poster...')) : (t('common.downloadPoster', 'Save Poster to Gallery'))}</span>
@@ -842,4 +915,8 @@ export default function UniversalShareModal({
       </div>
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' && document.body
+    ? createPortal(modalElement, document.body)
+    : modalElement;
 }

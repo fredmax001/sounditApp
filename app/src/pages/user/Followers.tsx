@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import VerificationBadge from '@/components/VerificationBadge';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
 
@@ -595,6 +596,9 @@ const Followers = () => {
                                                     >
                                                         {item.name}
                                                     </h3>
+                                                    {item.is_verified && (
+                                                        <VerificationBadge size="xs" className="shrink-0" />
+                                                    )}
                                                 </div>
 
                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">

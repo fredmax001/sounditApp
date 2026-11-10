@@ -134,7 +134,7 @@ interface CommunityState {
     fetchPosts: (params?: { page?: number; event_id?: number; user_id?: number; search?: string; feed_type?: string }) => Promise<void>;
     fetchSections: () => Promise<void>;
     fetchPostsBySection: (slug: string, page?: number) => Promise<void>;
-    createPost: (data: { title?: string; content: string; images?: string[]; videos?: string[]; event_id?: number; section_id?: number; author_type?: string; guestName?: string; guestEmail?: string }) => Promise<boolean>;
+    createPost: (data: { title?: string; content: string; images?: string[]; videos?: string[]; event_id?: number; section_id?: number; author_type?: string; guestName?: string; guestEmail?: string; tagged_user_ids?: number[] }) => Promise<boolean>;
     updatePost: (postId: number, data: { title?: string; content?: string; images?: string[]; videos?: string[]; section_id?: number }) => Promise<boolean>;
     deletePost: (postId: number) => Promise<boolean>;
     likePost: (postId: number) => Promise<void>;

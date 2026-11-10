@@ -67,6 +67,21 @@ const VendorOrders = () => {
   const [viewScreenshotUrl, setViewScreenshotUrl] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
+  // Defense-in-depth: Redirect non-vendors away from vendor orders
+  useEffect(() => {
+    const role = profile?.role_type || profile?.role;
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    if (profile && role !== 'vendor' && !isAdmin) {
+      if (role === 'business' || role === 'organizer') {
+        navigate('/dashboard/business', { replace: true });
+      } else if (role === 'artist' || role === 'dj') {
+        navigate('/dashboard/artist', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [profile, navigate]);
+
   // Read URL filter if present (e.g., from Dashboard quick summary tiles)
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -185,7 +200,7 @@ const VendorOrders = () => {
   const vendorDisplayName =
     vendorProfile?.business_name ||
     (profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : '') ||
-    'Westcape';
+    'Vendor Store';
 
   const renderStatusBadge = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -269,8 +284,12 @@ const VendorOrders = () => {
               className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-[#11150E] border border-white/15"
               aria-label="Vendor profile"
             >
-              <div className="w-6 h-6 rounded-full bg-emerald-500 text-black font-extrabold text-[10px] flex items-center justify-center">
-                {getInitials(vendorDisplayName)}
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-[#1a2312] border border-[#d3da0c]/40 flex items-center justify-center">
+                <img
+                  src="/default-avatar.png"
+                  alt={vendorDisplayName}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <Menu className="w-4 h-4 text-[#d3da0c]" />
             </button>

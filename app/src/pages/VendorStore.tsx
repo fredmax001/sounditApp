@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useVendorMarketplaceStore } from '@/store/vendorMarketplaceStore';
 import ProductCard from '@/components/ProductCard';
 import VendorCart from '@/components/VendorCart';
+import VerificationBadge from '@/components/VerificationBadge';
 import { slugify } from '@/lib/slug';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
@@ -164,7 +165,7 @@ export default function VendorStore() {
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl md:text-3xl font-bold text-white">{vendor.business_name}</h1>
                             {vendor.is_verified && (
-                                <span className="px-2 py-0.5 bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-medium rounded-full">Verified</span>
+                                <VerificationBadge size="md" className="shrink-0" />
                             )}
                         </div>
                         <div className="flex items-center gap-3 mt-1">

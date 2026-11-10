@@ -195,7 +195,50 @@ const MobileBottomNav = () => {
 
   // Event detail pages render their own sticky purchase bar — hide tab bar
   const hideOnEventDetail = /^\/events\/[^/]+/.test(location.pathname);
-  if (hideOnEventDetail) return null;
+
+  // Hide bottom nav when mobile software keyboard is open
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const handleViewport = () => {
+      const vv = window.visualViewport!;
+      const diff = window.innerHeight - (vv.height + vv.offsetTop);
+      setIsKeyboardVisible(diff > 140);
+    };
+    window.visualViewport.addEventListener('resize', handleViewport);
+    return () => window.visualViewport?.removeEventListener('resize', handleViewport);
+  }, []);
+
+  // Hide bottom nav whenever a modal, drawer, or share sheet is open
+  const [hasModalOpen, setHasModalOpen] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const checkModal = () => {
+      const isModal =
+        Boolean(document.body.classList.contains('modal-open')) ||
+        Boolean(document.querySelector('[data-modal-open="true"]')) ||
+        Boolean(document.querySelector('.fixed.inset-0.z-\\[100000\\]')) ||
+        Boolean(document.querySelector('.fixed.inset-0.z-\\[9999\\]'));
+      setHasModalOpen(isModal);
+    };
+
+    checkModal();
+    const observer = new MutationObserver(checkModal);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'data-modal-open'],
+    });
+
+    window.addEventListener('modal-state-change', checkModal);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('modal-state-change', checkModal);
+    };
+  }, []);
+
+  if (hideOnEventDetail || isKeyboardVisible || hasModalOpen) return null;
 
   return (
     <>

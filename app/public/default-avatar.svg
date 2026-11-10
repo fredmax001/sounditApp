@@ -1,5 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <circle cx="50" cy="50" r="50" fill="#333"/>
-  <circle cx="50" cy="40" r="18" fill="#888"/>
-  <ellipse cx="50" cy="85" rx="28" ry="22" fill="#888"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="avatarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#182216"/>
+      <stop offset="100%" stop-color="#0c120b"/>
+    </linearGradient>
+    <linearGradient id="avatarSilhouette" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#717a6d"/>
+      <stop offset="100%" stop-color="#4a5247"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#avatarBg)"/>
+  <circle cx="100" cy="78" r="36" fill="url(#avatarSilhouette)"/>
+  <path d="M 38 182 C 40 134, 64 122, 100 122 C 136 122, 160 134, 162 182 Z" fill="url(#avatarSilhouette)"/>
 </svg>

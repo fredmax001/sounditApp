@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
 import UniversalShareModal from '@/components/ui/UniversalShareModal';
+import VerificationBadge from '@/components/VerificationBadge';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
@@ -28,7 +29,7 @@ const getRoleKey = (profile: any): RoleKey => {
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { profile, businessProfile, artistProfile, session, logout, uploadBanner } = useAuthStore();
+  const { profile, businessProfile, artistProfile, session, logout, uploadBanner, uploadAvatar } = useAuthStore();
   const navigate = useNavigate();
   const roleKey = getRoleKey(profile);
   const [primaryStat, setPrimaryStat] = useState<number>(0);
@@ -37,7 +38,9 @@ const Profile = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchRoleStats = async () => {
@@ -264,6 +267,21 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+      toast.success(t('user.profile.avatarUpdated', 'Profile photo updated!'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('user.profile.avatarUploadFailed', 'Failed to upload photo'));
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 pt-3 md:pt-6 transition-colors duration-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
@@ -332,23 +350,43 @@ const Profile = () => {
 
             {/* Foreground Profile Content */}
             <div className="relative z-10 flex flex-col items-center">
-              <div className="w-28 h-28 rounded-full overflow-hidden ring-2 ring-[#d3da0c] ring-offset-4 ring-offset-black bg-white/5 shadow-2xl">
-                {avatarImage ? (
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="relative group cursor-pointer focus:outline-none"
+                aria-label="Change profile photo"
+              >
+                <div className="w-28 h-28 rounded-full overflow-hidden ring-2 ring-[#d3da0c] ring-offset-4 ring-offset-black bg-white/5 shadow-2xl relative">
                   <img
-                    src={avatarImage}
+                    src={avatarImage || '/default-avatar.png'}
                     alt={displayName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
                     onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
                   />
-                ) : (
-                  <div className="w-full h-full bg-[#d3da0c] flex items-center justify-center">
-                    <span className="text-4xl font-bold text-black">{(displayName || '?')[0].toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
+                  {isUploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                      <Loader2 className="w-7 h-7 text-[#d3da0c] animate-spin" />
+                    </div>
+                  )}
+                </div>
+                <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#d3da0c] text-black border-2 border-black flex items-center justify-center shadow-lg group-hover:scale-110 active:scale-95 transition-transform">
+                  <Camera className="w-4 h-4 stroke-[2.5]" />
+                </span>
+              </button>
 
               <div className="flex items-center gap-2 mt-4">
                 <h1 className="text-2xl font-bold text-white drop-shadow">{displayName}</h1>
+                {(profile?.is_verified || (profile as any)?.verification_badge) && (
+                  <VerificationBadge size="md" className="shrink-0" />
+                )}
                 <button
                   onClick={() => setIsShareModalOpen(true)}
                   aria-label={t('kit.invite.title')}

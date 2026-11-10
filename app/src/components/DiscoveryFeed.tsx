@@ -101,15 +101,27 @@ const DiscoveryFeed = () => {
       const params = city ? `&city=${encodeURIComponent(city)}` : '';
       try {
         const [evRes, artRes, venRes, bizRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/events?limit=30${params}`),
-          fetch(`${API_BASE_URL}/artists?limit=20${params}`),
-          fetch(`${API_BASE_URL}/vendors?limit=20${params}`),
-          fetch(`${API_BASE_URL}/businesses?limit=20${params}`),
+          fetch(`${API_BASE_URL}/events?limit=30${params}`).catch(() => null),
+          fetch(`${API_BASE_URL}/artists?limit=20${params}`).catch(() => null),
+          fetch(`${API_BASE_URL}/vendors?limit=20${params}`).catch(() => null),
+          fetch(`${API_BASE_URL}/businesses?limit=20${params}`).catch(() => null),
         ]);
-        if (evRes.ok) setEvents(await evRes.json() as FeedEvent[]);
-        if (artRes.ok) setArtists(await artRes.json() as FeedArtist[]);
-        if (venRes.ok) setVendors(await venRes.json() as FeedVendor[]);
-        if (bizRes.ok) setBusinesses(await bizRes.json() as FeedBusiness[]);
+        if (evRes && evRes.ok) {
+          const data = await evRes.json().catch(() => []);
+          setEvents(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.events) ? data.events : [])));
+        }
+        if (artRes && artRes.ok) {
+          const data = await artRes.json().catch(() => []);
+          setArtists(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.artists) ? data.artists : [])));
+        }
+        if (venRes && venRes.ok) {
+          const data = await venRes.json().catch(() => []);
+          setVendors(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.vendors) ? data.vendors : [])));
+        }
+        if (bizRes && bizRes.ok) {
+          const data = await bizRes.json().catch(() => []);
+          setBusinesses(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.businesses) ? data.businesses : [])));
+        }
       } catch {
         // sections render empty
       } finally {
@@ -120,20 +132,22 @@ const DiscoveryFeed = () => {
   }, [city]);
 
   const topEvents = useMemo(
-    () => [...events].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 10),
+    () => (Array.isArray(events) ? [...events] : []).sort((a, b) => (b?.views_count || 0) - (a?.views_count || 0)).slice(0, 10),
     [events]
   );
 
   // Deterministic daily rotation so "Pick For You" refreshes every day
   const picks = useMemo(() => {
-    const pool = [...events].sort((a, b) => Number(b.is_featured) - Number(a.is_featured));
+    if (!Array.isArray(events) || events.length === 0) return [];
+    const pool = [...events].sort((a, b) => Number(b?.is_featured || 0) - Number(a?.is_featured || 0));
+    if (pool.length === 0) return [];
     const daySeed = Math.floor(Date.now() / 86400000);
     const rotated = pool.map((_, i) => pool[(i + daySeed) % pool.length]).filter(Boolean);
     return rotated.slice(0, 5);
   }, [events]);
 
   const spots = useMemo(
-    () => guideItems.filter(i => i.type === 'venue' || i.type === 'food').slice(0, 10),
+    () => (Array.isArray(guideItems) ? guideItems : []).filter(i => i && (i.type === 'venue' || i.type === 'food')).slice(0, 10),
     [guideItems]
   );
 

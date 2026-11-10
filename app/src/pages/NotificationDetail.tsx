@@ -139,7 +139,8 @@ const NotificationDetail = () => {
   const heroImage =
     resolveImageUrl(detail.image_url) ||
     resolveImageUrl(eventInfo?.banner_url) ||
-    '/onboarding/screen3-event.png';
+    resolveImageUrl(eventInfo?.flyer_url) ||
+    null;
 
   const getPrimaryAction = () => {
     if (eventInfo?.id || detail.data?.event_id) {
@@ -256,24 +257,26 @@ const NotificationDetail = () => {
       {/* Main Card Content */}
       <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">
         {/* Hero Visual Banner Card */}
-        <div className="relative rounded-3xl overflow-hidden border border-black/10 dark:border-white/15 bg-[#0a1408] shadow-2xl">
-          <div className="relative h-52 sm:h-64 w-full">
-            <img
-              src={heroImage}
-              alt={eventInfo?.title || detail.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/onboarding/screen3-event.png';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-5 right-5">
-              <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">
-                {eventInfo?.title || stripEmojis(detail.title)}
-              </h2>
+        {heroImage && (
+          <div className="relative rounded-3xl overflow-hidden border border-black/10 dark:border-white/15 bg-[#0a1408] shadow-2xl">
+            <div className="relative h-52 sm:h-64 w-full">
+              <img
+                src={heroImage}
+                alt={eventInfo?.title || detail.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+              <div className="absolute bottom-4 left-5 right-5">
+                <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">
+                  {eventInfo?.title || stripEmojis(detail.title)}
+                </h2>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Category Header + Full Message */}
         <div className="space-y-3 px-1">

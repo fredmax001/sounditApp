@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Eye, EyeOff, KeyRound, Loader2, Lock, ScanLine, ShieldCheck, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Loader2, Lock, ShieldCheck, Trash2, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -15,9 +15,6 @@ type Modal =
   | { kind: 'delete' }
   | { kind: '2fa-setup'; secret: string; otpauthUrl: string }
   | { kind: '2fa-disable' }
-  | { kind: 'pin-set' }
-  | { kind: 'pin-change' }
-  | { kind: 'pin-disable' }
   | null;
 
 const SecuritySettings = () => {
@@ -27,7 +24,6 @@ const SecuritySettings = () => {
 
   const [modal, setModal] = useState<Modal>(null);
   const [twoFaEnabled, setTwoFaEnabled] = useState(false);
-  const [pinEnabled, setPinEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -35,8 +31,6 @@ const SecuritySettings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const [code, setCode] = useState('');
-  const [pinForm, setPinForm] = useState({ password: '', currentPin: '', newPin: '', confirmPin: '' });
-  const [showPins, setShowPins] = useState(false);
 
   const token = () => session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('token');
 
@@ -57,9 +51,8 @@ const SecuritySettings = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [fa, pin] = await Promise.all([api('/auth/2fa/status'), api('/auth/pin/status')]);
+        const fa = await api('/auth/2fa/status');
         setTwoFaEnabled(!!fa.enabled);
-        setPinEnabled(!!pin.enabled);
       } catch { /* leave defaults */ }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,40 +94,6 @@ const SecuritySettings = () => {
       toast.success(t('kit.security.disabledMsg'));
     } catch (e) {
       toast.error((e as Error).message || t('kit.security.wrongCode'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const validatePin = (p: string) => /^\d{4,8}$/.test(p);
-
-  const submitPin = async (kind: 'pin-set' | 'pin-change' | 'pin-disable') => {
-    if (kind === 'pin-set') {
-      if (!validatePin(pinForm.newPin)) return toast.error(t('kit.security.pinInvalid'));
-      if (pinForm.newPin !== pinForm.confirmPin) return toast.error(t('kit.security.pinMismatch'));
-    }
-    if (kind === 'pin-change') {
-      if (!validatePin(pinForm.newPin)) return toast.error(t('kit.security.pinInvalid'));
-      if (pinForm.newPin !== pinForm.confirmPin) return toast.error(t('kit.security.pinMismatch'));
-    }
-    setIsSaving(true);
-    try {
-      if (kind === 'pin-set') {
-        await api('/auth/pin/set', { pin: pinForm.newPin, password: pinForm.password });
-        setPinEnabled(true);
-        toast.success(t('kit.security.pinSetOk'));
-      } else if (kind === 'pin-change') {
-        await api('/auth/pin/change', { current_pin: pinForm.currentPin, new_pin: pinForm.newPin });
-        toast.success(t('kit.security.pinChanged'));
-      } else {
-        await api('/auth/pin/disable', { pin: pinForm.currentPin });
-        setPinEnabled(false);
-        toast.success(t('kit.security.pinDisabledMsg'));
-      }
-      setModal(null);
-      setPinForm({ password: '', currentPin: '', newPin: '', confirmPin: '' });
-    } catch (e) {
-      toast.error((e as Error).message || t('kit.security.pinWrong'));
     } finally {
       setIsSaving(false);
     }
@@ -200,18 +159,6 @@ const SecuritySettings = () => {
     </div>
   );
 
-  const pinInput = (key: 'password' | 'currentPin' | 'newPin' | 'confirmPin', placeholder: string, numeric = false) => (
-    <input
-      type={showPins ? 'text' : 'password'}
-      inputMode={numeric ? 'numeric' : undefined}
-      pattern={numeric ? '[0-9]*' : undefined}
-      value={pinForm[key]}
-      onChange={e => setPinForm(prev => ({ ...prev, [key]: numeric ? e.target.value.replace(/\D/g, '') : e.target.value }))}
-      placeholder={placeholder}
-      className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none"
-    />
-  );
-
   const ModalShell = ({ children, danger }: { children: React.ReactNode; danger?: boolean }) => createPortal(
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4" onClick={() => setModal(null)}>
       <motion.div
@@ -257,38 +204,6 @@ const SecuritySettings = () => {
             >
               {twoFaEnabled ? t('kit.security.disable') : t('kit.security.enable')}
             </button>
-          </div>
-        </motion.div>
-
-        {/* Quick Login PIN */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-4 shadow-xs dark:shadow-none">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-[#d3da0c]/10 flex items-center justify-center shrink-0">
-              <KeyRound className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-[#020b00] dark:text-white">{t('kit.security.pin')}</p>
-                <StatusBadge enabled={pinEnabled} />
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">{t('kit.security.pinDesc')}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setPinForm({ password: '', currentPin: '', newPin: '', confirmPin: '' }); setShowPins(false); setModal({ kind: pinEnabled ? 'pin-change' : 'pin-set' }); }}
-                className="px-4 min-h-[40px] rounded-xl bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-xs font-bold hover:opacity-90 transition-all shadow-sm"
-              >
-                {pinEnabled ? t('kit.security.pinChangeTitle') : t('kit.security.pinSetTitle')}
-              </button>
-              {pinEnabled && (
-                <button
-                  onClick={() => { setPinForm({ password: '', currentPin: '', newPin: '', confirmPin: '' }); setModal({ kind: 'pin-disable' }); }}
-                  className="px-3 min-h-[40px] rounded-xl bg-red-500/10 text-red-500 text-xs font-semibold border border-red-500/30 hover:bg-red-500/20 transition-colors"
-                >
-                  {t('kit.security.disable')}
-                </button>
-              )}
-            </div>
           </div>
         </motion.div>
 
@@ -390,46 +305,6 @@ const SecuritySettings = () => {
             <button onClick={disable2fa} disabled={isSaving || code.length !== 6} className="flex-1 min-h-[44px] bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {t('kit.security.disable')}
-            </button>
-          </div>
-        </ModalShell>
-      )}
-
-      {/* PIN set/change/disable modals */}
-      {(modal?.kind === 'pin-set' || modal?.kind === 'pin-change' || modal?.kind === 'pin-disable') && (
-        <ModalShell danger={modal.kind === 'pin-disable'}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-[#020b00] dark:text-white">
-              {modal.kind === 'pin-set' ? t('kit.security.pinSetTitle') : modal.kind === 'pin-change' ? t('kit.security.pinChangeTitle') : t('kit.security.pinDisableTitle')}
-            </h3>
-            <button onClick={() => setModal(null)} className="p-1.5 bg-black/5 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"><X className="w-4 h-4" /></button>
-          </div>
-
-          <div className="space-y-3">
-            {modal.kind === 'pin-set' && pinInput('password', t('kit.security.password'))}
-            {modal.kind !== 'pin-set' && pinInput('currentPin', t('kit.security.pinCurrent'), true)}
-            {modal.kind !== 'pin-disable' && (
-              <>
-                {pinInput('newPin', t('kit.security.pinNew'), true)}
-                {pinInput('confirmPin', t('kit.security.pinConfirm'), true)}
-              </>
-            )}
-          </div>
-
-          <label className="flex items-center gap-2 mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <input type="checkbox" checked={showPins} onChange={e => setShowPins(e.target.checked)} className="accent-[#020b00] dark:accent-[#d3da0c]" />
-            <span className="flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />{t('settings.showPasswords', 'Show')}</span>
-          </label>
-
-          <div className="flex gap-3 mt-4">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button
-              onClick={() => submitPin(modal.kind as 'pin-set' | 'pin-change' | 'pin-disable')}
-              disabled={isSaving}
-              className={`flex-1 min-h-[44px] text-sm font-bold rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm ${modal.kind === 'pin-disable' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black hover:opacity-90'}`}
-            >
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {modal.kind === 'pin-disable' ? t('kit.security.disable') : modal.kind === 'pin-change' ? t('kit.security.pinChangeTitle') : t('kit.security.pinSetTitle')}
             </button>
           </div>
         </ModalShell>

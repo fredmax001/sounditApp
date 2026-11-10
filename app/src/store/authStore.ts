@@ -654,6 +654,11 @@ export const useAuthStore = create<AuthState>()(
             void get().fetchPermissions();
           }
 
+          // Strict tenant isolation: reset vendor store on account switch / new login
+          import('./vendorStore').then(({ resetVendorStore }) => {
+            resetVendorStore();
+          }).catch(() => {});
+
           import('./cartStore').then(({ useCartStore }) => {
             useCartStore.getState().setUserId(user.id);
           }).catch(() => {});
@@ -741,8 +746,19 @@ export const useAuthStore = create<AuthState>()(
         const cartStore = useCartStore.getState();
         cartStore.clearCart();
 
-        localStorage.removeItem('auth-token');
-        localStorage.removeItem('refresh-token');
+        // Strict tenant isolation: reset vendor store & remove any residual cache
+        try {
+          const { resetVendorStore } = await import('./vendorStore');
+          resetVendorStore();
+        } catch {}
+
+        try {
+          localStorage.removeItem('vendor-storage');
+          localStorage.removeItem('auth-token');
+          localStorage.removeItem('refresh-token');
+          localStorage.removeItem('token');
+          sessionStorage.clear();
+        } catch {}
 
         set({
           user: null,
@@ -753,8 +769,6 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           isAuthenticated: false,
         });
-        localStorage.removeItem('auth-token');
-        localStorage.removeItem('token');
       },
 
       // Update Profile
@@ -830,12 +844,13 @@ export const useAuthStore = create<AuthState>()(
         const { session } = get();
         if (!session?.access_token) throw new Error('Not authenticated');
 
-        // Validate file
-        if (!file.type.startsWith('image/')) {
+        // Validate file (supports HEIC/HEIF and standard image formats)
+        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+        if (!isImage) {
           throw new Error('Please select a valid image file');
         }
-        if (file.size > 5 * 1024 * 1024) { // 5MB
-          throw new Error('Image size must be less than 5MB');
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+          throw new Error('Image size must be less than 10MB');
         }
 
         const formData = new FormData();
@@ -906,8 +921,9 @@ export const useAuthStore = create<AuthState>()(
         const { session } = get();
         if (!session?.access_token) throw new Error('Not authenticated');
 
-        // Validate file
-        if (!file.type.startsWith('image/')) {
+        // Validate file (supports HEIC/HEIF and standard image formats)
+        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+        if (!isImage) {
           throw new Error('Please select a valid image file');
         }
         if (file.size > 10 * 1024 * 1024) { // 10MB

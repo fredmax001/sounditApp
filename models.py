@@ -13,8 +13,6 @@ class UserRole(str, enum.Enum):
     SUPER_ADMIN = "super_admin"
     VENDOR = "vendor"
     ORGANIZER = "organizer"
-
-
 class UserStatus(str, enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -233,6 +231,7 @@ class User(Base):
     preferred_language = Column(String(10), default="en")
     notifications_enabled = Column(Boolean, default=True)
     timezone = Column(String(50), default="Asia/Shanghai")
+    is_private = Column(Boolean, default=False)
     
     # Push notification relationships
     push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
@@ -1163,19 +1162,26 @@ class PayoutRequest(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # User requesting payout
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # User requesting payout & Associated business
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    business_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     
-    # Amount
+    # Amount & Currency
     amount = Column(Float, nullable=False)
     currency = Column(String(3), default="CNY")
     
     # Status
-    status = Column(Enum(PayoutStatus), default=PayoutStatus.PENDING)
+    status = Column(Enum(PayoutStatus), default=PayoutStatus.PENDING, index=True)
     
-    # Payment method and details
+    # Payment method, details & references
     payment_method = Column(String(50), nullable=True)
     payment_details = Column(JSON, nullable=True)
+    transaction_reference = Column(String(100), nullable=True)
+    idempotency_key = Column(String(100), nullable=True, unique=True, index=True)
+
+    # Review & Rejection
+    rejection_reason = Column(Text, nullable=True)
+    admin_notes = Column(Text, nullable=True)
     
     # Timestamps
     requested_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -1186,7 +1192,13 @@ class PayoutRequest(Base):
     
     # Relationships
     user = relationship("User", back_populates="payout_requests", foreign_keys=[user_id])
+    business = relationship("User", foreign_keys=[business_id])
     processed_by = relationship("User", foreign_keys=[processed_by_id])
+
+    @property
+    def created_at(self):
+        """Backwards compatibility alias for requested_at"""
+        return self.requested_at
 
 
 class VerificationRequest(Base):
@@ -1667,6 +1679,25 @@ class OrganizerFollow(Base):
     # Relationships
     user = relationship("User", back_populates="followed_organizers")
     organizer = relationship("OrganizerProfile", back_populates="followers")
+
+
+class UserFollow(Base):
+    """Universal follow relationship between any users/accounts across all roles."""
+    __tablename__ = "user_follows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    follower_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    following_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(20), default="accepted", nullable=False, index=True)  # accepted, pending, blocked
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    follower = relationship("User", foreign_keys=[follower_id], backref="following_users")
+    following = relationship("User", foreign_keys=[following_id], backref="follower_users")
+
+    __table_args__ = (
+        UniqueConstraint('follower_id', 'following_id', name='uq_user_follows_follower_following'),
+    )
 
 
 # ===========================================================================
@@ -2344,6 +2375,7 @@ class CommunityPost(Base):
     content = Column(Text, nullable=False)
     images = Column(JSON, nullable=True)  # Array of image URLs
     videos = Column(JSON, nullable=True)  # Array of video URLs
+    tagged_user_ids = Column(JSON, default=list, nullable=True)
     
     # Optional: Link to an event
     event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
@@ -2397,8 +2429,9 @@ class CommunityComment(Base):
     # For nested replies (optional)
     parent_comment_id = Column(Integer, ForeignKey("community_comments.id"), nullable=True)
     
-    # Stats / Moderation
+    # Stats / Moderation / Reactions
     like_count = Column(Integer, default=0)
+    reactions = Column(JSON, default=dict)
     is_approved = Column(Boolean, default=True)
     
     # Timestamps
@@ -3289,6 +3322,7 @@ class Reel(Base):
     thumbnail_url = Column(String(1000), nullable=True)
     caption = Column(Text, nullable=True)
     hashtags = Column(JSON, default=list)
+    tagged_user_ids = Column(JSON, default=list, nullable=True)
     venue_name = Column(String(255), nullable=True)
     city = Column(String(100), nullable=True, index=True)
     music_title = Column(String(255), nullable=True)
@@ -3324,10 +3358,32 @@ class ReelComment(Base):
     reel_id = Column(Integer, ForeignKey("reels.id", ondelete="CASCADE"), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     content = Column(Text, nullable=False)
+    parent_comment_id = Column(Integer, ForeignKey("reel_comments.id", ondelete="CASCADE"), nullable=True)
     likes_count = Column(Integer, default=0)
+    reactions = Column(JSON, default=dict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User")
+    replies = relationship("ReelComment", backref="parent", remote_side=[id])
+    comment_likes = relationship("ReelCommentLike", back_populates="comment", cascade="all, delete-orphan")
+
+
+class ReelCommentLike(Base):
+    """Likes on Reel comments."""
+    __tablename__ = "reel_comment_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    comment_id = Column(Integer, ForeignKey("reel_comments.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    guest_id = Column(String(64), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    comment = relationship("ReelComment", back_populates="comment_likes")
+    user = relationship("User")
+
+    __table_args__ = (
+        UniqueConstraint('comment_id', 'user_id', name='uq_reel_comment_likes_comment_user'),
+    )
 
 
 class ReelSave(Base):
@@ -3401,4 +3457,24 @@ class CommunityBookmark(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+class EventInvitation(Base):
+    """Invitations sent by users to friends for events (in-app or external tracked link)."""
+    __tablename__ = "event_invitations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    inviter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    invitee_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    invitee_name = Column(String(100), nullable=True)
+    invite_code = Column(String(50), unique=True, index=True)
+    channel = Column(String(30), default="soundit")  # soundit, whatsapp, wechat, sms, link
+    status = Column(String(30), default="pending", index=True)  # pending, accepted, ticket_purchased
+    tickets_purchased_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    accepted_at = Column(DateTime(timezone=True), nullable=True)
+
+    event = relationship("Event")
+    inviter = relationship("User", foreign_keys=[inviter_id])
+    invitee = relationship("User", foreign_keys=[invitee_id])
 

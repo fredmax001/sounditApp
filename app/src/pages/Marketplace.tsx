@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Search, Store, MapPin, Loader2, ShoppingBag } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import VendorCart from '@/components/VendorCart';
+import VerificationBadge from '@/components/VerificationBadge';
 import { useVendorMarketplaceStore } from '@/store/vendorMarketplaceStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
@@ -202,7 +203,9 @@ export default function Marketplace() {
                                                 </span>
                                             )}
                                             {vendor.is_verified && (
-                                                <span className="text-[#d3da0c] text-xs font-medium">Verified</span>
+                                                <span className="flex items-center gap-1 text-[#d3da0c] text-xs font-semibold">
+                                                    <VerificationBadge size="xs" className="shrink-0" /> Verified
+                                                </span>
                                             )}
                                         </div>
                                     </Link>

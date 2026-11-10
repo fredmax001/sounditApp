@@ -1,7 +1,11 @@
 package com.sounditent.app;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,6 +33,32 @@ public class MainActivity extends BridgeActivity {
                 return WindowInsetsCompat.CONSUMED;
             });
             ViewCompat.requestApplyInsets(contentView);
+        }
+
+        // Optimize WebView performance, hardware acceleration, DOM storage & caching
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            WebView webView = this.bridge.getWebView();
+            WebSettings settings = webView.getSettings();
+
+            // Hardware acceleration & fast rendering
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            settings.setDomStorageEnabled(true);
+            settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+            settings.setOffscreenPreRaster(true);
+
+            // Fast scrolling & touch responsiveness
+            webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+            webView.setVerticalScrollBarEnabled(false);
+            webView.setHorizontalScrollBarEnabled(false);
+
+            // Dark background matching brand color #020b00 to eliminate flash
+            webView.setBackgroundColor(Color.parseColor("#020b00"));
+
+            // Cookie & media playback optimizations
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+            settings.setMediaPlaybackRequiresUserGesture(false);
+            settings.setAllowFileAccess(true);
+            settings.setAllowContentAccess(true);
         }
     }
 }

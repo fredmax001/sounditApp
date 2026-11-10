@@ -1,13 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, UserPlus, Mail, Shield, X, Loader2, Phone, Lock, User, Eye, EyeOff,
-  QrCode, ClipboardList, Check, Search, UserCheck, DollarSign, CreditCard, Wallet, Pencil
+  QrCode, ClipboardList, Check, Search, DollarSign, CreditCard, Wallet,
+  Pencil, MoreVertical, Layers, Clock, ArrowLeft
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -88,25 +89,9 @@ const getDefaultPermissionsForRole = (role: StaffRole): StaffPermissions => {
   }
 };
 
-const getRoleBadgeClass = (role: StaffRole) => {
-  switch (role) {
-    case 'Manager':
-      return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
-    case 'Finance':
-      return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-    case 'Cashier':
-      return 'bg-green-500/20 text-green-400 border border-green-500/30';
-    case 'Guest Check-In':
-      return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-    case 'Scanner':
-      return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
-    default:
-      return 'bg-gray-500/20 text-gray-400';
-  }
-};
-
 const Staff = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { session } = useAuthStore();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -119,6 +104,8 @@ const Staff = () => {
   const [searchResults, setSearchResults] = useState<ExistingUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ExistingUser | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -178,6 +165,17 @@ const Staff = () => {
   useEffect(() => {
     fetchStaff();
   }, [fetchStaff]);
+
+  // Close active dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const searchUsers = useCallback(async () => {
     if (!session?.access_token || !searchQuery.trim()) return;
@@ -262,6 +260,7 @@ const Staff = () => {
   };
 
   const openEditModal = (member: StaffMember) => {
+    setActiveMenuId(null);
     setEditingStaffId(member.id);
     setSelectedUser(null);
     setAddMode('new');
@@ -358,6 +357,7 @@ const Staff = () => {
   };
 
   const handleRemoveMember = async (id: string) => {
+    setActiveMenuId(null);
     try {
       const res = await fetch(`${API_BASE_URL}/business/staff/${id}`, {
         method: 'DELETE',
@@ -372,6 +372,7 @@ const Staff = () => {
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
+    setActiveMenuId(null);
     const newStatus = currentStatus === 'Active' ? 'Pending' : 'Active';
     try {
       const res = await fetch(`${API_BASE_URL}/business/staff/${id}/status?status=${newStatus}`, {
@@ -386,185 +387,338 @@ const Staff = () => {
     }
   };
 
-  const financeStaffCount = staff.filter(s => s.role === 'Finance' || s.permissions.financials).length;
+  const totalStaffCount = staff.length;
+  const financeStaffCount = staff.filter(s => (s.role || '').toLowerCase() === 'finance' || s.permissions?.financials).length;
+  const activeStaffCount = staff.filter(s => s.status === 'Active').length;
+  const pendingStaffCount = staff.filter(s => s.status === 'Pending').length;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8 p-6 lg:p-10"
-    >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#020b00] text-white pb-28 pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      {/* Page Title & Glowing 3D Team Graphic */}
+      <div className="flex items-start justify-between gap-4 pt-2 pb-6">
         <div>
-          <h2 className="text-3xl font-bold text-[#020b00] dark:text-white mb-2">{t('business.staff.title')}</h2>
-          <p className="text-gray-600 dark:text-gray-400">{t('business.staff.subtitle')}</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Staff
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[280px] sm:max-w-md leading-relaxed">
+            Invite team members and assign roles to help manage your events.
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            to="/dashboard/business/finance"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-medium hover:bg-emerald-500/25 transition-colors"
+
+        {/* 3D Glowing Green Team Illustration matching reference */}
+        <div className="relative shrink-0 w-20 h-16 sm:w-24 sm:h-20 flex items-center justify-center">
+          <div className="absolute inset-0 bg-emerald-500/25 blur-xl rounded-full" />
+          <svg
+            className="w-16 h-16 sm:w-20 sm:h-20 relative z-10 drop-shadow-[0_0_16px_rgba(16,185,129,0.55)]"
+            viewBox="0 0 100 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <DollarSign className="w-4 h-4" />
-            Finance Workspace
-          </Link>
-          <button
-            onClick={() => openAddModalWithRole('Finance')}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-black rounded-xl font-semibold hover:bg-emerald-400 transition-colors"
-          >
-            <DollarSign className="w-4 h-4" />
-            Add Finance Staff
-          </button>
-          <button
-            onClick={() => openAddModalWithRole('Manager')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl font-semibold hover:opacity-90 transition-opacity"
-          >
-            <UserPlus className="w-5 h-5" />
-            {t('business.staff.inviteStaff')}
-          </button>
+            <defs>
+              <linearGradient id="teamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#34d399" />
+                <stop offset="50%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#059669" />
+              </linearGradient>
+            </defs>
+            {/* Left person */}
+            <circle cx="28" cy="28" r="11" fill="url(#teamGrad)" opacity="0.8" />
+            <path d="M12 60 C12 44, 44 44, 44 60 Z" fill="url(#teamGrad)" opacity="0.8" />
+            {/* Right person */}
+            <circle cx="72" cy="28" r="11" fill="url(#teamGrad)" opacity="0.8" />
+            <path d="M56 60 C56 44, 88 44, 88 60 Z" fill="url(#teamGrad)" opacity="0.8" />
+            {/* Center front person (prominent) */}
+            <circle cx="50" cy="22" r="13" fill="url(#teamGrad)" />
+            <path d="M30 64 C30 46, 70 46, 70 64 Z" fill="url(#teamGrad)" />
+          </svg>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-gray-600 dark:text-gray-400">{t('business.staff.totalStaff')}</span>
+      {/* Action Workspace Cards Row (3 Cards) */}
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-6">
+        {/* Card 1: Finance Workspace */}
+        <Link
+          to="/dashboard/business/finance"
+          className="bg-[#0b140b] hover:bg-[#111e11] border border-white/5 hover:border-emerald-500/30 rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all group active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-2 text-emerald-400 group-hover:scale-105 transition-transform">
+            <Layers className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-3xl font-bold text-[#020b00] dark:text-white">{staff.length}</p>
+          <div>
+            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+              Finance
+            </span>
+            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+              Workspace
+            </span>
+          </div>
+        </Link>
+
+        {/* Card 2: Add Finance Staff */}
+        <button
+          type="button"
+          onClick={() => openAddModalWithRole('Finance')}
+          className="bg-[#0b140b] hover:bg-[#111e11] border border-white/5 hover:border-emerald-500/30 rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all group text-left active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-2 text-emerald-400 group-hover:scale-105 transition-transform">
+            <UserPlus className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+              Add Finance
+            </span>
+            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+              Staff
+            </span>
+          </div>
+        </button>
+
+        {/* Card 3: Invite Staff (Hero Neon-Lime Button) */}
+        <button
+          type="button"
+          onClick={() => openAddModalWithRole('Manager')}
+          className="bg-[#d3da0c] hover:bg-[#c2c90b] rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all text-left shadow-lg shadow-[#d3da0c]/20 active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-black/15 flex items-center justify-center mb-2 text-black">
+            <UserPlus className="w-4 h-4 text-black stroke-[2.5]" />
+          </div>
+          <div>
+            <span className="block text-[11px] sm:text-xs font-extrabold text-black leading-tight">
+              Invite
+            </span>
+            <span className="block text-[11px] sm:text-xs font-extrabold text-black leading-tight">
+              Staff
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* Statistics 2x2 Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        {/* Total Staff */}
+        <div className="bg-[#0a1209] border border-white/5 rounded-2xl p-4">
+          <div className="flex items-center gap-2 text-gray-400 mb-2">
+            <Users className="w-4 h-4 text-gray-400" />
+            <span className="text-xs font-medium text-gray-400">Total Staff</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-extrabold text-white">{totalStaffCount}</p>
         </div>
-        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-emerald-500/20 shadow-xs dark:shadow-none">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
-            <span className="text-gray-600 dark:text-gray-400">Finance Staff</span>
+
+        {/* Finance Staff */}
+        <div className="bg-[#0a1209] border border-emerald-500/20 rounded-2xl p-4">
+          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+            <Layers className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-medium text-gray-400">Finance Staff</span>
           </div>
-          <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{financeStaffCount}</p>
+          <p className="text-2xl sm:text-3xl font-extrabold text-white">{financeStaffCount}</p>
         </div>
-        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-5 h-5 text-green-500 dark:text-green-400" />
-            <span className="text-gray-600 dark:text-gray-400">{t('business.staff.active')}</span>
+
+        {/* Active Staff */}
+        <div className="bg-[#0a1209] border border-white/5 rounded-2xl p-4">
+          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+            <Shield className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-medium text-gray-400">Active</span>
           </div>
-          <p className="text-3xl font-bold text-[#020b00] dark:text-white">{staff.filter(s => s.status === 'Active').length}</p>
+          <p className="text-2xl sm:text-3xl font-extrabold text-white">{activeStaffCount}</p>
         </div>
-        <div className="bg-white dark:bg-[#111111] rounded-2xl p-6 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
-          <div className="flex items-center gap-3 mb-2">
-            <Mail className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
-            <span className="text-gray-600 dark:text-gray-400">{t('business.staff.pending')}</span>
+
+        {/* Pending Staff */}
+        <div className="bg-[#0a1209] border border-white/5 rounded-2xl p-4">
+          <div className="flex items-center gap-2 text-yellow-400 mb-2">
+            <Clock className="w-4 h-4 text-yellow-400" />
+            <span className="text-xs font-medium text-gray-400">Pending</span>
           </div>
-          <p className="text-3xl font-bold text-[#020b00] dark:text-white">{staff.filter(s => s.status === 'Pending').length}</p>
+          <p className="text-2xl sm:text-3xl font-extrabold text-white">{pendingStaffCount}</p>
         </div>
       </div>
 
-      {/* Staff List */}
-      <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden">
-        <div className="p-6 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-[#020b00] dark:text-white">{t('business.staff.teamMembers')}</h3>
-          <span className="text-xs text-gray-500 dark:text-gray-400">Finance staff can log in at /login to access the Business Finance Portal</span>
+      {/* Team Members Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between pb-1">
+          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Team Members</h2>
+          <span className="text-[11px] font-medium text-gray-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+            {totalStaffCount} {totalStaffCount === 1 ? 'Member' : 'Members'}
+          </span>
         </div>
+
         {loading ? (
-          <div className="p-12 text-center">
-            <Loader2 className="w-10 h-10 text-[#d3da0c] mx-auto mb-4 animate-spin" />
-            <p className="text-gray-600 dark:text-gray-400">{t('common.loading') || 'Loading...'}</p>
+          <div className="bg-[#0a1209] rounded-2xl border border-white/5 p-12 text-center">
+            <Loader2 className="w-8 h-8 text-[#d3da0c] mx-auto mb-3 animate-spin" />
+            <p className="text-xs text-gray-400">Loading team members...</p>
           </div>
-        ) : staff.length > 0 ? (
-          <div className="divide-y divide-black/5 dark:divide-white/5">
-            {staff.map((member) => (
-              <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold shrink-0">
-                    {member.fullName.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-[#020b00] dark:text-white font-medium">{member.fullName}</p>
-                      <span className="text-xs text-gray-500 font-mono">@{member.login}</span>
+        ) : staff.length === 0 ? (
+          <div className="bg-[#0a1209] rounded-2xl border border-white/5 p-10 text-center">
+            <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+            <p className="text-white font-medium text-sm mb-1">No staff members yet</p>
+            <p className="text-gray-400 text-xs mb-4">Invite staff or cashiers to manage entry and finance.</p>
+            <button
+              onClick={() => openAddModalWithRole('Finance')}
+              className="px-4 py-2 bg-[#d3da0c] text-black font-semibold rounded-xl text-xs"
+            >
+              Add First Staff Member
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {staff.map((member) => {
+              const isFinance = (member.role || '').toLowerCase() === 'finance';
+              const initialLetter = (member.fullName || 'S').charAt(0).toUpperCase();
+
+              return (
+                <div
+                  key={member.id}
+                  className="bg-[#0b140b] border border-white/8 rounded-2xl p-4 sm:p-5 relative shadow-sm"
+                >
+                  {/* Top Row: Avatar + Name + Role Tag + Status Badge + 3-dots */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Signature Yellow Circle Avatar */}
+                      <div className="w-9 h-9 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold text-sm shrink-0 shadow-xs">
+                        {initialLetter}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-white font-semibold text-sm truncate">
+                            {member.fullName}
+                          </p>
+                          {isFinance && (
+                            <span className="text-gray-400 text-xs font-normal">Finance</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">{member.email}{member.phone ? ` • ${member.phone}` : ''}</p>
+
+                    {/* Right side: Status Badge + 3-dots Menu */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          member.status === 'Active'
+                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                        }`}
+                      >
+                        {member.status}
+                      </span>
+
+                      {/* 3-dots Dropdown Trigger */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setActiveMenuId(activeMenuId === member.id ? null : member.id)}
+                          className="p-1 text-gray-400 hover:text-white rounded-lg transition-colors"
+                          aria-label="Actions"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {activeMenuId === member.id && (
+                          <div
+                            ref={menuRef}
+                            className="absolute right-0 top-8 z-30 w-44 bg-[#121c10] border border-white/10 rounded-xl shadow-2xl py-1 text-xs"
+                          >
+                            <button
+                              onClick={() => openEditModal(member)}
+                              className="w-full text-left px-3 py-2 text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-gray-400" />
+                              Edit Role & Permissions
+                            </button>
+                            <button
+                              onClick={() => toggleStatus(member.id, member.status)}
+                              className="w-full text-left px-3 py-2 text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                            >
+                              <Shield className="w-3.5 h-3.5 text-gray-400" />
+                              Set as {member.status === 'Active' ? 'Pending' : 'Active'}
+                            </button>
+                            <button
+                              onClick={() => handleRemoveMember(member.id)}
+                              className="w-full text-left px-3 py-2 text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              Remove Member
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="flex flex-wrap items-center gap-1.5">
+
+                  {/* Contact Info (Email and Phone) */}
+                  <div className="mt-2 text-xs text-gray-400 space-y-0.5">
+                    {member.email && (
+                      <p className="truncate text-gray-400 font-normal">{member.email}</p>
+                    )}
+                    {member.phone && (
+                      <p className="text-gray-500 font-normal">{member.phone}</p>
+                    )}
+                  </div>
+
+                  {/* Compact Permissions Pills matching exact reference */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    {/* Guest Check-In */}
+                    {member.permissions.checkedInInfo && !member.permissions.financials && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
+                        <Users className="w-3 h-3 text-[#38bdf8]" />
+                        Guest Check-In
+                      </span>
+                    )}
+
+                    {/* QR Scanner */}
+                    {member.permissions.qrScanner && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#2a1708] text-[#fb923c] border border-[#ea580c]/40">
+                        <QrCode className="w-3 h-3 text-[#fb923c]" />
+                        QR Scanner
+                      </span>
+                    )}
+
+                    {/* $ Finance & Revenue */}
                     {member.permissions.financials && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" title="Revenue & Analytics">
-                        <DollarSign className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#092617] text-[#34d399] border border-[#059669]/40">
+                        <DollarSign className="w-3 h-3 text-[#34d399]" />
                         Finance & Revenue
                       </span>
                     )}
+
+                    {/* Payment Approvals */}
                     {member.permissions.ordersApproval && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400" title="Approve Ticket & Table Payments">
-                        <CreditCard className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#2d1e05] text-[#fbbf24] border border-[#d97706]/40">
+                        <CreditCard className="w-3 h-3 text-[#fbbf24]" />
                         Payment Approvals
                       </span>
                     )}
+
+                    {/* Payouts */}
                     {member.permissions.payouts && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-cyan-500/20 text-cyan-600 dark:text-cyan-400" title="Payouts & Withdrawals">
-                        <Wallet className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#07242a] text-[#22d3ee] border border-[#0891b2]/40">
+                        <Wallet className="w-3 h-3 text-[#22d3ee]" />
                         Payouts
                       </span>
                     )}
-                    {member.permissions.qrScanner && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-orange-500/20 text-orange-600 dark:text-orange-400" title="QR Scanner">
-                        <QrCode className="w-3 h-3" />
-                        {t('business.staff.qrScanner') || 'QR Scanner'}
-                      </span>
-                    )}
-                    {member.permissions.checkedInInfo && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-blue-500/20 text-blue-600 dark:text-blue-400" title="Checked-in Info">
-                        <ClipboardList className="w-3 h-3" />
-                        {t('business.staff.checkedInInfo') || 'Checked-in Info'}
+
+                    {/* Checked-in Info (for finance or manager) */}
+                    {member.permissions.checkedInInfo && member.permissions.financials && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
+                        <ClipboardList className="w-3 h-3 text-[#38bdf8]" />
+                        Checked-in Info
                       </span>
                     )}
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleBadgeClass(member.role)}`}>
-                    {member.role}
-                  </span>
-                  <button
-                    onClick={() => toggleStatus(member.id, member.status)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                      member.status === 'Active' ? 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30' :
-                      'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/30'
-                    }`}
-                    title={t('business.staff.statusUpdated') || 'Click to toggle status'}
-                  >
-                    {member.status}
-                  </button>
-                  <button
-                    onClick={() => openEditModal(member)}
-                    className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-[#d3da0c] transition-colors"
-                    title="Edit Staff Role & Permissions"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleRemoveMember(member.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
-                    title={t('business.staff.removeMember')}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-12 text-center">
-            <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-[#020b00] dark:text-gray-400 text-lg mb-2">{t('business.staff.noStaffMembers')}</p>
-            <p className="text-gray-500 text-sm mb-6">{t('business.staff.noStaffMembersHint')}</p>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Invite / Edit Modal */}
+      {/* Invite / Edit Staff Member Modal */}
       <AnimatePresence>
         {showInviteModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
             onClick={() => setShowInviteModal(false)}
           >
             <motion.div
@@ -572,26 +726,24 @@ const Staff = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-[#111111] rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto text-white"
             >
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-xl font-bold text-[#020b00] dark:text-white">
+                  <h3 className="text-xl font-bold text-white">
                     {editingStaffId
                       ? 'Edit Staff Member'
                       : formData.role === 'Finance'
-                        ? 'Add Finance Staff Member'
-                        : (t('business.staff.inviteModalTitle') || 'Add Staff Member')}
+                      ? 'Add Finance Staff'
+                      : 'Invite Staff Member'}
                   </h3>
-                  {formData.role === 'Finance' && (
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                      Finance staff get dedicated access to the Business Finance & Revenue Portal
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Configure role permissions and login credentials.
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="p-2 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -599,355 +751,298 @@ const Staff = () => {
 
               {/* Mode Toggle (only when creating new staff) */}
               {!editingStaffId && (
-                <div className="flex bg-neutral-100 dark:bg-white/5 rounded-xl p-1 mb-6 border border-black/5 dark:border-transparent">
+                <div className="flex rounded-xl bg-black/40 p-1 mb-5 border border-white/5">
                   <button
                     type="button"
-                    onClick={() => { setAddMode('new'); clearSelectedUser(); }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                      addMode === 'new' ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                    onClick={() => {
+                      setAddMode('new');
+                      clearSelectedUser();
+                    }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      addMode === 'new'
+                        ? 'bg-[#d3da0c] text-black shadow-xs'
+                        : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    {t('business.staff.createNewStaff') || 'Create New'}
+                    Create Credentials
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setAddMode('existing'); clearSelectedUser(); }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                      addMode === 'existing' ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                    onClick={() => {
+                      setAddMode('existing');
+                      clearSelectedUser();
+                    }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      addMode === 'existing'
+                        ? 'bg-[#d3da0c] text-black shadow-xs'
+                        : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    {t('business.staff.addFromPlatform') || 'From Platform'}
+                    Select Existing User
                   </button>
                 </div>
               )}
 
               {/* Existing User Search */}
-              <AnimatePresence>
-                {!editingStaffId && addMode === 'existing' && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-4"
-                  >
-                    {!selectedUser ? (
-                      <div className="space-y-2">
-                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">{t('business.staff.selectUser') || 'Select User'}</label>
-                        <div className="relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                          <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={t('business.staff.searchUsersPlaceholder') || 'Search users by name or email...'}
-                            className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
-                          />
-                          {searching && (
-                            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
-                          )}
-                        </div>
-                        {searchResults.length > 0 && (
-                          <div className="bg-neutral-50 dark:bg-white/5 rounded-xl border border-black/10 dark:border-white/10 max-h-48 overflow-y-auto">
-                            {searchResults.map((user) => (
-                              <button
-                                key={user.id}
-                                type="button"
-                                onClick={() => selectExistingUser(user)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left border-b border-black/5 dark:border-white/5 last:border-0"
-                              >
-                                <div className="w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center text-black text-xs font-bold shrink-0">
-                                  {user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-[#020b00] dark:text-white text-sm font-medium truncate">{user.name}</p>
-                                  <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{user.email}{user.phone ? ` • ${user.phone}` : ''}</p>
-                                </div>
-                                <UserCheck className="w-4 h-4 text-gray-400 ml-auto shrink-0" />
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {searchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && (
-                          <p className="text-gray-500 dark:text-gray-400 text-sm">{t('business.staff.noUsersFound') || 'No users found'}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="bg-[#d3da0c]/10 border border-[#d3da0c]/30 rounded-xl p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#d3da0c] flex items-center justify-center text-black font-bold shrink-0">
-                            {selectedUser.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-[#020b00] dark:text-white font-semibold">{selectedUser.name}</p>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">{selectedUser.email}{selectedUser.phone ? ` • ${selectedUser.phone}` : ''}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={clearSelectedUser}
-                          className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+              {!editingStaffId && addMode === 'existing' && (
+                <div className="mb-5 space-y-2">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Search Registered User
+                  </label>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name, email or phone..."
+                      className="w-full bg-[#152014] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c]"
+                    />
+                    {searching && (
+                      <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-3 text-[#d3da0c]" />
                     )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <div className="max-h-40 overflow-y-auto bg-black/60 border border-white/10 rounded-xl p-1 divide-y divide-white/5">
+                      {searchResults.map((user) => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          onClick={() => selectExistingUser(user)}
+                          className="w-full text-left p-2 hover:bg-white/10 rounded-lg flex items-center justify-between transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-white truncate">{user.name}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{user.email || user.phone}</p>
+                          </div>
+                          <span className="text-[10px] text-[#d3da0c] font-semibold">Select</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedUser && (
+                    <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{selectedUser.name}</p>
+                        <p className="text-[10px] text-emerald-400">{selectedUser.email || selectedUser.phone}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearSelectedUser}
+                        className="text-xs text-red-400 hover:text-red-300 font-medium"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <form onSubmit={handleInvite} className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.staff.fullNameLabel') || 'Full Name'}</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        placeholder={t('business.staff.fullNamePlaceholder') || 'Enter full name'}
-                        className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.staff.systemRoleLabel') || 'System Role'}</label>
-                    <div className="relative">
-                      <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                      <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white focus:border-[#d3da0c] focus:outline-none transition-colors appearance-none cursor-pointer"
-                      >
-                        {STAFF_ROLES.map(role => (
-                          <option key={role} value={role} className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">
-                            {role === 'Finance' ? 'Finance (Revenue & Payouts)' : role}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                {/* Full Name */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="e.g. John Doe"
+                    required
+                    className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c]"
+                  />
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.staff.loginLabel') || 'Login'}</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      <input
-                        type="text"
-                        name="login"
-                        value={formData.login}
-                        onChange={handleChange}
-                        placeholder={t('business.staff.loginPlaceholder') || 'Enter login'}
-                        className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  </div>
+                {/* Login Username */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Login Username *
+                  </label>
+                  <input
+                    type="text"
+                    name="login"
+                    value={formData.login}
+                    onChange={handleChange}
+                    placeholder="e.g. jdoe_staff"
+                    required
+                    disabled={!!editingStaffId}
+                    className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] disabled:opacity-50"
+                  />
+                </div>
 
+                {/* Password (for new credentials) */}
+                {(!editingStaffId && addMode === 'new') && (
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                      {editingStaffId ? 'New Password (optional)' : (t('business.staff.passwordLabel') || 'Password')}
+                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                      Password *
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder={editingStaffId ? 'Leave blank to keep current' : (t('business.staff.passwordPlaceholder') || 'Enter password')}
-                        className="w-full pl-12 pr-12 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors disabled:opacity-50"
-                        required={!editingStaffId && !selectedUser}
-                        disabled={!!selectedUser}
+                        placeholder="Assign an initial password"
+                        required
+                        className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] pr-9"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
-                        disabled={!!selectedUser}
+                        className="absolute right-3 top-2.5 text-gray-400 hover:text-white"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       </button>
                     </div>
-                    {selectedUser && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('business.staff.existingUserSelected') || 'Existing user, password not required'}</p>
-                    )}
                   </div>
+                )}
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="name@example.com"
+                    required
+                    className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c]"
+                  />
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.staff.emailAddress')}</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Phone Number (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+86..."
+                    className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c]"
+                  />
+                </div>
+
+                {/* Role Selector */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Staff Role
+                  </label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full bg-[#152014] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#d3da0c]"
+                  >
+                    {STAFF_ROLES.map((r) => (
+                      <option key={r} value={r} className="bg-[#111] text-white">
+                        {r === 'Finance' ? 'Finance (Revenue & Payouts)' : r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Granular Permissions Section */}
+                <div className="pt-2">
+                  <p className="text-xs font-semibold text-gray-200 mb-2">Granular Permissions</p>
+                  <div className="space-y-2 bg-black/30 p-3 rounded-xl border border-white/5">
+                    {/* Finance & Revenue */}
+                    <label className="flex items-center justify-between text-xs cursor-pointer">
+                      <span className="text-gray-300 flex items-center gap-2">
+                        <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                        Finance & Revenue
+                      </span>
                       <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder={t('business.staff.emailPlaceholder')}
-                        className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
-                        required
+                        type="checkbox"
+                        checked={permissions.financials}
+                        onChange={() => togglePermission('financials')}
+                        className="rounded accent-[#d3da0c] w-4 h-4 cursor-pointer"
                       />
-                    </div>
-                  </div>
+                    </label>
 
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">{t('business.staff.phoneLabel') || 'Phone Number'}</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                    {/* Payment Approvals */}
+                    <label className="flex items-center justify-between text-xs cursor-pointer">
+                      <span className="text-gray-300 flex items-center gap-2">
+                        <CreditCard className="w-3.5 h-3.5 text-amber-400" />
+                        Payment Approvals
+                      </span>
                       <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder={t('business.staff.phonePlaceholder') || 'Enter phone number'}
-                        className="w-full pl-12 pr-4 py-3 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none transition-colors"
+                        type="checkbox"
+                        checked={permissions.ordersApproval}
+                        onChange={() => togglePermission('ordersApproval')}
+                        className="rounded accent-[#d3da0c] w-4 h-4 cursor-pointer"
                       />
-                    </div>
+                    </label>
+
+                    {/* Payouts */}
+                    <label className="flex items-center justify-between text-xs cursor-pointer">
+                      <span className="text-gray-300 flex items-center gap-2">
+                        <Wallet className="w-3.5 h-3.5 text-cyan-400" />
+                        Payouts & Withdrawals
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={permissions.payouts}
+                        onChange={() => togglePermission('payouts')}
+                        className="rounded accent-[#d3da0c] w-4 h-4 cursor-pointer"
+                      />
+                    </label>
+
+                    {/* QR Scanner */}
+                    <label className="flex items-center justify-between text-xs cursor-pointer">
+                      <span className="text-gray-300 flex items-center gap-2">
+                        <QrCode className="w-3.5 h-3.5 text-orange-400" />
+                        Ticket QR Scanner
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={permissions.qrScanner}
+                        onChange={() => togglePermission('qrScanner')}
+                        className="rounded accent-[#d3da0c] w-4 h-4 cursor-pointer"
+                      />
+                    </label>
+
+                    {/* Checked-In Info */}
+                    <label className="flex items-center justify-between text-xs cursor-pointer">
+                      <span className="text-gray-300 flex items-center gap-2">
+                        <ClipboardList className="w-3.5 h-3.5 text-blue-400" />
+                        Guest Check-In Info
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={permissions.checkedInInfo}
+                        onChange={() => togglePermission('checkedInInfo')}
+                        className="rounded accent-[#d3da0c] w-4 h-4 cursor-pointer"
+                      />
+                    </label>
                   </div>
                 </div>
 
-                {/* Permissions */}
-                <div className="bg-neutral-50 dark:bg-white/5 rounded-2xl p-4 space-y-3 border border-black/5 dark:border-white/5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-[#020b00] dark:text-gray-300 font-semibold">{t('business.staff.permissions') || 'Workspace Permissions'}</p>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Role preset applied ({formData.role})</span>
-                  </div>
-
-                  {/* Finance & Revenue Workspace */}
-                  <label className="flex items-center justify-between cursor-pointer group pt-1">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div>
-                        <p className="text-[#020b00] dark:text-white text-sm font-medium">Finance & Revenue Analytics</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">View gross/net revenue, ticket sales, table sales & export CSV reports</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => togglePermission('financials')}
-                      className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${permissions.financials ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'}`}
-                    >
-                      <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${permissions.financials ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
-                  </label>
-
-                  {/* Payment & Order Approvals */}
-                  <label className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                        <CreditCard className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      </div>
-                      <div>
-                        <p className="text-[#020b00] dark:text-white text-sm font-medium">Ticket & Table Payment Approvals</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">Verify WeChat/Alipay payments and approve or reject ticket & VIP table orders</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => togglePermission('ordersApproval')}
-                      className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${permissions.ordersApproval ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'}`}
-                    >
-                      <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${permissions.ordersApproval ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
-                  </label>
-
-                  {/* Payouts & Withdrawals */}
-                  <label className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                        <Wallet className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                      </div>
-                      <div>
-                        <p className="text-[#020b00] dark:text-white text-sm font-medium">Payouts & Withdrawals</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">Manage payout methods, request withdrawals, and track settlement history</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => togglePermission('payouts')}
-                      className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${permissions.payouts ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'}`}
-                    >
-                      <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${permissions.payouts ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
-                  </label>
-
-                  <div className="border-t border-black/5 dark:border-white/10 my-2 pt-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">On-Site Event Operations</p>
-                  </div>
-
-                  <label className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                        <QrCode className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div>
-                        <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('business.staff.qrScanner') || 'QR Scanner'}</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">{t('business.staff.qrScannerDesc') || 'Allow staff to scan tickets and check-ins'}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => togglePermission('qrScanner')}
-                      className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${permissions.qrScanner ? 'bg-[#020b00] dark:bg-[#d3da0c]' : 'bg-black/10 dark:bg-white/10'}`}
-                    >
-                      <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${permissions.qrScanner ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
-                  </label>
-
-                  <label className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <ClipboardList className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="text-[#020b00] dark:text-white text-sm font-medium">{t('business.staff.checkedInInfo') || 'Checked-in Info'}</p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">{t('business.staff.checkedInInfoDesc') || 'Allow staff to view checked-in guest details'}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => togglePermission('checkedInInfo')}
-                      className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${permissions.checkedInInfo ? 'bg-[#020b00] dark:bg-[#d3da0c]' : 'bg-black/10 dark:bg-white/10'}`}
-                    >
-                      <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${permissions.checkedInInfo ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
-                  </label>
-                </div>
-
-                <div className="flex gap-3 pt-4">
+                {/* Submit Buttons */}
+                <div className="pt-3 flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowInviteModal(false)}
-                    className="flex-1 py-3 bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-white rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 font-medium transition-colors"
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-xs font-semibold transition-colors"
                   >
-                    {t('business.staff.cancel')}
+                    Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isInviting || !formData.fullName.trim() || !formData.login.trim() || (!editingStaffId && !selectedUser && !formData.password.trim()) || !formData.email.trim()}
-                    className="flex-1 py-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    disabled={isInviting}
+                    className="px-5 py-2 bg-[#d3da0c] hover:bg-[#c2c90b] text-black font-extrabold rounded-xl text-xs flex items-center gap-2 transition-all disabled:opacity-50 shadow-md shadow-[#d3da0c]/20"
                   >
-                    {isInviting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {t('business.staff.saving') || 'Saving...'}
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-5 h-5" />
-                        {editingStaffId ? 'Update Staff' : (t('business.staff.saveStaff') || 'Save Staff')}
-                      </>
-                    )}
+                    {isInviting && <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />}
+                    {editingStaffId ? 'Save Changes' : 'Save & Assign'}
                   </button>
                 </div>
               </form>
@@ -955,7 +1050,7 @@ const Staff = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 

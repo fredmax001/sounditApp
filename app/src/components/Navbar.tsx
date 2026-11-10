@@ -254,17 +254,13 @@ const Navbar = () => {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#d3da0c] flex items-center justify-center overflow-hidden border border-black/10 dark:border-white/10">
-                      {profile?.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('nav.user') || 'User'}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
-                        />
-                      ) : (
-                        <User className="w-4 h-4 text-black" />
-                      )}
+                    <div className="w-8 h-8 rounded-full bg-[#020b00] flex items-center justify-center overflow-hidden border border-black/10 dark:border-white/10">
+                      <img
+                        src={profile?.avatar_url || '/default-avatar.png'}
+                        alt={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || t('nav.user') || 'User'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+                      />
                     </div>
                     <span className="hidden sm:block text-sm font-medium">{profile?.first_name || t('nav.user') || 'User'}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
@@ -282,7 +278,7 @@ const Navbar = () => {
                         <div className="p-4 border-b border-white/5">
                           <div className="flex items-center gap-2">
                             <p className="text-white font-medium">{`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'User'}</p>
-                            {(profile?.verification_badge || user?.verification_badge) && (
+                            {(profile?.verification_badge || user?.verification_badge || profile?.is_verified || (user as any)?.is_verified) && (
                               <VerificationBadge size="sm" />
                             )}
                           </div>

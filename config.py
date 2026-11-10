@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     YOOPAY_SELLER_EMAIL: str = ""  # Your Yoopay seller email
     YOOPAY_API_KEY: str = ""  # Optional: for API verification
     YOOPAY_COMPANY_ID: str = "603316601"  # Extracted from your payment URL
+    # Shared secret used to verify inbound Yoopay webhooks/callbacks (HMAC-SHA256).
+    # When empty, Yoopay notifications are rejected (fail closed) instead of
+    # trusting unauthenticated client input.
+    YOOPAY_WEBHOOK_SECRET: str = ""
     
     # WeChat
     WECHAT_APP_ID: str = ""

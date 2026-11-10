@@ -1808,7 +1808,8 @@ class CommunityPostBase(BaseModel):
     images: Optional[List[str]] = []
     videos: Optional[List[str]] = []
     section_id: Optional[int] = None
-    event_id: Optional[int] = None
+    event_id: int = Field(..., description="Mandatory event ID. Sound It is strictly event-driven.")
+    tagged_user_ids: Optional[List[int]] = []
 
 
 class CommunityPostCreate(CommunityPostBase):
@@ -1849,6 +1850,7 @@ class CommunityCommentResponse(BaseModel):
     content: str
     like_count: int = 0
     has_liked: bool = False
+    reactions_summary: Optional[List[Dict[str, Any]]] = []
     created_at: datetime
     updated_at: Optional[datetime] = None
     replies: Optional[List['CommunityCommentResponse']] = []
@@ -1870,6 +1872,9 @@ class CommunityPostResponse(BaseModel):
     section: Optional[CommunitySectionResponse] = None
     event_id: Optional[int] = None
     event_title: Optional[str] = None
+    event: Optional[Dict[str, Any]] = None
+    tagged_user_ids: Optional[List[int]] = []
+    tagged_users: Optional[List[Dict[str, Any]]] = []
     
     # Stats
     likes_count: int = 0

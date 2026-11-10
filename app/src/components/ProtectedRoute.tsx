@@ -1,21 +1,12 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from '@/store/authStore';
 import { motion } from 'framer-motion';
 
 const ProtectedRoute = () => {
-  // Removed console.log for production
   const { isAuthenticated, isLoading, profile, isAdmin } = useAuthStore();
   const location = useLocation();
-  const isNativePreview = Capacitor.isNativePlatform() && (
-    location.pathname.startsWith('/dashboard/business') ||
-    location.pathname.startsWith('/dashboard/vendor')
-  );
 
-  // Removed console.log for production
-
-  if (isLoading && !isNativePreview) {
-    // Removed console.log for production
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
         <motion.div
@@ -25,10 +16,6 @@ const ProtectedRoute = () => {
         />
       </div>
     );
-  }
-
-  if (isNativePreview) {
-    return <Outlet />;
   }
 
   if (!isAuthenticated) {

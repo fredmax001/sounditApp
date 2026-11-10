@@ -47,7 +47,7 @@ const MainLayout = () => {
       {isMobile && <MobileHeader hideBar={immersive} />}
 
       {/* Main Content */}
-      <main className={`relative z-10 ${isMobile ? (immersive ? 'pb-app-nav' : 'pt-[calc(3.5rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav') : (isReels ? '' : 'pt-24')}`}>
+      <main className={`relative z-10 ${isMobile ? (immersive ? 'pb-app-nav' : 'pt-[calc(3.5rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav') : (isRecapsFeed ? '' : 'pt-24')}`}>
         <AnimatePresence mode="wait">
           {isMobile ? (
             <MobilePageTransition key="mobile-outlet">

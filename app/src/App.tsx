@@ -221,7 +221,8 @@ const OnboardingGuard = () => {
 };
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const isApp = isNativeApp();
+  const [isLoading, setIsLoading] = useState(isApp);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [introScreen, setIntroScreen] = useState<{ enabled?: boolean; logo_url?: string; title?: string; tagline?: string } | null>(null);
   const initialize = useAuthStore((state) => state.initialize);
@@ -305,7 +306,8 @@ function App() {
 
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  if (isLoading) {
+  // Intro / splash screen is strictly for native mobile apps (iOS & Android). Never show on web layout.
+  if (isLoading && isNativeApp()) {
     return (
       <ErrorBoundary>
         <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />

@@ -151,7 +151,7 @@ export default function VendorDetail() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="flex items-center gap-3 mb-4">
                 <h1 className="text-4xl md:text-5xl font-display text-[#020b00] dark:text-white">{vendor.business_name}</h1>
-                {vendor.is_verified && <VerificationBadge size="lg" className="flex-shrink-0" />}
+                {(vendor.is_verified || (vendor as any).verification_badge) && <VerificationBadge size="lg" className="flex-shrink-0" />}
               </div>
 
               <div className="flex flex-wrap items-center gap-4 mb-6">

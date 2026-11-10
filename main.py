@@ -544,13 +544,20 @@ def serve_frontend(path: str):
     
     # Production build lives in app/dist/; fallback to dist/ for backward compatibility
     for dist_dir in ("app/dist", "dist"):
+        # Resolve and confine the requested path inside the dist directory so
+        # traversal payloads (e.g. "../../.env" or URL-encoded variants) cannot
+        # read files outside the built frontend.
+        dist_root = os.path.realpath(dist_dir)
+        candidate = os.path.realpath(os.path.join(dist_root, path.lstrip("/\\")))
+        if candidate != dist_root and not candidate.startswith(dist_root + os.sep):
+            raise HTTPException(status_code=404, detail="Not found")
+
         # Serve actual files from dist (images, logos, js/css, etc.)
-        file_path = os.path.join(dist_dir, path)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        
+        if os.path.isfile(candidate):
+            return FileResponse(candidate)
+
         # Serve index.html for all other routes (SPA routing) with dynamic OpenGraph meta tags
-        index_path = os.path.join(dist_dir, "index.html")
+        index_path = os.path.join(dist_root, "index.html")
         if os.path.exists(index_path):
             try:
                 with open(index_path, "r", encoding="utf-8") as f:

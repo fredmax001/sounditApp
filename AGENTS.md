@@ -5,7 +5,357 @@
 ---
 
 ## Last Updated
-2026-11-09
+2026-11-10
+
+---
+
+### 174. Staff Management & Payouts Pages Redesign, Payout Request Workflow Repair & Physical iPhone Deployment (2026-11-10)
+- **Objectives & Issues Addressed**:
+  1. **Staff Management Redesign (`Staff.tsx`)**:
+     - Complete redesign to match approved reference (`media_1794291578410_b8f39112.jpg`, Screen 1).
+     - Hero header with bold "Staff" typography, subtitle, and glowing 3D green 3-person team SVG with emerald blur.
+     - 3-card workspace action bar: "Finance Workspace" (links to `/dashboard/business/finance`), "Add Finance Staff", and high-contrast `#d3da0c` neon-lime "Invite Staff" button.
+     - 2x2 stats grid: Total Staff, Finance Staff, Active, Pending.
+     - Replaced generic list with modern team member cards: signature yellow avatar with initial, name, role badge ("Finance"), active/pending status pill, 3-dots action menu, contact info, and compact colored permission badges (`Guest Check-In`, `QR Scanner`, `$ Finance & Revenue`, `Payment Approvals`, `Payouts`, `Checked-in Info`).
+  2. **Payouts Page Redesign (`Payouts.tsx`)**:
+     - Complete redesign matching approved reference (`media_1794291578410_b8f39112.jpg`, Screen 2).
+     - Hero header with bold "Payouts" typography, subtitle, and glowing 3D green wallet graphic with `¥` symbol and radiant emerald glow.
+     - Prominent "Available Balance" card with glowing emerald border, subtle bottom wave, large balance amount (`¥75,078.90`), and `#d3da0c` neon-lime `↗ Request Payout` button.
+     - Stats row: "Total Earnings", "Completed", and full-width "Pending" payout amount.
+     - "Pending Payouts" section with count badge and detailed pending withdrawal cards (`¥70,000.00`, `Withdrawal via wechat_pay`, `Pending`, `10/15/2026`).
+     - "Transaction History" section with functional `↓ Export` CSV button and detailed ticket order sale and payout rows.
+     - Interactive Request Payout modal with method selector (WeChat Pay, Alipay, Bank Transfer), amount validation against available balance, idempotency protection, and account details.
+  3. **Payout Request Workflow Repair (Root Causes Identified & Fixed)**:
+     - *Root Cause 1*: Calling `GET /api/v1/admin/withdrawals` threw `HTTP 500 AttributeError: 'PayoutRequest' object has no attribute 'created_at'` in `api/admin.py` line 4622 because the database column is `requested_at`. Fixed by using `p.requested_at` and adding `@property def created_at` in `models.py`.
+     - *Root Cause 2*: In `api/admin.py` line 377, `pending_payouts = 0` was hardcoded to 0 in `/admin/stats`. Fixed by querying real pending/processing counts in PostgreSQL.
+     - *Root Cause 3*: Missing columns in `payout_requests` table on `soundit_prod` (`business_id`, `rejection_reason`, `admin_notes`, `transaction_reference`, `idempotency_key`). Executed SQL migrations adding all columns and indexes (`ix_payout_requests_business_id`, `ix_payout_requests_status`).
+     - *Root Cause 4*: Hardened `request_business_withdrawal` in `api/payments.py` with multi-tenant RBAC (authorized business owner or Finance staff with `payouts` permission), idempotency key deduplication (45-second window), and atomic available balance reconciliation.
+     - *Root Cause 5*: Added instant Admin Notifications via `create_notification` for all admin roles (`ADMIN`, `SUPER_ADMIN`) and security audit logging when withdrawal requests are created, approved, or rejected.
+  4. **Admin Withdrawal Management Enhancement (`WithdrawalRequests.tsx`)**:
+     - Upgraded table to display business name, requester name, user email, payment method, masked account details, status, and requested date.
+     - Replaced browser `prompt()` with clean dark rejection modal requiring rejection reason.
+  5. **Production Build & Native Device Deployment**:
+     - Extracted patch on server, resolved service permissions (`chown -R nginx:nginx /var/www/soundit/current/`), restarted `soundit.service` (verified active HTTP 200 on `https://sounditent.com/health`).
+     - Recompiled frontend production bundle: `Staff-CgCtAT68.js`, `Payouts-CE0oDNvn.js`, `WithdrawalRequests-BK-8CUNY.js`, `index-BQkfoew0.js`.
+     - Synced bundle to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app`.
+     - Re-signed Xcode `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+     - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 173. Unified Verification Badge System Across All Roles, Share Modal Stacking & Native iPhone Deployment (2026-11-10)
+- **Objectives & Issues Addressed**:
+  1. **Platform-Wide Unified Verification Badge**:
+     - Enforced identical styling and signature platform color (`#d3da0c` neon lime) across ALL user roles (User, Artist, DJ, Organizer, Business, Vendor, and Admin).
+     - Standardized `<VerificationBadge />` (`VerificationBadge.tsx`) with consistent sizing tokens (`xs`, `sm`, `md`, `lg`), solid `#d3da0c` circular badge, and black bold checkmark icon (`text-black stroke-[3.5]`).
+     - Replaced all disparate green emerald badges (`bg-emerald-500`, `text-emerald-400 fill-emerald-500/20`), custom inline divs, Lucide `BadgeCheck`/`ShieldCheck` icons, and text pills across `vendor/Dashboard.tsx`, `vendor/Profile.tsx`, `vendor/Orders.tsx`, `vendor/Products.tsx`, `business/Dashboard.tsx`, `artist/Dashboard.tsx`, `ArtistDetail.tsx`, `EventDetail.tsx`, `VendorDetail.tsx`, `VendorStore.tsx`, `Marketplace.tsx`, `PublicProfile.tsx`, `user/Profile.tsx`, `user/Followers.tsx`, `Navbar.tsx`, `MobileHeader.tsx`, `Recaps.tsx`, `Reels.tsx`, and `Community.tsx`.
+     - Standardized property checking across interfaces to test both `is_verified` and `verification_badge` consistently.
+  2. **Share Modal Stacking & Mobile Bottom Nav Occlusion**:
+     - Portaled `UniversalShareModal.tsx` directly to `document.body` with `z-[100000]` and added `modal-open` class toggling to `document.body` on mount and unmount.
+     - Updated `MobileBottomNav.tsx` with a `MutationObserver` and explicit class/attribute checks (`modal-open`, `[data-modal-open="true"]`, `.fixed.inset-0.z-[100000]`) to unmount (`return null`) whenever any share modal or sheet is open, ensuring the "Recap link" row, display URL, and "Copy" button are completely visible and clickable without being covered by the bottom navigation bar.
+     - Enhanced bottom spacing with `pb-[calc(2rem+env(safe-area-inset-bottom,16px))]` for smooth iOS home bar clearance.
+  3. **Universal Avatar System & Vendor Dashboard Menu**:
+     - Replaced green `bg-emerald-500` initials button in `vendor/Dashboard.tsx`, `vendor/Orders.tsx`, and `vendor/Products.tsx` with the official avatar image / default avatar silhouette (`/default-avatar.png`).
+     - Resolved broken `/default-artist.png` references by providing a fallback asset and replacing calls with `/default-avatar.png`.
+  4. **Home Page Featured Event Cover & Past Events Slideshow**:
+     - Verified `Home.tsx` prioritizes real flyer image (`event.flyer_image`) before `cover_image` and `banner_url`, successfully rendering the actual uploaded event flyer for "AFTER 90's Halloween Party".
+     - Implemented dynamic fallback to past events slideshow when no upcoming events exist, replacing "No events match this filter" with real past event highlights.
+- **Production Build & Native Device Deployment**:
+  - Recompiled production bundle on remote server (`tsc -b && vite build`): generated `index-BSLRala1.js`, `Recaps-RlVmKIjV.js`, `ui-vendor-Bk3gOS1C.js`.
+  - Service restarted and verified healthy: `systemctl restart soundit.service` -> HTTP 200 `{"status":"healthy"}`.
+  - Synced bundle to `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+  - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 172. Visual Refinements, Avatar System, Home Past Events Slideshow & Vendor Banner Controls (2026-11-10)
+- **Objectives & Issues Addressed**:
+  1. **Home Page Featured Event Cover**: "AFTER 90's Halloween Party" was displaying a generic crowd placeholder (`/web-hero/C48A0775.jpg`). Updated `Home.tsx` to prioritize `event.flyer_image` before `cover_image` and `banner_url`, successfully rendering the actual uploaded event flyer (`https://sounditent.com/static/uploads/3/d01fa12e-8f16-4cc8-a906-9d38500fbf93.jpg`).
+  2. **Universal Blank Avatar System**: Created neutral, clean blank avatar assets (`/default-avatar.png`, `/default-avatar.svg`, `/default-avatar.jpg`). Replaced all instances of the yellow drum emblem (`/logo-icon-dark.png`) and initials letter blocks used as avatar fallbacks across `MobileHeader.tsx`, `Navbar.tsx`, `PublicProfile.tsx`, `user/Profile.tsx`, `user/EditProfile.tsx`, `business/Dashboard.tsx`, and `Recaps.tsx`. Missing profile pictures across any user role now consistently render the clean default avatar silhouette.
+  3. **Past Events Dynamic Slideshow**: When no upcoming or ongoing events are active (`hasActiveUpcoming == false`), the home page hero automatically converts into an interactive past events carousel with real data (`flyer_image`), dots pagination, 4.5s auto-sliding, previous/next chevrons, and active "View Event" buttons linking to `/events/:slug`.
+  4. **Organizer Dashboard Brand Logo**: Corrected the top-left logo in `business/Dashboard.tsx` from the drum emblem + raw text to the official brand logo (`/logo-dark.png`).
+  5. **Removal of "5 YEARS OF EXCELLENCE IN ENTERTAINMENT"**: Completely removed and sanitized all legacy tagline strings across `AuthLayout.tsx`, `EventDetail.tsx`, `admin/IntroScreen.tsx`, `LoadingScreen.tsx`, `api/events.py`, and `api/admin.py`.
+  6. **Removal of Quick Login PIN**: Completely eliminated `pinMode`, Quick Login PIN inputs, settings toggles, and modals across `Login.tsx`, `SecuritySettings.tsx`, and `EditProfile.tsx`.
+  7. **Vendor Background Image Edit & Navigation Stacking**: Added a floating "Change Cover" camera button and file upload input on the vendor dashboard banner in `vendor/Dashboard.tsx`. Portaled Edit Profile and Booth modals to `document.body` with `z-[9999]` and wired automated `modal-open` detection in `MobileBottomNav.tsx` so the navigation bar unmounts whenever modals are open.
+  8. **WeChat & Social Sharing Hardening**: Hardened native share parameters in `UniversalShareModal.tsx` to prevent duplicate raw URLs that trigger WeChat's iOS share extension crash, while providing 1-tap HD poster and QR pass generation with download to Photo Gallery.
+- **Production Build & Verification**:
+  - Recompiled production bundle on server (`tsc -b && vite build`): bundle `index-Bcoun376.js`, `Recaps-D67KhR9k.js`, `ui-vendor-psST3YvF.js`.
+  - Deployed to `soundit.service` (verified active HTTP 200 on `https://sounditent.com/health` and `/`).
+  - Synced production dist to local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+
+---
+
+### 171. P0 Security Incident: Account Access, Client-Side Session Persist Leaks & Multi-Tenant RBAC Hardening (2026-11-10)
+- **Incident Summary**:
+  - An authenticated Event Organizer opened the dashboard role switcher dropdown, selected "Vendor Dashboard", entered the vendor dashboard belonging to another business ("Westcape Business Consulting Co. LTD", `VendorProfile.id = 2`, `User.id = 91`), and accessed their profile/category edit interface.
+- **Root Cause Investigation**:
+  1. **Frontend Role Switcher**: `app/src/pages/business/Dashboard.tsx` rendered an interactive `<select>` dropdown allowing organizers to select `<option value="vendor">` and triggering `navigate('/dashboard/vendor')`.
+  2. **Route Guard Bypass on Native**: `ProtectedRoute.tsx` contained an `isNativePreview` flag that bypassed authentication and role verification completely on Capacitor native apps.
+  3. **Zustand `persist` Stale State**: `app/src/store/vendorStore.ts` utilized `persist({ name: 'vendor-storage' })` which saved vendor profile state to `localStorage`. When the organizer visited `/dashboard/vendor`, failed API requests (404/403) caught errors without resetting the store state, displaying previously stored profile data from another session on that device.
+  4. **Hardcoded Fallbacks**: Vendor pages (`Dashboard.tsx`, `Orders.tsx`, `Products.tsx`) featured `"Westcape Business Consulting Co. LTD"` as input placeholders and fallback strings when profile fields were empty or missing.
+  5. **Backend Authorization Gaps**:
+     - Several endpoints in `api/vendors.py` and `api/vendor_orders.py` relied on `get_current_user` rather than `require_vendor`.
+     - In `api/payments.py` line 2506, `process_refund` permitted ticket buyers (`order.user_id == current_user.id`) to trigger direct refunds on their own orders.
+     - `api/admin.py` lacked router-level `require_admin` dependency.
+- **Remediation & Architecture**:
+  1. **Frontend Containment & State Sanitization**:
+     - Replaced role switcher `<select>` in `business/Dashboard.tsx` with a verified fixed role badge.
+     - Removed `isNativePreview` bypass from `ProtectedRoute.tsx`. All routes strictly enforce roles.
+     - Removed `persist` middleware from `vendorStore.ts`; added strict resets on 401/403/404; wired `resetVendorStore()` and `localStorage.removeItem('vendor-storage')` into `logout()` and `loginWithEmail()`.
+     - Removed all hardcoded `"Westcape"` fallback strings across `Dashboard.tsx`, `Orders.tsx`, `Products.tsx`.
+     - Added client-side role validation redirects in all vendor pages (`Dashboard.tsx`, `Orders.tsx`, `Products.tsx`, `Profile.tsx`).
+  2. **Backend RBAC & Tenant Isolation**:
+     - Created `services/security_logger.py` with structured audit logging (`log_security_event`) recording timestamp, user ID, email, attempted action, and severity without credential leakage.
+     - Added `require_vendor` and `require_artist` dependencies in `auth.py`.
+     - Enforced `require_vendor` across all vendor endpoints in `api/vendors.py` and `api/vendor_orders.py`.
+     - Scoped `get_vendor_orders` strictly to `VendorOrder.vendor_id == target_vendor_id` and required explicit `vendor_id` parameter for admin queries.
+     - Hardened `process_refund` in `api/payments.py`: blocked ordinary ticket buyers from self-refunding, restricting refunds to Admins, Super Admins, or the Event Organizer who owns the event.
+     - Added router-level dependency `dependencies=[Depends(require_admin)]` to `APIRouter(prefix="/admin", ...)` in `api/admin.py`.
+  3. **Automated Security Test Suite (`tests/test_tenant_isolation_security.py`)**:
+     - Built and executed automated pytest suite covering all 10 critical security test scenarios:
+       1. `test_1_organizer_cannot_access_vendor_profile` -> 403 Forbidden [PASSED]
+       2. `test_2_organizer_cannot_fetch_vendor_orders` -> 403 Forbidden [PASSED]
+       3. `test_3_organizer_cannot_create_product_as_vendor` -> 403 Forbidden [PASSED]
+       4. `test_4_vendor_a_cannot_access_vendor_b_products` -> 403 Forbidden [PASSED]
+       5. `test_5_regular_user_cannot_access_vendor_dashboard_apis` -> 403 Forbidden [PASSED]
+       6. `test_6_regular_user_cannot_access_organizer_dashboard_apis` -> 403 Forbidden [PASSED]
+       7. `test_7_regular_user_cannot_access_admin_apis` -> 403 Forbidden [PASSED]
+       8. `test_8_regular_user_cannot_trigger_unauthorized_refund_on_own_ticket` -> 403 Forbidden [PASSED]
+       9. `test_9_vendor_cannot_access_financial_settlement_of_another_vendor` -> 403 Forbidden [PASSED]
+       10. `test_10_security_audit_log_event_recorded_on_unauthorized_role_traversal` -> 200/Logged [PASSED]
+     - Test run completed with 10/10 passing tests (100% pass rate).
+  4. **Production Deployment & Verification**:
+     - Web application recompiled in production environment (`tsc -b && vite build`) and deployed to `soundit.service` (verified active HTTP 200).
+     - Local dist, iOS assets, and Xcode `.app` bundle synced and re-signed with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+
+---
+
+### 170. Share Page Stacking Over Bottom Navigation, Web Intro Bypass & Universal Profile Avatar Upload (2026-11-09)
+- **Issues Addressed**:
+  1. **Share Modal Covered by Mobile Bottom Navigation Bar**:
+     - The floating `MobileBottomNav` was painted over the bottom portion of the `UniversalShareModal`, obscuring the "Recap link" row, truncated URL, and "Copy" button.
+     - Also affected other drawers (Comments Drawer, Create Event Modal, Invite Drawer).
+  2. **Intro Screen on Web Layout**:
+     - Web browser users were briefly shown an intro loading splash screen before entering the app.
+  3. **Profile Avatar Upload Failing for Roles**:
+     - iPhone camera rolls upload `.heic` and `.heif` media which were rejected by backend validation (`ALLOWED_EXTENSIONS`), and `Profile.tsx` lacked an avatar upload trigger.
+- **Root Causes & Solutions**:
+  - **Portal & Stacking Architecture (`UniversalShareModal.tsx`, `MobileBottomNav.tsx`, `Recaps.tsx`)**:
+    - Portaled `UniversalShareModal` directly to `document.body` via `createPortal` with `z-[9999]`.
+    - Added `modal-open` class toggling on `document.body` and `data-modal-open="true"` attributes to `UniversalShareModal`, Comments Drawer, and Create Modal.
+    - Updated `MobileBottomNav` with a `MutationObserver` on `document.body` that listens for `hasModalOpen`: when any modal or drawer is open, `MobileBottomNav` automatically unmounts/hides (`return null`).
+    - Added generous bottom padding `pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]` to ensure all controls, link previews, and the Copy button are fully visible and clickable with zero overlap.
+  - **Web Intro Screen Bypass (`App.tsx`)**:
+    - Initialized `isLoading` with `isNativeApp()` and guarded the `<LoadingScreen />` condition to strictly native mobile builds. Web browser visitors skip intro loading entirely.
+  - **Universal Profile Avatar Upload (`api/media.py`, `authStore.ts`, `Profile.tsx`, `EditProfile.tsx`)**:
+    - Added `.heic`, `.heif`, `.jfif`, `.bmp` to backend `ALLOWED_EXTENSIONS` and relaxed strict MIME checks for camera uploads.
+    - Raised client-side file upload limit to 10MB in `authStore.ts` and enabled direct 1-tap avatar photo change with camera icon badge across all user roles in `Profile.tsx`.
+- **Deployment & Direct Installation**:
+  - Production server recompiled with `tsc -b && vite build` (`index-CJ8I_7XB.js`, `Recaps-DZiQO_W-.js`, `index-HhzVxuYa.css`).
+  - Synced bundle to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app`.
+  - Re-signed Xcode `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+  - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 169. Share Recap Modal Exact Redesign, Universal Follow System & Production Deployment (2026-11-09)
+- **Objectives Addressed**:
+  1. **Share Recap Modal Redesign**:
+     - Redesigned `UniversalShareModal.tsx` to match the approved visual reference (`media_1794231055105_089277e9.jpg`) with pixel-level precision.
+     - Strict neon-lime `#d3da0c` brand token applied across ALL 8 social sharing icons: WeChat, WhatsApp, iMessage, X, Instagram, TikTok, 小红书, More.
+     - Header: Neon-lime share icon, "Share this recap", subtitle "Let your friends experience what happened.", and top-right close button.
+     - Balanced two-tab navigation: "Quick Share" (neon-lime selected with black text) and "Share Card" (dark background with white text).
+     - Recap preview card: prominent video thumbnail with play button overlay, `REEL` badge, actual recap title, `By @username`, `ılı Sound It Recap` branding indicator, and chevron right.
+     - Section title: "Share with friends".
+     - 4-column 8-tile social sharing grid with smooth press feedback and real native/poster share flows.
+     - Bottom Recap Link section: neon-lime link icon, label "Recap link", actual truncated URL, and neon-lime "Copy" button (`Copy` / `Copied`).
+  2. **Universal Follow System**:
+     - Platform-wide follow system where ANY account type (User, DJ, Artist, Organizer, Business, Vendor) can follow ANY other account without role-based restriction.
+     - Created `user_follows` table in PostgreSQL `soundit_prod` with composite index and granted permissions to application user `soundit`.
+     - Built backend endpoints in `api/social.py`:
+       - `POST /api/v1/social/users/{target_user_id}/follow` (follow/request, mutual follow-back detection, activity notifications).
+       - `DELETE /api/v1/social/users/{target_user_id}/follow` (unfollow).
+       - `GET /api/v1/social/users/{target_user_id}/relationship` (returns `'self' | 'following' | 'requested' | 'follow_back' | 'follow'`).
+       - `GET /api/v1/social/users/{target_user_id}/follow-counts` (`followers_count`, `following_count`).
+       - `GET /api/v1/social/users/{target_user_id}/followers` & `GET /api/v1/social/users/{target_user_id}/following`.
+       - `GET /api/v1/social/suggested-users`.
+     - Created reusable frontend components:
+       - `FollowButton.tsx`: Handles all 4 states (`Follow`, `Following`, `Follow Back`, `Requested`) with optimistic UI and neon-lime branding.
+       - `FollowersModal.tsx`: Modal with "Followers" and "Following" tabs, live search, verification badges, and inline follow toggles.
+     - Integrated universal follow into `PublicProfile.tsx` (all account types, clickable followers/following stats) and `Recaps.tsx` (creator follow overlay).
+- **Deployment & Direct Installation**:
+  - Recompiled production bundle on server (`index-DRJz5IjZ.js`, `Recaps-B73_NFZb.js`, `index-DxMUNZt2.css`).
+  - Granted table privileges on `user_follows` in PostgreSQL and verified `soundit.service` active.
+  - Verified live API endpoints (`/api/v1/social/suggested-users`, `/api/v1/social/users/245/follow-counts`, `/api/v1/social/users/245/followers`) return 200 with real data.
+  - Synchronized dist bundle into `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+  - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 168. Recaps Runtime Crash Resolution: `useMemo` ReferenceError, Backend Mapper & Router Fixes (2026-11-09)
+- **Issues Addressed**:
+  - Tapping into Recaps triggered the Error Boundary fallback: `"Something went wrong — We're sorry, but an unexpected error occurred."`
+- **Root Causes Discovered & Fixed**:
+  1. **Frontend `useMemo is not defined` ReferenceError**:
+     - In [`app/src/pages/Recaps.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/pages/Recaps.tsx), `useMemo` was missing from the React named import list (`import React, { useState, useEffect, useRef, useCallback } from 'react'`). Evaluating `const organizedComments = useMemo(...)` threw `ReferenceError: useMemo is not defined`, crashing the root component render cycle.
+     - Added `useMemo` to the React import.
+  2. **Backend `api/community.py` Missing Imports**:
+     - `CommentReactionRequest` referenced `BaseModel` and `Field` without importing them from `pydantic`.
+     - `_format_reactions_summary` referenced `Dict` without importing from `typing`.
+     - Added `from typing import List, Optional, Dict, Any` and `from pydantic import BaseModel, Field`.
+  3. **SQLAlchemy Mapper Configuration (`models.py`)**:
+     - `ReelComment.replies` had `cascade="all, delete-orphan"` on the many-to-one side of a self-referencing relationship, triggering SQLAlchemy mapper failure `InvalidRequestError: One or more mappers failed to initialize`.
+     - Corrected relationship to `replies = relationship("ReelComment", backref="parent", remote_side=[id])` matching `CommunityComment`.
+  4. **Frontend Defensive Guards**:
+     - Hardened `loadUnifiedFeed` with strict array validation on all responses (`Array.isArray(...)`).
+     - Added optional chaining across `reel.author?.id`, `reel.author?.username`, and `coll.venue_name`.
+     - Added `document.body` null checks before calling `createPortal`.
+- **Deployment**:
+  - Production server recompiled with `tsc -b && vite build` (`index-B2pRGG4S.js`, `Recaps-DHQWdYyJ.js`).
+  - `soundit.service` restarted and verified active HTTP 200 on live endpoints (`/api/v1/reels`, `/api/v1/community/posts`).
+  - Synced bundle to local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app`.
+
+---
+
+### 167. Recaps Feed Clean Top Header & Full Comment Interactions (Likes, Replies, Reactions) (2026-11-09)
+- **Issues Addressed**:
+  1. **Top Horizontal Category Capsule on Recaps**:
+     - User requested removal of the top category capsule (`[For You] [Trending] [Following] [Upcoming...]`) marked in red.
+     - Kept the top area sleek with strictly floating back button (`<ArrowLeft />`) at top-left and mute toggle (`<Volume2/VolumeX />`) at top-right. Zero category tabs, headers, or filter pills.
+  2. **Comments Interaction (Likes, Replies & Reactions)**:
+     - Users could not like, reply to, or react to comments in the Comments drawer.
+     - Enabled full commenting features for both Reels and Community posts with real database persistence.
+- **Solutions & Implementations**:
+  - **Database Migration (`soundit_prod`)**:
+    - Added `parent_comment_id` (foreign key self-reference) and `reactions` (JSON) to `reel_comments`.
+    - Created `reel_comment_likes` table with unique constraint `(comment_id, user_id)` and fast query indexes.
+    - Added `reactions` (JSON) column to `community_comments`.
+  - **Backend APIs (`api/reels.py`, `api/community.py`, `models.py`, `schemas.py`)**:
+    - Implemented `POST /api/v1/reels/comments/{comment_id}/like` (toggle like/unlike with counter).
+    - Implemented `POST /api/v1/reels/comments/{comment_id}/react` (emoji reaction toggling with summary).
+    - Enriched `GET /api/v1/reels/{reel_id}/comments` and `POST /api/v1/reels/{reel_id}/comments` with `parent_comment_id`, `has_liked`, `likes_count`, and `reactions_summary`.
+    - Implemented `POST /api/v1/community/comments/{comment_id}/react` for community post comments.
+  - **Frontend UI (`Recaps.tsx`)**:
+    - Completely removed the top Center Event Discovery Filter Capsule.
+    - Built threaded comment rendering (`organizedComments`): top-level comments and nested replies (`ml-2 pl-3 border-l-2 border-white/10`).
+    - Added interactive Like button (heart toggle with count), Reply button (with `@username` banner and auto-focus), and emoji reaction picker (`❤️`, `🔥`, `😂`, `👏`, `😮`, `💯`).
+    - Added reaction summary pills with 1-tap toggling.
+  - **Deployment & Direct iPhone Installation**:
+    - Recompiled production bundle on server (`index-DhPW0ObP.js`, `index-DoOoa82l.css`, `Recaps-Bt0GLjqh.js`).
+    - Synced assets to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode build bundle.
+    - Re-signed Xcode `App.app` with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+    - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 166. Universal Share System for Reels/Posts & Bulletproof Comments Panel Layout (2026-11-09)
+- **Issues Addressed**:
+  1. **WeChat Reel Sharing Failure ("Error occurred. Unable to share")**:
+     - Raw Capacitor share passed multi-line text containing emojis and duplicated URLs alongside an NSURL, which causes WeChat's iOS share extension to crash with `Error occurred. Unable to share`.
+     - Reels, community posts, and event recaps were using ad-hoc share calls instead of Sound It's proven universal sharing modal (`UniversalShareModal.tsx`) used for events.
+  2. **Comments Panel Input Bar Covered by Bottom Navigation**:
+     - Bottom navigation (`MobileBottomNav`) floated over the bottom of the screen with a height of ~70px plus safe area.
+     - Comments drawer input field had only 12px bottom padding, leaving it directly underneath the floating bottom navigation bar.
+- **Solutions & Implementations**:
+  - **Universal Share Integration (`UniversalShareModal.tsx` & `Recaps.tsx`)**:
+    - Expanded `UniversalShareModal` to support `reel` and `post` types alongside `event`, `artist`, `vendor`, and `user`.
+    - Integrated the official high-definition canvas poster generator with QR code, Sound It branding, and 1-tap download to Photo Gallery.
+    - Connected WeChat share button to the poster & QR card tab, allowing seamless sharing to WeChat Chats and Moments.
+    - Hardened native system share: passes clean concise titles without duplicate raw URLs to eliminate WeChat share extension crashes.
+    - Wired `handleShareItem` in `Recaps.tsx` directly to `UniversalShareModal` for all Reels, Community Posts, and Event photo collections.
+  - **Comments Panel Fixed Layout & Safe Spacing**:
+    - Pinned comment composer at the bottom of the Comments panel with `paddingBottom: calc(80px + env(safe-area-inset-bottom, 0px))`, placing it strictly and comfortably above `MobileBottomNav`.
+    - Added WebKit `visualViewport` listener (`keyboardOffset`) so that when the software keyboard opens, the drawer shifts up and padding adjusts dynamically to `calc(12px + safe-area)`, keeping the input and send button fully visible right above the keyboard.
+    - Made comments list independently scrollable (`flex-1 overflow-y-auto min-h-0 overscroll-contain`) without moving or hiding the composer.
+    - In `MobileBottomNav.tsx`, added automated keyboard detection via `visualViewport` to hide the bottom nav when the mobile keyboard is open.
+  - **Production Deployment & Asset Sync**:
+    - Compiled production bundle (`index-CTtNofjI.js`, `index-LM7L3OUQ.css`, `Recaps-C8GNDQoa.js`) on production server.
+    - Restarted `soundit.service` (verified active HTTP 200).
+    - Synced built assets to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and `app/ios/App/build/Build/Products/Debug-iphoneos/App.app/public/`.
+    - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+
+---
+
+### 165. Recaps Feed: Comment Drawer Visibility & Native iOS Share Integration (2026-11-09)
+- **Issues Reported & Addressed**:
+  1. **Comment Input Hidden Behind Bottom Navigation Bar**:
+     - In [`app/src/pages/Recaps.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/pages/Recaps.tsx), the Comments drawer and backdrop used `z-50`.
+     - In [`app/src/components/MobileBottomNav.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/components/MobileBottomNav.tsx), the floating navigation bar also used `z-50` and is mounted after `<Outlet />` in `MainLayout.tsx`.
+     - As a result, the bottom navigation bar painted directly over the comment input field (`Add a comment...` and send button), obscuring it and preventing users from commenting.
+  2. **Share Button Inoperative on Native iOS**:
+     - `handleShareItem` constructed share URLs using `window.location.origin`, which resolves to `capacitor://localhost` inside Capacitor iOS.
+     - WebKit native share rejects `capacitor://` URLs as invalid schemes (`TypeError: Invalid URL`), causing silent share failures.
+- **Fixes**:
+  - **Comment Drawer Elevation & Layout**:
+    - Raised Comments Drawer backdrop and modal from `z-50` to `z-[100]` (and similarly for Create Modal), placing them cleanly on top of `MobileBottomNav` (`z-50`).
+    - Styled the modal to `max-h-[82vh] h-[72vh]` with `shrink-0` header and input bar, and `flex-1 overflow-y-auto` comments list.
+    - Set safe area padding `pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]` on the modal with solid background `#081206` on the input container.
+  - **Native iOS Share Sheet & Canonical URL Resolution**:
+    - Integrated `@capacitor/share` (`CapShare.share`) with fallback to `navigator.share` and clipboard copy.
+    - Guaranteed all share links use canonical `https://sounditent.com` (instead of `capacitor://localhost` or `localhost`).
+  - **Production Deployment & Device Rebuild**:
+    - Built production web bundle (`index-D2ymuHfB.js`, `index-CgvEnRZ_.css`) on server.
+    - Synced bundle to `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+    - Recompiled with `xcodebuild` and re-signed with entitlements `App.app.xcent`.
+    - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 164. iOS App Build & Direct Installation on iPhone 14 Pro Max (2026-11-09)
+- **Objective & Device**:
+  - Build the updated native iOS application bundle with the latest production dist (`index-CmsKzF3i.js`, `index-B11wxztc.css`) connecting directly to live production backend (`https://sounditent.com/api/v1`).
+  - Target Device: Physical iPhone ("Fred Max", iPhone 14 Pro Max, UDID `00008120-0018305C3C10C01E`, CoreDevice UUID `38C8118A-8397-51CB-AA93-9A04EC74452B`).
+- **Implementations & Build Details**:
+  - Synced latest production web build assets (`app/dist/`) into Capacitor iOS project (`app/ios/App/App/public/`).
+  - Executed native `xcodebuild` targeting destination `id=00008120-0018305C3C10C01E` (`** BUILD SUCCEEDED **`).
+  - Packaged latest web assets into `app/ios/App/build/Build/Products/Debug-iphoneos/App.app`.
+  - Re-signed bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` using embedded entitlement profile `App.app.xcent` (`application-identifier: X3269MPCLZ.app.sounditent.com`).
+  - Installed onto device via `devicectl device install app --device 38C8118A-8397-51CB-AA93-9A04EC74452B`:
+    - Bundle ID: `app.sounditent.com`
+    - Installation URL: `/private/var/containers/Bundle/Application/C44A6407-9B20-478F-8027-740FCB4982B9/App.app/`
+    - Result: Installed and launched directly on the iPhone (`devicectl device process launch`).
+
+---
+
+### 163. Desktop MainLayout Crash: `isReels is not defined` ReferenceError Fix (2026-11-09)
+- **Issue**:
+  - Visiting `sounditent.com` on desktop browsers rendered the ErrorBoundary fallback with `isReels is not defined`.
+  - Cause: In [`app/src/layouts/MainLayout.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/layouts/MainLayout.tsx) line 50, the desktop padding ternary checked `(isReels ? '' : 'pt-24')`. During the unified social feed refactor (where `/reels` and `/recaps` were unified into `isRecapsFeed`), `isReels` variable definition was replaced with `isRecapsFeed`, but line 50 still referenced `isReels`. On mobile (`isMobile === true`), this branch was skipped, but on desktop (`isMobile === false`), evaluating `isReels` threw `ReferenceError: isReels is not defined`, crashing the root layout.
+- **Fix**:
+  - Replaced `(isReels ? '' : 'pt-24')` with `(isRecapsFeed ? '' : 'pt-24')` in `app/src/layouts/MainLayout.tsx`.
+  - Rebuilt production bundle (`index-CmsKzF3i.js`, `index-B11wxztc.css`) on the production server.
+  - Restarted `soundit.service` and confirmed HTTP 200 on `https://sounditent.com/`.
+  - Synchronized dist bundle into local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle.
+
+---
+
+### 162. Frontend Runtime Defense: Discovery Page Unhandled Exception & React ErrorBoundary Resolution (2026-11-09)
+- **Issue**:
+  - `sounditent.com/discovery` consistently displayed the fallback ErrorBoundary screen (`"Something went wrong — We're sorry, but an unexpected error occurred."`) across all devices.
+  - Cause: In [`app/src/pages/CityGuide.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/pages/CityGuide.tsx) and [`app/src/components/DiscoveryFeed.tsx`](file:///Users/fredmax/Desktop/CODE/SOUND IT WEB APP COMPLETE/app/src/components/DiscoveryFeed.tsx), React render cycles threw unhandled `TypeError` exceptions:
+    1. In `featuredItems` useMemo (`CityGuide.tsx`), `const isVerified = Boolean(i.meta.is_verified)` and follower/rating metrics were accessed directly on `i.meta` without null checks. When guide items lacked a populated `meta` dictionary, accessing `i.meta.is_verified` threw `TypeError: Cannot read properties of undefined (reading 'is_verified')`.
+    2. In `CityGuide.tsx` render, `item.meta.venue_name` and `item.meta.start_date` were accessed without optional chaining, crashing when rendering event cards.
+    3. In `DiscoveryFeed.tsx`, API responses were assumed to be raw arrays without checking for `{ items: [] }` or empty structures, and `picks` calculated modulo on empty event pools (`% pool.length` when length is 0 yields `NaN`).
+- **Fix**:
+  - In `CityGuide.tsx`:
+    - Added defensive guards `const meta = i.meta || {}` across `featuredItems` filter and `displayItems`.
+    - Protected all `item.meta?.venue_name` and `item.meta?.start_date` accesses with optional chaining and date validation guards.
+    - Added array validation `Array.isArray(guideItems)` to `displayItems`, `featuredItems`, `categoryCards`, and map marker filters.
+  - In `DiscoveryFeed.tsx`:
+    - Validated all API responses with `Array.isArray(data) ? data : (data?.items || [])` and wrapped promises with `.catch(() => null)`.
+    - Added early returns for empty event pools in `picks`, `topEvents`, and `spots`.
+  - In `ErrorBoundary.tsx`:
+    - Added error capture and expandable technical details accordion in the UI to prevent blind error screens and aid real-time diagnosis.
+    - Added "Go Home" recovery button alongside "Reload Page".
+  - Rebuilt production bundle (`index-WQ8zFEZ6.js`, `index-B11wxztc.css`) on the production server.
+  - Synchronized dist bundle into local `app/dist/`, `app/ios/App/App/public/`, and `app/android/app/src/main/assets/public/`.
+  - Re-signed Xcode `Debug-iphoneos/App.app` bundle with developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+  - Verified `https://sounditent.com/discovery` returns HTTP 200 and loads smoothly without ErrorBoundary triggers.
 
 ---
 

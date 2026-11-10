@@ -259,7 +259,7 @@ const IntroScreen = () => {
                 value={settings.tagline}
                 maxLength={120}
                 onChange={(e) => setSettings(prev => ({ ...prev, tagline: e.target.value }))}
-                placeholder="e.g. 5 years of Excellence in Entertainment"
+                placeholder="e.g. Your gateway to entertainment in China"
                 className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
               />
             </div>

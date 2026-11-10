@@ -6,15 +6,21 @@ import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Banknote, Search, Check, X, Clock, Loader2,
-  Wallet, User
+  Wallet, User, Building2, AlertCircle, CheckCircle2, XCircle
 } from 'lucide-react';
 
 interface Withdrawal {
   id: number;
+  business_id?: number;
+  business_name?: string;
+  user_id?: number;
   user_name: string;
+  user_email?: string;
   amount: number;
   payment_method: string;
+  account_details?: string;
   status: string;
+  rejection_reason?: string;
   created_at: string;
 }
 
@@ -34,6 +40,10 @@ const WithdrawalRequests = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Reject Modal state
+  const [rejectingItem, setRejectingItem] = useState<Withdrawal | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
     loadWithdrawals();
@@ -59,7 +69,7 @@ const WithdrawalRequests = () => {
         setStats(statsData);
       }
     } catch {
-      toast.error(t('admin.withdrawalRequests.failedToLoadWithdrawalRequests'));
+      toast.error(t('admin.withdrawalRequests.failedToLoadWithdrawalRequests') || 'Failed to load withdrawal requests');
     } finally {
       setLoading(false);
     }
@@ -73,19 +83,27 @@ const WithdrawalRequests = () => {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
       if (res.ok) {
-        toast.success(t('admin.withdrawalRequests.withdrawalApproved'));
-        loadWithdrawals();
+        toast.success(t('admin.withdrawalRequests.withdrawalApproved') || 'Withdrawal approved successfully');
+        await loadWithdrawals();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Failed to approve' }));
+        toast.error(err.detail || 'Failed to approve withdrawal');
       }
     } catch {
-      toast.error(t('admin.withdrawalRequests.failedToApproveWithdrawal'));
+      toast.error(t('admin.withdrawalRequests.failedToApproveWithdrawal') || 'Network error approving withdrawal');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleReject = async (id: number) => {
-    const reason = prompt(t('admin.withdrawalRequests.rejectionReasonPrompt'));
-    if (!reason) return;
+  const handleRejectConfirm = async () => {
+    if (!rejectingItem) return;
+    if (!rejectReason.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+
+    const id = rejectingItem.id;
     setActionLoading(`reject-${id}`);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/withdrawals/${id}/reject`, {
@@ -94,32 +112,41 @@ const WithdrawalRequests = () => {
           'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({ reason: rejectReason.trim() })
       });
       if (res.ok) {
-        toast.success(t('admin.withdrawalRequests.withdrawalRejected'));
-        loadWithdrawals();
+        toast.success(t('admin.withdrawalRequests.withdrawalRejected') || 'Withdrawal rejected successfully');
+        setRejectingItem(null);
+        setRejectReason('');
+        await loadWithdrawals();
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Failed to reject' }));
+        toast.error(err.detail || 'Failed to reject withdrawal');
       }
     } catch {
-      toast.error(t('admin.withdrawalRequests.failedToRejectWithdrawal'));
+      toast.error(t('admin.withdrawalRequests.failedToRejectWithdrawal') || 'Network error rejecting withdrawal');
     } finally {
       setActionLoading(null);
     }
   };
 
   const filteredWithdrawals = withdrawals.filter(w => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery || 
-      w.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      w.id?.toString().includes(searchQuery);
-    const matchesStatus = !statusFilter || w.status === statusFilter;
+      w.user_name?.toLowerCase().includes(query) ||
+      w.business_name?.toLowerCase().includes(query) ||
+      w.user_email?.toLowerCase().includes(query) ||
+      w.account_details?.toLowerCase().includes(query) ||
+      w.id?.toString().includes(query);
+    const matchesStatus = !statusFilter || w.status?.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader chip="Finance" title={t('admin.withdrawalRequests.title')} subtitle={t('admin.withdrawalRequests.subtitle')} />
+      <AdminPageHeader chip="Finance" title={t('admin.withdrawalRequests.title') || 'Withdrawal Requests'} subtitle={t('admin.withdrawalRequests.subtitle') || 'Review, approve, or reject business organizer payout requests.'} />
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
@@ -127,7 +154,7 @@ const WithdrawalRequests = () => {
               <Wallet className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.pendingRequests')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.pendingRequests') || 'Pending Requests'}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.pending_count || 0}</p>
             </div>
           </div>
@@ -138,9 +165,9 @@ const WithdrawalRequests = () => {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.pendingAmount')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.pendingAmount') || 'Pending Amount'}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
-                ¥{stats.pending_amount?.toLocaleString() || 0}
+                ¥{(stats.pending_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </div>
@@ -151,7 +178,7 @@ const WithdrawalRequests = () => {
               <Check className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.processedToday')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.processedToday') || 'Processed Today'}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">{stats.processed_today || 0}</p>
             </div>
           </div>
@@ -162,9 +189,9 @@ const WithdrawalRequests = () => {
               <Banknote className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.totalProcessed30d')}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.withdrawalRequests.totalProcessed30d') || 'Total 30d Processed'}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
-                ¥{stats.total_processed_30d?.toLocaleString() || 0}
+                ¥{(stats.total_processed_30d || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </div>
@@ -177,7 +204,7 @@ const WithdrawalRequests = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder={t('admin.withdrawalRequests.searchPlaceholder')}
+            placeholder={t('admin.withdrawalRequests.searchPlaceholder') || 'Search by business, user name, email, or account...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
@@ -188,11 +215,11 @@ const WithdrawalRequests = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
         >
-          <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.withdrawalRequests.allStatus')}</option>
-          <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.withdrawalRequests.statusPending')}</option>
-          <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.withdrawalRequests.statusApproved')}</option>
-          <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.withdrawalRequests.statusRejected')}</option>
-          <option value="completed" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.withdrawalRequests.statusCompleted')}</option>
+          <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">All Statuses</option>
+          <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Pending</option>
+          <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Approved</option>
+          <option value="completed" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Completed</option>
+          <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Rejected</option>
         </select>
       </div>
 
@@ -202,72 +229,187 @@ const WithdrawalRequests = () => {
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
+        ) : filteredWithdrawals.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-sm">No payout requests found.</p>
+          </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
-              <tr>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.requestIdHeader')}</th>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.userHeader')}</th>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.amountHeader')}</th>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.methodHeader')}</th>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.statusHeader')}</th>
-                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.requestedHeader')}</th>
-                <th className="text-right text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.withdrawalRequests.actionsHeader')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5 dark:divide-white/5">
-              {filteredWithdrawals.map((w) => (
-                <tr key={w.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
-                  <td className="p-4 text-gray-500 dark:text-gray-400 font-mono text-sm">#{w.id}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-neutral-100 dark:bg-white/10 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                      </div>
-                      <span className="text-[#020b00] dark:text-white font-medium">{w.user_name}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-[#020b00] dark:text-white font-medium">¥{w.amount?.toLocaleString()}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-400 text-sm">{w.payment_method}</td>
-                  <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      w.status === 'completed' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
-                      w.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' :
-                      w.status === 'approved' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400' :
-                      'bg-red-500/15 text-red-600 dark:text-red-400'
-                    }`}>
-                      {t(`admin.withdrawalRequests.status.${w.status}`)}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-500 dark:text-gray-400 text-sm">{new Date(w.created_at).toLocaleDateString()}</td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-2">
-                      {w.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(w.id)}
-                            disabled={actionLoading === `approve-${w.id}`}
-                            className="p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-500/20 transition-colors"
-                          >
-                            {actionLoading === `approve-${w.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                          </button>
-                          <button
-                            onClick={() => handleReject(w.id)}
-                            disabled={actionLoading === `reject-${w.id}`}
-                            className="p-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 transition-colors"
-                          >
-                            {actionLoading === `reject-${w.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
+                <tr>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">ID</th>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Business & User</th>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Amount</th>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Method & Account</th>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Status</th>
+                  <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Requested Date</th>
+                  <th className="text-right text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                {filteredWithdrawals.map((w) => (
+                  <tr key={w.id} className="hover:bg-neutral-50/70 dark:hover:bg-white/5 transition-colors">
+                    <td className="p-4 text-gray-500 dark:text-gray-400 font-mono text-xs">#{w.id}</td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-neutral-100 dark:bg-white/10 rounded-full flex items-center justify-center shrink-0">
+                          {w.business_name ? (
+                            <Building2 className="w-4 h-4 text-emerald-500" />
+                          ) : (
+                            <User className="w-4 h-4 text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-[#020b00] dark:text-white font-semibold text-xs sm:text-sm">
+                            {w.business_name || w.user_name}
+                          </p>
+                          {w.business_name && w.user_name && w.business_name !== w.user_name && (
+                            <p className="text-gray-500 text-[11px]">Requested by: {w.user_name}</p>
+                          )}
+                          {w.user_email && (
+                            <p className="text-gray-400 text-[11px] truncate max-w-[200px]">{w.user_email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-[#020b00] dark:text-white font-bold text-sm">
+                        ¥{(w.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-[#020b00] dark:text-white font-medium text-xs capitalize">
+                        {(w.payment_method || '').replace(/_/g, ' ')}
+                      </p>
+                      {w.account_details && (
+                        <p className="text-gray-500 dark:text-gray-400 text-[11px] truncate max-w-[220px]">
+                          {w.account_details}
+                        </p>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+                        w.status === 'completed' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
+                        w.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' :
+                        w.status === 'approved' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400' :
+                        'bg-red-500/15 text-red-600 dark:text-red-400'
+                      }`}>
+                        {w.status}
+                      </span>
+                      {w.rejection_reason && (
+                        <p className="text-red-400 text-[10px] mt-1 italic max-w-[150px] truncate" title={w.rejection_reason}>
+                          {w.rejection_reason}
+                        </p>
+                      )}
+                    </td>
+                    <td className="p-4 text-gray-500 dark:text-gray-400 text-xs">
+                      {w.created_at ? new Date(w.created_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {w.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(w.id)}
+                              disabled={actionLoading === `approve-${w.id}`}
+                              className="px-3 py-1.5 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 rounded-xl font-medium text-xs flex items-center gap-1 transition-colors"
+                              title="Approve Withdrawal"
+                            >
+                              {actionLoading === `approve-${w.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5" />
+                              )}
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => setRejectingItem(w)}
+                              disabled={actionLoading === `reject-${w.id}`}
+                              className="px-3 py-1.5 bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 rounded-xl font-medium text-xs flex items-center gap-1 transition-colors"
+                              title="Reject Withdrawal"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {w.status === 'approved' && (
+                          <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Approved
+                          </span>
+                        )}
+                        {w.status === 'completed' && (
+                          <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Settled
+                          </span>
+                        )}
+                        {w.status === 'rejected' && (
+                          <span className="text-xs text-red-400 font-medium flex items-center gap-1">
+                            <XCircle className="w-3.5 h-3.5" /> Rejected
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
+      {/* Reject Reason Modal */}
+      {rejectingItem && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl p-6 w-full max-w-md text-[#020b00] dark:text-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Reject Payout Request #{rejectingItem.id}</h3>
+              <button
+                onClick={() => {
+                  setRejectingItem(null);
+                  setRejectReason('');
+                }}
+                className="p-1 text-gray-400 hover:text-black dark:hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              Rejecting withdrawal of <span className="font-bold text-[#020b00] dark:text-white">¥{rejectingItem.amount?.toLocaleString()}</span> for <span className="font-semibold">{rejectingItem.business_name || rejectingItem.user_name}</span>. Please specify the reason.
+            </p>
+
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Invalid WeChat ID, account name mismatch, or requires banking verification..."
+              rows={3}
+              className="w-full bg-neutral-50 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-xl p-3 text-xs text-[#020b00] dark:text-white placeholder-gray-400 focus:outline-none focus:border-red-500 mb-4"
+            />
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                onClick={() => {
+                  setRejectingItem(null);
+                  setRejectReason('');
+                }}
+                className="px-4 py-2 bg-neutral-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectConfirm}
+                disabled={actionLoading === `reject-${rejectingItem.id}` || !rejectReason.trim()}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {actionLoading === `reject-${rejectingItem.id}` && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -235,11 +235,12 @@ const EditProfile = () => {
     try {
       const url = await uploadAvatar(file);
       setAvatar(url);
-      toast.success(t('user.profile.avatarUpdated', 'Profile photo updated'));
-    } catch {
-      toast.error(t('user.profile.avatarUploadFailed', 'Failed to upload photo'));
+      toast.success(t('user.profile.avatarUpdated', 'Profile photo updated!'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('user.profile.avatarUploadFailed', 'Failed to upload photo'));
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -352,18 +353,12 @@ const EditProfile = () => {
               className="relative w-24 h-24 rounded-full border-[3px] border-[#d3da0c] bg-white dark:bg-[#020B00] p-[2px] shadow-2xl"
               aria-label="Change profile photo"
             >
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={displayName}
-                  className="w-full h-full rounded-full object-cover"
-                  onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
-                />
-              ) : (
-                <div className="w-full h-full rounded-full bg-[#d3da0c] flex items-center justify-center">
-                  <span className="text-3xl font-black text-black">{(displayName || '?')[0].toUpperCase()}</span>
-                </div>
-              )}
+              <img
+                src={avatar || '/default-avatar.png'}
+                alt={displayName}
+                className="w-full h-full rounded-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+              />
               {isUploading && (
                 <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 text-[#d3da0c] animate-spin" />
@@ -417,10 +412,10 @@ const EditProfile = () => {
                     </Field>
                   </Section>
 
-                  <Section title="Security" subtitle="Password, PIN and two-factor authentication">
+                  <Section title="Security" subtitle="Password and two-factor authentication">
                     {[
                       { label: 'Change Password', icon: Lock, path: '/settings/security' },
-                      { label: 'Security & Quick PIN', icon: ShieldCheck, path: '/settings/security' },
+                      { label: 'Two-Factor Authentication', icon: ShieldCheck, path: '/settings/security' },
                     ].map(item => (
                       <button
                         key={item.label}

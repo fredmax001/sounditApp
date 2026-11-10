@@ -6,19 +6,20 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  error?: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
+    hasError: false,
+    error: null,
   };
 
-  public static getDerivedStateFromError(): State {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error details internally; do not expose them in the UI
     console.error('Uncaught error:', error, errorInfo);
   }
 
@@ -31,12 +32,33 @@ class ErrorBoundary extends Component<Props, State> {
             <p className="text-gray-400 mb-6">
               We're sorry, but an unexpected error occurred. Please try refreshing the page or contact support if the problem persists.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
-            >
-              Reload Page
-            </button>
+            {this.state.error?.message && (
+              <details className="mb-6 text-left bg-black/60 rounded-lg p-3 text-xs text-red-300 font-mono overflow-auto max-h-36 border border-white/5">
+                <summary className="cursor-pointer text-gray-400 hover:text-white font-sans text-xs mb-1">
+                  Technical details
+                </summary>
+                <p className="break-words">{this.state.error.message}</p>
+              </details>
+            )}
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  window.location.reload();
+                }}
+                className="px-6 py-3 bg-[#d3da0c] text-black font-bold rounded-lg hover:bg-[#bbc10b] transition-colors"
+              >
+                Reload Page
+              </button>
+              <button
+                onClick={() => {
+                  window.location.href = '/';
+                }}
+                className="px-6 py-3 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 transition-colors"
+              >
+                Go Home
+              </button>
+            </div>
           </div>
         </div>
       );

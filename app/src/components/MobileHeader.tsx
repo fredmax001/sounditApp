@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { chinaCities } from '@/data/constants';
 import { useHaptic } from '@/hooks/useHaptic';
 import { useTranslation } from 'react-i18next';
+import VerificationBadge from '@/components/VerificationBadge';
 import { useThemeStore } from '@/store/themeStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
@@ -359,9 +360,11 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full rounded-full bg-[#d3da0c]/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-[#d3da0c]" />
-                  </div>
+                  <img
+                    src="/default-avatar.png"
+                    alt={fullName || 'User'}
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 )}
               </div>
             </button>
@@ -500,12 +503,11 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                           }}
                         />
                       ) : (
-                        <div
-                          className="rounded-full bg-[#d3da0c] flex items-center justify-center"
-                          style={{ width: '100%', height: '100%' }}
-                        >
-                          <User className="w-7 h-7 text-black" />
-                        </div>
+                        <img
+                          src="/default-avatar.png"
+                          alt={fullName || 'User'}
+                          className="w-full h-full rounded-full object-cover"
+                        />
                       )}
                     </div>
                   </div>
@@ -516,7 +518,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                         {isAuthenticated ? fullName : 'Guest User'}
                       </p>
                       {isAuthenticated && isVerified && (
-                        <BadgeCheck className="w-4 h-4 text-[#9fa505] dark:text-[#d3da0c] shrink-0 fill-[#d3da0c]/20" />
+                        <VerificationBadge size="sm" className="shrink-0" />
                       )}
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-xs truncate mt-0.5">

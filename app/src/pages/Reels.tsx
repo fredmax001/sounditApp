@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import NotificationBell from '@/components/NotificationBell';
 import { toast } from 'sonner';
+import VerificationBadge from '@/components/VerificationBadge';
 import {
   ArrowLeft,
   Search,
@@ -642,11 +643,11 @@ const Reels = ({
                     >
                       <div className="w-9 h-9 rounded-full border border-[#d3da0c] overflow-hidden bg-black">
                         <img
-                          src={resolveMediaUrl(reel.author.avatar_url) || '/logo-icon-dark.png'}
+                          src={resolveMediaUrl(reel.author.avatar_url) || '/default-avatar.png'}
                           alt={reel.author.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src = '/logo-icon-dark.png';
+                            (e.currentTarget as HTMLImageElement).src = '/default-avatar.png';
                           }}
                         />
                       </div>
@@ -654,7 +655,7 @@ const Reels = ({
                         @{reel.author.username}
                       </span>
                       {reel.author.is_verified && (
-                        <BadgeCheck className="w-4 h-4 text-[#d3da0c] fill-[#d3da0c]/20" />
+                        <VerificationBadge size="sm" className="shrink-0" />
                       )}
                     </div>
 
@@ -759,7 +760,7 @@ const Reels = ({
                   comments.map((c) => (
                     <div key={c.id} className="flex items-start gap-3">
                       <img
-                        src={resolveMediaUrl(c.author?.avatar_url) || '/logo-icon-dark.png'}
+                        src={resolveMediaUrl(c.author?.avatar_url) || '/default-avatar.png'}
                         alt=""
                         className="w-8 h-8 rounded-full object-cover border border-white/15 shrink-0"
                       />
@@ -769,7 +770,7 @@ const Reels = ({
                             @{c.author?.username || 'user'}
                           </span>
                           {c.author?.is_verified && (
-                            <BadgeCheck className="w-3.5 h-3.5 text-[#d3da0c]" />
+                            <VerificationBadge size="xs" className="shrink-0" />
                           )}
                         </div>
                         <p className="text-xs text-gray-200 mt-0.5">{c.content}</p>

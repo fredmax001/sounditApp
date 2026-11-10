@@ -297,7 +297,7 @@ export default function Artists() {
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <h3 className="text-lg lg:text-xl font-semibold text-white mb-1 flex items-center gap-2">
                         {name}
-                        {artist.verification_badge && <VerificationBadge size="sm" />}
+                        {((artist as any).is_verified || artist.verification_badge) && <VerificationBadge size="sm" />}
                       </h3>
                       <div className="flex items-center gap-4 text-white/50 text-sm">
                         <span className="flex items-center gap-1">

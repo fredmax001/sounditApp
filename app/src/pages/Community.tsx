@@ -38,6 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import VerificationBadge from '@/components/VerificationBadge';
 import { WEB_ORIGIN } from '@/lib/appUrl';
 import {
   Select,
@@ -1034,7 +1035,7 @@ const Community = ({
                         <h3 className="text-[#020b00] dark:text-white text-sm font-bold flex items-center gap-1.5">
                           <span>{authorName}</span>
                           {post.user.is_verified && (
-                            <BadgeCheck className="w-3.5 h-3.5 text-[#d3da0c] fill-[#d3da0c]/20 flex-shrink-0" />
+                            <VerificationBadge size="xs" className="shrink-0" />
                           )}
                           {post.user.is_guest && (
                             <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-full font-normal">
