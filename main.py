@@ -489,15 +489,6 @@ def system_intro_screen():
         db.close()
 
 
-@app.get("/admin")
-def serve_admin_dashboard():
-    """Serve the admin dashboard"""
-    admin_path = os.path.join("static", "admin", "dashboard.html")
-    if os.path.exists(admin_path):
-        return FileResponse(admin_path)
-    raise HTTPException(status_code=404, detail="Admin dashboard not found")
-
-
 from api.meta_tags import get_dynamic_meta_html
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
@@ -537,9 +528,9 @@ def download_android_apk():
 # Serve frontend for all non-API routes (SPA support)
 @app.get("/{path:path}")
 def serve_frontend(path: str):
-    # Skip API, static, assets, admin, sitemap.xml, and robots.txt routes
+    # Skip API, static, assets, sitemap.xml, and robots.txt routes
     if (path.startswith("api/") or path.startswith("static/") or 
-        path.startswith("assets/") or path in ("admin", "sitemap.xml", "robots.txt")):
+        path.startswith("assets/") or path in ("sitemap.xml", "robots.txt")):
         raise HTTPException(status_code=404, detail="Not found")
     
     # Production build lives in app/dist/; fallback to dist/ for backward compatibility

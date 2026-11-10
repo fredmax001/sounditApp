@@ -111,33 +111,6 @@ def staff_allows(user: "User", permission: str) -> bool:
     return bool(perms.get(permission))
 
 
-def require_staff_permission(permission: str):
-    """Dependency factory gating a business endpoint behind a staff permission.
-
-    Owners bypass the check; Manager/Finance staff are evaluated against their
-    granted permissions so a check-in badge can never reach financial tooling.
-    """
-    async def checker(current_user: User = Depends(get_current_user)) -> User:
-        if not staff_allows(current_user, permission):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Your staff role does not allow this action (missing '{permission}' permission)",
-            )
-        return current_user
-    return checker
-
-
-def require_business_owner_or_manager(current_user: User = Depends(get_current_user)) -> User:
-    """Block non-manager staff from owner-level operations (events, profile, payouts)."""
-    ctx = getattr(current_user, "_staff_context", None)
-    if ctx and (ctx.get("staff_role") or "").strip().lower() != "manager":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the business owner or a Manager can perform this action",
-        )
-    return current_user
-
-
 def _is_access_token_payload(payload: dict) -> bool:
     """Only tokens minted as access tokens may authenticate API requests.
 
@@ -243,6 +216,33 @@ async def get_current_user(
         )
     
     return user
+
+
+def require_staff_permission(permission: str):
+    """Dependency factory gating a business endpoint behind a staff permission.
+
+    Owners bypass the check; Manager/Finance staff are evaluated against their
+    granted permissions so a check-in badge can never reach financial tooling.
+    """
+    async def checker(current_user: User = Depends(get_current_user)) -> User:
+        if not staff_allows(current_user, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Your staff role does not allow this action (missing '{permission}' permission)",
+            )
+        return current_user
+    return checker
+
+
+def require_business_owner_or_manager(current_user: User = Depends(get_current_user)) -> User:
+    """Block non-manager staff from owner-level operations (events, profile, payouts)."""
+    ctx = getattr(current_user, "_staff_context", None)
+    if ctx and (ctx.get("staff_role") or "").strip().lower() != "manager":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the business owner or a Manager can perform this action",
+        )
+    return current_user
 
 
 async def get_optional_user(

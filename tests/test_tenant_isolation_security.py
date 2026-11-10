@@ -393,3 +393,104 @@ def test_10_sensitive_financial_data_inaccessible_across_tenants(client, seed_us
     assert res_refund.status_code == 403, f"Expected 403 for ticket buyer self-refund, got {res_refund.status_code}"
     err_msg = get_error_message(res_refund)
     assert "Only event organizers or administrators" in err_msg
+
+
+def test_11_regular_user_cannot_transfer_unowned_ticket(client, seed_users, test_db):
+    """Scenario 11: A user cannot transfer a ticket owned by someone else."""
+    from security.enhanced_auth import auth_manager
+    organizer = seed_users["organizer"]
+    regular_user = seed_users["regular_user"]
+    vendor_a = seed_users["vendor_a"]
+    ticket_order = seed_users["ticket_order"]
+
+    # Create a ticket belonging to regular_user
+    ticket = Ticket(
+        user_id=regular_user.id,
+        order_id=ticket_order.id,
+        ticket_number="TKT-SEC-001",
+        qr_token="QR-SEC-001",
+        status="active"
+    )
+    test_db.add(ticket)
+    test_db.commit()
+    test_db.refresh(ticket)
+
+    # Vendor A (attacker) tries to transfer regular_user's ticket to themselves
+    headers_attacker = auth_header(vendor_a)
+    csrf_token = auth_manager.generate_csrf_token(f"user_{vendor_a.id}")
+    headers_attacker["X-CSRF-Token"] = csrf_token
+
+    res = client.post(
+        f"/api/v1/payments/tickets/{ticket.id}/transfer",
+        json={"holder_name": "Attacker", "holder_email": "attacker@soundit.com"},
+        headers=headers_attacker,
+    )
+    assert res.status_code == 403, f"Expected 403 for unauthorized ticket transfer, got {res.status_code}"
+    err_msg = get_error_message(res)
+    assert "Not authorized to transfer this ticket" in err_msg
+
+
+def test_12_refund_negative_or_zero_amount_rejected(client, seed_users):
+    """Scenario 12: Negative or zero refund amounts are rejected with 400 Bad Request."""
+    from security.enhanced_auth import auth_manager
+    super_admin = seed_users["super_admin"]
+    ticket_order = seed_users["ticket_order"]
+
+    headers_admin = auth_header(super_admin)
+    csrf_token = auth_manager.generate_csrf_token(f"user_{super_admin.id}")
+    headers_admin["X-CSRF-Token"] = csrf_token
+
+    # Negative amount
+    res_neg = client.post(
+        f"/api/v1/payments/orders/{ticket_order.id}/refund",
+        json={"amount": -50.0, "reason": "Negative refund exploit"},
+        headers=headers_admin,
+    )
+    assert res_neg.status_code == 400, f"Expected 400 for negative refund, got {res_neg.status_code}"
+
+    # Zero amount
+    res_zero = client.post(
+        f"/api/v1/payments/orders/{ticket_order.id}/refund",
+        json={"amount": 0.0, "reason": "Zero refund exploit"},
+        headers=headers_admin,
+    )
+    assert res_zero.status_code == 400, f"Expected 400 for zero refund, got {res_zero.status_code}"
+
+
+def test_13_ticket_transfer_and_download_safe_with_null_order(client, seed_users, test_db):
+    """Scenario 13: Ticket ownership checks gracefully handle tickets without a parent Order object."""
+    from security.enhanced_auth import auth_manager
+    regular_user = seed_users["regular_user"]
+
+    # Create a table ticket (order_id is NULL)
+    table_ticket = Ticket(
+        user_id=regular_user.id,
+        order_id=None,
+        ticket_order_id=None,
+        table_order_id=1,
+        ticket_number="TBL-TKT-SEC-002",
+        qr_token="QR-SEC-002",
+        status="active"
+    )
+    test_db.add(table_ticket)
+    test_db.commit()
+    test_db.refresh(table_ticket)
+
+    headers_owner = auth_header(regular_user)
+    csrf_token = auth_manager.generate_csrf_token(f"user_{regular_user.id}")
+    headers_owner["X-CSRF-Token"] = csrf_token
+
+    # Owner can transfer safely without AttributeError
+    res_transfer = client.post(
+        f"/api/v1/payments/tickets/{table_ticket.id}/transfer",
+        json={"holder_name": "Friend", "holder_email": "friend@example.com"},
+        headers=headers_owner,
+    )
+    assert res_transfer.status_code == 200, f"Expected 200 for owner transfer, got {res_transfer.status_code}"
+
+    # Owner can download safely without AttributeError
+    res_download = client.get(
+        f"/api/v1/payments/tickets/{table_ticket.id}/download",
+        headers=headers_owner,
+    )
+    assert res_download.status_code == 200, f"Expected 200 for owner download, got {res_download.status_code}"
