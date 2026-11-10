@@ -9,6 +9,30 @@
 
 ---
 
+### 175. Master Cybersecurity Audit, RBAC Hardening, Admin SPA Route Protection & Native iPhone Deployment (2026-11-10)
+- **Objectives & Issues Addressed**:
+  1. **Rollback Condition Elimination**:
+     - Investigated why earlier UI fixes appeared reverted: earlier deployment uploaded only 3 files while server's `/tmp/soundit-build/src` cache compiled older source files.
+     - Resolved permanently by packaging complete source tree (48 files) into unified release and performing clean full compilation on production server.
+  2. **Admin Route Security Hardening (`main.py`)**:
+     - Removed legacy unauthenticated `@app.get("/admin")` that served obsolete `static/admin/dashboard.html` from disk.
+     - Routed `/admin` through React SPA fallback (`serve_frontend`), enforcing `ProtectedRoute allowedRoles={['admin', 'super_admin']}` at both client and server layers.
+  3. **Financial & Ticket Ownership Boundaries (`api/payments.py`)**:
+     - Fixed `transfer_ticket` and `download_ticket` ownership resolution: safely checks `ticket.user_id` when `ticket.order` is `None` (for table orders or direct orders), preventing unhandled `AttributeError` 500 errors.
+     - Added strict positive bounds validation on refunds (`refund_amount <= 0 or refund_amount > order.total_amount`).
+     - Fixed dependency ordering of `require_staff_permission` below `get_current_user` in `auth.py`.
+  4. **Automated Security Test Suite Expansion (`tests/test_tenant_isolation_security.py`)**:
+     - Expanded automated test suite from 10 to 13 security regression scenarios (unowned ticket transfers blocked with 403, zero/negative refunds blocked with 400, table ticket null-order safety).
+     - Executed test suite against live PostgreSQL production environment: 13/13 passed in 11.61s (100% pass rate).
+  5. **Production Deployment & Physical Device Launch**:
+     - Deployed security patch to `/var/www/soundit/current/` on `72.62.254.251`, set permissions (`chown -R nginx:nginx`), restarted `soundit.service` (verified active HTTP 200).
+     - Verified `/admin` serves fresh React SPA `index.html` with `Cache-Control: no-cache, no-store, must-revalidate`.
+     - Synced production bundle to `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app`.
+     - Re-signed Xcode `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+     - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
 ### 174. Staff Management & Payouts Pages Redesign, Payout Request Workflow Repair & Physical iPhone Deployment (2026-11-10)
 - **Objectives & Issues Addressed**:
   1. **Staff Management Redesign (`Staff.tsx`)**:
