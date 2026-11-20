@@ -40,6 +40,8 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
                   src={imageUrl}
                   alt={displayName}
                   className="w-full h-full rounded-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/default-avatar.jpg';
                   }}
@@ -74,6 +76,8 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
             src={imageUrl}
             alt={displayName}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/default-avatar.jpg';
             }}

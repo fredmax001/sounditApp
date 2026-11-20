@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Users, ArrowRight, Heart, Loader2, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowRight, Heart, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { EventWithDetails } from '@/store/eventStore';
 import { useEventStore } from '@/store/eventStore';
 
 import { toast } from 'sonner';
-import { getEntitySlug } from '@/lib/slug';
 
 interface EventCardProps {
   event: EventWithDetails;
@@ -19,33 +18,23 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
   const isCompact = variant === 'compact';
   const isTrending = variant === 'trending';
   const { savedEvents, saveEvent, unsaveEvent, fetchSavedEvents } = useEventStore();
-  const [isSaved, setIsSaved] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const isSaved = savedEvents.some((e) => String(e.id) === String(event.id));
 
   useEffect(() => {
     fetchSavedEvents();
   }, [fetchSavedEvents]);
 
-  useEffect(() => {
-    setIsSaved(savedEvents.some((e) => String(e.id) === String(event.id)));
-  }, [savedEvents, event.id]);
-
   const handleSaveToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLoading(true);
     try {
       if (isSaved) {
         await unsaveEvent(String(event.id));
-        setIsSaved(false);
       } else {
         await saveEvent(String(event.id));
-        setIsSaved(true);
       }
     } catch {
       toast.error(t('eventCard.saveError'));
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -107,12 +96,11 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
           {/* Save */}
           <button
             onClick={handleSaveToggle}
-            disabled={isLoading}
             className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10 ${
               isSaved ? 'bg-[#FF2D8F] text-white' : 'bg-black/40 text-white hover:bg-[#FF2D8F]/80'
-            } disabled:opacity-50`}
+            }`}
           >
-            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />}
+            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
           </button>
 
           {/* Date pill */}
@@ -175,12 +163,11 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
 
           <button
             onClick={handleSaveToggle}
-            disabled={isLoading}
             className={`absolute top-3 right-3 md:top-4 md:right-4 w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10 ${
               isSaved ? 'bg-pink-500 text-white' : 'bg-black/40 text-white hover:bg-pink-500/80'
-            } disabled:opacity-50`}
+            }`}
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />}
+            <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
           </button>
 
           {isSoldOut && (
@@ -243,6 +230,8 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
                     src={dj.avatar_url || '/default-avatar.png'}
                     alt={dj.stage_name}
                     className="w-8 h-8 rounded-full border-2 border-[#111111] object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 ))}
               </div>

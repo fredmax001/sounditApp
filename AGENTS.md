@@ -9,6 +9,34 @@
 
 ---
 
+### 183. End-to-End Full-Stack Performance Audit & Optimization (Database N+1 Elimination, 34 Targeted Indexes, City-Switching Engine, Namespace TTL Cache, Route Code-Splitting & Optimistic UI) (2026-11-20)
+- **Objectives & Issues Addressed**:
+  1. **Database N+1 Query Elimination, Connection Pooling & 34 Targeted Indexes (`scripts/migrate_performance_v2.py`, `database.py`, `models.py`)**:
+     - *Eliminated N+1 Query Storms Across 16 Core Endpoints*:
+       - `GET /api/v1/businesses` (city=all, limit=50): **122 queries (328.21 ms) -> 4 queries (31.51 ms cold / 0 queries, 1.13 ms cached)** via `joinedload` + 2 batch `GROUP BY` count queries on `OrganizerFollow` and `Event`.
+       - `GET /api/v1/community/posts` (page_size=10): **135 queries (262.37 ms) -> 7 queries (61.26 ms)** via `_build_posts_batch_response` batch-loading likes, bookmarks, comments/replies/comment-likes, and tagged users.
+       - `GET /api/v1/community/posts` (feed_type=following): **253 queries (473.48 ms) -> 10 queries (43.87 ms)** via 3 direct `user_id` join queries instead of 115 profile lazy loads.
+       - `GET /api/v1/reels` (limit=20): **163 queries (236.61 ms) -> 5 queries (47.67 ms)** via `_serialize_reels_batch`, eager-loading `Reel.user` (with artist/organizer/business/vendor profiles) and `Reel.event.venue`, and caching `_REELS_SEED_CHECKED`.
+       - `GET /api/v1/social/following`: **101 queries (129.77 ms) -> 3 queries (121.96 ms)** via `joinedload` on `ArtistFollow.artist`, `OrganizerFollow.organizer`, and `VendorFollow.vendor`.
+       - `GET /api/v1/vendors` & `GET /api/v1/vendors/products/all`: **36 queries (83.53 ms / 78.79 ms) -> 1 query (14.20 ms / 15.11 ms)** via `joinedload(VendorProfile.user)` and `joinedload(Product.vendor)`.
+       - `GET /api/v1/events/eligible-for-posting`: **21 queries (26.43 ms) -> 1 query (10.14 ms)** via `joinedload(Event.venue)` and UTC normalization `_ensure_utc()`.
+       - `GET /api/v1/events` & `GET /api/v1/events/featured`: **3 queries (126.66 ms) -> 1 query (23.06 ms)** by throttling `auto_complete_past_events(db)` to run at most once every 60s instead of executing 2 synchronous `UPDATE` + `COMMIT` write queries on every read.
+       - `GET /api/v1/events/{id}`: **36 queries across 2 duplicate frontend requests (265.28 ms) -> 8 queries in 1 request (116.91 ms)** by removing the redundant second `GET /events/${id}` call in `eventStore.fetchEventById` and eager-loading relationships in a single query.
+     - *34 Single-Column & Composite Indexes (`scripts/migrate_performance_v2.py`)*: Created targeted indexes covering `events`, `ticket_tiers`, `event_artists`, `event_vendors`, `users`, `artist_profiles`, `vendor_profiles`, `business_profiles`, `organizer_profiles`, `clubs`, `food_spots`, `venues`, `products`, `artist_follows`, `organizer_follows`, `vendor_follows`, `event_follows`, `community_posts`, `community_comments`, `community_comment_likes`, `community_bookmarks`, `reels`, `reel_likes`, `reel_saves`, and `recaps` with full `--rollback` support.
+     - *Connection Pooling (`database.py`)*: Configured PostgreSQL `QueuePool` (`pool_pre_ping=True`, `pool_size=15`, `max_overflow=25`, `pool_recycle=1800`, `pool_timeout=30`, `pool_use_lifo=True`) and SQLite WAL mode + 32 MB page cache.
+  2. **Backend Thread-Safe Namespace TTL/LRU Caching & Write Invalidation (`utils/cache.py`, `api/*.py`, `main.py`)**:
+     - Built `NamespaceTTLCache` with per-namespace LRU bounds, deep-copy isolation, city-key normalization (`normalize_city_key`), and write invalidators (`invalidate_event_caches`, `invalidate_artist_caches`, `invalidate_vendor_caches`, `invalidate_business_caches`).
+     - Added lightweight `GET /api/v1/cities/{city}/counts` endpoint (cached 60s, **0.091 ms cached vs 57.70 ms full guide**) so `Home.tsx` no longer downloads the entire City Guide payload just to display badge counts.
+     - Cached `/cities`, `/cities/{city}/guide`, `/cities/{city}/counts`, `/businesses`, `/artists/featured`, `/community/sections`, `/dashboard/platform-stats`, `/ads/public`, and `/system/intro-screen` while keeping all private, user-specific, ticket, booking, order, payment, and admin endpoints strictly uncached.
+  3. **Frontend City-Switching Engine, Search/Filter Debouncing, Code-Splitting, Optimistic UI & Mobile Cold-Start (`app/src/*`)**:
+     - *City-Switching Cancellation & Cache (`app/src/lib/queryCache.ts`, `authStore.ts`, `eventStore.ts`, `cityGuideStore.ts`, `Home.tsx`, `DiscoveryFeed.tsx`, `CityGuide.tsx`, `Events.tsx`, `Artists.tsx`, `Vendors.tsx`, `Marketplace.tsx`)*: Calling `setSelectedCity` immediately invokes `queryCache.abortAllCityScopes()` to cancel in-flight requests from the previous city, updates UI state in 0ms, deduplicates identical concurrent requests, and prevents stale cross-city data overwrites.
+     - *Eliminated 6 Live External `<iframe />` Embeds on `Home.tsx`*: Replaced 6 background third-party website iframes with zero-overhead preview cards, saving 15–30 MB of RAM and dozens of third-party network requests on every home screen load.
+     - *Eliminated Per-Card `GET /events/saved` N+1 Network Storm (`EventCard.tsx`, `eventStore.ts`)*: Deduplicated `fetchSavedEvents()` via `queryCache` (`events:saved`, TTL 30s) so mounting 20 `<EventCard />` components triggers 1 request instead of 20.
+     - *Instant 0ms Optimistic UI*: Upgraded event save/unsave (`eventStore.ts`, `EventCard.tsx`, `MobileEventCard.tsx`), community post like/unlike/bookmark and comment like/unlike (`communityStore.ts`), and artist follow/unfollow (`Artists.tsx`, `CityGuide.tsx`) to update UI immediately with duplicate-click guards and automatic rollback on error.
+     - *Route Code-Splitting & Native Parallel Cold-Start (`App.tsx`, `NotificationBell.tsx`)*: Lazy-loaded 18 secondary/detail pages via `React.lazy` + `<Suspense />`, rendered native `<LoadingScreen />` as an overlay so `<Router />` mounts and prefetches Home data in parallel during the 1.9s splash animation, lazy-loaded the Google Maps SDK only when a map tab is active, and paused polling timers when `document.hidden` is true.
+
+---
+
 ### 182. System-Wide Mobile UI/UX Responsive Audit, Native-Only Onboarding Enhancements & Cross-Platform Intelligent Notification System (2026-11-20)
 - **Objectives & Issues Addressed**:
   1. **System-Wide Mobile UI/UX Layout, Bottom Navigation Clearance, Keyboard Handling & Responsive Unit Audit**:

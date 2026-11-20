@@ -2,14 +2,12 @@
  * MobileEventCard - Cinematic full-bleed card for mobile home/discover
  * Inspired by Eventix design: large image, gradient overlay, bold text
  */
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Clock, MapPin, Loader2, Users } from 'lucide-react';
+import { Heart, Clock, MapPin, Users } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
 import type { EventWithDetails } from '@/store/eventStore';
 import { toast } from 'sonner';
-import { getEntitySlug } from '@/lib/slug';
 
 interface MobileEventCardProps {
   event: EventWithDetails;
@@ -20,7 +18,6 @@ interface MobileEventCardProps {
 
 const MobileEventCard = ({ event, variant = 'standard', className = '' }: MobileEventCardProps) => {
   const { savedEvents, saveEvent, unsaveEvent } = useEventStore();
-  const [isSaving, setIsSaving] = useState(false);
   const isSaved = savedEvents.some((e) => String(e.id) === String(event.id));
 
   const ticketTier = event.ticket_tiers?.[0];
@@ -44,7 +41,6 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSaving(true);
     try {
       if (isSaved) {
         await unsaveEvent(String(event.id));
@@ -53,8 +49,6 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
       }
     } catch {
       toast.error('Failed to save event');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -93,18 +87,13 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
           {/* Save / heart */}
           <button
             onClick={handleSave}
-            disabled={isSaving}
             className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all active:scale-90 ${
               isSaved
                 ? 'bg-[#FF2D8F] border-[#FF2D8F]/60 text-white'
                 : 'bg-black/50 border-white/20 text-white/80'
             }`}
           >
-            {isSaving ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
-            )}
+            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
           </button>
         </div>
 

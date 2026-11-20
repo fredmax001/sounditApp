@@ -53,6 +53,7 @@ import type { DateFilter } from '@/components/ui/MobileFilterPills';
 
 import axios from 'axios';
 import type { DJ, EventWithDetails } from '@/store/eventStore';
+import { queryCache, isAbortError } from '@/lib/queryCache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -146,21 +147,38 @@ const Home = () => {
   } | null>(null);
 
   const fetchTrendingReels = useCallback(async () => {
+    const cityKey = queryCache.normalizeCity(selectedCity);
     try {
-      const { data } = await axios.get(`${API_URL}/reels`, { params: { limit: 8 } });
-      if (Array.isArray(data) && data.length > 0) {
-        setTrendingReels(data);
-      }
-    } catch {
-      // Fallback handled in render
+      const params: Record<string, unknown> = { limit: 8 };
+      if (cityKey !== 'all') params.city = cityKey;
+      const data = await queryCache.fetchJson<unknown>(
+        `home:reels:${cityKey}`,
+        `${API_URL}/reels`,
+        { params, ttlMs: 35_000, scope: 'city:home-reels' }
+      );
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray((data as { reels?: unknown[] })?.reels)
+        ? (data as { reels: typeof trendingReels }).reels
+        : [];
+      setTrendingReels(list);
+    } catch (e) {
+      if (isAbortError(e)) return;
     }
-  }, []);
+  }, [selectedCity]);
 
   const fetchDJs = useCallback(async () => {
+    const cityKey = queryCache.normalizeCity(selectedCity);
     try {
-      const { data } = await axios.get(`${API_URL}/artists/featured`);
-      if (data) {
-        const formattedDJs = data.map((artist: { id: number; stage_name?: string; avatar_url?: string; genres?: string[] }) => ({
+      const params: Record<string, unknown> = {};
+      if (cityKey !== 'all') params.city = cityKey;
+      const data = await queryCache.fetchJson<Array<{ id: number; stage_name?: string; avatar_url?: string; genres?: string[] }>>(
+        `home:djs:${cityKey}`,
+        `${API_URL}/artists/featured`,
+        { params, ttlMs: 45_000, scope: 'city:home-djs' }
+      );
+      if (Array.isArray(data)) {
+        const formattedDJs = data.map((artist) => ({
           id: String(artist.id),
           stage_name: artist.stage_name || 'Artist',
           avatar_url: artist.avatar_url,
@@ -169,13 +187,18 @@ const Home = () => {
         setFeaturedDJs(formattedDJs);
       }
     } catch (e) {
+      if (isAbortError(e)) return;
       console.error('Failed to fetch DJs:', e);
     }
   }, [selectedCity]);
 
   const fetchPlatformStats = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/dashboard/platform-stats`);
+      const data = await queryCache.fetchJson<typeof platformStats>(
+        'platform-stats:global',
+        `${API_URL}/dashboard/platform-stats`,
+        { ttlMs: 60_000 }
+      );
       if (data) setPlatformStats(data);
     } catch (e) {
       console.error('Failed to fetch platform stats:', e);
@@ -183,19 +206,24 @@ const Home = () => {
   }, []);
 
   const fetchCityGuideCounts = useCallback(async () => {
+    const cityKey = queryCache.normalizeCity(selectedCity);
     try {
-      const city = selectedCity && selectedCity !== 'all' ? selectedCity : 'all';
-      const { data } = await axios.get(`${API_URL}/cities/${encodeURIComponent(city)}/guide`);
-      if (data) {
+      const data = await queryCache.fetchJson<Record<string, number>>(
+        `city-counts:${cityKey}`,
+        `${API_URL}/cities/${encodeURIComponent(cityKey)}/counts`,
+        { ttlMs: 60_000, scope: 'city:home-counts' }
+      );
+      if (data && typeof data.events === 'number') {
         setCityGuideCounts({
-          venues: (data.venues || []).length,
-          businesses: (data.businesses || []).length,
-          vendors: (data.vendors || []).length,
-          events: (data.events || []).length,
-          artists: (data.artists || []).length,
+          venues: data.venues || 0,
+          businesses: data.businesses || 0,
+          vendors: data.vendors || 0,
+          events: data.events || 0,
+          artists: data.artists || 0,
         });
       }
     } catch (e) {
+      if (isAbortError(e)) return;
       console.error('Failed to fetch city guide counts:', e);
     }
   }, [selectedCity]);
@@ -210,14 +238,28 @@ const Home = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const cityKey = queryCache.normalizeCity(selectedCity);
+    const cacheKey = `home:past-events:${cityKey}`;
+    const cached = queryCache.get<EventWithDetails[]>(cacheKey);
+    if (cached !== null) {
+      setPastEvents(cached);
+      setPastEventsLoading(false);
+      return;
+    }
+
     const loadPastEvents = async () => {
       setPastEventsLoading(true);
       try {
-        const { data } = await axios.get(`${API_URL}/events/past`, {
-          params: selectedCity && selectedCity !== 'all' ? { city: selectedCity } : undefined,
-        });
+        const params: Record<string, unknown> = { limit: 12 };
+        if (cityKey !== 'all') params.city = cityKey;
+        const data = await queryCache.fetchJson<EventWithDetails[]>(
+          cacheKey,
+          `${API_URL}/events/past`,
+          { params, ttlMs: 45_000, scope: 'city:home-past-events' }
+        );
         if (!cancelled) setPastEvents(Array.isArray(data) ? data : []);
       } catch (error) {
+        if (isAbortError(error)) return;
         console.error('Failed to fetch past events:', error);
         if (!cancelled) setPastEvents([]);
       } finally {
@@ -1661,23 +1703,17 @@ const Home = () => {
                     <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#d3da0c] transition-colors shrink-0" />
                   </div>
 
-                  {/* Actual Website Landing Page Preview */}
+                  {/* Actual Website Landing Page Preview (Static optimized preview image — avoids loading 6 live external iframes) */}
                   <div className="relative h-44 w-full bg-black overflow-hidden">
                     <img
                       src={site.screenshot}
                       alt={`${site.name} Landing Page`}
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = site.fallbackPhoto;
                       }}
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <iframe
-                      src={site.url}
-                      title={site.name}
-                      loading="lazy"
-                      sandbox="allow-scripts allow-same-origin"
-                      className="absolute top-0 left-0 w-[1440px] h-[900px] origin-top-left scale-[0.22] pointer-events-none opacity-95 border-0"
-                      tabIndex={-1}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f14] via-transparent to-transparent" />
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">

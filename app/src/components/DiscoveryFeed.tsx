@@ -7,6 +7,7 @@ import { API_BASE_URL } from '@/config/api';
 import { useAuthStore } from '@/store/authStore';
 import { useCityGuideStore } from '@/store/cityGuideStore';
 import { getEntitySlug, slugify } from '@/lib/slug';
+import { queryCache, isAbortError } from '@/lib/queryCache';
 import VerificationBadge from '@/components/VerificationBadge';
 
 interface FeedEvent {
@@ -96,39 +97,93 @@ const DiscoveryFeed = () => {
   const city = selectedCity && selectedCity !== 'all' ? selectedCity : undefined;
 
   useEffect(() => {
+    let cancelled = false;
+    const cityKey = queryCache.normalizeCity(city);
+    const params: Record<string, unknown> = cityKey !== 'all' ? { city: cityKey } : {};
+
+    const cachedEv = queryCache.get<FeedEvent[]>(`discovery:events:${cityKey}`);
+    const cachedArt = queryCache.get<FeedArtist[]>(`discovery:artists:${cityKey}`);
+    const cachedVen = queryCache.get<FeedVendor[]>(`discovery:vendors:${cityKey}`);
+    const cachedBiz = queryCache.get<FeedBusiness[]>(`discovery:businesses:${cityKey}`);
+
+    if (cachedEv && cachedArt && cachedVen && cachedBiz) {
+      setEvents(cachedEv);
+      setArtists(cachedArt);
+      setVendors(cachedVen);
+      setBusinesses(cachedBiz);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchFeed = async () => {
       setIsLoading(true);
-      const params = city ? `&city=${encodeURIComponent(city)}` : '';
       try {
-        const [evRes, artRes, venRes, bizRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/events?limit=30${params}`).catch(() => null),
-          fetch(`${API_BASE_URL}/artists?limit=20${params}`).catch(() => null),
-          fetch(`${API_BASE_URL}/vendors?limit=20${params}`).catch(() => null),
-          fetch(`${API_BASE_URL}/businesses?limit=20${params}`).catch(() => null),
+        const [evData, artData, venData, bizData] = await Promise.all([
+          queryCache
+            .fetchJson<unknown>(`discovery:events:${cityKey}`, `${API_BASE_URL}/events`, {
+              params: { limit: 30, ...params },
+              ttlMs: 40_000,
+              scope: 'city:discovery-events',
+            })
+            .catch((e) => (isAbortError(e) ? '__ABORT__' : null)),
+          queryCache
+            .fetchJson<unknown>(`discovery:artists:${cityKey}`, `${API_BASE_URL}/artists`, {
+              params: { limit: 20, ...params },
+              ttlMs: 45_000,
+              scope: 'city:discovery-artists',
+            })
+            .catch((e) => (isAbortError(e) ? '__ABORT__' : null)),
+          queryCache
+            .fetchJson<unknown>(`discovery:vendors:${cityKey}`, `${API_BASE_URL}/vendors`, {
+              params: { limit: 20, ...params },
+              ttlMs: 45_000,
+              scope: 'city:discovery-vendors',
+            })
+            .catch((e) => (isAbortError(e) ? '__ABORT__' : null)),
+          queryCache
+            .fetchJson<unknown>(`discovery:businesses:${cityKey}`, `${API_BASE_URL}/businesses`, {
+              params: { limit: 20, ...params },
+              ttlMs: 45_000,
+              scope: 'city:discovery-businesses',
+            })
+            .catch((e) => (isAbortError(e) ? '__ABORT__' : null)),
         ]);
-        if (evRes && evRes.ok) {
-          const data = await evRes.json().catch(() => []);
-          setEvents(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.events) ? data.events : [])));
+
+        if (cancelled) return;
+        if (evData === '__ABORT__' || artData === '__ABORT__' || venData === '__ABORT__' || bizData === '__ABORT__') {
+          return;
         }
-        if (artRes && artRes.ok) {
-          const data = await artRes.json().catch(() => []);
-          setArtists(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.artists) ? data.artists : [])));
+
+        if (evData) {
+          const d = evData as Record<string, unknown>;
+          const list = Array.isArray(evData) ? evData : (Array.isArray(d?.items) ? d.items : (Array.isArray(d?.events) ? d.events : []));
+          setEvents(list as FeedEvent[]);
         }
-        if (venRes && venRes.ok) {
-          const data = await venRes.json().catch(() => []);
-          setVendors(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.vendors) ? data.vendors : [])));
+        if (artData) {
+          const d = artData as Record<string, unknown>;
+          const list = Array.isArray(artData) ? artData : (Array.isArray(d?.items) ? d.items : (Array.isArray(d?.artists) ? d.artists : []));
+          setArtists(list as FeedArtist[]);
         }
-        if (bizRes && bizRes.ok) {
-          const data = await bizRes.json().catch(() => []);
-          setBusinesses(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.businesses) ? data.businesses : [])));
+        if (venData) {
+          const d = venData as Record<string, unknown>;
+          const list = Array.isArray(venData) ? venData : (Array.isArray(d?.items) ? d.items : (Array.isArray(d?.vendors) ? d.vendors : []));
+          setVendors(list as FeedVendor[]);
+        }
+        if (bizData) {
+          const d = bizData as Record<string, unknown>;
+          const list = Array.isArray(bizData) ? bizData : (Array.isArray(d?.items) ? d.items : (Array.isArray(d?.businesses) ? d.businesses : []));
+          setBusinesses(list as FeedBusiness[]);
         }
       } catch {
         // sections render empty
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchFeed();
+    return () => {
+      cancelled = true;
+    };
   }, [city]);
 
   const topEvents = useMemo(

@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Store, Star, MapPin } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
-import axios from 'axios';
 import { slugify } from '@/lib/slug';
 import { chinaCities } from '@/data/constants';
+import { queryCache, isAbortError } from '@/lib/queryCache';
+import { useDebouncedValue } from '@/hooks/useDebounce';
 
 interface Vendor {
   id: number;
@@ -29,16 +30,31 @@ export default function Vendors() {
   const { selectedCity, setSelectedCity } = useAuthStore();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery, 200);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchVendors = useCallback(async () => {
+    const cityKey = queryCache.normalizeCity(selectedCity);
+    const cacheKey = `vendors:list:${cityKey}`;
+    const cached = queryCache.get<Vendor[]>(cacheKey);
+    if (cached !== null) {
+      setVendors(cached);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const params: Record<string, string> = {};
-      if (selectedCity && selectedCity !== 'all') params.city = selectedCity;
-      const { data } = await axios.get(`${API_URL}/vendors`, { params });
+      if (cityKey !== 'all') params.city = cityKey;
+      const data = await queryCache.fetchJson<Vendor[]>(
+        cacheKey,
+        `${API_URL}/vendors`,
+        { params, ttlMs: 45_000, scope: 'city:vendors-list' }
+      );
       setVendors(data || []);
-    } catch {
+    } catch (e) {
+      if (isAbortError(e)) return;
       console.error('Error fetching vendors');
     } finally {
       setIsLoading(false);
@@ -49,12 +65,16 @@ export default function Vendors() {
     fetchVendors();
   }, [fetchVendors]);
 
-  const filteredVendors = vendors.filter(
-    (v) =>
-      v.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.vendor_type?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredVendors = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
+    if (!q) return vendors;
+    return vendors.filter(
+      (v) =>
+        v.business_name?.toLowerCase().includes(q) ||
+        v.description?.toLowerCase().includes(q) ||
+        v.vendor_type?.toLowerCase().includes(q)
+    );
+  }, [vendors, debouncedSearch]);
 
   return (
     <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">

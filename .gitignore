@@ -101,3 +101,4 @@ app/android/*.jks
 api/
 *.tsbuildinfo
 app/ios/App/build-dd/
+app/ios/build-dd/

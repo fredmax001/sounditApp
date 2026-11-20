@@ -1139,7 +1139,7 @@ class Message(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     conversation = relationship("Conversation", back_populates="messages")
-    sender = relationship("User")
+    sender = relationship("User", overlaps="sent_messages")
 
 
 class ArtistAvailability(Base):

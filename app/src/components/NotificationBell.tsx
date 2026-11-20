@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { pushManager } from '@/lib/pushNotifications';
+import { queryCache } from '@/lib/queryCache';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -18,28 +19,31 @@ const NotificationBell = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasLivePulse, setHasLivePulse] = useState(false);
 
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchUnreadCount = useCallback(async (force = false) => {
     if (!session?.access_token) return;
+    if (!force && typeof document !== 'undefined' && document.hidden) return;
     try {
-      const [notifRes, inviteRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/notifications/unread-count`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }),
-        fetch(`${API_BASE_URL}/business/staff/invitations`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }),
+      const headers = { Authorization: `Bearer ${session.access_token}` };
+      const [notifData, invites] = await Promise.all([
+        queryCache
+          .fetchJson<{ unread_count?: number }>(
+            `notif:unread:${session.user?.id || 'me'}`,
+            `${API_BASE_URL}/notifications/unread-count`,
+            { headers, ttlMs: 12_000, forceRefresh: force }
+          )
+          .catch(() => null),
+        queryCache
+          .fetchJson<Array<{ status?: string }>>(
+            `staff:invites:${session.user?.id || 'me'}`,
+            `${API_BASE_URL}/business/staff/invitations`,
+            { headers, ttlMs: 30_000, forceRefresh: force }
+          )
+          .catch(() => null),
       ]);
 
-      let count = 0;
-      if (notifRes.ok) {
-        const data = await notifRes.json();
-        count += Number(data.unread_count || 0);
-      }
-      if (inviteRes.ok) {
-        const invites = await inviteRes.json();
-        if (Array.isArray(invites)) {
-          count += invites.filter((i: any) => i.status === 'Pending').length;
-        }
+      let count = Number(notifData?.unread_count || 0);
+      if (Array.isArray(invites)) {
+        count += invites.filter((i) => i.status === 'Pending').length;
       }
       setUnreadCount((prev) => {
         if (count > prev) {
@@ -51,16 +55,16 @@ const NotificationBell = ({
     } catch {
       // silent fail
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, session?.user?.id]);
 
   useEffect(() => {
     if (isAuthenticated) {
       pushManager.init().catch(() => {});
-      fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 25000);
-      const handleRefresh = () => fetchUnreadCount();
+      fetchUnreadCount(false);
+      const interval = setInterval(() => fetchUnreadCount(false), 25000);
+      const handleRefresh = () => fetchUnreadCount(true);
       const handleVisibility = () => {
-        if (!document.hidden) fetchUnreadCount();
+        if (!document.hidden) fetchUnreadCount(true);
       };
       window.addEventListener('notifications-updated', handleRefresh);
       window.addEventListener('notifications-updated-local', handleRefresh);

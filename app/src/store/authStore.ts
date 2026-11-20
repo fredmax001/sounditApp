@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { queryCache } from '@/lib/queryCache';
 
 // Local type definitions (no Supabase dependency)
 interface User {
@@ -1076,7 +1077,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Set Selected City (browsing discovery filter - decoupled from user's permanent home city)
+      // Immediately updates UI, aborts stale in-flight city requests, and persists across sessions.
       setSelectedCity: (city: string) => {
+        const prev = get().selectedCity;
+        if (prev === city) return;
+        queryCache.abortAllCityScopes();
         set({ selectedCity: city });
       },
 

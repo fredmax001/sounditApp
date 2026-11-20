@@ -56,7 +56,7 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
             <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
                 <div className="w-16 h-16 rounded-lg bg-gray-800 flex-shrink-0 overflow-hidden">
                     {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
                             <ImageOff className="w-6 h-6 text-gray-600" />
@@ -92,7 +92,7 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
         >
             <div className="aspect-square bg-gray-800 overflow-hidden relative">
                 {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
                         <ImageOff className="w-10 h-10 text-gray-600" />

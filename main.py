@@ -480,11 +480,17 @@ def system_status():
 
 @app.get("/api/v1/system/intro-screen")
 def system_intro_screen():
-    """Public: intro/splash screen content (logo, title, tagline) set by admins."""
+    """Public: intro/splash screen content (logo, title, tagline) set by admins (cached 60s)."""
+    from utils.cache import app_cache
+    cached = app_cache.get("system_settings", "intro_screen")
+    if cached is not None:
+        return cached
     from api.admin import read_intro_screen
     db = SessionLocal()
     try:
-        return read_intro_screen(db)
+        data = read_intro_screen(db)
+        app_cache.set("system_settings", "intro_screen", data, ttl_seconds=60.0)
+        return data
     except Exception:
         return {"enabled": True, "logo_url": "", "title": "", "tagline": ""}
     finally:

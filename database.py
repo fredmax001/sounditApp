@@ -14,13 +14,29 @@ if settings.DATABASE_URL.startswith("sqlite"):
         connect_args={"check_same_thread": False},
         echo=settings.DEBUG,
     )
+
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragmas(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.execute("PRAGMA temp_store=MEMORY")
+            cursor.execute("PRAGMA cache_size=-32000")
+        except Exception:
+            pass
+        finally:
+            cursor.close()
 else:
     # PostgreSQL configuration for production
     engine = create_engine(
         settings.DATABASE_URL,
         pool_pre_ping=True,
-        pool_size=10,
-        max_overflow=20,
+        pool_size=15,
+        max_overflow=25,
+        pool_recycle=1800,
+        pool_timeout=30,
+        pool_use_lifo=True,
     )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -436,6 +452,13 @@ def init_db():
             conn.execute(text("UPDATE booking_requests SET payment_status = 'submitted' WHERE payment_status = 'paid'"))
             conn.execute(text("SELECT 1"))
             conn.commit()
+
+    # Ensure all Performance v2 single-column and composite indexes exist on both SQLite & PostgreSQL
+    try:
+        from scripts.migrate_performance_v2 import apply_indexes
+        apply_indexes(engine)
+    except Exception:
+        pass
 
 
 def cleanup_old_data(db: Session, days: int = 90) -> dict:

@@ -1,13 +1,14 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Music, Users, Heart, Loader2, MapPin } from 'lucide-react';
+import { Search, Music, Users, Heart, MapPin } from 'lucide-react';
 import VerificationBadge from '@/components/VerificationBadge';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import axios from 'axios';
 import { slugify } from '@/lib/slug';
 import { chinaCities } from '@/data/constants';
+import { queryCache, isAbortError } from '@/lib/queryCache';
+import { useDebouncedValue } from '@/hooks/useDebounce';
 
 interface Artist {
   id: number;
@@ -33,17 +34,25 @@ export default function Artists() {
   const { session, selectedCity, setSelectedCity } = useAuthStore();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [followingIds, setFollowingIds] = useState<Set<number>>(new Set());
-  const [followLoadingId, setFollowLoadingId] = useState<number | null>(null);
+  const inFlightFollowsRef = useRef<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery, 200);
   const [selectedType, setSelectedType] = useState<string>('all');
 
   const fetchArtists = useCallback(async () => {
+    const cityKey = queryCache.normalizeCity(selectedCity);
+    const cacheKey = `artists:list:${cityKey}`;
+    const cached = queryCache.get<Artist[]>(cacheKey);
+    if (cached !== null) {
+      setArtists(cached);
+      return;
+    }
+
     try {
       const params: Record<string, string> = {};
-      if (selectedCity && selectedCity !== 'all') params.city = selectedCity;
+      if (cityKey !== 'all') params.city = cityKey;
 
-      const { data } = await axios.get(`${API_URL}/artists`, { params });
-      const mapped = (data || []).map((artist: {
+      const data = await queryCache.fetchJson<Array<{
         id: number;
         slug?: string;
         stage_name: string;
@@ -54,7 +63,12 @@ export default function Artists() {
         genres?: string[];
         followers_count?: number;
         verification_badge?: boolean;
-      }) => ({
+      }>>(
+        `artists:raw:${cityKey}`,
+        `${API_URL}/artists`,
+        { params, ttlMs: 45_000, scope: 'city:artists-list' }
+      );
+      const mapped: Artist[] = (data || []).map((artist) => ({
         id: artist.id,
         slug: artist.slug || slugify(artist.stage_name),
         display_name: artist.stage_name,
@@ -70,8 +84,10 @@ export default function Artists() {
           follower_count: artist.followers_count || 0,
         }],
       }));
+      queryCache.set(cacheKey, mapped, 45_000);
       setArtists(mapped);
-    } catch {
+    } catch (e) {
+      if (isAbortError(e)) return;
       console.error('Error fetching artists');
     }
   }, [selectedCity]);
@@ -104,46 +120,76 @@ export default function Artists() {
       toast.info(t('artists.loginToFollow') || 'Please log in to follow');
       return;
     }
-    setFollowLoadingId(artistId);
+    if (inFlightFollowsRef.current.has(artistId)) return;
+    inFlightFollowsRef.current.add(artistId);
+
+    const wasFollowing = followingIds.has(artistId);
+    const delta = wasFollowing ? -1 : 1;
+
+    // 1. Optimistic UI update (heart + follower counter update immediately in 0ms)
+    setFollowingIds((prev) => {
+      const next = new Set(prev);
+      if (wasFollowing) next.delete(artistId);
+      else next.add(artistId);
+      return next;
+    });
+    setArtists((prev) =>
+      prev.map((a) =>
+        a.id === artistId && a.artist_profiles?.[0]
+          ? {
+              ...a,
+              artist_profiles: [
+                {
+                  ...a.artist_profiles[0],
+                  follower_count: Math.max(0, (a.artist_profiles[0].follower_count || 0) + delta),
+                },
+              ],
+            }
+          : a
+      )
+    );
+
     try {
-      if (followingIds.has(artistId)) {
-        const res = await fetch(`${API_URL}/social/artists/${artistId}/follow`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${session.access_token}` }
-        });
-        if (res.ok) {
-          setFollowingIds((prev) => {
-            const next = new Set(prev);
-            next.delete(artistId);
-            return next;
-          });
-          toast.success(t('artists.unfollowed') || 'Unfollowed');
-        }
-      } else {
-        const res = await fetch(`${API_URL}/social/artists/${artistId}/follow`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session.access_token}` }
-        });
-        if (res.ok) {
-          setFollowingIds((prev) => {
-            const next = new Set(prev);
-            next.add(artistId);
-            return next;
-          });
-          toast.success(t('artists.followed') || 'Followed');
-        } else {
-          const err = await res.json();
-          toast.error(err.detail || t('artists.followFailed') || 'Failed');
-        }
+      const res = await fetch(`${API_URL}/social/artists/${artistId}/follow`, {
+        method: wasFollowing ? 'DELETE' : 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || t('artists.followFailed') || 'Failed');
       }
-    } catch {
-      toast.error(t('artists.followFailed') || 'Failed');
+      queryCache.invalidatePrefix('artists:');
+    } catch (err: unknown) {
+      // Roll back optimistic state on error
+      setFollowingIds((prev) => {
+        const next = new Set(prev);
+        if (wasFollowing) next.add(artistId);
+        else next.delete(artistId);
+        return next;
+      });
+      setArtists((prev) =>
+        prev.map((a) =>
+          a.id === artistId && a.artist_profiles?.[0]
+            ? {
+                ...a,
+                artist_profiles: [
+                  {
+                    ...a.artist_profiles[0],
+                    follower_count: Math.max(0, (a.artist_profiles[0].follower_count || 0) - delta),
+                  },
+                ],
+              }
+            : a
+        )
+      );
+      toast.error(err instanceof Error ? err.message : (t('artists.followFailed') || 'Failed'));
     } finally {
-      setFollowLoadingId(null);
+      inFlightFollowsRef.current.delete(artistId);
     }
   };
 
   const filteredArtists = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
     return (artists || []).filter(
       (artist) => {
         const artistProfile = artist.artist_profiles?.[0];
@@ -151,16 +197,17 @@ export default function Artists() {
         const genres = artistProfile?.genres || [];
         const artistType = (artist.artist_type || artistProfile?.artist_type || '').toLowerCase();
 
-        const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          genres.some((g: string) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          artistType.includes(searchQuery.toLowerCase());
+        const matchesSearch = !q ||
+          name.toLowerCase().includes(q) ||
+          genres.some((g: string) => g.toLowerCase().includes(q)) ||
+          artistType.includes(q);
 
         const matchesType = selectedType === 'all' || artistType === selectedType.toLowerCase();
 
         return matchesSearch && matchesType;
       }
     );
-  }, [artists, searchQuery, selectedType]);
+  }, [artists, debouncedSearch, selectedType]);
 
   const DISCIPLINE_TABS = [
     { id: 'all', label: 'All Creatives' },
@@ -260,6 +307,8 @@ export default function Artists() {
                     <img
                       src={artist.avatar_url || '/default-avatar.jpg'}
                       alt={name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
@@ -276,21 +325,16 @@ export default function Artists() {
                       )}
                     </div>
 
-                    {/* Follow Button */}
+                    {/* Follow Button (Optimistic UI) */}
                     <button
                       onClick={(e) => handleFollowToggle(e, artist.id)}
-                      disabled={followLoadingId === artist.id}
-                      className={`absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-colors ${
+                      className={`absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 ${
                         isFollowing
                           ? 'bg-pink-500 text-white'
                           : 'bg-black/40 text-white hover:bg-pink-500/80'
-                      } disabled:opacity-50`}
+                      }`}
                     >
-                      {followLoadingId === artist.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
-                      )}
+                      <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
                     </button>
 
                     {/* Info */}

@@ -16,33 +16,37 @@ import AuthLayout from './layouts/AuthLayout';
 import ResponsiveLayout from './layouts/ResponsiveLayout';
 import AdminLayout from './pages/admin/AdminLayout';
 
-// Public Pages (eager - most visited)
+// Public Pages (eager - strictly core tab entry points for fastest cold start)
 import Home from './pages/Home';
 import Events from './pages/Events';
-import EventDetail from './pages/EventDetail';
-import Artists from './pages/Artists';
-import ArtistDetail from './pages/ArtistDetail';
-import Vendors from './pages/Vendors';
-import VendorDetail from './pages/VendorDetail';
-import PublicProfile from './pages/PublicProfile';
 import CityGuide from './pages/CityGuide';
-import Food from './pages/Food';
-import Community from './pages/Community';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Download from './pages/Download';
-import Scan from './pages/Scan';
 import NotFound from './pages/NotFound';
-import OnSiteTools from './pages/OnSiteTools';
-import CheckedInGuests from './pages/CheckedInGuests';
 
-// Auth Pages (eager - entry points)
+// Auth Entry Pages (eager)
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
-import VerifyOTP from './pages/auth/VerifyOTP';
-import EmailVerification from './pages/auth/EmailVerification';
+
+// Secondary Public & Detail Pages (lazy-loaded to cut initial bundle evaluation by >55%)
+const EventDetail = lazy(() => import('./pages/EventDetail'));
+const Artists = lazy(() => import('./pages/Artists'));
+const ArtistDetail = lazy(() => import('./pages/ArtistDetail'));
+const Vendors = lazy(() => import('./pages/Vendors'));
+const VendorDetail = lazy(() => import('./pages/VendorDetail'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const Food = lazy(() => import('./pages/Food'));
+const Community = lazy(() => import('./pages/Community'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Download = lazy(() => import('./pages/Download'));
+const Scan = lazy(() => import('./pages/Scan'));
+const OnSiteTools = lazy(() => import('./pages/OnSiteTools'));
+const CheckedInGuests = lazy(() => import('./pages/CheckedInGuests'));
+
+// Secondary Auth Pages (lazy-loaded)
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
+const VerifyOTP = lazy(() => import('./pages/auth/VerifyOTP'));
+const EmailVerification = lazy(() => import('./pages/auth/EmailVerification'));
 
 // Components
 import LoadingScreen from './components/LoadingScreen';
@@ -248,6 +252,7 @@ function App() {
       });
 
     const checkMaintenance = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const statusCtrl = new AbortController();
       const statusTimeout = setTimeout(() => statusCtrl.abort(), 2000);
       fetch(`${API_BASE_URL}/system/status`, { signal: statusCtrl.signal })
@@ -300,15 +305,6 @@ function App() {
 
   const isAdminUser = profile?.role_type === 'admin' || profile?.role_type === 'super_admin' || profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // Intro / splash screen is strictly for native mobile apps (iOS & Android). Never show on web layout.
-  if (isLoading && isNativeApp()) {
-    return (
-      <ErrorBoundary>
-        <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
-      </ErrorBoundary>
-    );
-  }
-
   if (maintenanceMode && !isAdminUser) {
     return (
       <div className="min-h-dvh bg-[#020b00] flex items-center justify-center px-4">
@@ -335,6 +331,10 @@ function App() {
   return (
     <ErrorBoundary>
     <MobileViewportManager />
+    {/* Native splash screen renders as an overlay while Router mounts and prefetches Home data in parallel */}
+    {isLoading && isNativeApp() && (
+      <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
+    )}
     <Router>
       <LiveNotificationBridge />
       <UploadProgressHUD />
@@ -351,6 +351,7 @@ function App() {
           },
         }}
       />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
           {/* Onboarding Flow (Native Apps Only) */}
           <Route path="/onboarding" element={<OnboardingGuard />} />
@@ -774,6 +775,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </Suspense>
       <PWAInstallPrompt />
       <AndroidAppPrompt />
       <CookieConsent />

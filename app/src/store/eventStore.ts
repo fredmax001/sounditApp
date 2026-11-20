@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import axios from 'axios';
 import { useAuthStore } from './authStore';
+import { queryCache, isAbortError } from '@/lib/queryCache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
+const inFlightSaves = new Set<string>();
 
 function getErrorMessage(err: unknown): string {
   if (typeof err === 'string') return err;
@@ -214,39 +216,70 @@ export const useEventStore = create<EventState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  // Fetch events with optional filters
+  // Fetch events with optional filters (city-isolated cache + AbortController cancellation + deduplication)
   fetchEvents: async (filters?: EventFilters) => {
+    const cityKey = queryCache.normalizeCity(filters?.city);
+    const params: Record<string, unknown> = {};
+    if (cityKey !== 'all') params.city = cityKey;
+    if (filters?.startDate) params.date_from = filters.startDate;
+    if (filters?.endDate) params.date_to = filters.endDate;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.category) params.category = filters.category;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.includePast) params.include_past = true;
+
+    const cacheKey = `events:list:${cityKey}:${JSON.stringify(params)}`;
+    const cached = queryCache.get<EventWithDetails[]>(cacheKey);
+    if (cached !== null) {
+      set({ events: cached, isLoading: false, error: null });
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {
-      const params: Record<string, unknown> = {};
-      if (filters?.city && filters.city !== 'all') params.city = filters.city;
-      if (filters?.startDate) params.date_from = filters.startDate;
-      if (filters?.endDate) params.date_to = filters.endDate;
-      if (filters?.status) params.status = filters.status;
-      if (filters?.category) params.category = filters.category;
-      if (filters?.search) params.search = filters.search;
-      if (filters?.includePast) params.include_past = true;
-
-      const response = await axios.get(`${API_URL}/events`, { params });
-      set({ events: response.data || [], isLoading: false });
+      const data = await queryCache.fetchJson<EventWithDetails[]>(
+        cacheKey,
+        `${API_URL}/events`,
+        {
+          params,
+          ttlMs: 35_000,
+          scope: 'city:events-list',
+        }
+      );
+      set({ events: Array.isArray(data) ? data : [], isLoading: false });
     } catch (error: unknown) {
+      if (isAbortError(error)) return;
       set({ error: getErrorMessage(error), isLoading: false });
     }
   },
 
-  // Fetch single event by ID
+  // Fetch single event by ID (backend increments views via BackgroundTasks — no duplicate GET needed)
   fetchEventById: async (id: string) => {
-    set({ isLoading: true, error: null });
+    const cacheKey = `events:detail:${id}`;
+    const cached = queryCache.get<EventWithDetails>(cacheKey);
+    if (cached !== null) {
+      set({ currentEvent: cached, isLoading: false, error: null });
+    } else {
+      set({ isLoading: true, error: null });
+    }
 
     try {
-      const response = await axios.get(`${API_URL}/events/${id}`);
-      set({ currentEvent: response.data, isLoading: false });
-
-      // Increment views in background
-      get().incrementViews(id);
+      const data = await queryCache.fetchJson<EventWithDetails>(
+        cacheKey,
+        `${API_URL}/events/${id}`,
+        {
+          ttlMs: 25_000,
+          scope: 'events-detail',
+          forceRefresh: cached !== null,
+        }
+      );
+      set({ currentEvent: data, isLoading: false });
     } catch (error: unknown) {
-      set({ error: getErrorMessage(error), isLoading: false });
+      if (isAbortError(error)) return;
+      if (!cached) {
+        set({ error: getErrorMessage(error), isLoading: false });
+      }
     }
   },
 
@@ -255,32 +288,66 @@ export const useEventStore = create<EventState>((set, get) => ({
     await get().fetchEvents({ city });
   },
 
-  // Fetch featured events
+  // Fetch featured events (city-isolated cache + cancellation + deduplication)
   fetchFeaturedEvents: async (city?: string) => {
+    const cityKey = queryCache.normalizeCity(city);
+    const params: Record<string, unknown> = {};
+    if (cityKey !== 'all') params.city = cityKey;
+
+    const cacheKey = `events:featured:${cityKey}`;
+    const cached = queryCache.get<EventWithDetails[]>(cacheKey);
+    if (cached !== null) {
+      set({ featuredEvents: cached, isLoading: false, error: null });
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {
-      const params: Record<string, unknown> = {};
-      if (city && city !== 'all') params.city = city;
-
-      const response = await axios.get(`${API_URL}/events/featured`, { params });
-      set({ featuredEvents: response.data || [], isLoading: false });
+      const data = await queryCache.fetchJson<EventWithDetails[]>(
+        cacheKey,
+        `${API_URL}/events/featured`,
+        {
+          params,
+          ttlMs: 40_000,
+          scope: 'city:events-featured',
+        }
+      );
+      set({ featuredEvents: Array.isArray(data) ? data : [], isLoading: false });
     } catch (error: unknown) {
+      if (isAbortError(error)) return;
       set({ error: getErrorMessage(error), isLoading: false });
     }
   },
 
   // Fetch past events (archive)
   fetchPastEvents: async (city?: string) => {
+    const cityKey = queryCache.normalizeCity(city);
+    const params: Record<string, unknown> = {};
+    if (cityKey !== 'all') params.city = cityKey;
+
+    const cacheKey = `events:past:${cityKey}`;
+    const cached = queryCache.get<EventWithDetails[]>(cacheKey);
+    if (cached !== null) {
+      set({ events: cached, isLoading: false, error: null });
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {
-      const params: Record<string, unknown> = {};
-      if (city && city !== 'all') params.city = city;
-
-      const response = await axios.get(`${API_URL}/events/past`, { params });
-      set({ events: response.data || [], isLoading: false });
+      const data = await queryCache.fetchJson<EventWithDetails[]>(
+        cacheKey,
+        `${API_URL}/events/past`,
+        {
+          params,
+          ttlMs: 45_000,
+          scope: 'city:events-past',
+        }
+      );
+      set({ events: Array.isArray(data) ? data : [], isLoading: false });
     } catch (error: unknown) {
+      if (isAbortError(error)) return;
       set({ error: getErrorMessage(error), isLoading: false });
     }
   },
@@ -297,6 +364,8 @@ export const useEventStore = create<EventState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      queryCache.invalidatePrefix('events:');
+      queryCache.invalidatePrefix('city-guide:');
       set({ isLoading: false });
       return response.data;
     } catch (error: unknown) {
@@ -324,6 +393,8 @@ export const useEventStore = create<EventState>((set, get) => ({
         set({ currentEvent: { ...currentEvent, ...response.data } });
       }
 
+      queryCache.invalidatePrefix('events:');
+      queryCache.invalidatePrefix('city-guide:');
       set({ isLoading: false });
     } catch (error: unknown) {
       const errorMessage = formatErrorMessage(error);
@@ -344,6 +415,8 @@ export const useEventStore = create<EventState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      queryCache.invalidatePrefix('events:');
+      queryCache.invalidatePrefix('city-guide:');
       set({
         events: get().events.filter(e => e.id !== id),
         isLoading: false
@@ -355,53 +428,72 @@ export const useEventStore = create<EventState>((set, get) => ({
     }
   },
 
-  // Increment event views by loading the event details endpoint
-  incrementViews: async (id: string) => {
-    try {
-      await axios.get(`${API_URL}/events/${id}`);
-    } catch (error) {
-      // Silent fail - views are not critical
-      console.error('Failed to increment views:', error);
-    }
+  // No-op: backend GET /events/{id} already increments views via BackgroundTasks
+  incrementViews: async (_id: string) => {
+    return;
   },
 
-  // Save event for user
+  // Save event for user (Optimistic UI with duplicate-submission guard & rollback)
   saveEvent: async (eventId: string) => {
-    try {
-      const token = getAuthToken();
-      if (!token) throw new Error('Not authenticated');
+    const token = getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+    if (inFlightSaves.has(eventId)) return;
+    inFlightSaves.add(eventId);
 
+    const prevSaved = get().savedEvents;
+    const candidate =
+      get().events.find((e) => String(e.id) === String(eventId)) ||
+      get().featuredEvents.find((e) => String(e.id) === String(eventId)) ||
+      (get().currentEvent && String(get().currentEvent?.id) === String(eventId) ? get().currentEvent : null) ||
+      ({ id: eventId, title: 'Saved Event' } as EventWithDetails);
+
+    // Immediate optimistic update
+    if (!prevSaved.some((e) => String(e.id) === String(eventId))) {
+      const nextSaved = [...prevSaved, candidate];
+      set({ savedEvents: nextSaved });
+      queryCache.set('events:saved', nextSaved, 30_000);
+    }
+
+    try {
       await axios.post(`${API_URL}/events/${eventId}/save`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Optimistically add to savedEvents if currentEvent matches
-      const { currentEvent } = get();
-      if (currentEvent && String(currentEvent.id) === eventId) {
-        set((state) => ({
-          savedEvents: state.savedEvents.some((e) => String(e.id) === eventId)
-            ? state.savedEvents
-            : [...state.savedEvents, currentEvent]
-        }));
-      }
     } catch (error: unknown) {
+      // Roll back optimistic state on failure
+      set({ savedEvents: prevSaved });
+      queryCache.set('events:saved', prevSaved, 30_000);
       throw new Error(getApiErrorDetail(error, 'Failed to save event'));
+    } finally {
+      inFlightSaves.delete(eventId);
     }
   },
 
-  // Unsave event
+  // Unsave event (Optimistic UI with duplicate-submission guard & rollback)
   unsaveEvent: async (eventId: string) => {
-    try {
-      const token = getAuthToken();
-      if (!token) throw new Error('Not authenticated');
+    const token = getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+    if (inFlightSaves.has(eventId)) return;
+    inFlightSaves.add(eventId);
 
+    const prevSaved = get().savedEvents;
+    const nextSaved = prevSaved.filter((e) => String(e.id) !== String(eventId));
+    // Immediate optimistic update
+    set({
+      savedEvents: nextSaved
+    });
+    queryCache.set('events:saved', nextSaved, 30_000);
+
+    try {
       await axios.delete(`${API_URL}/events/${eventId}/save`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      set((state) => ({
-        savedEvents: state.savedEvents.filter((e) => String(e.id) !== eventId)
-      }));
     } catch (error: unknown) {
+      // Roll back optimistic state on failure
+      set({ savedEvents: prevSaved });
+      queryCache.set('events:saved', prevSaved, 30_000);
       throw new Error(getApiErrorDetail(error, 'Failed to unsave event'));
+    } finally {
+      inFlightSaves.delete(eventId);
     }
   },
 
@@ -427,7 +519,7 @@ export const useEventStore = create<EventState>((set, get) => ({
     }
   },
 
-  // Fetch user's saved events
+  // Fetch user's saved events (deduplicated across mounted EventCard instances)
   fetchSavedEvents: async () => {
     try {
       const token = getAuthToken();
@@ -436,12 +528,18 @@ export const useEventStore = create<EventState>((set, get) => ({
         return;
       }
 
-      const response = await axios.get(`${API_URL}/events/saved`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const data = await queryCache.fetchJson<EventWithDetails[]>(
+        'events:saved',
+        `${API_URL}/events/saved`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          ttlMs: 30_000,
+        }
+      );
 
-      set({ savedEvents: response.data || [] });
+      set({ savedEvents: Array.isArray(data) ? data : [] });
     } catch (error: unknown) {
+      if (isAbortError(error)) return;
       set({ savedEvents: [] });
     }
   },

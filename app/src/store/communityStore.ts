@@ -5,6 +5,7 @@ import { useAuthStore } from './authStore';
 import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
+const inFlightPostActions = new Set<string>();
 
 function getApiErrorDetail(err: unknown, fallback = 'Unknown error'): string {
   if (typeof err === 'string') return err;
@@ -334,45 +335,80 @@ export const useCommunityStore = create<CommunityState>()(
             },
 
             likePost: async (postId) => {
+                const actionKey = `like:${postId}`;
+                if (inFlightPostActions.has(actionKey)) return;
+                inFlightPostActions.add(actionKey);
+                const prevPosts = get().posts;
+                // Optimistic UI update
+                set({
+                    posts: prevPosts.map(post =>
+                        post.id === postId
+                            ? { ...post, has_liked: true, likes_count: post.likes_count + 1 }
+                            : post
+                    )
+                });
                 try {
                     await axios.post(`${API_URL}/community/posts/${postId}/like`, {}, {
                         headers: buildAuthHeaders(),
                     });
-                    set({
-                        posts: get().posts.map(post =>
-                            post.id === postId
-                                ? { ...post, has_liked: true, likes_count: post.likes_count + 1 }
-                                : post
-                        )
-                    });
                 } catch (error) {
+                    set({ posts: prevPosts });
                     console.error('Failed to like post:', error);
+                    toast.error('Could not like post');
+                } finally {
+                    inFlightPostActions.delete(actionKey);
                 }
             },
 
             unlikePost: async (postId) => {
+                const actionKey = `like:${postId}`;
+                if (inFlightPostActions.has(actionKey)) return;
+                inFlightPostActions.add(actionKey);
+                const prevPosts = get().posts;
+                // Optimistic UI update
+                set({
+                    posts: prevPosts.map(post =>
+                        post.id === postId
+                            ? { ...post, has_liked: false, likes_count: Math.max(0, post.likes_count - 1) }
+                            : post
+                    )
+                });
                 try {
                     await axios.post(`${API_URL}/community/posts/${postId}/unlike`, {}, {
                         headers: buildAuthHeaders(),
                     });
-                    set({
-                        posts: get().posts.map(post =>
-                            post.id === postId
-                                ? { ...post, has_liked: false, likes_count: Math.max(0, post.likes_count - 1) }
-                                : post
-                        )
-                    });
                 } catch (error) {
+                    set({ posts: prevPosts });
                     console.error('Failed to unlike post:', error);
+                    toast.error('Could not update like');
+                } finally {
+                    inFlightPostActions.delete(actionKey);
                 }
             },
 
             toggleBookmark: async (postId) => {
+                const actionKey = `bookmark:${postId}`;
+                if (inFlightPostActions.has(actionKey)) {
+                    const curr = get().posts.find(p => p.id === postId);
+                    return Boolean(curr?.has_saved);
+                }
+                inFlightPostActions.add(actionKey);
+                const prevPosts = get().posts;
+                const targetPost = prevPosts.find(p => p.id === postId);
+                const optimisticSaved = !targetPost?.has_saved;
+                // Optimistic UI update
+                set({
+                    posts: prevPosts.map(post =>
+                        post.id === postId
+                            ? { ...post, has_saved: optimisticSaved }
+                            : post
+                    )
+                });
                 try {
                     const response = await axios.post(`${API_URL}/community/posts/${postId}/bookmark`, {}, {
                         headers: buildAuthHeaders(),
                     });
-                    const saved = Boolean(response.data?.saved);
+                    const saved = response.data?.saved !== undefined ? Boolean(response.data.saved) : optimisticSaved;
                     set({
                         posts: get().posts.map(post =>
                             post.id === postId
@@ -383,9 +419,12 @@ export const useCommunityStore = create<CommunityState>()(
                     toast.success(saved ? 'Post saved to Bookmarks' : 'Removed from Bookmarks');
                     return saved;
                 } catch (error) {
+                    set({ posts: prevPosts });
                     console.error('Failed to bookmark post:', error);
                     toast.error('Please log in to bookmark posts');
-                    return false;
+                    return Boolean(targetPost?.has_saved);
+                } finally {
+                    inFlightPostActions.delete(actionKey);
                 }
             },
 
@@ -452,52 +491,98 @@ export const useCommunityStore = create<CommunityState>()(
             },
 
             likeComment: async (commentId, postId) => {
+                const actionKey = `comment-like:${commentId}`;
+                if (inFlightPostActions.has(actionKey)) return;
+                inFlightPostActions.add(actionKey);
+                const prevPosts = get().posts;
+                set({
+                    posts: prevPosts.map(post =>
+                        post.id === postId
+                            ? {
+                                ...post,
+                                comments: updateCommentInTree(post.comments, commentId, (comment) => ({
+                                    ...comment,
+                                    has_liked: true,
+                                    like_count: (comment.like_count || 0) + 1
+                                }))
+                            }
+                            : post
+                    )
+                });
                 try {
                     const response = await axios.post(`${API_URL}/community/comments/${commentId}/like`, {}, {
                         headers: buildAuthHeaders(),
                     });
                     const { like_count } = response.data;
-                    set({
-                        posts: get().posts.map(post =>
-                            post.id === postId
-                                ? {
-                                    ...post,
-                                    comments: updateCommentInTree(post.comments, commentId, (comment) => ({
-                                        ...comment,
-                                        has_liked: true,
-                                        like_count
-                                    }))
-                                }
-                                : post
-                        )
-                    });
+                    if (typeof like_count === 'number') {
+                        set({
+                            posts: get().posts.map(post =>
+                                post.id === postId
+                                    ? {
+                                        ...post,
+                                        comments: updateCommentInTree(post.comments, commentId, (comment) => ({
+                                            ...comment,
+                                            has_liked: true,
+                                            like_count
+                                        }))
+                                    }
+                                    : post
+                            )
+                        });
+                    }
                 } catch (error) {
+                    set({ posts: prevPosts });
                     console.error('Failed to like comment:', error);
+                } finally {
+                    inFlightPostActions.delete(actionKey);
                 }
             },
 
             unlikeComment: async (commentId, postId) => {
+                const actionKey = `comment-like:${commentId}`;
+                if (inFlightPostActions.has(actionKey)) return;
+                inFlightPostActions.add(actionKey);
+                const prevPosts = get().posts;
+                set({
+                    posts: prevPosts.map(post =>
+                        post.id === postId
+                            ? {
+                                ...post,
+                                comments: updateCommentInTree(post.comments, commentId, (comment) => ({
+                                    ...comment,
+                                    has_liked: false,
+                                    like_count: Math.max(0, (comment.like_count || 0) - 1)
+                                }))
+                            }
+                            : post
+                    )
+                });
                 try {
                     const response = await axios.post(`${API_URL}/community/comments/${commentId}/unlike`, {}, {
                         headers: buildAuthHeaders(),
                     });
                     const { like_count } = response.data;
-                    set({
-                        posts: get().posts.map(post =>
-                            post.id === postId
-                                ? {
-                                    ...post,
-                                    comments: updateCommentInTree(post.comments, commentId, (comment) => ({
-                                        ...comment,
-                                        has_liked: false,
-                                        like_count
-                                    }))
-                                }
-                                : post
-                        )
-                    });
+                    if (typeof like_count === 'number') {
+                        set({
+                            posts: get().posts.map(post =>
+                                post.id === postId
+                                    ? {
+                                        ...post,
+                                        comments: updateCommentInTree(post.comments, commentId, (comment) => ({
+                                            ...comment,
+                                            has_liked: false,
+                                            like_count
+                                        }))
+                                    }
+                                    : post
+                            )
+                        });
+                    }
                 } catch (error) {
+                    set({ posts: prevPosts });
                     console.error('Failed to unlike comment:', error);
+                } finally {
+                    inFlightPostActions.delete(actionKey);
                 }
             },
 

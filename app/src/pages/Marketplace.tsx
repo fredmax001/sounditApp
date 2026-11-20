@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Store, MapPin, Loader2, ShoppingBag } from 'lucide-react';
@@ -6,6 +6,9 @@ import ProductCard from '@/components/ProductCard';
 import VendorCart from '@/components/VendorCart';
 import VerificationBadge from '@/components/VerificationBadge';
 import { useVendorMarketplaceStore } from '@/store/vendorMarketplaceStore';
+import { useAuthStore } from '@/store/authStore';
+import { queryCache, isAbortError } from '@/lib/queryCache';
+import { useDebouncedValue } from '@/hooks/useDebounce';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -34,9 +37,11 @@ interface Product {
 }
 
 export default function Marketplace() {
+    const { selectedCity } = useAuthStore();
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebouncedValue(search, 200);
     const [isLoading, setIsLoading] = useState(true);
     const [view, setView] = useState<'products' | 'vendors'>('products');
     const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
@@ -46,43 +51,71 @@ export default function Marketplace() {
     );
 
     useEffect(() => {
+        let cancelled = false;
+        const cityKey = queryCache.normalizeCity(selectedCity);
+        const params: Record<string, unknown> = cityKey !== 'all' ? { city: cityKey } : {};
+        const vCacheKey = `marketplace:vendors:${cityKey}`;
+        const pCacheKey = `marketplace:products:${cityKey}`;
+
+        const cachedV = queryCache.get<Vendor[]>(vCacheKey);
+        const cachedP = queryCache.get<{ products: Product[] }>(pCacheKey);
+        if (cachedV && cachedP) {
+            setVendors(cachedV);
+            setProducts(cachedP.products || []);
+            setIsLoading(false);
+            return;
+        }
+
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                // Fetch vendors list
-                const vRes = await fetch(`${API_BASE_URL}/vendors?limit=100`);
-                if (vRes.ok) {
-                    const vData = await vRes.json();
-                    setVendors(vData || []);
-                }
-
-                // Fetch ALL products in one call (new bulk endpoint)
-                const pRes = await fetch(`${API_BASE_URL}/vendors/products/all?limit=500`);
-                if (pRes.ok) {
-                    const pData = await pRes.json();
-                    setProducts(pData.products || []);
-                }
-            } catch {
-                // silent
+                const [vData, pData] = await Promise.all([
+                    queryCache.fetchJson<Vendor[]>(vCacheKey, `${API_BASE_URL}/vendors`, {
+                        params: { limit: 100, ...params },
+                        ttlMs: 45_000,
+                        scope: 'city:marketplace-vendors',
+                    }),
+                    queryCache.fetchJson<{ products: Product[] }>(pCacheKey, `${API_BASE_URL}/vendors/products/all`, {
+                        params: { limit: 500, ...params },
+                        ttlMs: 45_000,
+                        scope: 'city:marketplace-products',
+                    }),
+                ]);
+                if (cancelled) return;
+                setVendors(vData || []);
+                setProducts(pData?.products || []);
+            } catch (e) {
+                if (isAbortError(e)) return;
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
         };
         fetchData();
-    }, []);
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedCity]);
 
-    const filteredProducts = products.filter(
-        (p) =>
-            p.name.toLowerCase().includes(search.toLowerCase()) ||
-            (p.vendor_name && p.vendor_name.toLowerCase().includes(search.toLowerCase())) ||
-            (p.category && p.category.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredProducts = useMemo(() => {
+        const q = debouncedSearch.toLowerCase();
+        if (!q) return products;
+        return products.filter(
+            (p) =>
+                p.name.toLowerCase().includes(q) ||
+                (p.vendor_name && p.vendor_name.toLowerCase().includes(q)) ||
+                (p.category && p.category.toLowerCase().includes(q))
+        );
+    }, [products, debouncedSearch]);
 
-    const filteredVendors = vendors.filter(
-        (v) =>
-            v.business_name.toLowerCase().includes(search.toLowerCase()) ||
-            (v.vendor_type && v.vendor_type.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredVendors = useMemo(() => {
+        const q = debouncedSearch.toLowerCase();
+        if (!q) return vendors;
+        return vendors.filter(
+            (v) =>
+                v.business_name.toLowerCase().includes(q) ||
+                (v.vendor_type && v.vendor_type.toLowerCase().includes(q))
+        );
+    }, [vendors, debouncedSearch]);
 
     return (
         <div className="min-h-dvh pb-24 bg-[#020b00]">

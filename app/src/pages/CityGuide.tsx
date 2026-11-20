@@ -32,6 +32,7 @@ import { openDirections } from '@/lib/directions';
 import DiscoveryResultCard from '@/components/ui/DiscoveryResultCard';
 import DiscoveryFeed from '@/components/DiscoveryFeed';
 import { slugify } from '@/lib/slug';
+import { useDebouncedValue } from '@/hooks/useDebounce';
 
 type GMap = {
   setCenter: (center: { lat: number; lng: number }) => void;
@@ -149,6 +150,7 @@ const CityGuide = () => {
   const initialTab: FilterTab = normalizeTab(tabParam);
   const { selectedCity, setSelectedCity } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery, 200);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>(initialTab);
   const [mapReady, setMapReady] = useState(false);
@@ -182,9 +184,10 @@ const CityGuide = () => {
   const { guideItems, selectedItem, mapCenter, isLoading, fetchCityGuide, setSelectedItem, setMapCenter } =
     useCityGuideStore();
 
-  // Load Google Maps script dynamically
+  // Load Google Maps script lazily ONLY when user selects a mappable tab (event/venue/food)
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY || scriptLoadedRef.current) return;
+    if (!MAPPABLE_TYPES.has(activeTab)) return;
+    if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'your_maps_key' || scriptLoadedRef.current) return;
     scriptLoadedRef.current = true;
 
     if (window.google?.maps) {
@@ -199,7 +202,7 @@ const CityGuide = () => {
     script.onload = () => setMapReady(true);
     script.onerror = () => setMapError(true);
     document.head.appendChild(script);
-  }, []);
+  }, [activeTab]);
 
   // Fetch city guide when city changes
   useEffect(() => {
@@ -385,8 +388,8 @@ const CityGuide = () => {
   const displayItems = useMemo(() => {
     const list = Array.isArray(guideItems) ? guideItems : [];
     let items = activeTab === 'all' ? list : list.filter((i) => i && i.type === activeTab);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       items = items.filter(
         (i) =>
           i &&
@@ -396,7 +399,7 @@ const CityGuide = () => {
       );
     }
     return items;
-  }, [guideItems, activeTab, searchQuery]);
+  }, [guideItems, activeTab, debouncedSearch]);
 
   const featuredItems = useMemo(() => {
     const list = Array.isArray(guideItems) ? guideItems : [];

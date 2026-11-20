@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import { queryCache, isAbortError } from '@/lib/queryCache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -252,13 +253,32 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
     },
 
     fetchCityGuide: async (city: string) => {
+        const cityKey = queryCache.normalizeCity(city);
+        const cacheKey = `city-guide:${cityKey}`;
+        const cachedPayload = queryCache.get<{ items: GuideItem[]; center: { lat: number; lng: number } }>(cacheKey);
+        if (cachedPayload) {
+            set({
+                guideItems: cachedPayload.items,
+                mapCenter: cachedPayload.center,
+                isLoading: false,
+                error: null,
+            });
+            return;
+        }
+
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.get(`${API_URL}/cities/${encodeURIComponent(city)}/guide`);
-            const data = response.data;
+            const data = await queryCache.fetchJson<Record<string, unknown[]>>(
+                `city-guide:raw:${cityKey}`,
+                `${API_URL}/cities/${encodeURIComponent(cityKey)}/guide`,
+                {
+                    ttlMs: 45_000,
+                    scope: 'city:city-guide',
+                }
+            );
             const items: GuideItem[] = [];
 
-            (data.events || []).forEach((evt: Record<string, unknown>) => {
+            ((data.events as Record<string, unknown>[]) || []).forEach((evt: Record<string, unknown>) => {
                 items.push({
                     id: evt.id as number,
                     type: 'event',
@@ -275,7 +295,7 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            (data.venues || []).forEach((ven: Record<string, unknown>) => {
+            ((data.venues as Record<string, unknown>[]) || []).forEach((ven: Record<string, unknown>) => {
                 items.push({
                     id: ven.id as number,
                     type: 'venue',
@@ -291,7 +311,7 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            (data.foodSpots || []).forEach((food: Record<string, unknown>) => {
+            ((data.foodSpots as Record<string, unknown>[]) || []).forEach((food: Record<string, unknown>) => {
                 items.push({
                     id: food.id as number,
                     type: 'food',
@@ -307,7 +327,7 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            (data.artists || []).forEach((artist: Record<string, unknown>) => {
+            ((data.artists as Record<string, unknown>[]) || []).forEach((artist: Record<string, unknown>) => {
                 items.push({
                     id: artist.id as number,
                     user_id: artist.user_id as number | undefined,
@@ -326,7 +346,7 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            (data.vendors || []).forEach((vendor: Record<string, unknown>) => {
+            ((data.vendors as Record<string, unknown>[]) || []).forEach((vendor: Record<string, unknown>) => {
                 items.push({
                     id: vendor.id as number,
                     user_id: vendor.user_id as number | undefined,
@@ -345,7 +365,7 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            (data.businesses || []).forEach((biz: Record<string, unknown>) => {
+            ((data.businesses as Record<string, unknown>[]) || []).forEach((biz: Record<string, unknown>) => {
                 items.push({
                     id: biz.id as number,
                     user_id: biz.user_id as number | undefined,
@@ -363,7 +383,6 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 });
             });
 
-            // Compute map center from items or default to Shanghai
             let center = { lat: 31.2304, lng: 121.4737 };
             if (items.length > 0) {
                 const lats = items.map(i => i.lat);
@@ -374,8 +393,10 @@ export const useCityGuideStore = create<CityGuideState>((set, get) => ({
                 };
             }
 
+            queryCache.set(cacheKey, { items, center }, 45_000);
             set({ guideItems: items, mapCenter: center, isLoading: false });
         } catch (error: unknown) {
+            if (isAbortError(error)) return;
             console.error('Error fetching city guide:', error);
             set({ error: getErrorMessage(error), isLoading: false });
         }

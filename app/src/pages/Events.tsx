@@ -18,13 +18,15 @@ import { useAuthStore } from '@/store/authStore';
 import { chinaCities } from '@/data/constants';
 import type { DateFilter } from '@/components/ui/MobileFilterPills';
 import { getEntitySlug } from '@/lib/slug';
+import { useDebouncedValue } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
 
 export default function Events() {
   const navigate = useNavigate();
-  const { events, fetchEvents, fetchPastEvents, savedEvents, saveEvent, unsaveEvent } = useEventStore();
-  const { selectedCity, setSelectedCity } = useAuthStore();
+  const { events, fetchEvents, fetchPastEvents, savedEvents, fetchSavedEvents, saveEvent, unsaveEvent } = useEventStore();
+  const { selectedCity, setSelectedCity, isAuthenticated } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery, 200);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -43,18 +45,25 @@ export default function Events() {
   const toggleSaveEvent = async (e: React.MouseEvent, eventId: string | number) => {
     e.preventDefault();
     e.stopPropagation();
+    const currentlySaved = isEventSaved(eventId);
     try {
-      if (isEventSaved(eventId)) {
-        await unsaveEvent(String(eventId));
+      if (currentlySaved) {
         toast.success('Removed from Favorites');
+        await unsaveEvent(String(eventId));
       } else {
-        await saveEvent(String(eventId));
         toast.success('Added to Favorites');
+        await saveEvent(String(eventId));
       }
     } catch {
       toast.error('Please log in to save favorite events');
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSavedEvents();
+    }
+  }, [isAuthenticated, fetchSavedEvents]);
 
   useEffect(() => {
     const cityParam = selectedCity && selectedCity !== 'all' ? selectedCity : undefined;
@@ -66,11 +75,13 @@ export default function Events() {
   }, [dateFilter, fetchEvents, fetchPastEvents, selectedCity]);
 
   const filteredEvents = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
     let result = (events || []).filter((event) => {
       const matchesSearch =
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (event.venue?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (event.category?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+        !q ||
+        event.title.toLowerCase().includes(q) ||
+        (event.venue?.name || '').toLowerCase().includes(q) ||
+        (event.category?.toLowerCase().includes(q) ?? false);
 
       const matchesCategory =
         !selectedCategory ||
@@ -121,7 +132,7 @@ export default function Events() {
     }
 
     return result;
-  }, [events, searchQuery, selectedCategory, dateFilter, freeOnly, sortBy]);
+  }, [events, debouncedSearch, selectedCategory, dateFilter, freeOnly, sortBy]);
 
   const formatEventDateTime = (dateStr?: string) => {
     if (!dateStr) return 'Upcoming';
