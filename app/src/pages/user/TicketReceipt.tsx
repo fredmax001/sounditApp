@@ -108,7 +108,7 @@ const TicketReceipt = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-20 pb-24 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-20 pb-24 transition-colors">
       {/* Header */}
       <MobilePageHeader title={t('receipt.title', 'E-Receipt')} className="no-print" />
 
@@ -131,7 +131,7 @@ const TicketReceipt = () => {
             <div id="receipt-print-area" className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl overflow-hidden mb-6 shadow-xs dark:shadow-none">
               <div className="px-5 pt-5 pb-4 border-b border-black/8 dark:border-white/5 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-1">Sound It</p>
+                  <p className="text-[#020b00] dark:text-[#d3da0c] text-[0.625rem] font-bold uppercase tracking-widest mb-1">Sound It</p>
                   <h2 className="text-[#020b00] dark:text-white font-bold text-lg leading-snug">{order.event?.title}</h2>
                   {order.event?.start_date && (
                     <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
@@ -185,7 +185,7 @@ const TicketReceipt = () => {
                   {(order.ticket_code || tickets[0]?.ticket_number) && (
                     <p className="text-gray-600 dark:text-gray-400 text-xs font-mono mt-3">{order.ticket_code || tickets[0]?.ticket_number}</p>
                   )}
-                  <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-2">{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] mt-2">{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}</p>
                 </div>
               )}
             </div>

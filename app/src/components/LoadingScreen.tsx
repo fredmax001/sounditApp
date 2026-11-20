@@ -230,7 +230,7 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
           className="flex flex-col items-center"
         >
           <p
-            className="text-[11px] sm:text-xs font-extrabold tracking-[0.14em] uppercase text-[#d3da0c] px-3 leading-relaxed text-center"
+            className="text-[0.6875rem] sm:text-xs font-extrabold tracking-[0.14em] uppercase text-[#d3da0c] px-3 leading-relaxed text-center"
             style={{
               textShadow: '0 2px 10px rgba(0, 0, 0, 0.85), 0 0 18px rgba(211, 218, 12, 0.35)',
             }}
@@ -251,11 +251,11 @@ const LoadingScreen = ({ settings, onFinish }: LoadingScreenProps) => {
               className="mt-5 w-full bg-[#0a1605]/90 hover:bg-[#0e1f07]/95 border border-[#d3da0c]/40 hover:border-[#d3da0c] rounded-2xl p-3 shadow-2xl backdrop-blur-xl transition-all cursor-pointer group text-left relative overflow-hidden"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[10px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[0.625rem] font-bold uppercase tracking-wider">
                   {settings?.ad_badge || 'Featured Sponsor'}
                 </span>
                 {settings?.ad_link_url && (
-                  <span className="text-gray-400 group-hover:text-white flex items-center gap-1 text-[11px] font-medium transition-colors">
+                  <span className="text-gray-400 group-hover:text-white flex items-center gap-1 text-[0.6875rem] font-medium transition-colors">
                     <span>Visit</span>
                     <ExternalLink className="w-3 h-3" />
                   </span>

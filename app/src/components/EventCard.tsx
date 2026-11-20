@@ -93,12 +93,12 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
             {event.is_featured && (
-              <span className="px-2.5 py-1 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full">
+              <span className="px-2.5 py-1 bg-[#d3da0c] text-black text-[0.625rem] font-bold rounded-full">
                 {t('eventCard.featured')}
               </span>
             )}
             {isSoldOut && (
-              <span className="px-2.5 py-1 bg-[#FF2D8F] text-white text-[10px] font-bold rounded-full">
+              <span className="px-2.5 py-1 bg-[#FF2D8F] text-white text-[0.625rem] font-bold rounded-full">
                 {t('eventCard.soldOut')}
               </span>
             )}
@@ -117,7 +117,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
 
           {/* Date pill */}
           <div className="absolute top-3 right-14 glass-strong px-2.5 py-1 rounded-lg text-center">
-            <div className="text-[#d3da0c] text-[10px] font-bold leading-tight">
+            <div className="text-[#d3da0c] text-[0.625rem] font-bold leading-tight">
               {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
             </div>
             <div className="text-white text-sm font-bold leading-tight">{eventDate.getDate()}</div>
@@ -141,7 +141,7 @@ const EventCard = ({ event, variant = 'default' }: EventCardProps) => {
                 {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
               </span>
               {capacity > 0 && showRemaining && (
-                <span className="text-gray-400 text-[10px]">{capacity - ticketsSold} left</span>
+                <span className="text-gray-400 text-[0.625rem]">{capacity - ticketsSold} left</span>
               )}
             </div>
           </div>

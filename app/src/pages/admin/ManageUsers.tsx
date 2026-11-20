@@ -383,7 +383,7 @@ const ManageUsers = () => {
                                             value={user.role}
                                             onChange={(e) => handleEditRole(user.id, e.target.value)}
                                             disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
-                                            className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
+                                            className={`px-2.5 py-1 rounded text-[0.625rem] font-bold uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
                                         >
                                             <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
                                             <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
@@ -521,7 +521,7 @@ const ManageUsers = () => {
 
             {/* Invite User Modal */}
             {showInviteModal && (
-                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-[80] p-4">
                     <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.manageUsers.inviteNewUser')}</h3>
@@ -593,7 +593,7 @@ const ManageUsers = () => {
 
             {/* Broadcast Modal */}
             {showBroadcastModal && (
-                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-[80] p-4">
                     <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.manageUsers.broadcastMessageTitle')}</h3>

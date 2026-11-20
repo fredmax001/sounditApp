@@ -89,7 +89,7 @@ const TableBookings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       <section className="sticky top-20 lg:top-24 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-colors">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
           <button onClick={() => navigate(-1)} aria-label={t('kit.common.back')} className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-[#020b00] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
@@ -118,13 +118,13 @@ const TableBookings = () => {
             {/* Header */}
             <div className="p-4 pb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-widest mb-0.5">{o.package.name}</p>
+                <p className="text-[#020b00] dark:text-[#d3da0c] text-[0.625rem] font-bold uppercase tracking-widest mb-0.5">{o.package.name}</p>
                 <h3 className="text-[#020b00] dark:text-white font-semibold truncate">{o.event.title}</h3>
                 <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />{o.event.start_date ? new Date(o.event.start_date).toLocaleString() : ''}
                 </p>
               </div>
-              <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border capitalize shrink-0 ${statusChip(o.status)}`}>
+              <span className={`px-2.5 py-1 rounded-full text-[0.6875rem] font-bold border capitalize shrink-0 ${statusChip(o.status)}`}>
                 {o.status === 'pending' ? t('user.tickets.statusPendingApproval', 'Pending Approval') : o.status}
               </span>
             </div>
@@ -145,7 +145,7 @@ const TableBookings = () => {
             {/* Drink selections */}
             {(o.drink_selections?.length || 0) > 0 && (
               <div className="px-4 pb-3">
-                <p className="text-gray-500 text-[11px] font-semibold uppercase tracking-wide mb-1.5">{t('tables.selectedDrinks', 'Selected drinks')}</p>
+                <p className="text-gray-500 text-[0.6875rem] font-semibold uppercase tracking-wide mb-1.5">{t('tables.selectedDrinks', 'Selected drinks')}</p>
                 <div className="space-y-1">
                   {o.drink_selections!.map((d, idx) => (
                     <div key={idx} className="flex items-center justify-between text-xs">
@@ -199,16 +199,16 @@ const TableBookings = () => {
             {/* Per-guest tickets */}
             {(o.tickets?.length || 0) > 0 && (
               <div className="border-t border-black/8 dark:border-white/5 px-4 py-3">
-                <p className="text-gray-500 text-[11px] font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <p className="text-gray-500 text-[0.6875rem] font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <TicketIcon className="w-3.5 h-3.5" />{t('tables.guestTickets', 'Guest tickets')}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {o.tickets!.map((tk, idx) => (
                     <button key={tk.id} onClick={() => setQrTicket(tk)}
                       className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-2.5 text-left hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors">
-                      <p className="text-[10px] text-gray-500 mb-0.5">{o.guest_names?.[idx] || `${t('tables.guest', 'Guest')} ${idx + 1}`}</p>
-                      <p className="text-[11px] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
-                      <p className={`text-[10px] mt-0.5 font-medium ${tk.is_used ? 'text-gray-500' : 'text-[#020b00] dark:text-[#d3da0c]'}`}>{tk.is_used ? t('tables.used', 'Used') : t('tables.tapForQr', 'Tap for QR')}</p>
+                      <p className="text-[0.625rem] text-gray-500 mb-0.5">{o.guest_names?.[idx] || `${t('tables.guest', 'Guest')} ${idx + 1}`}</p>
+                      <p className="text-[0.6875rem] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
+                      <p className={`text-[0.625rem] mt-0.5 font-medium ${tk.is_used ? 'text-gray-500' : 'text-[#020b00] dark:text-[#d3da0c]'}`}>{tk.is_used ? t('tables.used', 'Used') : t('tables.tapForQr', 'Tap for QR')}</p>
                     </button>
                   ))}
                 </div>
@@ -248,7 +248,7 @@ const TableBookings = () => {
                   <div className="bg-neutral-50 dark:bg-white rounded-xl p-6 inline-block border border-black/10"><QrCode className="w-36 h-36 text-black" /></div>
                 )}
                 <p className="text-gray-500 text-xs font-mono mt-3 break-all">{qrTicket.ticket_number}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-1.5 flex items-center justify-center gap-1">
+                <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] mt-1.5 flex items-center justify-center gap-1">
                   <CircleDollarSign className="w-3 h-3 text-[#020b00] dark:text-[#d3da0c]" />{t('receipt.scanHint', 'Show this QR at the entrance — staff scan to validate.')}
                 </p>
               </motion.div>

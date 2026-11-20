@@ -48,7 +48,7 @@ export function TikTokIcon({ className = "w-6 h-6" }: { className?: string }) {
 
 export function RedNoteIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center justify-center font-black tracking-tighter select-none font-sans ${className} text-[13px] leading-none text-current`}>
+    <span className={`inline-flex items-center justify-center font-black tracking-tighter select-none font-sans ${className} text-[0.8125rem] leading-none text-current`}>
       小红书
     </span>
   );

@@ -647,7 +647,7 @@ const CreateEvent = () => {
   };
 
   return (
-    <div className={isMobileLayout ? 'min-h-0' : 'min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom))]'}>
+    <div className={isMobileLayout ? 'min-h-0' : 'min-h-dvh pb-[calc(7rem+env(safe-area-inset-bottom))]'}>
       {isMobileLayout ? (
         <CreateEventMobile
           formData={formData}
@@ -1587,7 +1587,7 @@ const CreateEvent = () => {
 
       {/* Success Modal */}
       {showSuccessModal && createdEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

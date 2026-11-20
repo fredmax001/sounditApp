@@ -512,12 +512,12 @@ const NotificationCenter = () => {
                         </span>
                       )}
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <span className="text-[0.6875rem] text-gray-500 dark:text-gray-400">
                           {t('admin.notificationCenter.tapToView') || 'Click to view details'}
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleResend(item); }}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-[#020b00] dark:text-[#d3da0c] bg-[#d3da0c]/20 dark:bg-[#d3da0c]/10 rounded-md hover:bg-[#d3da0c]/30 dark:hover:bg-[#d3da0c]/20 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[0.6875rem] font-medium text-[#020b00] dark:text-[#d3da0c] bg-[#d3da0c]/20 dark:bg-[#d3da0c]/10 rounded-md hover:bg-[#d3da0c]/30 dark:hover:bg-[#d3da0c]/20 transition-colors"
                         >
                           <RotateCcw className="w-3 h-3" />
                           {t('admin.notificationCenter.resend') || 'Resend'}
@@ -536,7 +536,7 @@ const NotificationCenter = () => {
       {/* Notification Detail Modal */}
       {viewing && (
         <div
-          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setViewing(null)}
         >
           <div
@@ -554,7 +554,7 @@ const NotificationCenter = () => {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 space-y-3 max-h-[70dvh] overflow-y-auto">
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
                   viewing.type === 'push' ? 'bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c]' :
@@ -641,7 +641,7 @@ const NotificationCenter = () => {
 
       {/* Image Preview Modal */}
       {previewImage && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
           <div className="relative max-w-3xl w-full bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h3 className="text-[#020b00] dark:text-white font-semibold text-sm">
@@ -654,11 +654,11 @@ const NotificationCenter = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 flex items-center justify-center max-h-[70vh] overflow-auto">
+            <div className="p-4 flex items-center justify-center max-h-[70dvh] overflow-auto">
               <img
                 src={previewImage}
                 alt="Full preview"
-                className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                className="max-w-full max-h-[60dvh] object-contain rounded-lg"
               />
             </div>
             <div className="p-3 bg-neutral-50 dark:bg-white/5 border-t border-black/10 dark:border-white/10 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">

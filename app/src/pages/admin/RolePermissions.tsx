@@ -393,7 +393,7 @@ const RolePermissions = () => {
                 <div className="flex items-center gap-2">
                   <p className="text-[#020b00] dark:text-white font-medium text-sm">{role.name}</p>
                   {role.is_system && (
-                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase rounded">System</span>
+                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[0.625rem] font-bold uppercase rounded">System</span>
                   )}
                 </div>
                 <p className="text-gray-500 text-xs">{role.user_count} user{role.user_count !== 1 ? 's' : ''}</p>
@@ -522,8 +522,8 @@ const RolePermissions = () => {
 
       {/* Create Role Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl w-full max-w-lg p-6 max-h-[90dvh] overflow-y-auto shadow-2xl">
             <h2 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">Create New Role</h2>
             <form onSubmit={handleCreateRole} className="space-y-4">
               <div>
@@ -579,7 +579,7 @@ const RolePermissions = () => {
 
       {/* Invite Admin Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -650,7 +650,7 @@ const RolePermissions = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-gray-500 text-[11px] mt-1">
+                <p className="text-gray-500 text-[0.6875rem] mt-1">
                   The user will be granted this role and emailed a direct login link to their dashboard.
                 </p>
               </div>

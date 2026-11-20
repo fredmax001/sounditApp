@@ -281,7 +281,7 @@ const ScanPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-dvh bg-black flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-[#020b00] border-b border-white/10 z-10">
         <button
@@ -304,7 +304,7 @@ const ScanPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}

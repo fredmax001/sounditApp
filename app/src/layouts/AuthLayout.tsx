@@ -8,9 +8,9 @@ const AuthLayout = () => {
   useAnalytics();
   const { isDark } = useThemeStore();
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative flex items-center justify-center overflow-hidden transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative flex items-center justify-center overflow-x-clip overflow-y-auto py-8 safe-area-pt safe-area-pb transition-colors duration-200">
       {/* Background Effects */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Animated Grid */}
         <div 
           className="absolute inset-0 opacity-5"
@@ -25,7 +25,7 @@ const AuthLayout = () => {
         
         {/* Gradient Orbs */}
         <motion.div 
-          className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-[#d3da0c]/10 rounded-full blur-[150px]"
+          className="absolute top-1/4 left-0 w-[min(85vw,31.25rem)] h-[min(85vw,31.25rem)] bg-[#d3da0c]/10 rounded-full blur-[150px]"
           animate={{
             x: [0, 50, 0],
             y: [0, 30, 0],
@@ -37,7 +37,7 @@ const AuthLayout = () => {
           }}
         />
         <motion.div 
-          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[#FF2D8F]/10 rounded-full blur-[150px]"
+          className="absolute bottom-0 right-1/4 w-[min(75vw,25rem)] h-[min(75vw,25rem)] bg-[#FF2D8F]/10 rounded-full blur-[150px]"
           animate={{
             x: [0, -40, 0],
             y: [0, -20, 0],
@@ -51,7 +51,7 @@ const AuthLayout = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-md px-4 sm:px-6 my-auto">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -73,7 +73,7 @@ const AuthLayout = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white/95 dark:bg-[#111111]/90 backdrop-blur-xl border border-black/8 dark:border-white/10 rounded-2xl p-8 shadow-xl dark:shadow-none"
+          className="bg-white/95 dark:bg-[#111111]/90 backdrop-blur-xl border border-black/8 dark:border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl dark:shadow-none"
         >
           <Outlet />
         </motion.div>

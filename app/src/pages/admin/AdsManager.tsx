@@ -243,7 +243,7 @@ const AdsManager = () => {
 
       {/* Filters */}
       <div className="flex gap-4 flex-wrap">
-        <div className="flex-1 relative min-w-[200px]">
+        <div className="flex-1 relative min-w-[min(100%,12.5rem)]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
@@ -376,8 +376,8 @@ const AdsManager = () => {
 
       {/* Ad Editor Modal */}
       {showEditor && editingAd && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-auto shadow-2xl">
             <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">
                 {editingAd.id ? t('admin.adsManager.editAd') : t('admin.adsManager.newAd')}

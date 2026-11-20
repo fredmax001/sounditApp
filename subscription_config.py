@@ -12,6 +12,11 @@ SUBSCRIPTION_PRICING = {
         SubscriptionPlan.PRO.value: 200.0,
         SubscriptionPlan.PREMIUM.value: 400.0,
     },
+    UserRole.ORGANIZER.value: {
+        SubscriptionPlan.BASIC.value: 100.0,
+        SubscriptionPlan.PRO.value: 200.0,
+        SubscriptionPlan.PREMIUM.value: 400.0,
+    },
     UserRole.VENDOR.value: {
         SubscriptionPlan.PREMIUM.value: 149.0,
     },
@@ -91,6 +96,7 @@ SUBSCRIPTION_FEATURES = {
             "priority_support": True,
             "verified_badge": False,
             "homepage_spotlight": True,
+            "event_booths": True,
             "visibility_rank": 1,
             "features": [
                 "Homepage spotlight",
@@ -98,6 +104,7 @@ SUBSCRIPTION_FEATURES = {
                 "Unlimited portfolio",
                 "Analytics",
                 "Priority support",
+                "Event booths",
             ],
         },
     },
@@ -111,17 +118,22 @@ SUBSCRIPTION_FEATURES = {
             "priority_support": True,
             "verified_badge": False,
             "homepage_spotlight": True,
+            "can_receive_deposits": True,
             "visibility_rank": 1,
             "features": [
                 "Homepage spotlight",
                 "Top ranking in search",
                 "Unlimited media uploads",
                 "Priority booking access",
+                "Receive booking deposits",
                 "Analytics access",
             ],
         },
     },
 }
+
+# Organizer mirrors Business configuration
+SUBSCRIPTION_FEATURES[UserRole.ORGANIZER.value] = SUBSCRIPTION_FEATURES[UserRole.BUSINESS.value]
 
 
 def get_plan_price(role, plan_type):

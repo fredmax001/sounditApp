@@ -53,7 +53,7 @@ const Careers = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#020b00] to-[#111111]">
+    <div className="min-h-dvh bg-gradient-to-b from-[#020b00] to-[#111111]">
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">

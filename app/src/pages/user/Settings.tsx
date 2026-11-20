@@ -79,7 +79,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-12 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh pb-12 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       <MobilePageHeader
         title={t('kit.settingsMenu.title')}
         onBack={() => {
@@ -158,7 +158,7 @@ const Settings = () => {
                 <p className="text-sm font-medium text-[#020b00] dark:text-white">
                   {t('settings.appearance', 'Appearance')}
                 </p>
-                <p className="text-[11px] text-gray-500 capitalize">
+                <p className="text-[0.6875rem] text-gray-500 capitalize">
                   {theme === 'system' ? `${t('settings.themeSystem', 'System')} (${isDark ? 'Dark' : 'Light'})` : theme}
                 </p>
               </div>
@@ -208,10 +208,11 @@ const Settings = () => {
       <AnimatePresence>
         {showLogoutConfirm && (
           <motion.div
+            data-modal-open="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
             onClick={() => setShowLogoutConfirm(false)}
           >
             <motion.div

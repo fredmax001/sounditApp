@@ -223,8 +223,8 @@ export default function ManageRecaps() {
 
       {/* Detail Modal */}
       {selectedRecap && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-[80] bg-black/60 dark:bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl max-w-4xl w-full max-h-[90dvh] overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{selectedRecap.title}</h2>
               <button
@@ -234,7 +234,7 @@ export default function ManageRecaps() {
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(90dvh-100px)]">
               {selectedRecap.description && (
                 <p className="text-gray-700 dark:text-gray-300 mb-4">{selectedRecap.description}</p>
               )}

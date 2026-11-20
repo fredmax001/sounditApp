@@ -100,7 +100,7 @@ export default function MessageModal({ recipientId, recipientName, isOpen, onClo
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

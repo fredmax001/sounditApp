@@ -191,12 +191,12 @@ const DiscoveryFeed = () => {
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                   {ev.start_date && (
-                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-[#d3da0c] text-black text-[11px] font-bold">
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-[#d3da0c] text-black text-[0.6875rem] font-bold">
                       {formatDate(ev.start_date)}
                     </span>
                   )}
                   {eventPrice(ev) && (
-                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[#d3da0c] text-[11px] font-bold">
+                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[#d3da0c] text-[0.6875rem] font-bold">
                       {eventPrice(ev)}
                     </span>
                   )}
@@ -241,7 +241,7 @@ const DiscoveryFeed = () => {
                   </div>
                   <div className="p-2.5">
                     <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{ev.title}</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-1 flex items-center justify-between">
+                    <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] mt-1 flex items-center justify-between">
                       <span>{formatDate(ev.start_date)}</span>
                       {eventPrice(ev) && <span className="text-gray-900 dark:text-[#d3da0c] font-bold">{eventPrice(ev)}</span>}
                     </p>
@@ -280,9 +280,9 @@ const DiscoveryFeed = () => {
                     )}
                   </div>
                   <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{artist.stage_name}</h3>
-                  {artist.genre && <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 truncate">{artist.genre}</p>}
+                  {artist.genre && <p className="text-gray-500 dark:text-gray-400 text-[0.625rem] mt-0.5 truncate">{artist.genre}</p>}
                   {(artist.followers_count ?? 0) > 0 && (
-                    <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
+                    <p className="text-gray-700 dark:text-[#d3da0c] text-[0.625rem] mt-1 flex items-center justify-center gap-1 font-medium">
                       <Users className="w-3 h-3" />{artist.followers_count}
                     </p>
                   )}
@@ -338,16 +338,16 @@ const DiscoveryFeed = () => {
                       <span className="truncate">{biz.business_name}</span>
                       {biz.is_verified && <VerificationBadge size="sm" />}
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 capitalize truncate">
+                    <p className="text-gray-500 dark:text-gray-400 text-[0.625rem] mt-0.5 capitalize truncate">
                       {biz.city || 'Organizer'}
                     </p>
                     {(biz.events_count ?? 0) > 0 ? (
-                      <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
+                      <p className="text-gray-700 dark:text-[#d3da0c] text-[0.625rem] mt-1 flex items-center justify-center gap-1 font-medium">
                         <Calendar className="w-3 h-3" />
                         <span>{biz.events_count} event{biz.events_count !== 1 ? 's' : ''}</span>
                       </p>
                     ) : (biz.followers_count ?? 0) > 0 ? (
-                      <p className="text-gray-700 dark:text-[#d3da0c] text-[10px] mt-1 flex items-center justify-center gap-1 font-medium">
+                      <p className="text-gray-700 dark:text-[#d3da0c] text-[0.625rem] mt-1 flex items-center justify-center gap-1 font-medium">
                         <Users className="w-3 h-3" />
                         <span>{biz.followers_count}</span>
                       </p>
@@ -378,12 +378,12 @@ const DiscoveryFeed = () => {
                   {spot.image && <img src={spot.image} alt={spot.name} loading="lazy" className="w-full h-full object-cover" />}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
-                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[#d3da0c] text-[9px] font-bold uppercase tracking-wide border border-[#d3da0c]/30">
+                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[#d3da0c] text-[0.5625rem] font-bold uppercase tracking-wide border border-[#d3da0c]/30">
                   {spot.type === 'food' ? t('nav.food', 'Food') : t('cityGuide.venue', 'Venue')}
                 </span>
                 <div className="absolute bottom-2.5 left-3 right-3">
                   <h3 className="text-white text-xs font-semibold truncate">{spot.name}</h3>
-                  {spot.address && <p className="text-gray-300 text-[10px] truncate">{spot.address}</p>}
+                  {spot.address && <p className="text-gray-300 text-[0.625rem] truncate">{spot.address}</p>}
                 </div>
               </motion.button>
             ))}
@@ -420,7 +420,7 @@ const DiscoveryFeed = () => {
                   <div className="min-w-0">
                     <h3 className="text-[#020b00] dark:text-white text-xs font-semibold truncate">{vendor.business_name}</h3>
                     {(vendor.rating ?? 0) > 0 && (
-                      <p className="text-gray-800 dark:text-[#d3da0c] text-[11px] mt-0.5 flex items-center gap-1 font-medium">
+                      <p className="text-gray-800 dark:text-[#d3da0c] text-[0.6875rem] mt-0.5 flex items-center gap-1 font-medium">
                         <Star className="w-3 h-3 fill-current text-[#d3da0c]" />{vendor.rating?.toFixed(1)}
                         <span className="text-gray-500">({vendor.reviews_count ?? 0})</span>
                       </p>

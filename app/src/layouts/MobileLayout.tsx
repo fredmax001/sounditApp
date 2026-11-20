@@ -279,7 +279,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
+      <div className="min-h-dvh flex items-center justify-center bg-[#020b00]">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -299,14 +299,14 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
   ].includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white flex flex-col transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white flex flex-col overflow-x-clip transition-colors duration-200">
       {/* App Header with Back button and Menu button */}
       {!hasCustomHeader && (
       <motion.header
         initial={{ y: 0 }}
         animate={{ y: isHeaderHidden ? '-100%' : 0 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 safe-area-pt"
+        className="fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 safe-area-pt"
       >
         <div className="flex items-center justify-between px-4 py-3">
           <button
@@ -383,15 +383,16 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-[110]"
+              className="fixed inset-0 bg-black/70 z-[70]"
               onClick={() => setShowDrawer(false)}
             />
             <motion.div
+              data-modal-open="true"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs bg-white dark:bg-[#111111] border-l border-black/8 dark:border-white/5 z-[120] safe-area-pt text-[#020b00] dark:text-white"
+              className="fixed right-0 top-0 bottom-0 w-[80vw] max-w-xs bg-white dark:bg-[#111111] border-l border-black/8 dark:border-white/5 z-[80] safe-area-pt text-[#020b00] dark:text-white"
             >
               <div className="flex flex-col h-full p-4 safe-area-pb">
                 <div className="flex items-center justify-between mb-6">
@@ -437,7 +438,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
                     {profile?.username && (
                       <p className="text-gray-500 dark:text-gray-400 text-xs truncate">@{profile.username}</p>
                     )}
-                    <p className="text-[#7a8000] dark:text-[#d3da0c] text-[11px] font-medium capitalize">{role}</p>
+                    <p className="text-[#7a8000] dark:text-[#d3da0c] text-[0.6875rem] font-medium capitalize">{role}</p>
                   </div>
                 </div>
 

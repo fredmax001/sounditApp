@@ -10,7 +10,10 @@ export default function AssistantButton() {
       onClick={toggleOpen}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="fixed bottom-6 right-6 z-[100] w-14 h-14 rounded-full bg-[#d3da0c] text-black shadow-lg shadow-[#d3da0c]/20 flex items-center justify-center hover:bg-[#bbc10b] transition-colors"
+      style={{
+        bottom: 'calc(var(--bottom-nav-height, 0px) + env(safe-area-inset-bottom, 0px) + 1rem)',
+      }}
+      className="fixed right-4 sm:right-6 z-[38] w-14 h-14 rounded-full bg-[#d3da0c] text-black shadow-lg shadow-[#d3da0c]/20 flex items-center justify-center hover:bg-[#bbc10b] transition-colors hide-on-keyboard"
       aria-label="Open Sound It Assistant"
     >
       <AnimatePresence mode="wait">

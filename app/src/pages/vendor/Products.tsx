@@ -279,7 +279,7 @@ const VendorProducts = () => {
     'Vendor Store';
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28">
       {/* Top Header matching reference Screen 2 (My Products) */}
       <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
         <div className="flex items-center justify-between h-11 max-w-4xl mx-auto">
@@ -291,7 +291,7 @@ const VendorProducts = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <h1 className="text-[17px] font-bold text-white tracking-tight">My Products</h1>
+          <h1 className="text-[1.0625rem] font-bold text-white tracking-tight">My Products</h1>
 
           <div className="flex items-center gap-2">
             <Link
@@ -455,15 +455,15 @@ const VendorProducts = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="text-[15px] font-bold text-white leading-tight truncate">
+                        <h3 className="text-[0.9375rem] font-bold text-white leading-tight truncate">
                           {product.name}
                         </h3>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-gray-300">
+                          <span className="px-2 py-0.5 rounded-full bg-white/10 text-[0.625rem] font-semibold text-gray-300">
                             {categoryTag}
                           </span>
                           {product.is_preorder_enabled && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[10px] font-extrabold text-[#d3da0c]">
+                            <span className="px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[0.625rem] font-extrabold text-[#d3da0c]">
                               Preorder
                             </span>
                           )}
@@ -554,7 +554,7 @@ const VendorProducts = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90vh] overflow-y-auto space-y-4"
+              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90dvh] overflow-y-auto space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <div>
@@ -679,7 +679,7 @@ const VendorProducts = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold text-[#d3da0c]">Preorder System</p>
-                      <p className="text-[11px] text-gray-400">Allow customers to order in advance</p>
+                      <p className="text-[0.6875rem] text-gray-400">Allow customers to order in advance</p>
                     </div>
                     <button
                       type="button"
@@ -707,7 +707,7 @@ const VendorProducts = () => {
                     <div className="space-y-2.5 pt-2 border-t border-white/10">
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[11px] text-gray-400 mb-1">Opening Date</label>
+                          <label className="block text-[0.6875rem] text-gray-400 mb-1">Opening Date</label>
                           <input
                             type="date"
                             value={productForm.preorder_open_date}
@@ -718,7 +718,7 @@ const VendorProducts = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-gray-400 mb-1">Closing Date</label>
+                          <label className="block text-[0.6875rem] text-gray-400 mb-1">Closing Date</label>
                           <input
                             type="date"
                             value={productForm.preorder_close_date}
@@ -732,7 +732,7 @@ const VendorProducts = () => {
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[11px] text-gray-400 mb-1">Fulfilment Date</label>
+                          <label className="block text-[0.6875rem] text-gray-400 mb-1">Fulfilment Date</label>
                           <input
                             type="date"
                             value={productForm.preorder_fulfilment_date}
@@ -743,7 +743,7 @@ const VendorProducts = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-gray-400 mb-1">Preorder Quantity</label>
+                          <label className="block text-[0.6875rem] text-gray-400 mb-1">Preorder Quantity</label>
                           <input
                             type="number"
                             value={productForm.preorder_quantity}

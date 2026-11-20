@@ -86,7 +86,7 @@ export default function ProductCheckout() {
 
     if (!session?.access_token) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-white text-lg mb-4">Please log in to checkout</p>
                     <button
@@ -102,7 +102,7 @@ export default function ProductCheckout() {
 
     if (cart.length === 0) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-white text-lg mb-4">Your cart is empty</p>
                     <button
@@ -178,7 +178,7 @@ export default function ProductCheckout() {
     const preferredOnlyAlipay = vendorSettings?.preferred_method === 'ALIPAY_ONLY';
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
+        <div className="min-h-dvh pt-20 pb-24 bg-[#020b00]">
             <div className="max-w-2xl mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">

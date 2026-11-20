@@ -375,7 +375,7 @@ const FinanceWorkspace = () => {
             </div>
             <p className="text-2xl font-bold text-[#020b00] dark:text-white">{loading ? '—' : card.value}</p>
             <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">{card.label}</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">{card.sub}</p>
+            <p className="text-[0.6875rem] text-gray-500 mt-0.5">{card.sub}</p>
           </motion.div>
         ))}
       </div>

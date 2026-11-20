@@ -439,7 +439,7 @@ const Tickets = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Header */}
       <MobilePageHeader wide title={t('kit.tickets.title')}>
           {/* Tab bar with accent underline */}
@@ -455,7 +455,7 @@ const Tickets = () => {
                 <span className="flex items-center justify-center gap-1.5">
                   {tab.label}
                   {tab.count > 0 && (
-                    <span className={`min-w-5 h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${activeTab === tab.id ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black' : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'}`}>
+                    <span className={`min-w-5 h-5 px-1 rounded-full text-[0.625rem] font-bold flex items-center justify-center ${activeTab === tab.id ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black' : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'}`}>
                       {tab.count}
                     </span>
                   )}
@@ -588,7 +588,7 @@ const Tickets = () => {
                         ) : (
                           <Ticket className="w-6 h-6 text-gray-400" />
                         )}
-                        <span className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold ${statusDisplay.class}`}>
+                        <span className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[0.5625rem] font-bold ${statusDisplay.class}`}>
                           {statusDisplay.text}
                         </span>
                       </div>
@@ -607,7 +607,7 @@ const Tickets = () => {
                       {tagPills.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-1.5">
                           {tagPills.slice(0, 2).map((pill, idx) => (
-                            <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[10px] rounded-full">
+                            <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[0.625rem] rounded-full">
                               {pill}
                             </span>
                           ))}
@@ -639,7 +639,7 @@ const Tickets = () => {
                       </div>
 
                       {(ticketOrder?.status === 'rejected' || productOrder?.status === 'rejected') && (ticketOrder?.rejection_reason || productOrder?.rejection_reason) && (
-                        <p className="text-red-500 dark:text-red-400 text-[11px] mt-1 truncate">Reason: {ticketOrder?.rejection_reason || productOrder?.rejection_reason}</p>
+                        <p className="text-red-500 dark:text-red-400 text-[0.6875rem] mt-1 truncate">Reason: {ticketOrder?.rejection_reason || productOrder?.rejection_reason}</p>
                       )}
 
                       {/* Actions */}
@@ -647,7 +647,7 @@ const Tickets = () => {
                         {canViewTicket && (
                           <button
                             onClick={() => openItem(item)}
-                            className="h-8 px-3 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[11px] font-bold hover:opacity-90 transition-all flex items-center gap-1 whitespace-nowrap shadow-xs"
+                            className="h-8 px-3 rounded-lg bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.6875rem] font-bold hover:opacity-90 transition-all flex items-center gap-1 whitespace-nowrap shadow-xs"
                           >
                             {t('kit.tickets.viewTicket')}
                             <ChevronRight className="w-3.5 h-3.5" />
@@ -678,7 +678,7 @@ const Tickets = () => {
                         {ticketOrder && (
                           <button
                             onClick={() => navigate(`/tickets/receipt/${ticketOrder.id}`)}
-                            className="h-8 px-2.5 rounded-lg bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-[11px] font-semibold hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors whitespace-nowrap"
+                            className="h-8 px-2.5 rounded-lg bg-neutral-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-[0.6875rem] font-semibold hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors whitespace-nowrap"
                           >
                             {t('receipt.title', 'E-Receipt')}
                           </button>
@@ -686,7 +686,7 @@ const Tickets = () => {
                         {activeTab === 'upcoming' && ticketOrder && canCancelOrder(ticketOrder) && ticketOrder.event?.refunds_allowed && (
                           <button
                             onClick={() => openCancelFlow(ticketOrder)}
-                            className="h-8 px-2.5 rounded-lg border border-red-500/40 text-red-500 dark:text-red-400 text-[11px] font-semibold hover:bg-red-500/10 transition-colors whitespace-nowrap"
+                            className="h-8 px-2.5 rounded-lg border border-red-500/40 text-red-500 dark:text-red-400 text-[0.6875rem] font-semibold hover:bg-red-500/10 transition-colors whitespace-nowrap"
                           >
                             {t('kit.cancel.title')}
                           </button>
@@ -699,7 +699,7 @@ const Tickets = () => {
                               ticketOrder ? ticketOrder.event?.flyer_image : regularTicket?.event?.flyer_image,
                               ticketOrder ? ticketOrder.event?.start_date : regularTicket?.event?.start_date,
                             )}
-                            className="h-8 px-2.5 rounded-lg border border-[#020b00] dark:border-[#d3da0c]/50 text-[#020b00] dark:text-[#d3da0c] text-[11px] font-semibold hover:bg-black/5 dark:hover:bg-[#d3da0c]/10 transition-colors whitespace-nowrap"
+                            className="h-8 px-2.5 rounded-lg border border-[#020b00] dark:border-[#d3da0c]/50 text-[#020b00] dark:text-[#d3da0c] text-[0.6875rem] font-semibold hover:bg-black/5 dark:hover:bg-[#d3da0c]/10 transition-colors whitespace-nowrap"
                           >
                             {t('kit.review.title')}
                           </button>
@@ -739,7 +739,7 @@ const Tickets = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
             onClick={() => { setSelectedTicket(null); setSelectedOrder(null); setSelectedProductOrder(null); setOrderIndividualTickets([]); }}
           >
             <motion.div
@@ -801,7 +801,7 @@ const Tickets = () => {
                           <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                        <div className="grid grid-cols-2 gap-4 max-h-[60dvh] overflow-y-auto pr-1">
                           {orderIndividualTickets.map((ticket, idx) => (
                             <div key={ticket.id} className="bg-white rounded-xl p-3">
                               <p className="text-center text-black text-xs font-semibold mb-2">
@@ -819,7 +819,7 @@ const Tickets = () => {
                               ) : ticket.qr_code ? (
                                 <img src={ticket.qr_code} alt={`Ticket QR #${idx + 1}`} className="w-full h-auto" />
                               ) : null}
-                              <p className="text-center text-black text-[10px] font-mono mt-2 truncate">
+                              <p className="text-center text-black text-[0.625rem] font-mono mt-2 truncate">
                                 {ticket.ticket_number}
                               </p>
                             </div>
@@ -921,7 +921,7 @@ const Tickets = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="bg-white dark:bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-black/10 dark:border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white"
+              className="bg-white dark:bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-black/10 dark:border-white/10 max-h-[85dvh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white"
               onClick={e => e.stopPropagation()}
             >
               {cancelFlow.step === 'confirm' && (
@@ -1054,7 +1054,7 @@ const Tickets = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="bg-white dark:bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-black/10 dark:border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white"
+              className="bg-white dark:bg-[#111111] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border border-black/10 dark:border-white/10 max-h-[85dvh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">

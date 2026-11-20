@@ -236,7 +236,7 @@ export default function BusinessPromoters() {
   const totalRevenue = enabledEvents.reduce((sum, ep) => sum + ep.promoters.reduce((s, p) => s + (p.revenue_generated || 0), 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
+    <div className="min-h-dvh bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ export default function BusinessPromoters() {
               <div className={`p-1 bg-white/5 rounded ${stat.color}`}>
                 <stat.icon className="w-3 h-3 lg:w-4 lg:h-4" />
               </div>
-              <span className="text-gray-400 text-[9px] font-medium whitespace-nowrap lg:text-xs">{stat.label}</span>
+              <span className="text-gray-400 text-[0.5625rem] font-medium whitespace-nowrap lg:text-xs">{stat.label}</span>
             </div>
             <p className="text-sm font-bold text-white lg:text-xl">{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : stat.value}</p>
           </motion.div>
@@ -316,7 +316,7 @@ export default function BusinessPromoters() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-white font-semibold text-sm truncate">{event.title}</h3>
-                  <p className="text-gray-400 text-[10px] truncate">
+                  <p className="text-gray-400 text-[0.625rem] truncate">
                     {event.start_date ? new Date(event.start_date).toLocaleDateString() : 'No date'}
                   </p>
                 </div>
@@ -346,7 +346,7 @@ export default function BusinessPromoters() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="text-gray-500 text-[10px] uppercase border-b border-white/5">
+                      <tr className="text-gray-500 text-[0.625rem] uppercase border-b border-white/5">
                         <th className="text-left py-2 px-1">{t('business.promoters.promoter') || 'Promoter'}</th>
                         <th className="text-left py-2 px-1">{t('business.promoters.code') || 'Code'}</th>
                         <th className="text-right py-2 px-1">{t('business.promoters.clicks') || 'Clicks'}</th>
@@ -360,14 +360,14 @@ export default function BusinessPromoters() {
                         <tr key={promoter.id} className="border-b border-white/5 text-xs">
                           <td className="py-2 px-1">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[10px] text-gray-400">
+                              <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[0.625rem] text-gray-400">
                                 {promoter.promoter_name?.charAt(0).toUpperCase() || '?'}
                               </div>
-                              <span className="text-white truncate max-w-[80px] lg:max-w-[140px]">{promoter.promoter_name || 'Unknown'}</span>
+                              <span className="text-white truncate max-w-[5rem] lg:max-w-[8.75rem]">{promoter.promoter_name || 'Unknown'}</span>
                             </div>
                           </td>
                           <td className="py-2 px-1">
-                            <span className="font-mono text-[#d3da0c] text-[10px]">{promoter.referral_code}</span>
+                            <span className="font-mono text-[#d3da0c] text-[0.625rem]">{promoter.referral_code}</span>
                           </td>
                           <td className="py-2 px-1 text-right text-gray-400">{promoter.clicks || 0}</td>
                           <td className="py-2 px-1 text-right text-white font-medium">{promoter.tickets_sold || 0}</td>
@@ -434,7 +434,7 @@ export default function BusinessPromoters() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-white font-semibold text-sm truncate">{event.title}</h3>
-                  <p className="text-gray-400 text-[10px] truncate">
+                  <p className="text-gray-400 text-[0.625rem] truncate">
                     {event.start_date ? new Date(event.start_date).toLocaleDateString() : 'No date'}
                   </p>
                 </div>
@@ -458,7 +458,7 @@ export default function BusinessPromoters() {
 
       {/* QR Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowQrModal(null)}>
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[80] p-4" onClick={() => setShowQrModal(null)}>
           <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-bold">{t('business.promoters.referralQr') || 'Referral QR'}</h3>
@@ -481,7 +481,7 @@ export default function BusinessPromoters() {
       {/* Create & Assign Promoter Modal */}
       <AnimatePresence>
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowCreateModal(false)}>
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[80] p-4" onClick={() => setShowCreateModal(false)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -527,7 +527,7 @@ export default function BusinessPromoters() {
                     placeholder={t('organizer.eventPromoters.userIdPlaceholder') || 'Enter user ID number'}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                   />
-                  <p className="text-gray-500 text-[10px] mt-1">{t('business.promoters.userIdHelp') || 'The user must already have an account on the platform.'}</p>
+                  <p className="text-gray-500 text-[0.625rem] mt-1">{t('business.promoters.userIdHelp') || 'The user must already have an account on the platform.'}</p>
                 </div>
 
                 {/* Promoter name */}

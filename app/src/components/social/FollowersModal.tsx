@@ -124,7 +124,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 60, scale: 0.98 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="relative z-10 bg-[#0e110d] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col h-[75vh] max-h-[82vh] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4"
+          className="relative z-10 bg-[#0e110d] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col h-[75dvh] max-h-[82dvh] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4"
         >
           {/* Drag handle */}
           <div className="pt-3 pb-1">
@@ -134,7 +134,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-white/10 shrink-0">
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white truncate max-w-[280px]">
+              <h3 className="text-base sm:text-lg font-black text-white truncate max-w-[17.5rem]">
                 {userName}
               </h3>
               <p className="text-xs text-gray-400">
@@ -211,7 +211,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                 <p className="text-xs font-bold text-gray-400">
                   {searchQuery ? 'No accounts matched your search' : `No ${activeTab} yet`}
                 </p>
-                <p className="text-[11px] text-gray-500 mt-1">
+                <p className="text-[0.6875rem] text-gray-500 mt-1">
                   Connect and interact to build this community.
                 </p>
               </div>
@@ -245,11 +245,11 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                             <VerificationBadge size="xs" className="shrink-0" />
                           )}
                         </div>
-                        <p className="text-[11px] text-gray-400 truncate">
+                        <p className="text-[0.6875rem] text-gray-400 truncate">
                           @{user.username}
                         </p>
                         {user.role && user.role !== 'user' && (
-                          <span className="inline-block px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider rounded bg-white/10 text-gray-300 mt-0.5">
+                          <span className="inline-block px-1.5 py-0.2 text-[0.5625rem] font-black uppercase tracking-wider rounded bg-white/10 text-gray-300 mt-0.5">
                             {user.role}
                           </span>
                         )}

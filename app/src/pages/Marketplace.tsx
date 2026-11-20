@@ -85,7 +85,7 @@ export default function Marketplace() {
     );
 
     return (
-        <div className="min-h-screen pb-24 bg-[#020b00]">
+        <div className="min-h-dvh pb-24 bg-[#020b00]">
             {/* Header */}
             <section className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-md border-b border-white/5">
                 <div className="max-w-6xl mx-auto px-4 py-4">

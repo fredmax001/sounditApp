@@ -115,7 +115,7 @@ export default function MenuImportModal({ isOpen, onClose, onConfirm, token }: M
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+                className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
                 onClick={handleClose}
             >
                 <motion.div
@@ -123,7 +123,7 @@ export default function MenuImportModal({ isOpen, onClose, onConfirm, token }: M
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-[#0f0f0f] border border-white/10 rounded-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col"
+                    className="bg-[#0f0f0f] border border-white/10 rounded-2xl w-full max-w-lg max-h-[85dvh] overflow-hidden flex flex-col"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/10">

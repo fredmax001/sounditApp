@@ -265,10 +265,10 @@ const WithdrawalRequests = () => {
                             {w.business_name || w.user_name}
                           </p>
                           {w.business_name && w.user_name && w.business_name !== w.user_name && (
-                            <p className="text-gray-500 text-[11px]">Requested by: {w.user_name}</p>
+                            <p className="text-gray-500 text-[0.6875rem]">Requested by: {w.user_name}</p>
                           )}
                           {w.user_email && (
-                            <p className="text-gray-400 text-[11px] truncate max-w-[200px]">{w.user_email}</p>
+                            <p className="text-gray-400 text-[0.6875rem] truncate max-w-[12.5rem]">{w.user_email}</p>
                           )}
                         </div>
                       </div>
@@ -283,7 +283,7 @@ const WithdrawalRequests = () => {
                         {(w.payment_method || '').replace(/_/g, ' ')}
                       </p>
                       {w.account_details && (
-                        <p className="text-gray-500 dark:text-gray-400 text-[11px] truncate max-w-[220px]">
+                        <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] truncate max-w-[13.75rem]">
                           {w.account_details}
                         </p>
                       )}
@@ -298,7 +298,7 @@ const WithdrawalRequests = () => {
                         {w.status}
                       </span>
                       {w.rejection_reason && (
-                        <p className="text-red-400 text-[10px] mt-1 italic max-w-[150px] truncate" title={w.rejection_reason}>
+                        <p className="text-red-400 text-[0.625rem] mt-1 italic max-w-[9.375rem] truncate" title={w.rejection_reason}>
                           {w.rejection_reason}
                         </p>
                       )}
@@ -361,7 +361,7 @@ const WithdrawalRequests = () => {
 
       {/* Reject Reason Modal */}
       {rejectingItem && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#111111] rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl p-6 w-full max-w-md text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">Reject Payout Request #{rejectingItem.id}</h3>

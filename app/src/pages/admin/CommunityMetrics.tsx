@@ -108,7 +108,7 @@ const CommunityMetrics = () => {
                     </div>
                     <div>
                       <p className="text-[#020b00] dark:text-white font-bold text-xl">{card.value}</p>
-                      <p className="text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-wide">{t(`admin.communityMetrics.${card.key}`)}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-[0.625rem] uppercase tracking-wide">{t(`admin.communityMetrics.${card.key}`)}</p>
                     </div>
                   </div>
                 </motion.div>

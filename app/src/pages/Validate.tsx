@@ -88,7 +88,7 @@ const ValidatePage = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+            <div className="min-h-dvh bg-black flex flex-col items-center justify-center">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -102,7 +102,7 @@ const ValidatePage = () => {
 
     if (error || !isAuthenticated) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+            <div className="min-h-dvh bg-black flex flex-col items-center justify-center p-4">
                 <div className="w-full max-w-md">
                     <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <AlertCircle className="w-8 h-8 text-red-500" />
@@ -126,14 +126,14 @@ const ValidatePage = () => {
 
     if (!result) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+            <div className="min-h-dvh bg-black flex flex-col items-center justify-center">
                 <p className="text-white">{t('validate.noResult')}</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black flex flex-col">
+        <div className="min-h-dvh bg-black flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-4 p-4 bg-[#020b00] border-b border-white/10">
                 <button

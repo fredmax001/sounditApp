@@ -37,7 +37,7 @@ const DownloadPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white">
+    <div className="min-h-dvh bg-[#020b00] text-white">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <img src="/logo.png" alt="SOUND IT" className="h-12 w-auto object-contain mx-auto mb-6" />

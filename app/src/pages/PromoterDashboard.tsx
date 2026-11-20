@@ -158,14 +158,14 @@ export default function PromoterDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020b00] pt-16 lg:pt-20 flex items-center justify-center">
+      <div className="min-h-dvh bg-[#020b00] pt-16 lg:pt-20 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#020b00] pt-16 lg:pt-20">
+    <div className="min-h-dvh bg-[#020b00] pt-16 lg:pt-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -418,7 +418,7 @@ export default function PromoterDashboard() {
 
       {/* Withdraw Modal */}
       {showWithdrawModal && profile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

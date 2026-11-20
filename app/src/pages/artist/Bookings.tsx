@@ -1,50 +1,63 @@
-/**
- * Artist Bookings Page
- * Manage booking requests from event organizers
- */
 import { useCallback, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
   MapPin, 
-  User, 
   DollarSign, 
   Clock,
-  CheckCircle,
-  XCircle,
-  Clock3,
-  ChevronDown,
-  ChevronUp,
-  Phone,
-  Mail,
-  MessageSquare,
-  Filter
+  CheckCircle, 
+  XCircle, 
+  Clock3, 
+  ChevronDown, 
+  ChevronUp, 
+  Phone, 
+  Mail, 
+  MessageSquare, 
+  Check, 
+  X, 
+  Loader2,
+  CalendarDays,
+  QrCode,
+  ShieldCheck,
+  ExternalLink,
+  Eye,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 interface Booking {
   id: number;
   event_name: string;
   event_type: string;
   event_date: string;
+  event_time?: string;
   event_city: string;
+  event_location?: string;
+  creative_role?: string;
   budget: number;
   duration: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: 'pending' | 'accepted' | 'confirmed' | 'completed' | 'rejected' | 'cancelled';
   message: string;
   contact_name: string;
   contact_email: string;
   contact_phone?: string;
-  created_at: string;
   payment_status?: 'pending' | 'submitted' | 'paid' | 'verified' | 'rejected';
   payment_amount?: number;
+  deposit_amount?: number;
+  payment_currency?: string;
+  payment_submitted_at?: string;
+  payment_verified_at?: string;
+  payment_reviewed_at?: string;
   payment_screenshot_url?: string;
+  rejection_reason?: string;
   payment_instructions?: string;
   wechat_qr_url?: string;
   alipay_qr_url?: string;
+  created_at: string;
 }
 
 export default function ArtistBookings() {
@@ -54,46 +67,39 @@ export default function ArtistBookings() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const reviewPayment = async (bookingId: number, decision: 'verified' | 'rejected') => {
-    if (!session?.access_token) return;
-    try {
-      const body = new FormData(); body.append('decision', decision);
-      const response = await fetch(`${API_BASE_URL}/bookings/requests/${bookingId}/payment-status`, { method: 'PUT', headers: { Authorization: `Bearer ${session.access_token}` }, body });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || 'Could not review payment');
-      setBookings(current => current.map(item => item.id === bookingId ? { ...item, payment_status: decision } : item));
-      toast.success(decision === 'verified' ? 'Deposit marked verified' : 'Payment proof rejected');
-    } catch (error: any) { toast.error(error.message || 'Could not review payment'); }
-  };
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [decliningId, setDecliningId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
 
   const loadBookings = useCallback(async () => {
+    if (!session?.access_token) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/artist/bookings`, {
-        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       
       if (res.ok) {
         const data = await res.json();
-        setBookings(data);
+        setBookings(data || []);
       } else {
-        toast.error(t('artist.bookings.loadFailed'));
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || t('artist.bookings.loadFailed') || 'Failed to load bookings');
       }
     } catch {
-      toast.error(t('artist.bookings.loadError'));
+      toast.error(t('artist.bookings.loadError') || 'Error loading bookings');
     } finally {
       setLoading(false);
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, t]);
 
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);
 
   const handleStatusChange = async (bookingId: number, newStatus: string, reason?: string) => {
+    if (!session?.access_token) return;
     setActionLoading(bookingId);
     try {
       const body: Record<string, string> = { status: newStatus };
@@ -102,23 +108,53 @@ export default function ArtistBookings() {
       const res = await fetch(`${API_BASE_URL}/artist/bookings/${bookingId}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       });
 
       if (res.ok) {
-        toast.success(t('artist.bookings.statusUpdated', { status: newStatus }));
+        toast.success(
+          newStatus === 'accepted'
+            ? 'Booking accepted! Organizer notified.'
+            : newStatus === 'rejected'
+            ? 'Booking declined.'
+            : `Booking marked as ${newStatus}`
+        );
         setDecliningId(null);
         setRejectionReason('');
         loadBookings();
       } else {
         const error = await res.json().catch(() => ({}));
-        toast.error(error.detail || t('artist.bookings.updateStatusFailed'));
+        toast.error(error.detail || t('artist.bookings.updateStatusFailed') || 'Failed to update booking status');
       }
     } catch {
-      toast.error(t('artist.bookings.updateError'));
+      toast.error(t('artist.bookings.updateError') || 'Network error updating booking');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const reviewPayment = async (bookingId: number, decision: 'verified' | 'rejected') => {
+    if (!session?.access_token) return;
+    setActionLoading(bookingId);
+    try {
+      const body = new FormData();
+      body.append('decision', decision);
+
+      const response = await fetch(`${API_BASE_URL}/bookings/requests/${bookingId}/payment-status`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || 'Could not review payment');
+      
+      setBookings(current => current.map(item => item.id === bookingId ? { ...item, payment_status: decision } : item));
+      toast.success(decision === 'verified' ? 'Deposit payment marked as verified!' : 'Payment proof rejected');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not review payment proof');
     } finally {
       setActionLoading(null);
     }
@@ -129,362 +165,623 @@ export default function ArtistBookings() {
     : bookings.filter(b => b.status === filter);
 
   const formatBudget = (budget?: number | null) => {
-    if (budget == null || Number.isNaN(budget)) return ', ';
-    return `¥${budget.toLocaleString()}`;
+    if (budget == null || Number.isNaN(budget)) return '–';
+    return `¥${Number(budget).toLocaleString()}`;
   };
 
   const formatDuration = (duration?: number | null) => {
-    if (duration == null || Number.isNaN(duration)) return ', ';
+    if (duration == null || Number.isNaN(duration)) return '–';
     return `${duration}h`;
   };
 
   const formatDate = (dateString?: string | null) => {
-    if (!dateString) return ', ';
+    if (!dateString) return '–';
     const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return ', ';
-    return date.toLocaleDateString();
+    if (Number.isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-400" />;
-      case 'completed':
-        return <CheckCircle className="w-4 h-4 text-blue-400" />;
-      default:
-        return <Clock3 className="w-4 h-4 text-yellow-400" />;
-    }
-  };
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'rejected':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'completed':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      default:
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    }
-  };
-
-  const getPaymentStatusClass = (paymentStatus?: string) => {
-    switch (paymentStatus) {
-      case 'verified':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'paid':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'rejected':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default:
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d3da0c]"></div>
-      </div>
-    );
-  }
+  const totalCount = bookings.length;
+  const pendingCount = bookings.filter(b => b.status === 'pending').length;
+  const acceptedCount = bookings.filter(b => b.status === 'accepted' || b.status === 'confirmed').length;
+  const completedCount = bookings.filter(b => b.status === 'completed').length;
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 pt-6 sm:pt-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-[calc(6rem+env(safe-area-inset-bottom,24px))] pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      {/* Header & 3D Glowing Ticket Vector */}
+      <div className="flex items-start justify-between gap-4 pt-2 pb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">{t('artist.bookings.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
-            {t('artist.bookings.subtitle')}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Bookings
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[17.5rem] sm:max-w-md leading-relaxed">
+            Review incoming gig requests, manage contracts, and confirm performance deposits.
           </p>
         </div>
-        
-        {/* Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-[#020b00] dark:text-white focus:border-[#020b00] dark:focus:border-[#d3da0c] focus:outline-none shadow-xs dark:shadow-none"
+
+        {/* 3D Glowing Ticket/Pass Illustration matching reference style */}
+        <div className="relative shrink-0 w-20 h-16 sm:w-24 sm:h-20 flex items-center justify-center">
+          <div className="absolute inset-0 bg-emerald-500/25 blur-xl rounded-full" />
+          <svg
+            className="w-16 h-16 sm:w-20 sm:h-20 relative z-10 drop-shadow-[0_0_16px_rgba(16,185,129,0.55)]"
+            viewBox="0 0 100 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <option value="all">{t('artist.bookings.filter.all')}</option>
-            <option value="pending">{t('artist.bookings.filter.pending')}</option>
-            <option value="accepted">{t('artist.bookings.filter.accepted')}</option>
-            <option value="completed">{t('artist.bookings.filter.completed')}</option>
-            <option value="rejected">{t('artist.bookings.filter.rejected')}</option>
-          </select>
+            <defs>
+              <linearGradient id="ticketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#34d399" />
+                <stop offset="50%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#059669" />
+              </linearGradient>
+            </defs>
+            {/* Background pass card */}
+            <rect x="15" y="10" width="70" height="54" rx="10" fill="url(#ticketGrad)" opacity="0.35" transform="rotate(-6 50 37)" />
+            {/* Foreground VIP pass card */}
+            <rect x="18" y="14" width="64" height="50" rx="9" fill="url(#ticketGrad)" stroke="#34d399" strokeWidth="1.5" />
+            {/* Notch cutouts */}
+            <circle cx="18" cy="39" r="6" fill="#020b00" />
+            <circle cx="82" cy="39" r="6" fill="#020b00" />
+            {/* Star emblem inside ticket */}
+            <path d="M50 25 L53 33 L61 33 L55 38 L57 46 L50 41 L43 46 L45 38 L39 33 L47 33 Z" fill="#d3da0c" />
+            <circle cx="50" cy="54" r="2.5" fill="#ffffff" opacity="0.9" />
+          </svg>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        {[
-          { label: t('artist.bookings.stat.total'), value: bookings.length, color: 'text-[#020b00] dark:text-white' },
-          { label: t('artist.bookings.stat.pending'), value: bookings.filter(b => b.status === 'pending').length, color: 'text-amber-500 dark:text-yellow-400' },
-          { label: t('artist.bookings.stat.accepted'), value: bookings.filter(b => b.status === 'accepted').length, color: 'text-emerald-600 dark:text-green-400' },
-          { label: t('artist.bookings.stat.completed'), value: bookings.filter(b => b.status === 'completed').length, color: 'text-blue-600 dark:text-blue-400' },
-        ].map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-[#111111] rounded-xl p-3 sm:p-4 border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none"
-          >
-            <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{stat.label}</p>
-            <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-          </motion.div>
-        ))}
+      {/* Action Workspace Cards (3 Cards matching Staff/Payouts pattern) */}
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-6">
+        {/* Card 1: Availability Calendar */}
+        <Link
+          to="/dashboard/artist"
+          className="bg-[#0b140b] hover:bg-[#111e11] border border-white/5 hover:border-emerald-500/30 rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all group active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-2 text-emerald-400 group-hover:scale-105 transition-transform">
+            <CalendarDays className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
+              Availability
+            </span>
+            <span className="text-[0.625rem] text-gray-500 mt-0.5 block">
+              Manage Calendar
+            </span>
+          </div>
+        </Link>
+
+        {/* Card 2: Messages */}
+        <Link
+          to="/dashboard/artist/messages"
+          className="bg-[#0b140b] hover:bg-[#111e11] border border-white/5 hover:border-emerald-500/30 rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all group active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-2 text-emerald-400 group-hover:scale-105 transition-transform">
+            <MessageSquare className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
+              Messages
+            </span>
+            <span className="text-[0.625rem] text-gray-500 mt-0.5 block">
+              Direct Inquiries
+            </span>
+          </div>
+        </Link>
+
+        {/* Card 3: Neon-Lime Primary Action (Payment Settings) */}
+        <Link
+          to="/dashboard/artist"
+          className="bg-[#d3da0c] hover:bg-[#c2c80b] text-black rounded-2xl p-3 sm:p-4 flex flex-col justify-between transition-all shadow-[0_0_20px_rgba(211,218,12,0.25)] active:scale-[0.98]"
+        >
+          <div className="w-8 h-8 rounded-xl bg-black/10 flex items-center justify-center mb-2 text-black">
+            <QrCode className="w-4 h-4 text-black stroke-[2.5]" />
+          </div>
+          <div>
+            <span className="block text-[0.6875rem] sm:text-xs font-bold leading-tight">
+              Payment QR
+            </span>
+            <span className="text-[0.625rem] text-black/70 mt-0.5 block font-medium">
+              WeChat / Alipay
+            </span>
+          </div>
+        </Link>
       </div>
 
-      {/* Bookings List */}
-      <div className="space-y-4">
-        {filteredBookings.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-[#111111] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none">
-            <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-[#020b00] dark:text-white mb-2">{t('artist.bookings.noBookings')}</h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-              {t('artist.bookings.noBookingsDescription')}
+      {/* 2x2 Real-Time Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mb-6">
+        <div className="bg-[#0b140b] border border-white/5 rounded-2xl p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+            <Calendar className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-medium">Total Bookings</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-extrabold text-white">
+            {totalCount}
+          </p>
+        </div>
+
+        <div className="bg-[#0b140b] border border-white/5 rounded-2xl p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+            <Clock3 className="w-4 h-4 text-yellow-400" />
+            <span className="text-xs font-medium">Pending</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-extrabold text-yellow-400">
+            {pendingCount}
+          </p>
+        </div>
+
+        <div className="bg-[#0b140b] border border-white/5 rounded-2xl p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-medium">Confirmed</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+            {acceptedCount}
+          </p>
+        </div>
+
+        <div className="bg-[#0b140b] border border-white/5 rounded-2xl p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+            <CheckCircle className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-medium">Completed</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-extrabold text-blue-400">
+            {completedCount}
+          </p>
+        </div>
+      </div>
+
+      {/* Pill Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar">
+        {[
+          { id: 'all', label: 'All Requests' },
+          { id: 'pending', label: 'Pending' },
+          { id: 'accepted', label: 'Confirmed' },
+          { id: 'completed', label: 'Completed' },
+          { id: 'rejected', label: 'Declined' },
+        ].map((tab) => {
+          const isActive = filter === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? 'bg-[#d3da0c] text-black shadow-[0_0_12px_rgba(211,218,12,0.3)]'
+                  : 'bg-[#0a1506] border border-white/10 text-gray-300 hover:text-white hover:border-white/20'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bookings List Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between pb-1">
+          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+            Booking Requests
+          </h2>
+          <span className="text-xs text-gray-400">
+            {filteredBookings.length} {filteredBookings.length === 1 ? 'Booking' : 'Bookings'}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="bg-[#0a1209] rounded-2xl border border-white/5 p-12 text-center">
+            <Loader2 className="w-8 h-8 text-[#d3da0c] mx-auto mb-3 animate-spin" />
+            <p className="text-xs text-gray-400">Loading booking requests...</p>
+          </div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="bg-[#0a1209] rounded-2xl border border-white/5 p-10 text-center">
+            <Calendar className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+            <p className="text-white font-medium text-sm">No booking requests found</p>
+            <p className="text-gray-400 text-xs mt-1">
+              {filter === 'all'
+                ? 'When organizers submit booking requests for your performances, they will appear here.'
+                : `No bookings match the "${filter}" filter.`}
             </p>
           </div>
         ) : (
-          filteredBookings.map((booking) => (
-            <motion.div
-              key={booking.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-[#111111] rounded-xl border border-black/8 dark:border-white/5 shadow-xs dark:shadow-none overflow-hidden"
-            >
-              {/* Summary Row */}
-              <div 
-                className="p-3 sm:p-4 cursor-pointer"
-                onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
+          filteredBookings.map((booking) => {
+            const isExpanded = expandedId === booking.id;
+            const isActionBusy = actionLoading === booking.id;
+            const hasDepositSubmitted = booking.payment_status === 'submitted';
+            const isDepositVerified = booking.payment_status === 'verified';
+
+            return (
+              <motion.div
+                key={booking.id}
+                layout
+                className="bg-[#0b140b] border border-white/8 hover:border-emerald-500/30 rounded-2xl overflow-hidden transition-all shadow-xs"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <h3 className="font-semibold text-[#020b00] dark:text-white text-sm sm:text-base">{booking.event_name}</h3>
-                      <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded-full border capitalize flex items-center gap-1 ${getStatusClass(booking.status)}`}>
-                        {getStatusIcon(booking.status)}
-                        {booking.status}
-                      </span>
-                      {booking.payment_status && (
-                        <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded-full border capitalize ${getPaymentStatusClass(booking.payment_status)}`}>
-                          {booking.payment_status === 'pending' ? t('artist.bookings.paymentPending') : booking.payment_status}
-                        </span>
-                      )}
+                {/* Header Summary Row */}
+                <div
+                  onClick={() => setExpandedId(isExpanded ? null : booking.id)}
+                  className="p-3.5 sm:p-4 cursor-pointer flex items-start justify-between gap-3"
+                >
+                  {/* Left: Avatar with Initial + Event Name */}
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-full bg-[#d3da0c] text-black font-extrabold flex items-center justify-center shrink-0 text-base shadow-[0_0_12px_rgba(211,218,12,0.2)]">
+                      {(booking.contact_name || booking.event_name || 'E').charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" />
-                        {formatDate(booking.event_date)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" />
-                        {booking.event_city || ', '}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" />
-                        {formatBudget(booking.budget)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" />
-                        {formatDuration(booking.duration)}
-                      </span>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                          {booking.event_name || 'Event Booking'}
+                        </h3>
+                        {/* Status Badge */}
+                        <span
+                          className={`text-[0.625rem] sm:text-[0.6875rem] font-bold px-2 py-0.5 rounded-full capitalize border flex items-center gap-1 ${
+                            booking.status === 'accepted' || booking.status === 'confirmed'
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : booking.status === 'completed'
+                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                              : booking.status === 'rejected' || booking.status === 'cancelled'
+                              ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                              : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                          {booking.status}
+                        </span>
+
+                        {/* Deposit Status Badge */}
+                        {booking.payment_status && (
+                          <span
+                            className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${
+                              isDepositVerified
+                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                : hasDepositSubmitted
+                                ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30 animate-pulse'
+                                : 'bg-white/5 text-gray-400 border-white/10'
+                            }`}
+                          >
+                            Deposit: {booking.payment_status}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-gray-400 truncate mb-2">
+                        {booking.contact_name || 'Client'} • {booking.event_type || 'Performance'}
+                      </p>
+
+                      {/* Chips / Pills */}
+                      <div className="flex flex-wrap gap-2 text-[0.6875rem] text-gray-300">
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg">
+                          <Calendar className="w-3 h-3 text-emerald-400" />
+                          {formatDate(booking.event_date)}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg">
+                          <MapPin className="w-3 h-3 text-emerald-400" />
+                          {booking.event_city || 'Shanghai'}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg font-bold text-[#d3da0c]">
+                          <DollarSign className="w-3 h-3 text-[#d3da0c]" />
+                          {formatBudget(booking.budget)}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg">
+                          <Clock className="w-3 h-3 text-gray-400" />
+                          {formatDuration(booking.duration)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-shrink-0 mt-1">
-                    {expandedId === booking.id ? (
-                      <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+
+                  {/* Right: Expand Chevron */}
+                  <div className="shrink-0 pt-1 text-gray-400 hover:text-white">
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                      <ChevronDown className="w-5 h-5" />
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* Expanded Details */}
-              {expandedId === booking.id && (
-                <div className="px-4 pb-4 border-t border-black/8 dark:border-white/5 pt-4">
-                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                    <div className="space-y-3">
-                      <h4 className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('artist.bookings.eventDetails')}</h4>
-                      <div className="space-y-2 text-sm">
-                        <p className="text-[#020b00] dark:text-white">
-                          <span className="text-gray-500 dark:text-gray-400">{t('artist.bookings.type')}:</span> {booking.event_type || ', '}
-                        </p>
-                        <p className="text-[#020b00] dark:text-white">
-                          <span className="text-gray-500 dark:text-gray-400">{t('artist.bookings.budget')}:</span> {formatBudget(booking.budget)}
-                        </p>
-                        <p className="text-[#020b00] dark:text-white">
-                          <span className="text-gray-500 dark:text-gray-400">{t('artist.bookings.duration')}:</span> {formatDuration(booking.duration)}
-                        </p>
-                        <p className="text-[#020b00] dark:text-white">
-                          <span className="text-gray-500 dark:text-gray-400">{t('artist.bookings.location')}:</span> {booking.event_city || ', '}
-                        </p>
-                        <p className="text-[#020b00] dark:text-white">
-                          <span className="text-gray-500 dark:text-gray-400">{t('artist.bookings.paymentStatus')}:</span>{' '}
-                          <span className={`capitalize font-medium ${
-                            booking.payment_status === 'verified' ? 'text-emerald-600 dark:text-green-400' :
-                            booking.payment_status === 'paid' ? 'text-blue-600 dark:text-blue-400' :
-                            booking.payment_status === 'rejected' ? 'text-red-600 dark:text-red-400' :
-                            'text-amber-600 dark:text-yellow-400'
-                          }`}>
-                            {booking.payment_status || t('artist.bookings.paymentPending')}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <h4 className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('artist.bookings.contactInfo')}</h4>
-                      <div className="space-y-2 text-sm">
-                        <p className="flex items-center gap-2 text-[#020b00] dark:text-white">
-                          <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                          {booking.contact_name || ', '}
-                        </p>
-                        <p className="flex items-center gap-2 text-[#020b00] dark:text-white">
-                          <Mail className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                          {booking.contact_email || ', '}
-                        </p>
-                        {booking.contact_phone && (
-                          <p className="flex items-center gap-2 text-[#020b00] dark:text-white">
-                            <Phone className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                            {booking.contact_phone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {booking.message && (
-                    <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-3 mb-4">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
-                        <MessageSquare className="w-4 h-4" />
-                        {t('artist.bookings.messageFromOrganizer')}
-                      </p>
-                      <p className="text-[#020b00] dark:text-white text-sm">{booking.message}</p>
-                    </div>
-                  )}
-
-                  {/* Payment Screenshot */}
-                  {booking.payment_screenshot_url && ['submitted', 'paid', 'verified', 'rejected'].includes(booking.payment_status || '') && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('artist.bookings.paymentScreenshot')}</p>
-                      <a href={booking.payment_screenshot_url} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={booking.payment_screenshot_url}
-                          alt={t('artist.bookings.paymentScreenshot')}
-                          className="max-h-48 rounded-lg border border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]/50 transition-colors"
-                        />
-                      </a>
-                    </div>
-                  )}
-
-                  {booking.payment_status === 'submitted' && (
-                    <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-3">Deposit proof submitted{booking.payment_amount ? ` · ¥${booking.payment_amount}` : ''}. Verify the transfer in your payment app before confirming.</p>
-                      <div className="flex gap-2"><button onClick={() => void reviewPayment(booking.id, 'verified')} className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold">Verify deposit</button><button onClick={() => void reviewPayment(booking.id, 'rejected')} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold">Reject proof</button></div>
-                    </div>
-                  )}
-
-                  {/* Awaiting Payment Badge */}
-                  {booking.status === 'pending' && booking.payment_status === 'pending' && (
-                    <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                      <p className="text-sm text-amber-600 dark:text-yellow-400 flex items-center gap-2 font-medium">
-                        <Clock3 className="w-4 h-4" />
-                        {t('artist.bookings.awaitingPayment')}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  {booking.status === 'pending' && (
-                    <div className="space-y-3">
-                      {decliningId === booking.id ? (
-                        <div className="space-y-3">
-                          <textarea
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
-                            placeholder={t('artist.bookings.rejectionReasonPlaceholder')}
-                            className="w-full bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-[#020b00] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-500/50 focus:outline-none resize-none"
-                            rows={3}
-                          />
-                          <div className="flex gap-2 sm:gap-3">
-                            <button
-                              onClick={() => handleStatusChange(booking.id, 'rejected', rejectionReason)}
-                              disabled={actionLoading === booking.id}
-                              className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base cursor-pointer"
-                            >
-                              {actionLoading === booking.id ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <XCircle className="w-4 h-4" />
-                                  {t('artist.bookings.confirmDecline')}
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => { setDecliningId(null); setRejectionReason(''); }}
-                              disabled={actionLoading === booking.id}
-                              className="flex-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-[#020b00] dark:text-white border border-black/10 dark:border-white/10 py-2 px-3 sm:px-4 rounded-lg font-medium text-sm sm:text-base cursor-pointer"
-                            >
-                              {t('artist.bookings.cancel')}
-                            </button>
+                {/* Expanded Details Drawer */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-4 pb-4 pt-2 border-t border-white/5 bg-[#081007]"
+                    >
+                      <div className="grid sm:grid-cols-2 gap-4 py-3">
+                        {/* Event Details */}
+                        <div className="space-y-2 text-xs">
+                          <h4 className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Event Information
+                          </h4>
+                          <div className="bg-white/5 rounded-xl p-3 space-y-1.5">
+                            <p className="flex justify-between">
+                              <span className="text-gray-400">Date & Time:</span>
+                              <span className="font-semibold text-white">{formatDate(booking.event_date)} {booking.event_time || ''}</span>
+                            </p>
+                            <p className="flex justify-between">
+                              <span className="text-gray-400">Location:</span>
+                              <span className="font-semibold text-white">{booking.event_location || booking.event_city || '–'}</span>
+                            </p>
+                            <p className="flex justify-between">
+                              <span className="text-gray-400">Offer Budget:</span>
+                              <span className="font-bold text-[#d3da0c]">{formatBudget(booking.budget)}</span>
+                            </p>
+                            {booking.deposit_amount && (
+                              <p className="flex justify-between">
+                                <span className="text-gray-400">Required Deposit:</span>
+                                <span className="font-bold text-emerald-400">{formatBudget(booking.deposit_amount)}</span>
+                              </p>
+                            )}
+                            {booking.creative_role && (
+                              <p className="flex justify-between">
+                                <span className="text-gray-400">Role:</span>
+                                <span className="font-semibold text-white">{booking.creative_role}</span>
+                              </p>
+                            )}
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex gap-2 sm:gap-3">
-                          <button
-                            onClick={() => handleStatusChange(booking.id, 'accepted')}
-                            disabled={actionLoading === booking.id}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 text-white py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base cursor-pointer"
-                          >
-                            {actionLoading === booking.id ? (
-                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="hidden sm:inline">{t('artist.bookings.accept')}</span>
-                                <span className="sm:hidden">Accept</span>
-                              </>
+
+                        {/* Contact Information & Actions */}
+                        <div className="space-y-2 text-xs">
+                          <h4 className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Organizer Contact
+                          </h4>
+                          <div className="bg-white/5 rounded-xl p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400">Organizer Name:</span>
+                              <span className="font-semibold text-white">{booking.contact_name || 'Client'}</span>
+                            </div>
+                            {booking.contact_email && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400">Email:</span>
+                                <a href={`mailto:${booking.contact_email}`} className="text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                                  <Mail className="w-3 h-3" />
+                                  {booking.contact_email}
+                                </a>
+                              </div>
                             )}
-                          </button>
-                          <button
-                            onClick={() => setDecliningId(booking.id)}
-                            disabled={actionLoading === booking.id}
-                            className="flex-1 bg-red-500/10 hover:bg-red-500/20 disabled:bg-red-500/5 text-red-600 dark:text-red-400 border border-red-500/30 py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm sm:text-base cursor-pointer"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            <span className="hidden sm:inline">{t('artist.bookings.decline')}</span>
-                            <span className="sm:hidden">Decline</span>
-                          </button>
+                            {booking.contact_phone && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400">Phone:</span>
+                                <a href={`tel:${booking.contact_phone}`} className="text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                                  <Phone className="w-3 h-3" />
+                                  {booking.contact_phone}
+                                </a>
+                              </div>
+                            )}
+
+                            <div className="pt-2 flex gap-2">
+                              {booking.contact_phone && (
+                                <a
+                                  href={`tel:${booking.contact_phone}`}
+                                  className="flex-1 py-1.5 bg-white/10 hover:bg-white/15 rounded-lg text-center font-bold text-white flex items-center justify-center gap-1.5 transition-colors"
+                                >
+                                  <Phone className="w-3.5 h-3.5" /> Call
+                                </a>
+                              )}
+                              <Link
+                                to="/dashboard/artist/messages"
+                                className="flex-1 py-1.5 bg-white/10 hover:bg-white/15 rounded-lg text-center font-bold text-white flex items-center justify-center gap-1.5 transition-colors"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" /> Message
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Organizer Notes / Message */}
+                      {booking.message && (
+                        <div className="mb-4 bg-white/5 rounded-xl p-3 text-xs">
+                          <span className="text-gray-400 font-semibold block mb-1">Message from Organizer:</span>
+                          <p className="text-gray-200 leading-relaxed italic">"{booking.message}"</p>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {booking.status === 'accepted' && (
-                    <button
-                      onClick={() => handleStatusChange(booking.id, 'completed')}
-                      disabled={actionLoading === booking.id}
-                      className="w-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black py-2.5 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors shadow-xs dark:shadow-none cursor-pointer"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      {t('artist.bookings.markCompleted')}
-                    </button>
+                      {/* Deposit Proof Review Card (if submitted) */}
+                      {booking.payment_screenshot_url && (
+                        <div className="mb-4 bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-3.5 text-xs">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+                              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                              Payment Proof Submitted
+                            </span>
+                            <button
+                              onClick={() => setPreviewScreenshotUrl(booking.payment_screenshot_url || null)}
+                              className="text-xs text-emerald-300 hover:text-white flex items-center gap-1 underline cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View Full Screenshot
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={booking.payment_screenshot_url}
+                              alt="Payment Proof"
+                              onClick={() => setPreviewScreenshotUrl(booking.payment_screenshot_url || null)}
+                              className="w-16 h-16 object-cover rounded-lg border border-white/10 cursor-pointer hover:opacity-90"
+                            />
+                            <div className="flex-1">
+                              <p className="text-gray-300">
+                                Deposit Amount: <strong className="text-white">{formatBudget(booking.deposit_amount || booking.payment_amount)}</strong>
+                              </p>
+                              <p className="text-gray-400 text-[0.6875rem] mt-0.5">
+                                Status: <span className="capitalize font-semibold text-white">{booking.payment_status}</span>
+                              </p>
+                            </div>
+
+                            {/* Verify or Reject Deposit Proof */}
+                            {booking.payment_status === 'submitted' && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => reviewPayment(booking.id, 'verified')}
+                                  disabled={isActionBusy}
+                                  className="px-3 py-1.5 bg-[#d3da0c] hover:bg-[#c2c80b] text-black font-bold rounded-lg transition-all text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                >
+                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  Verify
+                                </button>
+                                <button
+                                  onClick={() => reviewPayment(booking.id, 'rejected')}
+                                  disabled={isActionBusy}
+                                  className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold rounded-lg transition-all text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Rejection reason displayed if rejected */}
+                      {booking.rejection_reason && (
+                        <div className="mb-4 bg-red-950/20 border border-red-500/20 rounded-xl p-3 text-xs text-red-300 flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold block">Decline Reason:</span>
+                            <p className="mt-0.5 text-gray-300">{booking.rejection_reason}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Primary Actions Bar */}
+                      <div className="pt-2 flex items-center justify-end gap-2.5">
+                        {booking.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => setDecliningId(booking.id)}
+                              disabled={isActionBusy}
+                              className="px-4 py-2 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all cursor-pointer disabled:opacity-50"
+                            >
+                              Decline
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(booking.id, 'accepted')}
+                              disabled={isActionBusy}
+                              className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#d3da0c] hover:bg-[#c2c80b] text-black transition-all shadow-[0_0_12px_rgba(211,218,12,0.3)] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              {isActionBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-4 h-4 stroke-[3]" />}
+                              Accept Booking
+                            </button>
+                          </>
+                        )}
+
+                        {booking.status === 'accepted' && (
+                          <button
+                            onClick={() => handleStatusChange(booking.id, 'completed')}
+                            disabled={isActionBusy}
+                            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-blue-500 hover:bg-blue-600 text-white transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            {isActionBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                            Mark as Completed
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-              )}
-            </motion.div>
-          ))
+                </AnimatePresence>
+              </motion.div>
+            );
+          })
         )}
       </div>
+
+      {/* Decline Booking Reason Modal */}
+      <AnimatePresence>
+        {decliningId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+            onClick={() => setDecliningId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-md text-white"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white">Decline Booking Request</h3>
+                <button
+                  onClick={() => setDecliningId(null)}
+                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-400 mb-4">
+                Please provide a brief reason for declining so the organizer understands (e.g., schedule conflict, travel constraints).
+              </p>
+
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Reason for declining this booking..."
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#d3da0c] mb-5"
+              />
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setDecliningId(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white bg-white/5 hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleStatusChange(decliningId, 'rejected', rejectionReason)}
+                  disabled={actionLoading === decliningId}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5"
+                >
+                  {actionLoading === decliningId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  Confirm Decline
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Screenshot Zoom Modal */}
+      <AnimatePresence>
+        {previewScreenshotUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex items-center justify-center p-4"
+            onClick={() => setPreviewScreenshotUrl(null)}
+          >
+            <div className="relative max-w-2xl w-full max-h-[85dvh] flex flex-col items-center">
+              <button
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img
+                src={previewScreenshotUrl}
+                alt="Payment proof full"
+                className="max-h-[80dvh] w-auto object-contain rounded-xl border border-white/10 shadow-2xl"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

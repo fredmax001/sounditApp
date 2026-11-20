@@ -243,10 +243,10 @@ export default function AdminSubscriptions() {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[#020b00] dark:text-white font-bold">{plan.name}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className={`px-2 py-0.5 rounded text-[11px] uppercase tracking-wide ${plan.billing_period === 'yearly' ? 'bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]' : 'bg-neutral-200/70 dark:bg-white/10 text-gray-700 dark:text-gray-300'}`}>
+                      <span className={`px-2 py-0.5 rounded text-[0.6875rem] uppercase tracking-wide ${plan.billing_period === 'yearly' ? 'bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]' : 'bg-neutral-200/70 dark:bg-white/10 text-gray-700 dark:text-gray-300'}`}>
                         {plan.billing_period === 'yearly' ? (t('admin.adminSubscriptions.yearly') || 'Yearly') : (t('admin.adminSubscriptions.monthly') || 'Monthly')}
                       </span>
-                      <span className="px-2 py-0.5 bg-neutral-200/70 dark:bg-white/10 rounded text-[11px] uppercase tracking-wide text-gray-700 dark:text-gray-300">{plan.role}</span>
+                      <span className="px-2 py-0.5 bg-neutral-200/70 dark:bg-white/10 rounded text-[0.6875rem] uppercase tracking-wide text-gray-700 dark:text-gray-300">{plan.role}</span>
                     </div>
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 text-xs mb-3">{plan.duration_days} days</p>
@@ -359,7 +359,7 @@ export default function AdminSubscriptions() {
                 <td className="px-6 py-4">
                   <span className="text-[#020b00] dark:text-[#d3da0c] font-semibold capitalize">{sub.plan_type}</span>
                   {(sub as any).billing_period && (
-                    <span className={`ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide ${(sub as any).billing_period === 'lifetime' ? 'bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]' : 'bg-neutral-200/70 dark:bg-white/10 text-gray-700 dark:text-gray-400'}`}>
+                    <span className={`ml-2 px-2 py-0.5 rounded text-[0.625rem] uppercase tracking-wide ${(sub as any).billing_period === 'lifetime' ? 'bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]' : 'bg-neutral-200/70 dark:bg-white/10 text-gray-700 dark:text-gray-400'}`}>
                       {(sub as any).billing_period}
                     </span>
                   )}
@@ -426,7 +426,7 @@ export default function AdminSubscriptions() {
 
       {/* Detail Modal */}
       {selectedSub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSub(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSub(null)}>
           <div className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 border-b border-black/10 dark:border-white/10 pb-3">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">Subscription Details</h2>

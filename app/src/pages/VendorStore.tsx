@@ -108,7 +108,7 @@ export default function VendorStore() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="animate-spin w-12 h-12 border-4 border-[#d3da0c] border-t-transparent rounded-full" />
             </div>
         );
@@ -116,7 +116,7 @@ export default function VendorStore() {
 
     if (!vendor) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="text-center">
                     <Store className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-white mb-2">Vendor not found</h2>
@@ -129,7 +129,7 @@ export default function VendorStore() {
     }
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
+        <div className="min-h-dvh pt-20 pb-24 bg-[#020b00]">
             {/* Banner */}
             <div className="relative h-[250px] md:h-[300px]">
                 <div

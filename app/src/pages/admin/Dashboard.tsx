@@ -915,7 +915,7 @@ const AdminDashboard = () => {
           <p>No users found</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1048,7 +1048,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.youAreTheOnlyAdmin')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1133,7 +1133,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.businessesWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1268,7 +1268,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.artistsWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1523,7 +1523,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.vendorsWillAppear') || 'Vendors will appear here once registered'}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1640,7 +1640,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.eventsWillAppear')}</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1748,7 +1748,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">Bookings between clients and artists will appear here</p>
         </div>
       ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           <table className="w-full border-collapse">
             <thead className="bg-[#181818] sticky top-0 z-10 border-b border-white/10 shadow-xs">
               <tr>
@@ -1881,7 +1881,7 @@ const AdminDashboard = () => {
           <p className="text-sm mt-1">{t('admin.dashboard.payoutRequestsWillAppear')}</p>
         </div>
       ) : (
-        <div className="p-4 lg:p-6 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+        <div className="p-4 lg:p-6 space-y-3 overflow-y-auto max-h-[calc(100dvh-280px)] scrollbar-thin">
           {payouts.map((payout) => (
             <div key={payout.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
               <div>
@@ -1959,7 +1959,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00]">
+    <div className="min-h-dvh bg-[#020b00]">
       {/* Page Header */}
       <div className="px-4 pt-6 pb-2 lg:px-8 lg:pt-8">
         <div className="flex items-start justify-between gap-4 mb-4">
@@ -2000,7 +2000,7 @@ const AdminDashboard = () => {
 
       {/* {t('admin.dashboard.addAdmin')} Modal */}
       {showAddAdminModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80]">
           <div className="bg-[#111111] border border-white/10 rounded-xl p-4 w-full max-w-md mx-4 lg:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">{t('admin.dashboard.createNewAdmin')}</h3>

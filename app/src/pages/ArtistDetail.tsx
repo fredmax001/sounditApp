@@ -268,12 +268,12 @@ const BookingModal = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[#020b00] dark:text-white shadow-2xl"
+          className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto text-[#020b00] dark:text-white shadow-2xl"
         >
           {/* Header */}
           <div className="sticky top-0 bg-white dark:bg-[#111111] border-b border-black/10 dark:border-white/10 p-6 flex items-center justify-between z-10">
@@ -308,8 +308,8 @@ const BookingModal = ({
                 {/* Deposit Prompt / Choice Selector */}
                 <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Payment Option</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]">50% Deposit Accepted</span>
+                    <span className="text-[0.6875rem] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Payment Option</span>
+                    <span className="text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c]">50% Deposit Accepted</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <button
@@ -323,12 +323,12 @@ const BookingModal = ({
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Pay Deposit</span>
-                        <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 font-bold px-1.5 py-0.5 rounded">50%</span>
+                        <span className="text-[0.625rem] bg-green-500/10 text-green-600 dark:text-green-400 font-bold px-1.5 py-0.5 rounded">50%</span>
                       </div>
                       <p className="text-lg font-black text-[#020b00] dark:text-[#d3da0c]">
                         {depositAmount > 0 ? `¥${depositAmount}` : '50% of fee'}
                       </p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">Secures booking date</p>
+                      <p className="text-[0.625rem] text-gray-500 mt-0.5">Secures booking date</p>
                     </button>
 
                     <button
@@ -342,12 +342,12 @@ const BookingModal = ({
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Full Payment</span>
-                        <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">100%</span>
+                        <span className="text-[0.625rem] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">100%</span>
                       </div>
                       <p className="text-lg font-black text-[#020b00] dark:text-white">
                         {totalBudget > 0 ? `¥${totalBudget}` : 'Full Amount'}
                       </p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">Pay complete budget</p>
+                      <p className="text-[0.625rem] text-gray-500 mt-0.5">Pay complete budget</p>
                     </button>
                   </div>
                 </div>
@@ -991,7 +991,7 @@ const ArtistDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
+      <div className="min-h-dvh pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
         <div className="animate-spin w-12 h-12 border-4 border-[#020b00] dark:border-[#d3da0c] border-t-transparent rounded-full" />
       </div>
     );
@@ -999,7 +999,7 @@ const ArtistDetail = () => {
 
   if (!artist) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
+      <div className="min-h-dvh pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-[#020b00] dark:text-white mb-2">{t('artistDetail.artistNotFound')}</h2>
@@ -1013,7 +1013,7 @@ const ArtistDetail = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-36 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh pt-20 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Hero Section */}
       <div className="relative h-[400px] md:h-[500px] overflow-hidden bg-neutral-900 dark:bg-[#141414]">
         <img
@@ -1688,13 +1688,19 @@ const ArtistDetail = () => {
         />
       )}
 
-      {/* Mobile Sticky Booking & Deposit Bar */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white/95 dark:bg-[#0b130b]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+      {/* Mobile Sticky Booking & Deposit Bar (MobileBottomNav hides on /artists/:id) */}
+      <div
+        className="md:hidden fixed left-0 right-0 z-[35] bg-white/95 dark:bg-[#0b130b]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 px-4 pt-3 flex items-center justify-between gap-3 shadow-lg transition-[bottom] duration-200"
+        style={{
+          bottom: 'var(--keyboard-offset, 0px)',
+          paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{t('artistDetail.startsFrom') || 'Starts from'}</p>
+          <p className="text-[0.625rem] uppercase tracking-wider text-gray-500 font-bold">{t('artistDetail.startsFrom') || 'Starts from'}</p>
           <p className="text-base font-black text-[#020b00] dark:text-[#d3da0c]">
             {artist.starting_price ? `¥${artist.starting_price}` : 'Inquire'}
-            {artist.starting_price && <span className="text-[11px] text-gray-500 font-normal"> / event</span>}
+            {artist.starting_price && <span className="text-[0.6875rem] text-gray-500 font-normal"> / event</span>}
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -195,14 +195,14 @@ const Payouts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28 pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28 pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       {/* Page Title & Glowing 3D Green Wallet Graphic */}
       <div className="flex items-start justify-between gap-4 pt-2 pb-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Payouts
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[280px] sm:max-w-md leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[17.5rem] sm:max-w-md leading-relaxed">
             Manage your earnings and withdrawal requests.
           </p>
         </div>
@@ -329,7 +329,7 @@ const Payouts = () => {
             </h2>
           </div>
           {pendingPayouts.length > 0 && (
-            <span className="text-[11px] font-medium text-yellow-400 bg-yellow-500/15 border border-yellow-500/30 px-2.5 py-0.5 rounded-full">
+            <span className="text-[0.6875rem] font-medium text-yellow-400 bg-yellow-500/15 border border-yellow-500/30 px-2.5 py-0.5 rounded-full">
               {pendingPayouts.length}
             </span>
           )}
@@ -370,7 +370,7 @@ const Payouts = () => {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                    <span className="text-[0.6875rem] font-medium px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
                       Pending
                     </span>
                     <span className="text-xs text-gray-400 hidden sm:inline">
@@ -452,7 +452,7 @@ const Payouts = () => {
                       <p className="text-xs sm:text-sm font-semibold text-white truncate">
                         {tx.description}
                       </p>
-                      <p className="text-[11px] text-gray-400 truncate">
+                      <p className="text-[0.6875rem] text-gray-400 truncate">
                         {isSale ? (
                           <>
                             {tx.tickets_count ? `(${tx.tickets_count} ticket(s)) ` : ''}
@@ -470,7 +470,7 @@ const Payouts = () => {
                   {/* Right: Status Pill + Date + Chevron */}
                   <div className="flex items-center gap-2 shrink-0">
                     <span
-                      className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full capitalize border ${
+                      className={`text-[0.6875rem] font-medium px-2.5 py-0.5 rounded-full capitalize border ${
                         tx.status === 'completed'
                           ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                           : tx.status === 'pending' || tx.status === 'processing'
@@ -507,7 +507,7 @@ const Payouts = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto text-white"
+              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto text-white"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
@@ -527,7 +527,7 @@ const Payouts = () => {
               {/* Available Balance Banner */}
               <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5 mb-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-medium text-emerald-400">Available to Withdraw</p>
+                  <p className="text-[0.6875rem] font-medium text-emerald-400">Available to Withdraw</p>
                   <p className="text-xl font-extrabold text-white mt-0.5">
                     {formatCurrency(availableBalance)}
                   </p>
@@ -562,7 +562,7 @@ const Payouts = () => {
                     />
                   </div>
                   {availableBalance <= 0 && (
-                    <p className="text-[11px] text-amber-400 mt-1 flex items-center gap-1">
+                    <p className="text-[0.6875rem] text-amber-400 mt-1 flex items-center gap-1">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       No available balance currently withdrawable.
                     </p>
@@ -586,7 +586,7 @@ const Payouts = () => {
                       }`}
                     >
                       <Smartphone className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
-                      <span className="text-[11px] font-semibold block">WeChat</span>
+                      <span className="text-[0.6875rem] font-semibold block">WeChat</span>
                     </button>
 
                     {/* Alipay */}
@@ -600,7 +600,7 @@ const Payouts = () => {
                       }`}
                     >
                       <Smartphone className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-                      <span className="text-[11px] font-semibold block">Alipay</span>
+                      <span className="text-[0.6875rem] font-semibold block">Alipay</span>
                     </button>
 
                     {/* Bank Transfer */}
@@ -614,7 +614,7 @@ const Payouts = () => {
                       }`}
                     >
                       <Building2 className="w-4 h-4 mx-auto mb-1 text-amber-400" />
-                      <span className="text-[11px] font-semibold block">Bank</span>
+                      <span className="text-[0.6875rem] font-semibold block">Bank</span>
                     </button>
                   </div>
                 </div>
@@ -692,7 +692,7 @@ const Payouts = () => {
                   </>
                 )}
 
-                <p className="text-[11px] text-gray-400 bg-black/30 p-2.5 rounded-xl border border-white/5">
+                <p className="text-[0.6875rem] text-gray-400 bg-black/30 p-2.5 rounded-xl border border-white/5">
                   Payout requests are reviewed and processed within 1-3 business days. Funds will be sent directly to your specified account.
                 </p>
 

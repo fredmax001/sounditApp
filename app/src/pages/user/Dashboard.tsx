@@ -272,7 +272,7 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-24 px-4 py-6 lg:p-10 lg:pt-28 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-24 px-4 py-6 lg:p-10 lg:pt-28 transition-colors">
       <div className="flex flex-col items-start justify-between gap-4 mb-8 lg:flex-row lg:items-end lg:gap-8 lg:mb-12">
         <div className="flex items-center gap-4 lg:gap-8">
           <div className="relative group">
@@ -319,7 +319,7 @@ const UserDashboard = () => {
               {profile?.role_type && (
                 <>
                   <span className="w-1 h-1 bg-black/20 dark:bg-white/20 rounded-full"></span>
-                  <span className="tracking-widest uppercase text-[10px] text-gray-500 font-semibold">
+                  <span className="tracking-widest uppercase text-[0.625rem] text-gray-500 font-semibold">
                     {getRoleLabel(profile.role_type)}
                   </span>
                 </>
@@ -352,7 +352,7 @@ const UserDashboard = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-0 justify-center px-1 sm:px-3 lg:px-6 py-2.5 lg:py-3 rounded-lg lg:rounded-xl text-[11px] sm:text-xs lg:text-sm font-bold transition-all capitalize flex items-center gap-1 lg:gap-3 whitespace-nowrap ${activeTab === tab.id
+            className={`flex-1 min-w-0 justify-center px-1 sm:px-3 lg:px-6 py-2.5 lg:py-3 rounded-lg lg:rounded-xl text-[0.6875rem] sm:text-xs lg:text-sm font-bold transition-all capitalize flex items-center gap-1 lg:gap-3 whitespace-nowrap ${activeTab === tab.id
               ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black shadow-xs'
               : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
               }`}
@@ -387,7 +387,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       <div className="relative z-20 max-w-md">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-full text-[10px] font-bold uppercase tracking-widest mb-6">{t('user.dashboard.nextEvent')}</div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-full text-[0.625rem] font-bold uppercase tracking-widest mb-6">{t('user.dashboard.nextEvent')}</div>
                         <h2 className="text-xl lg:text-3xl font-bold text-[#020b00] dark:text-white mb-3 tracking-tight">{nextTicket.event?.title || t('user.dashboard.yourNextEvent')}</h2>
                         <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-6">
                           {nextTicket.event?.start_date ? new Date(nextTicket.event.start_date).toLocaleDateString() : t('user.dashboard.tbd')} @ {nextTicket.event?.city || t('user.dashboard.tbd')}
@@ -405,7 +405,7 @@ const UserDashboard = () => {
                         <div className="w-full h-full bg-[#d3da0c]/15" />
                       </div>
                       <div className="relative z-20 max-w-md">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-full text-[10px] font-bold uppercase tracking-widest mb-6">{t('user.dashboard.discoverEvents')}</div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#020b00]/10 dark:bg-[#d3da0c]/10 text-[#020b00] dark:text-[#d3da0c] rounded-full text-[0.625rem] font-bold uppercase tracking-widest mb-6">{t('user.dashboard.discoverEvents')}</div>
                         <h2 className="text-xl lg:text-3xl font-bold text-[#020b00] dark:text-white mb-3 tracking-tight">{t('user.dashboard.findYourNext')} <span className="text-[#020b00] dark:text-[#d3da0c]">{t('user.dashboard.experience')}</span></h2>
                         <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-6">{t('user.dashboard.exploreEventsSubtitle')}</p>
                         <Link to="/events">
@@ -435,7 +435,7 @@ const UserDashboard = () => {
                           </div>
                           <div className="min-w-0">
                             <h4 className="text-[#020b00] dark:text-white font-bold text-sm lg:text-lg whitespace-nowrap">{t('user.dashboard.browseEvents')}</h4>
-                            <p className="text-gray-600 dark:text-gray-400 text-[11px] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findUpcomingParties')}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-[0.6875rem] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findUpcomingParties')}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -451,7 +451,7 @@ const UserDashboard = () => {
                           </div>
                           <div className="min-w-0">
                             <h4 className="text-[#020b00] dark:text-white font-bold text-sm lg:text-lg whitespace-nowrap">{t('user.dashboard.discoverArtists')}</h4>
-                            <p className="text-gray-600 dark:text-gray-400 text-[11px] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findYourFavoriteDjs')}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-[0.6875rem] lg:text-sm font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">{t('user.dashboard.findYourFavoriteDjs')}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -483,7 +483,7 @@ const UserDashboard = () => {
                             </div>
                             <div className="flex-1">
                               <h4 className="text-[#020b00] dark:text-white font-bold group-hover:text-[#020b00]/80 dark:group-hover:text-[#d3da0c] transition-all truncate">{(item.events?.title as string) || t('user.dashboard.event')}</h4>
-                              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                              <p className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-widest mt-1">
                                 {item.events?.start_date ? new Date(item.events.start_date as string).toLocaleDateString() : t('user.dashboard.tba')}
                               </p>
                             </div>
@@ -560,11 +560,11 @@ const UserDashboard = () => {
                         <div className="flex-1 space-y-4 lg:space-y-6 text-center">
                           <div className="grid grid-cols-2 gap-3 lg:gap-6">
                             <div>
-                              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">{t('user.dashboard.date')}</p>
+                              <p className="text-gray-500 text-[0.625rem] font-bold uppercase tracking-[0.2em] mb-2">{t('user.dashboard.date')}</p>
                               <p className="text-[#020b00] dark:text-white font-bold text-sm lg:text-lg mb-1">{ticket.date}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">{t('user.dashboard.ticketNumber')}</p>
+                              <p className="text-gray-500 text-[0.625rem] font-bold uppercase tracking-[0.2em] mb-2">{t('user.dashboard.ticketNumber')}</p>
                               <p className="text-[#020b00] dark:text-white font-mono font-bold text-sm lg:text-lg mb-1">{ticket.qr}</p>
                             </div>
                           </div>
@@ -655,8 +655,8 @@ const UserDashboard = () => {
 
       {/* Booking Payment Upload Modal */}
       {uploadModalBooking && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#141414] rounded-2xl p-5 max-w-md w-full mx-4 border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto text-[#020b00] dark:text-white shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-5 max-w-md w-full mx-4 border border-black/10 dark:border-white/10 max-h-[90dvh] overflow-y-auto text-[#020b00] dark:text-white shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('user.dashboard.uploadPayment')}</h3>
               <button onClick={closeUploadModal} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-gray-700 dark:text-white transition-colors"><X className="w-5 h-5" /></button>

@@ -193,23 +193,41 @@ const MobileBottomNav = () => {
     navigate(path);
   };
 
-  // Event detail pages render their own sticky purchase bar — hide tab bar
-  const hideOnEventDetail = /^\/events\/[^/]+/.test(location.pathname);
+  // Focused form, checkout, edit, and detail screens with primary bottom CTA bars — hide tab bar
+  const hideOnFocusedRoute =
+    /^\/events\/[^/]+/.test(location.pathname) ||
+    /^\/artists\/[^/]+/.test(location.pathname) ||
+    location.pathname.startsWith('/checkout/') ||
+    location.pathname === '/cart' ||
+    location.pathname === '/profile/edit' ||
+    location.pathname === '/get-verified' ||
+    location.pathname === '/dashboard/business/create-event' ||
+    /^\/dashboard\/business\/events\/[^/]+\/edit/.test(location.pathname) ||
+    location.pathname === '/dashboard/vendor/menu-import' ||
+    location.pathname === '/dashboard/vendor/payment-settings';
 
-  // Hide bottom nav when mobile software keyboard is open
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  // Hide bottom nav when mobile software keyboard is open (works with both overlay & resizes-content engines)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.keyboardOpen === 'true'
+  );
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return;
-    const handleViewport = () => {
-      const vv = window.visualViewport!;
-      const diff = window.innerHeight - (vv.height + vv.offsetTop);
-      setIsKeyboardVisible(diff > 140);
+    if (typeof window === 'undefined') return;
+    const syncKeyboard = () => {
+      const attrOpen = document.documentElement.dataset.keyboardOpen === 'true';
+      const vv = window.visualViewport;
+      const vvDiff = vv ? window.innerHeight - (vv.height + vv.offsetTop) : 0;
+      setIsKeyboardVisible(attrOpen || vvDiff > 140);
     };
-    window.visualViewport.addEventListener('resize', handleViewport);
-    return () => window.visualViewport?.removeEventListener('resize', handleViewport);
+    syncKeyboard();
+    window.addEventListener('soundit-keyboard-change', syncKeyboard);
+    window.visualViewport?.addEventListener('resize', syncKeyboard);
+    return () => {
+      window.removeEventListener('soundit-keyboard-change', syncKeyboard);
+      window.visualViewport?.removeEventListener('resize', syncKeyboard);
+    };
   }, []);
 
-  // Hide bottom nav whenever a modal, drawer, or share sheet is open
+  // Hide bottom nav whenever any modal, dialog, drawer, or bottom sheet is open
   const [hasModalOpen, setHasModalOpen] = useState(false);
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -217,6 +235,14 @@ const MobileBottomNav = () => {
       const isModal =
         Boolean(document.body.classList.contains('modal-open')) ||
         Boolean(document.querySelector('[data-modal-open="true"]')) ||
+        Boolean(document.querySelector('[role="dialog"][data-state="open"]')) ||
+        Boolean(document.querySelector('[role="alertdialog"][data-state="open"]')) ||
+        Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')) ||
+        Boolean(document.querySelector('[data-slot="dialog-content"]')) ||
+        Boolean(document.querySelector('[data-slot="drawer-content"]')) ||
+        Boolean(document.querySelector('[data-slot="sheet-content"]')) ||
+        Boolean(document.querySelector('.fixed.inset-0.z-\\[80\\]')) ||
+        Boolean(document.querySelector('.fixed.inset-0.z-\\[100\\]')) ||
         Boolean(document.querySelector('.fixed.inset-0.z-\\[100000\\]')) ||
         Boolean(document.querySelector('.fixed.inset-0.z-\\[9999\\]'));
       setHasModalOpen(isModal);
@@ -228,7 +254,7 @@ const MobileBottomNav = () => {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class', 'data-modal-open'],
+      attributeFilter: ['class', 'data-modal-open', 'data-state'],
     });
 
     window.addEventListener('modal-state-change', checkModal);
@@ -238,22 +264,65 @@ const MobileBottomNav = () => {
     };
   }, []);
 
-  if (hideOnEventDetail || isKeyboardVisible || hasModalOpen) return null;
+  const isHidden = hideOnFocusedRoute || isKeyboardVisible || hasModalOpen;
+  const navContainerRef = useRef<HTMLDivElement>(null);
+
+  // Publish live rendered height to --bottom-nav-height CSS variable so all pages & sticky CTAs stay aligned
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (isHidden) {
+      root.style.setProperty('--bottom-nav-height', '0px');
+      return;
+    }
+
+    const updateHeight = () => {
+      const el = navContainerRef.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // Rendered pill height + 10px floating offset + 8px breathing gap
+        const total = Math.ceil(rect.height + 18);
+        root.style.setProperty('--bottom-nav-height', `${total}px`);
+      } else {
+        root.style.setProperty('--bottom-nav-height', '5.25rem');
+      }
+    };
+
+    updateHeight();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateHeight) : null;
+    if (ro && navContainerRef.current) {
+      ro.observe(navContainerRef.current);
+    }
+    return () => {
+      ro?.disconnect();
+      root.style.setProperty('--bottom-nav-height', '0px');
+    };
+  }, [isHidden, isExpanded]);
+
+  if (isHidden) {
+    return (
+      <MoreMenuSheet
+        isOpen={showMoreMenu}
+        onClose={() => setShowMoreMenu(false)}
+      />
+    );
+  }
 
   return (
     <>
-      {/* Floating Bottom Nav Container for PWA, iOS, and Android */}
+      {/* Floating Bottom Nav Container for PWA, iOS, and Android (z-40: strictly above sticky CTAs z-35, strictly below drawers/modals z-60+) */}
       <div
-        className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none px-3 sm:px-4"
+        ref={navContainerRef}
+        className="fixed left-0 right-0 z-40 flex items-center justify-center pointer-events-none px-3 sm:px-4"
         style={{
-          bottom: 'calc(10px + max(0.25rem, env(safe-area-inset-bottom, 0px)))',
+          bottom: 'calc(0.625rem + max(0.25rem, env(safe-area-inset-bottom, 0px)))',
         }}
       >
         <motion.nav
           initial={false}
           animate={{
-            maxWidth: isExpanded ? '440px' : '385px',
-            height: isExpanded ? '66px' : '58px',
+            maxWidth: isExpanded ? 'min(94vw, 27.5rem)' : 'min(92vw, 24rem)',
+            height: isExpanded ? '4.125rem' : '3.625rem',
             scale: isExpanded ? 1.02 : 1.0,
             boxShadow: isDark
               ? isExpanded
@@ -307,7 +376,7 @@ const MobileBottomNav = () => {
                     >
                       <Icon className="w-5 h-5 text-black" strokeWidth={2.5} />
                     </motion.div>
-                    <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-300 mt-0.5 leading-none">
+                    <span className="text-[0.5625rem] font-semibold text-gray-500 dark:text-gray-300 mt-0.5 leading-none">
                       {item.label}
                     </span>
                   </button>
@@ -318,7 +387,7 @@ const MobileBottomNav = () => {
                 <button
                   key={item.path}
                   onClick={() => handleNavClick(item.path)}
-                  className="relative flex-1 flex flex-col items-center justify-center h-full py-1 rounded-full touch-feedback group"
+                  className="relative flex-1 flex flex-col items-center justify-center h-full py-1 rounded-full touch-feedback group min-w-0"
                   aria-label={item.label}
                 >
                   {/* Active highlight background capsule pill */}
@@ -342,7 +411,7 @@ const MobileBottomNav = () => {
                   >
                     <Icon
                       className={`transition-colors duration-150 ${
-                        isExpanded ? 'w-[21px] h-[21px]' : 'w-[19px] h-[19px]'
+                        isExpanded ? 'w-5 h-5' : 'w-[1.1875rem] h-[1.1875rem]'
                       } ${
                         active
                           ? 'text-[#020b00] dark:text-[#d3da0c]'
@@ -354,7 +423,7 @@ const MobileBottomNav = () => {
 
                   {/* Label */}
                   <span
-                    className={`relative z-10 text-[9.5px] sm:text-[10px] tracking-tight mt-0.5 leading-none transition-colors duration-150 ${
+                    className={`relative z-10 text-[0.625rem] tracking-tight mt-0.5 leading-none truncate max-w-full px-0.5 transition-colors duration-150 ${
                       active
                         ? 'text-[#020b00] dark:text-[#d3da0c] font-semibold'
                         : 'text-[#020b00]/60 dark:text-white/45 font-medium'
@@ -369,8 +438,12 @@ const MobileBottomNav = () => {
         </motion.nav>
       </div>
 
-      {/* Spacer so page content at bottom is not obscured by the floating nav bar */}
-      <div className="h-24 pointer-events-none" />
+      {/* Dynamic spacer matching rendered floating nav + safe area */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none shrink-0"
+        style={{ height: 'calc(var(--bottom-nav-height, 5.25rem) + env(safe-area-inset-bottom, 0px))' }}
+      />
 
       {/* More Menu Sheet */}
       <MoreMenuSheet

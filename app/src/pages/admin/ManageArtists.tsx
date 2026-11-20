@@ -393,7 +393,7 @@ const ManageArtists = () => {
                         <p className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1.5 flex-wrap">
                           <span>{artist.user_name}</span>
                           {artist.city && (
-                            <span className="inline-flex items-center gap-0.5 text-[11px] text-[#020b00] dark:text-[#d3da0c] font-medium bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                            <span className="inline-flex items-center gap-0.5 text-[0.6875rem] text-[#020b00] dark:text-[#d3da0c] font-medium bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
                               <MapPin className="w-2.5 h-2.5" />
                               {artist.city.charAt(0).toUpperCase() + artist.city.slice(1)}
                             </span>

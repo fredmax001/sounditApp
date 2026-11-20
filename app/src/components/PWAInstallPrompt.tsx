@@ -154,11 +154,13 @@ export default function PWAInstallPrompt() {
 
           {/* Bottom Sheet */}
           <motion.div
+            data-modal-open="true"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-[70] bg-[#0f0f0f] rounded-t-[2rem] border-t border-white/10 shadow-[0_-20px_60px_rgba(0,0,0,0.6)]"
+            className="fixed inset-x-0 bottom-0 z-[85] bg-[#0f0f0f] rounded-t-[2rem] border-t border-white/10 shadow-[0_-20px_60px_rgba(0,0,0,0.6)] max-h-[88dvh] overflow-y-auto"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag handle */}

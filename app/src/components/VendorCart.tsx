@@ -34,14 +34,15 @@ export default function VendorCart({ vendorId, vendorName, isOpen, onClose }: Ve
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                        className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
                     />
                     <motion.div
+                        data-modal-open="true"
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[#0f0f0f] border-l border-white/10 flex flex-col"
+                        className="fixed right-0 top-0 bottom-0 z-[80] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 flex flex-col safe-area-pt"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -111,7 +112,10 @@ export default function VendorCart({ vendorId, vendorName, isOpen, onClose }: Ve
 
                         {/* Footer */}
                         {cart.length > 0 && (
-                            <div className="p-4 border-t border-white/10 space-y-3">
+                            <div
+                                className="p-4 border-t border-white/10 space-y-3 shrink-0"
+                                style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+                            >
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-400">Total</span>
                                     <span className="text-white text-xl font-bold">¥{total.toFixed(2)}</span>

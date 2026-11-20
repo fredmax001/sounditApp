@@ -712,15 +712,15 @@ export default function Recaps() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white text-[13px]">{authorName}</span>
-              <span className="text-[10px] text-gray-500">
+              <span className="font-extrabold text-white text-[0.8125rem]">{authorName}</span>
+              <span className="text-[0.625rem] text-gray-500">
                 {comm.created_at ? formatDistanceToNow(new Date(comm.created_at), { addSuffix: true }) : ''}
               </span>
             </div>
             <p className="text-gray-200 mt-1 leading-relaxed break-words text-xs">{comm.content}</p>
 
             {/* Action Row: Like, Reply, React */}
-            <div className="flex items-center gap-4 mt-2 text-[11px] text-gray-400">
+            <div className="flex items-center gap-4 mt-2 text-[0.6875rem] text-gray-400">
               {/* Like button */}
               <button
                 onClick={() => handleLikeComment(comm)}
@@ -786,14 +786,14 @@ export default function Recaps() {
                   <button
                     key={r.emoji}
                     onClick={() => handleReactComment(comm, r.emoji)}
-                    className={`px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1 border transition-all ${
+                    className={`px-2 py-0.5 rounded-full text-[0.6875rem] flex items-center gap-1 border transition-all ${
                       r.has_reacted
                         ? 'bg-[#d3da0c]/20 border-[#d3da0c] text-[#d3da0c]'
                         : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
                     }`}
                   >
                     <span>{r.emoji}</span>
-                    <span className="font-bold text-[10px]">{r.count}</span>
+                    <span className="font-bold text-[0.625rem]">{r.count}</span>
                   </button>
                 ))}
               </div>
@@ -1484,7 +1484,7 @@ export default function Recaps() {
                         <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
                           <UserPlus className="w-5 h-5 text-[#d3da0c]" />
                         </div>
-                        <span className="text-[10px] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
+                        <span className="text-[0.625rem] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
                       </button>
                     )}
 
@@ -1555,8 +1555,8 @@ export default function Recaps() {
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-[#d3da0c]/60 text-white text-xs font-extrabold cursor-pointer hover:border-[#d3da0c] active:scale-95 transition-all shadow-md w-fit"
                       >
                         <Calendar className="w-3.5 h-3.5 text-[#d3da0c]" />
-                        <span className="text-[#d3da0c] truncate max-w-[180px]">{reel.event.title}</span>
-                        <span className="text-gray-400 text-[11px]">• View Event →</span>
+                        <span className="text-[#d3da0c] truncate max-w-[11.25rem]">{reel.event.title}</span>
+                        <span className="text-gray-400 text-[0.6875rem]">• View Event →</span>
                       </div>
                     )}
 
@@ -1582,7 +1582,7 @@ export default function Recaps() {
                     {/* Original Sound / Music */}
                     <div className="flex items-center gap-2 text-xs text-white/80">
                       <Music2 className="w-3.5 h-3.5 text-[#d3da0c] animate-pulse" />
-                      <span className="truncate max-w-[220px]">
+                      <span className="truncate max-w-[13.75rem]">
                         {reel.music_title || 'Original Sound — Sound It Entertainment'}
                       </span>
                     </div>
@@ -1637,14 +1637,14 @@ export default function Recaps() {
                               <VerificationBadge size="sm" className="shrink-0" />
                             )}
                           </div>
-                          <span className="text-[11px] text-gray-400">
+                          <span className="text-[0.6875rem] text-gray-400">
                             {post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'Recently'}
                           </span>
                         </div>
                       </div>
 
                       {post.section && (
-                        <span className="px-2.5 py-1 rounded-full bg-white/10 text-white/80 text-[10px] font-bold uppercase tracking-wider">
+                        <span className="px-2.5 py-1 rounded-full bg-white/10 text-white/80 text-[0.625rem] font-bold uppercase tracking-wider">
                           {post.section.name}
                         </span>
                       )}
@@ -1664,7 +1664,7 @@ export default function Recaps() {
                     {images.length > 0 ? (
                       <div
                         className={`rounded-2xl overflow-hidden border border-white/10 ${
-                          images.length === 1 ? 'max-h-[44vh]' : 'grid grid-cols-2 gap-1.5 max-h-[44vh]'
+                          images.length === 1 ? 'max-h-[44dvh]' : 'grid grid-cols-2 gap-1.5 max-h-[44dvh]'
                         }`}
                       >
                         {images.slice(0, 4).map((img, i) => (
@@ -1698,7 +1698,7 @@ export default function Recaps() {
                             <p className="text-xs font-black text-white truncate">
                               {post.event_title || (post as any).event?.title}
                             </p>
-                            <p className="text-[10px] text-gray-400">View Event Details & Tickets</p>
+                            <p className="text-[0.625rem] text-gray-400">View Event Details & Tickets</p>
                           </div>
                         </div>
                         <span className="text-xs font-black text-[#d3da0c] group-hover:translate-x-1 transition-transform">
@@ -1782,7 +1782,7 @@ export default function Recaps() {
                         <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
                           <UserPlus className="w-5 h-5 text-[#d3da0c]" />
                         </div>
-                        <span className="text-[10px] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
+                        <span className="text-[0.625rem] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
                       </button>
                     )}
 
@@ -1842,7 +1842,7 @@ export default function Recaps() {
                     </div>
 
                     {/* 4-5 Photos Gallery Grid */}
-                    <div className="rounded-2xl overflow-hidden border border-white/10 grid grid-cols-6 gap-1.5 max-h-[46vh] bg-black">
+                    <div className="rounded-2xl overflow-hidden border border-white/10 grid grid-cols-6 gap-1.5 max-h-[46dvh] bg-black">
                       {displayPhotos.map((photo, i) => {
                         const colSpan =
                           displayPhotos.length === 1
@@ -1921,7 +1921,7 @@ export default function Recaps() {
                       <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
                         <UserPlus className="w-5 h-5 text-[#d3da0c]" />
                       </div>
-                      <span className="text-[10px] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
+                      <span className="text-[0.625rem] font-extrabold text-[#d3da0c] drop-shadow">Invite</span>
                     </button>
 
                     {/* Quick Create (+) */}
@@ -2001,7 +2001,7 @@ export default function Recaps() {
                         <span className="block text-base font-black text-white group-hover:text-[#d3da0c] transition-colors">
                           Post
                         </span>
-                        <span className="block text-[11px] text-gray-400 mt-0.5">
+                        <span className="block text-[0.6875rem] text-gray-400 mt-0.5">
                           Share photos, reviews & event memories
                         </span>
                       </div>
@@ -2022,7 +2022,7 @@ export default function Recaps() {
                         <span className="block text-base font-black text-white group-hover:text-[#d3da0c] transition-colors">
                           Reels
                         </span>
-                        <span className="block text-[11px] text-gray-400 mt-0.5">
+                        <span className="block text-[0.6875rem] text-gray-400 mt-0.5">
                           Upload vertical videos & highlight aftermovies
                         </span>
                       </div>
@@ -2059,7 +2059,11 @@ export default function Recaps() {
                   animate={{ y: 0 }}
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                  className="fixed inset-x-0 bottom-0 z-[100] max-h-[88vh] h-[86vh] rounded-t-3xl bg-[#081206] border-t border-white/15 flex flex-col text-white pb-[calc(80px+env(safe-area-inset-bottom,0px))]"
+                  style={{
+                    bottom: 'var(--keyboard-offset, 0px)',
+                    maxHeight: 'min(88dvh, calc(var(--vvh, 100dvh) - 1.5rem))',
+                  }}
+                  className="fixed inset-x-0 z-[100] h-[86dvh] rounded-t-3xl bg-[#081206] border-t border-white/15 flex flex-col text-white pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] transition-[bottom] duration-150"
                 >
                   {/* Modal Header */}
                   <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
@@ -2101,7 +2105,7 @@ export default function Recaps() {
                           {selectedFile ? selectedFile.name : `${selectedPostFiles.length} media files selected`}
                         </p>
                         {createMode === 'reel' && autoThumbnail && (
-                          <p className="text-[11px] text-[#d3da0c] flex items-center gap-1 mt-0.5">
+                          <p className="text-[0.6875rem] text-[#d3da0c] flex items-center gap-1 mt-0.5">
                             <Sparkles className="w-3 h-3" />
                             <span>Video cover extracted from video frame</span>
                           </p>
@@ -2112,7 +2116,7 @@ export default function Recaps() {
                             if (createMode === 'reel') reelFileInputRef.current?.click();
                             else postFileInputRef.current?.click();
                           }}
-                          className="text-[11px] text-gray-400 hover:text-white underline mt-1"
+                          className="text-[0.6875rem] text-gray-400 hover:text-white underline mt-1"
                         >
                           Change media
                         </button>
@@ -2129,13 +2133,13 @@ export default function Recaps() {
                           <span>Select Event (Mandatory) *</span>
                         </label>
                         {selectedEvent && (
-                          <span className="text-[10px] font-extrabold text-green-400 flex items-center gap-1">
+                          <span className="text-[0.625rem] font-extrabold text-green-400 flex items-center gap-1">
                             <Check className="w-3 h-3" /> Selected
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[0.6875rem] text-gray-400">
                         Sound It is strictly event-driven. Your content must belong to an upcoming, ongoing, or past event.
                       </p>
 
@@ -2149,7 +2153,7 @@ export default function Recaps() {
                               setEventTimingFilter(timing);
                               loadEligibleEvents(timing, eventSearchQuery);
                             }}
-                            className={`px-3 py-1 rounded-full text-[11px] font-black capitalize transition-all ${
+                            className={`px-3 py-1 rounded-full text-[0.6875rem] font-black capitalize transition-all ${
                               eventTimingFilter === timing
                                 ? 'bg-[#d3da0c] text-black shadow-sm'
                                 : 'bg-white/5 text-gray-400 hover:text-white'
@@ -2225,7 +2229,7 @@ export default function Recaps() {
                                     >
                                       {ev.title}
                                     </p>
-                                    <p className="text-[10px] text-gray-400 truncate">
+                                    <p className="text-[0.625rem] text-gray-400 truncate">
                                       {evDate} • {ev.venue_name || ev.city}
                                     </p>
                                   </div>
@@ -2233,7 +2237,7 @@ export default function Recaps() {
 
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span
-                                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                                    className={`px-2 py-0.5 rounded-full text-[0.5625rem] font-black uppercase ${
                                       ev.timing_status === 'upcoming'
                                         ? 'bg-green-500/20 text-green-400'
                                         : ev.timing_status === 'ongoing'
@@ -2266,7 +2270,7 @@ export default function Recaps() {
                           <span>Tag Friends (@username)</span>
                         </label>
                         {taggedFriends.length > 0 && (
-                          <span className="text-[10px] text-gray-400">{taggedFriends.length} tagged</span>
+                          <span className="text-[0.625rem] text-gray-400">{taggedFriends.length} tagged</span>
                         )}
                       </div>
 
@@ -2342,10 +2346,10 @@ export default function Recaps() {
                                     />
                                     <div className="min-w-0">
                                       <p className="font-bold text-white truncate">@{user.username}</p>
-                                      <p className="text-[10px] text-gray-400 truncate">{user.name}</p>
+                                      <p className="text-[0.625rem] text-gray-400 truncate">{user.name}</p>
                                     </div>
                                   </div>
-                                  <span className="text-[10px] font-extrabold text-[#d3da0c]">
+                                  <span className="text-[0.625rem] font-extrabold text-[#d3da0c]">
                                     {isAlreadyTagged ? 'Tagged' : '+ Tag'}
                                   </span>
                                 </button>
@@ -2440,7 +2444,11 @@ export default function Recaps() {
                   animate={{ y: 0 }}
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                  className="fixed inset-x-0 bottom-0 z-[100] max-h-[85vh] rounded-t-3xl bg-[#081206] border-t border-white/15 p-5 text-white pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] flex flex-col space-y-4"
+                  style={{
+                    bottom: 'var(--keyboard-offset, 0px)',
+                    maxHeight: 'min(85dvh, calc(var(--vvh, 100dvh) - 1.5rem))',
+                  }}
+                  className="fixed inset-x-0 z-[100] rounded-t-3xl bg-[#081206] border-t border-white/15 p-5 text-white pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] flex flex-col space-y-4 overflow-y-auto transition-[bottom] duration-150"
                 >
                   <div className="w-12 h-1 bg-white/20 rounded-full mx-auto" />
                   <div className="flex items-center justify-between">
@@ -2527,10 +2535,10 @@ export default function Recaps() {
                                 />
                                 <div className="min-w-0">
                                   <p className="font-bold text-white truncate">@{u.username}</p>
-                                  <p className="text-[10px] text-gray-400 truncate">{u.name}</p>
+                                  <p className="text-[0.625rem] text-gray-400 truncate">{u.name}</p>
                                 </div>
                               </div>
-                              <span className="text-[10px] font-black text-[#d3da0c]">
+                              <span className="text-[0.625rem] font-black text-[#d3da0c]">
                                 {isSelected ? 'Selected' : '+ Add'}
                               </span>
                             </div>
@@ -2567,7 +2575,7 @@ export default function Recaps() {
                       {/* WhatsApp */}
                       <button
                         onClick={() => handleShareInviteLink('whatsapp')}
-                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[11px] font-bold text-gray-200 active:scale-95 transition-all"
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[0.6875rem] font-bold text-gray-200 active:scale-95 transition-all"
                       >
                         <MessageSquare className="w-4 h-4 text-green-400" />
                         <span>WhatsApp</span>
@@ -2576,7 +2584,7 @@ export default function Recaps() {
                       {/* WeChat */}
                       <button
                         onClick={() => handleShareInviteLink('wechat')}
-                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[11px] font-bold text-gray-200 active:scale-95 transition-all"
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[0.6875rem] font-bold text-gray-200 active:scale-95 transition-all"
                       >
                         <MessageCircle className="w-4 h-4 text-emerald-400" />
                         <span>WeChat</span>
@@ -2585,7 +2593,7 @@ export default function Recaps() {
                       {/* SMS */}
                       <button
                         onClick={() => handleShareInviteLink('sms')}
-                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[11px] font-bold text-gray-200 active:scale-95 transition-all"
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[0.6875rem] font-bold text-gray-200 active:scale-95 transition-all"
                       >
                         <Send className="w-4 h-4 text-blue-400" />
                         <span>SMS</span>
@@ -2594,7 +2602,7 @@ export default function Recaps() {
                       {/* Copy Link */}
                       <button
                         onClick={() => handleShareInviteLink('link')}
-                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[11px] font-bold text-gray-200 active:scale-95 transition-all"
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#d3da0c] flex flex-col items-center gap-1 text-[0.6875rem] font-bold text-gray-200 active:scale-95 transition-all"
                       >
                         <Copy className="w-4 h-4 text-[#d3da0c]" />
                         <span>Copy Link</span>
@@ -2632,9 +2640,10 @@ export default function Recaps() {
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', damping: 28, stiffness: 280 }}
                   style={{
-                    bottom: `${keyboardOffset}px`,
+                    bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : 'var(--keyboard-offset, 0px)',
+                    maxHeight: 'min(82dvh, calc(var(--vvh, 100dvh) - 1.5rem))',
                   }}
-                  className="fixed inset-x-0 z-[100] max-h-[82vh] h-[75vh] rounded-t-3xl bg-[#081206] border-t border-white/15 flex flex-col text-white shadow-2xl transition-[bottom] duration-150 ease-out"
+                  className="fixed inset-x-0 z-[100] h-[75dvh] rounded-t-3xl bg-[#081206] border-t border-white/15 flex flex-col text-white shadow-2xl transition-[bottom] duration-150 ease-out"
                 >
                   <div className="w-12 h-1 bg-white/20 rounded-full mx-auto my-3 shrink-0" />
 
@@ -2671,12 +2680,10 @@ export default function Recaps() {
                     )}
                   </div>
 
-                  {/* Input Footer - Fixed at bottom of panel, placed strictly ABOVE MobileBottomNav */}
+                  {/* Input Footer - Fixed at bottom of panel, rides smoothly above keyboard */}
                   <div
                     style={{
-                      paddingBottom: keyboardOffset > 0
-                        ? 'calc(12px + env(safe-area-inset-bottom, 0px))'
-                        : 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                      paddingBottom: 'calc(0.875rem + env(safe-area-inset-bottom, 0px))',
                     }}
                     className="px-5 pt-3 border-t border-white/10 shrink-0 space-y-2 bg-[#081206]"
                   >

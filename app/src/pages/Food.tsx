@@ -107,7 +107,7 @@ const Food = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors duration-200">
+        <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors duration-200">
             {/* Header + Filters */}
             <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -133,7 +133,7 @@ const Food = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                                className="flex items-center gap-2 px-4 py-3 bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white hover:border-black/20 dark:hover:border-white/20 transition-colors min-w-[160px]"
+                                className="flex items-center gap-2 px-4 py-3 bg-neutral-100 dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white hover:border-black/20 dark:hover:border-white/20 transition-colors min-w-[min(100%,10rem)]"
                             >
                                 <MapPin className="w-4 h-4 text-gray-700 dark:text-[#d3da0c]" />
                                 <span className="flex-1 text-left">{getCityDisplayName(selectedCity)}</span>

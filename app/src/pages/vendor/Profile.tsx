@@ -211,14 +211,14 @@ const VendorProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10 max-w-7xl mx-auto">
+    <div className="min-h-dvh pt-20 lg:pt-10 pb-4 px-4 lg:px-10 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">

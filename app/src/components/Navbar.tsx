@@ -193,7 +193,7 @@ const Navbar = () => {
                 >
                   <ShoppingCart className="w-6 h-6" />
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#d3da0c] text-black text-[0.625rem] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
                       {cartItemsCount}
                     </span>
                   )}

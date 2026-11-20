@@ -40,7 +40,7 @@ const MobileListRow = ({ event, index = 0 }: MobileListRowProps) => {
         className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 active:border-[#d3da0c]/30 transition-colors shadow-xs dark:shadow-none"
       >
         {/* Thumbnail */}
-        <div className="relative w-[72px] h-[72px] rounded-xl overflow-hidden flex-shrink-0">
+        <div className="relative w-[min(100%,4.5rem)] h-[72px] rounded-xl overflow-hidden flex-shrink-0">
           <img
             src={getMediaUrl(imageFailed ? '/placeholder.jpg' : event.flyer_image || '/placeholder.jpg')}
             alt={event.title}
@@ -60,17 +60,17 @@ const MobileListRow = ({ event, index = 0 }: MobileListRowProps) => {
             {event.title}
           </h4>
           {(event.business?.business_name || (event.djs && event.djs.length > 0)) && (
-            <p className="text-gray-500 text-[11px] mb-1.5">
+            <p className="text-gray-500 text-[0.6875rem] mb-1.5">
               {event.business?.business_name || event.djs?.[0]?.stage_name}
             </p>
           )}
           <div className="flex items-center gap-2.5">
-            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-[10px]">
+            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-[0.625rem]">
               <Clock className="w-2.5 h-2.5" />
               {dateStr} · {timeStr}
             </span>
             {event.city && (
-              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-[10px]">
+              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-[0.625rem]">
                 <MapPin className="w-2.5 h-2.5" />
                 {event.city.replace(/^\w/, (c) => c.toUpperCase())}
               </span>
@@ -83,14 +83,14 @@ const MobileListRow = ({ event, index = 0 }: MobileListRowProps) => {
           {isPast ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
               <Camera className="w-2.5 h-2.5 text-[#d3da0c]" />
-              <span className="text-[10px] font-bold">Recap</span>
+              <span className="text-[0.625rem] font-bold">Recap</span>
             </div>
           ) : (
             <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
               price > 0 ? 'bg-[#d3da0c]/10 text-[#d3da0c]' : 'bg-emerald-500/10 text-emerald-400'
             }`}>
               <Ticket className="w-2.5 h-2.5" />
-              <span className="text-[10px] font-bold">
+              <span className="text-[0.625rem] font-bold">
                 {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
               </span>
             </div>

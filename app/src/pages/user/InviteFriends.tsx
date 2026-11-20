@@ -123,7 +123,7 @@ const InviteFriends = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
       <MobilePageHeader
         title={t('kit.invite.title')}
         onBack={() => navigate('/settings')}

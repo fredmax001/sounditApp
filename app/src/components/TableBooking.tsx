@@ -514,7 +514,7 @@ export default function TableBooking({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+                className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto"
               >
                 {/* Header */}
                 <div className="p-6 border-b border-white/10">
@@ -688,7 +688,7 @@ export default function TableBooking({
                                     const nextQ = totalSelected < maxIncluded ? curQ + 1 : 0;
                                     return { ...prev, [drink.id]: { ...cur, mixers: { ...cur.mixers, [m]: nextQ } } };
                                   })}
-                                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${(sel?.mixers?.[m] || 0) > 0 ? 'bg-[#d3da0c]/15 text-[#d3da0c] border-[#d3da0c]/40' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+                                  className={`px-2.5 py-1 rounded-full text-[0.6875rem] font-medium border transition-colors ${(sel?.mixers?.[m] || 0) > 0 ? 'bg-[#d3da0c]/15 text-[#d3da0c] border-[#d3da0c]/40' : 'bg-white/5 text-gray-400 border-white/10'}`}>
                                   {m}{(sel?.mixers?.[m] || 0) > 0 ? ` ×${sel!.mixers[m]}` : ''}
                                 </button>
                               ))}
@@ -714,7 +714,7 @@ export default function TableBooking({
                         <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
                           {cats.map(cat => (
                             <div key={cat}>
-                              <p className="text-[#d3da0c]/70 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                              <p className="text-[#d3da0c]/70 text-[0.625rem] font-bold uppercase tracking-wider mb-1.5">
                                 {CATEGORY_LABELS[cat] || cat.replace(/_/g, ' ')}
                               </p>
                               <div className="space-y-2">
@@ -787,7 +787,7 @@ export default function TableBooking({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 max-h-[88vh] overflow-y-auto"
+                className="bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-white/10 max-h-[88dvh] overflow-y-auto"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white">{t('eventDetail.scanToPay', 'Scan to Pay')}</h3>
@@ -936,7 +936,7 @@ export default function TableBooking({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90vh] overflow-y-auto"
+                className="bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-white/10 max-h-[90dvh] overflow-y-auto"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white">{t('eventDetail.confirmPayment', 'Confirm Payment')}</h3>

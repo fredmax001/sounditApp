@@ -190,7 +190,7 @@ const ManageEvents = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28">
       {/* Mobile Header matching reference Screen 2 (My Events) */}
       <div className="lg:hidden sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
         <div className="flex items-center justify-between h-11">
@@ -201,7 +201,7 @@ const ManageEvents = () => {
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-[17px] font-bold text-white tracking-tight">My Events</h1>
+          <h1 className="text-[1.0625rem] font-bold text-white tracking-tight">My Events</h1>
           <button
             onClick={() => setShowSearch((prev) => !prev)}
             className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors -mr-1"
@@ -394,7 +394,7 @@ const ManageEvents = () => {
                 <div className="flex-1 p-3.5 min-w-0 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold tracking-tight ${badgeStyle}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[0.6875rem] font-extrabold tracking-tight ${badgeStyle}`}>
                         {badgeText}
                       </span>
                       <button
@@ -413,7 +413,7 @@ const ManageEvents = () => {
                           ? navigate('/events')
                           : navigate(`/events/${event.id}`)
                       }
-                      className="text-[16px] font-bold text-white leading-tight truncate cursor-pointer mb-1.5"
+                      className="text-base font-bold text-white leading-tight truncate cursor-pointer mb-1.5"
                     >
                       {event.title}
                     </h3>
@@ -657,7 +657,7 @@ const ManageEvents = () => {
       {/* QR Code Modal */}
       {qrModalEvent && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setQrModalEvent(null)}
         >
           <div

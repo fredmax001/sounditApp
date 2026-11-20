@@ -125,7 +125,7 @@ const NotificationDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white flex items-center justify-center">
+      <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white flex items-center justify-center">
         <Loader2 className="w-7 h-7 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -229,7 +229,7 @@ const NotificationDetail = () => {
     : 'Sat, Nov 18, 2026 • 21:00';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Top Bar */}
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020B00]/95 backdrop-blur-xl border-b border-black/10 dark:border-white/10 safe-area-pt">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">

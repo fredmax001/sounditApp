@@ -271,11 +271,11 @@ const ManageCommunityPosts = () => {
 
       {/* View Modal */}
       {viewingPost && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-[80] p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[80dvh] overflow-hidden flex flex-col shadow-2xl"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-black/10 dark:border-white/10 shrink-0">
               <h3 className="text-lg font-semibold text-[#020b00] dark:text-white truncate pr-4">{viewingPost.title}</h3>

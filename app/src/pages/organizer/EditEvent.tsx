@@ -668,14 +668,14 @@ const EditEvent = () => {
 
   if (isLoadingEvent) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-dvh pb-24">
       {/* Header */}
       <div className="sticky top-20 z-30 bg-white/95 dark:bg-[#020b00]/90 backdrop-blur-md border-b border-black/8 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -1553,7 +1553,7 @@ const EditEvent = () => {
 
       {/* Success Modal */}
       {showSuccessModal && currentEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

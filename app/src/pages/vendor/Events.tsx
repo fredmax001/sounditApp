@@ -164,7 +164,7 @@ const VendorEvents = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
+    <div className="min-h-dvh pt-20 lg:pt-10 pb-4 px-4 lg:px-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -283,11 +283,11 @@ const VendorEvents = () => {
 
       {/* Booth Application Modal */}
       {showBoothModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
+            className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80dvh] overflow-hidden flex flex-col shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-[#020b00] dark:text-white">{t('vendor.events.applyForBooth')}</h3>

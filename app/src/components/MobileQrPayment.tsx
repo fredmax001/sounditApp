@@ -247,7 +247,7 @@ const MobileQrPayment = ({ amount, reference, wechatQrUrl, alipayQrUrl, wechatPa
               : 'bg-[#1677FF]/10 border-[#1677FF]/30'
           }`}>
             <p className={`text-xs font-medium ${activeTab === 'wechat' ? 'text-[#07C160]' : 'text-[#4d9bff]'}`}>{contextualHint.zh}</p>
-            <p className="text-gray-400 text-[11px] mt-0.5">{contextualHint.en}</p>
+            <p className="text-gray-400 text-[0.6875rem] mt-0.5">{contextualHint.en}</p>
           </div>
         )}
 

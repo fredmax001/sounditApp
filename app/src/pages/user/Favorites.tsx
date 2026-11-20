@@ -199,7 +199,7 @@ const Favorites = () => {
   const showEmpty = !isLoading && !loadError && visibleItems.length === 0;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors">
       {/* Header */}
       <MobilePageHeader
         wide
@@ -389,7 +389,7 @@ const Favorites = () => {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-sm text-[#d3da0c] border border-[#d3da0c]/30">
+                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[0.625rem] font-bold bg-black/60 backdrop-blur-sm text-[#d3da0c] border border-[#d3da0c]/30">
                         {item.type === 'event' ? t('kit.favorites.event') : t('kit.favorites.artist')}
                       </span>
                     </div>
@@ -417,7 +417,7 @@ const Favorites = () => {
                     {item.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
                         {item.tags.slice(0, 2).map((tag, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[10px] font-medium rounded-full">
+                          <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[0.625rem] font-medium rounded-full">
                             {tag}
                           </span>
                         ))}
@@ -468,7 +468,7 @@ const Favorites = () => {
                     {item.tags.length > 0 && (
                       <div className="flex gap-1 mt-1">
                         {item.tags.slice(0, 2).map((tag, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[10px] font-medium rounded-full">{tag}</span>
+                          <span key={idx} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 text-[0.625rem] font-medium rounded-full">{tag}</span>
                         ))}
                       </div>
                     )}

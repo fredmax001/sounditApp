@@ -6,7 +6,13 @@ import { pushManager } from '@/lib/pushNotifications';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
-const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
+const NotificationBell = ({
+  mobile = false,
+  className,
+}: {
+  mobile?: boolean;
+  className?: string;
+}) => {
   const navigate = useNavigate();
   const { session, isAuthenticated } = useAuthStore();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -68,19 +74,24 @@ const NotificationBell = ({ mobile = false }: { mobile?: boolean }) => {
     <button
       onClick={handleClick}
       aria-label="Notifications"
-      className={`relative ${
-        mobile
-          ? 'w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 flex items-center justify-center text-[#020b00] dark:text-gray-200 hover:text-black dark:hover:text-white active:scale-90 transition-transform'
-          : 'p-2 text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors'
-      }`}
+      title="View Notifications"
+      className={
+        className
+          ? `relative ${className}`
+          : `relative ${
+              mobile
+                ? 'w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 flex items-center justify-center text-[#020b00] dark:text-gray-200 hover:text-black dark:hover:text-white active:scale-90 transition-transform'
+                : 'p-2 text-[#020b00] dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors'
+            }`
+      }
     >
-      <Bell className={mobile ? 'w-[18px] h-[18px]' : 'w-5 h-5'} />
+      <Bell className={mobile ? 'w-[18px] h-[18px]' : 'w-4 h-4 sm:w-5 sm:h-5'} />
       {unreadCount > 0 && (
         <span
           className={`absolute ${
             mobile
               ? 'top-1 right-1 w-2.5 h-2.5 border border-[#020b00]'
-              : '-top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[10px] flex items-center justify-center text-white font-bold'
+              : '-top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[0.625rem] flex items-center justify-center text-white font-bold'
           } bg-red-500 rounded-full`}
         >
           {!mobile && (unreadCount > 99 ? '99+' : unreadCount)}

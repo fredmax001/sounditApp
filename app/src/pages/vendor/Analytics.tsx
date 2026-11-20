@@ -56,7 +56,7 @@ export default function VendorAnalytics() {
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00]">
+        <div className="min-h-dvh pt-20 pb-24 bg-white dark:bg-[#020b00]">
             <div className="max-w-4xl mx-auto px-4">
                 <div className="flex items-center gap-3 mb-6">
                     <Link to="/dashboard/vendor" className="p-2 text-gray-500 hover:text-[#020b00] dark:text-gray-400 dark:hover:text-white">

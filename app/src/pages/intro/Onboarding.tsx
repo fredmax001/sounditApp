@@ -128,7 +128,7 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-between bg-[#020b00] text-white select-none overflow-hidden font-['Inter',sans-serif]"
+      className="fixed inset-0 z-[80] flex flex-col justify-between bg-[#020b00] text-white select-none overflow-hidden font-['Inter',sans-serif]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -198,13 +198,13 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
 
               {/* Text & Headlines */}
               <div className="flex-1 flex flex-col justify-center text-center px-2 py-3">
-                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[28px] font-extrabold leading-tight tracking-tight text-white uppercase">
+                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[1.75rem] font-extrabold leading-tight tracking-tight text-white uppercase">
                   DISCOVER. <span className="text-[#d3da0c]">CONNECT.</span>
                   <br />
                   EXPERIENCE.
                 </h1>
 
-                <p className="mt-2.5 text-xs sm:text-sm font-light text-neutral-300 leading-relaxed max-w-[320px] mx-auto">
+                <p className="mt-2.5 text-xs sm:text-sm font-light text-neutral-300 leading-relaxed max-w-[20rem] mx-auto">
                   Explore events, discover DJs and artists, connect with entertainment businesses
                   and find exciting experiences around you.
                 </p>
@@ -269,13 +269,13 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
 
               {/* Text & Headlines */}
               <div className="flex-1 flex flex-col justify-center text-center px-2 py-3">
-                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[28px] font-extrabold leading-tight tracking-tight text-white uppercase">
+                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[1.75rem] font-extrabold leading-tight tracking-tight text-white uppercase">
                   YOUR EXPERIENCE
                   <br />
                   <span className="text-[#d3da0c]">STARTS HERE.</span>
                 </h1>
 
-                <p className="mt-2.5 text-xs sm:text-sm font-light text-neutral-300 leading-relaxed max-w-[320px] mx-auto">
+                <p className="mt-2.5 text-xs sm:text-sm font-light text-neutral-300 leading-relaxed max-w-[20rem] mx-auto">
                   Discover African events in China, connect with the community, enjoy unforgettable
                   experiences and become part of the Sound It movement.
                 </p>
@@ -317,18 +317,18 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
               {/* Header Title Section */}
               <div className="text-center pt-1">
                 {/* Pill Badge: CHOOSE YOUR ROLE */}
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-[#d3da0c] text-[#d3da0c] text-[11px] font-bold tracking-wider uppercase mx-auto mb-2.5">
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-[#d3da0c] text-[#d3da0c] text-[0.6875rem] font-bold tracking-wider uppercase mx-auto mb-2.5">
                   <User className="w-3.5 h-3.5" />
                   <span>CHOOSE YOUR ROLE</span>
                 </div>
 
-                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[26px] font-extrabold leading-tight tracking-tight text-white uppercase">
+                <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[1.625rem] font-extrabold leading-tight tracking-tight text-white uppercase">
                   JOIN THE SOUND IT
                   <br />
                   <span className="text-[#d3da0c]">COMMUNITY</span>
                 </h1>
 
-                <p className="mt-1.5 text-xs font-light text-neutral-300 leading-relaxed max-w-[320px] mx-auto">
+                <p className="mt-1.5 text-xs font-light text-neutral-300 leading-relaxed max-w-[20rem] mx-auto">
                   Whatever your role in the entertainment space, Sound It has a place for you.
                 </p>
               </div>

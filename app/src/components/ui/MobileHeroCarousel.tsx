@@ -130,9 +130,9 @@ const MobileHeroCarousel = ({ events, autoAdvanceMs = 4500 }: MobileHeroCarousel
             {(event.business?.business_name || (event.djs && event.djs.length > 0)) && (
               <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
                 <div className="w-4 h-4 rounded-full bg-[#d3da0c] flex items-center justify-center">
-                  <span className="text-[6px] text-black font-bold">DJ</span>
+                  <span className="text-[0.375rem] text-black font-bold">DJ</span>
                 </div>
-                <span className="text-white text-[10px] font-medium truncate max-w-[100px]">
+                <span className="text-white text-[0.625rem] font-medium truncate max-w-[6.25rem]">
                   {event.business?.business_name || event.djs?.[0]?.stage_name}
                 </span>
               </div>
@@ -159,7 +159,7 @@ const MobileHeroCarousel = ({ events, autoAdvanceMs = 4500 }: MobileHeroCarousel
           {/* Featured badge */}
           {event.is_featured && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
-              <span className="px-2.5 py-0.5 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full uppercase tracking-wide">Featured</span>
+              <span className="px-2.5 py-0.5 bg-[#d3da0c] text-black text-[0.5625rem] font-bold rounded-full uppercase tracking-wide">Featured</span>
             </div>
           )}
 
@@ -177,17 +177,17 @@ const MobileHeroCarousel = ({ events, autoAdvanceMs = 4500 }: MobileHeroCarousel
                   {event.title}
                 </h3>
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="flex items-center gap-1 text-gray-300 text-[11px] whitespace-nowrap">
+                  <span className="flex items-center gap-1 text-gray-300 text-[0.6875rem] whitespace-nowrap">
                     <Clock className="w-3 h-3 text-[#d3da0c] shrink-0" />
                     {dateStr} · {timeStr}
                   </span>
                   {event.city && (
-                    <span className="flex items-center gap-1 text-gray-300 text-[11px] min-w-0 truncate">
+                    <span className="flex items-center gap-1 text-gray-300 text-[0.6875rem] min-w-0 truncate">
                       <MapPin className="w-3 h-3 text-[#d3da0c] shrink-0" />
                       {event.city.replace(/^\w/, (c) => c.toUpperCase())}
                     </span>
                   )}
-                  <span className={`ml-auto shrink-0 whitespace-nowrap font-bold text-[11px] ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
+                  <span className={`ml-auto shrink-0 whitespace-nowrap font-bold text-[0.6875rem] ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
                     {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
                   </span>
                 </div>

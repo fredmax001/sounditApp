@@ -691,7 +691,7 @@ const Reels = ({
                       </div>
                     )}
                     {reel.music_title && (
-                      <div className="flex items-center gap-1 max-w-[200px] truncate">
+                      <div className="flex items-center gap-1 max-w-[12.5rem] truncate">
                         <Music2 className="w-3.5 h-3.5 text-[#d3da0c] shrink-0" />
                         <span className="truncate">{reel.music_title}</span>
                       </div>
@@ -726,14 +726,19 @@ const Reels = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setCommentReel(null)}
-              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 z-[75] bg-black/70 backdrop-blur-sm"
             />
             <motion.div
+              data-modal-open="true"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1408] border-t border-white/15 rounded-t-3xl max-h-[75vh] flex flex-col text-white safe-area-pb"
+              style={{
+                bottom: 'var(--keyboard-offset, 0px)',
+                maxHeight: 'min(75dvh, calc(var(--vvh, 100dvh) - 1.5rem))',
+              }}
+              className="fixed left-0 right-0 z-[80] bg-[#0a1408] border-t border-white/15 rounded-t-3xl flex flex-col text-white safe-area-pb transition-[bottom] duration-150"
             >
               <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <h3 className="text-sm font-extrabold">
@@ -829,7 +834,7 @@ const Reels = ({
                   <X className="w-5 h-5" />
                 </button>
 
-                <h2 className="text-[17px] font-bold text-white tracking-tight">Upload Reel</h2>
+                <h2 className="text-[1.0625rem] font-bold text-white tracking-tight">Upload Reel</h2>
 
                 <button
                   type="button"
@@ -863,7 +868,7 @@ const Reels = ({
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2 bg-gradient-to-tr from-[#11150E] to-[#1c2417]">
                       <Upload className="w-6 h-6 text-[#d3da0c]" />
-                      <span className="text-[11px] font-bold text-gray-300 text-center">Select Video</span>
+                      <span className="text-[0.6875rem] font-bold text-gray-300 text-center">Select Video</span>
                     </div>
                   )}
 
@@ -875,7 +880,7 @@ const Reels = ({
                   </div>
 
                   {/* Duration Badge in Bottom Right */}
-                  <span className="absolute bottom-1.5 right-2 px-1.5 py-0.5 rounded-md bg-black/75 text-[10px] font-mono text-gray-200">
+                  <span className="absolute bottom-1.5 right-2 px-1.5 py-0.5 rounded-md bg-black/75 text-[0.625rem] font-mono text-gray-200">
                     {videoDuration}
                   </span>
                 </div>
@@ -889,7 +894,7 @@ const Reels = ({
                     <ImageIcon className="w-4 h-4 text-gray-400" />
                     <span>Edit Cover</span>
                   </button>
-                  <p className="text-[11px] text-gray-400 leading-snug">
+                  <p className="text-[0.6875rem] text-gray-400 leading-snug">
                     Select a high-resolution frame or upload a custom visual cover.
                   </p>
                 </div>
@@ -921,7 +926,7 @@ const Reels = ({
                   placeholder="Add a caption..."
                   className="w-full bg-transparent text-sm text-white placeholder-gray-500 outline-none resize-none"
                 />
-                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px] text-gray-500">
+                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[0.6875rem] text-gray-500">
                   <span>Use hashtags to reach more entertainment fans</span>
                   <span className="font-mono">{newCaption.length} / 2,200</span>
                 </div>
@@ -1135,7 +1140,7 @@ const Reels = ({
               <div className="bg-[#11150E] border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-white">Also Share to Community Feed</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
+                  <p className="text-[0.6875rem] text-gray-400 mt-0.5">
                     Broaden reach by broadcasting this Reel into the social feed
                   </p>
                 </div>

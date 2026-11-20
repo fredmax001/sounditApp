@@ -12,11 +12,12 @@ from models import User
 from services.subscription_service import SubscriptionService
 
 
-def plan_restricted_error(feature_name: str = None, current_plan: str = None, required_plan: str = None):
+def plan_restricted_error(feature_name: str = None, current_plan: str = None, required_plan: str = None, message: str = None):
     """Return a standardized PLAN_RESTRICTED HTTPException"""
-    message = "Upgrade required to access this feature"
-    if feature_name and required_plan:
-        message = f"This feature is available on the {required_plan} plan and above."
+    if not message:
+        message = "Upgrade required to access this feature"
+        if feature_name and required_plan:
+            message = f"This feature is available on the {required_plan} plan and above."
     detail = {
         "error": True,
         "code": "PLAN_RESTRICTED",
@@ -24,7 +25,7 @@ def plan_restricted_error(feature_name: str = None, current_plan: str = None, re
         "feature": feature_name,
         "current_plan": current_plan,
         "required_plan": required_plan,
-        "upgrade_url": "/subscriptions/plans"
+        "upgrade_url": "/subscriptions"
     }
     return HTTPException(status_code=403, detail=detail)
 

@@ -50,7 +50,7 @@ export default function OnSiteTools() {
   // Login Screen
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
+      <div className="min-h-dvh bg-[#020b00] flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -146,7 +146,7 @@ export default function OnSiteTools() {
 
   // Dashboard Screen
   return (
-    <div className="min-h-screen bg-[#020b00]">
+    <div className="min-h-dvh bg-[#020b00]">
       {/* Header */}
       <div className="bg-[#111111] border-b border-white/5 px-4 py-4">
         <div className="max-w-lg mx-auto flex items-center justify-between">

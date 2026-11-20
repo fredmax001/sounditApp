@@ -32,6 +32,9 @@ const getFeatureLabel = (featureName: string | undefined, t: any): string => {
     event_creation: t('upgrade.eventCreation') || 'Unlimited event creation',
     portfolio_limit: t('upgrade.portfolioLimit') || 'Product portfolio',
     media_limit: t('upgrade.mediaLimit') || 'Media uploads',
+    recaps: t('upgrade.recaps') || 'Recaps',
+    can_receive_deposits: t('upgrade.canReceiveDeposits') || 'Booking deposits',
+    staff_members: t('upgrade.staffMembers') || 'Team staff',
   };
   return map[featureName] || featureName;
 };
@@ -49,7 +52,22 @@ const getPresetMessage = (
     return t('upgrade.featuredListingMessage') || `Featured event placement is only available on Pro and Premium plans.`;
   }
   if (featureName === 'event_creation') {
-    return t('upgrade.eventLimitMessage') || `You have reached your event limit. Upgrade to Pro for unlimited event creation.`;
+    return t('upgrade.eventLimitMessage') || `Your 1-month free trial has ended. Subscribe to unlock unlimited event creation and ticketing.`;
+  }
+  if (featureName === 'can_receive_deposits') {
+    return t('upgrade.depositsMessage') || `Receiving booking deposits and accepting bookings requires an active Artist subscription. Your 1-month free trial has ended.`;
+  }
+  if (featureName === 'portfolio_limit') {
+    return t('upgrade.portfolioLimitMessage') || `Free product portfolio limit reached. Upgrade to unlock unlimited product listings in your store.`;
+  }
+  if (featureName === 'media_limit') {
+    return t('upgrade.mediaLimitMessage') || `Free media limit reached (2 uploads). Upgrade to unlock unlimited portfolio music, mixes, and videos.`;
+  }
+  if (featureName === 'recaps') {
+    return t('upgrade.recapsMessage') || `Free recap limit reached. Upgrade to unlock unlimited recap uploads.`;
+  }
+  if (featureName === 'staff_members') {
+    return t('upgrade.staffMessage') || `Adding additional staff members requires a Pro or Premium plan.`;
   }
   if (featureName === 'analytics') {
     return t('upgrade.analyticsMessage') || `Advanced analytics are only available on Premium plans.`;

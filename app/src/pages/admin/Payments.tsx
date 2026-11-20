@@ -185,7 +185,7 @@ const Payments = () => {
                     ) : (
                         <p className="text-3xl font-display text-[#020b00] dark:text-white">¥{escrowBalance.toLocaleString()}</p>
                     )}
-                    <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                    <div className="mt-4 flex items-center gap-2 text-[0.6875rem] text-gray-500 dark:text-gray-400">
                         <Clock className="w-3.5 h-3.5" />
                         {t('admin.payments.escrowBalanceHint')}
                     </div>
@@ -289,12 +289,12 @@ const Payments = () => {
                                             <td className="px-6 py-4">
                                                 <div>
                                                     <p className="text-[#020b00] dark:text-white font-display text-lg">¥{payout.amount.toLocaleString()}</p>
-                                                    <p className="text-gray-500 dark:text-gray-400 text-[10px] uppercase">{t('admin.payments.commissionLabel', { amount: payout.commission.toLocaleString() })}</p>
-                                                    <p className="text-gray-500 dark:text-gray-400 text-[10px] uppercase">{t('admin.payments.netLabel', { amount: (payout.amount - payout.commission).toLocaleString() })}</p>
+                                                    <p className="text-gray-500 dark:text-gray-400 text-[0.625rem] uppercase">{t('admin.payments.commissionLabel', { amount: payout.commission.toLocaleString() })}</p>
+                                                    <p className="text-gray-500 dark:text-gray-400 text-[0.625rem] uppercase">{t('admin.payments.netLabel', { amount: (payout.amount - payout.commission).toLocaleString() })}</p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusColor(payout.status)}`}>
+                                                <span className={`px-2 py-0.5 rounded text-[0.625rem] font-bold uppercase ${getStatusColor(payout.status)}`}>
                                                     {t(`admin.payments.status.${payout.status}`)}
                                                 </span>
                                             </td>
@@ -339,7 +339,7 @@ const Payments = () => {
                                                         <button
                                                             onClick={() => handleReleasePayout(payout.id)}
                                                             disabled={actionLoading === `release-${payout.id}`}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[10px] font-bold rounded-lg uppercase hover:bg-neutral-800 dark:hover:bg-white transition-colors disabled:opacity-50"
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-bold rounded-lg uppercase hover:bg-neutral-800 dark:hover:bg-white transition-colors disabled:opacity-50"
                                                         >
                                                             {actionLoading === `release-${payout.id}` ? (
                                                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -373,7 +373,7 @@ const Payments = () => {
 
             {/* Payout Detail Modal */}
             {selectedPayout && (
-                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-[80] p-4">
                     <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.payments.payoutDetailsTitle')}</h3>
@@ -416,7 +416,7 @@ const Payments = () => {
                             </div>
                             <div>
                                 <p className="text-gray-500 dark:text-gray-400 text-xs uppercase">{t('admin.payments.statusLabel')}</p>
-                                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusColor(selectedPayout.status)}`}>
+                                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[0.625rem] font-bold uppercase ${getStatusColor(selectedPayout.status)}`}>
                                     {t(`admin.payments.status.${selectedPayout.status}`)}
                                 </span>
                             </div>

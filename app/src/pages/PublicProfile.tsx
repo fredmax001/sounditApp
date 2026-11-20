@@ -262,7 +262,7 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -270,7 +270,7 @@ export default function PublicProfile() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
+      <div className="min-h-dvh bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-400 mb-4">{error || 'Profile not found'}</p>
           <button
@@ -364,7 +364,7 @@ export default function PublicProfile() {
   const totalPhotosCount = eventGalleryItems.length + profileGalleryItems.length;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 transition-colors">
       {/* Header / Cover */}
       <div className="relative h-48 md:h-64 overflow-hidden bg-neutral-100 dark:bg-[#141414]">
         {profile.background_url ? (
@@ -632,7 +632,7 @@ export default function PublicProfile() {
                   }`}
                 >
                   <span>All Photos</span>
-                  <span className="text-[10px] opacity-75">({totalPhotosCount})</span>
+                  <span className="text-[0.625rem] opacity-75">({totalPhotosCount})</span>
                 </button>
 
                 {eventsWithMedia.map(evt => {
@@ -650,8 +650,8 @@ export default function PublicProfile() {
                       }`}
                     >
                       <Calendar className="w-3 h-3" />
-                      <span className="max-w-[140px] truncate">{evt.title}</span>
-                      {count > 0 && <span className="text-[10px] opacity-75">({count})</span>}
+                      <span className="max-w-[8.75rem] truncate">{evt.title}</span>
+                      {count > 0 && <span className="text-[0.625rem] opacity-75">({count})</span>}
                     </button>
                   );
                 })}
@@ -667,7 +667,7 @@ export default function PublicProfile() {
                     }`}
                   >
                     <span>General Gallery</span>
-                    <span className="text-[10px] opacity-75">({profileGalleryItems.length})</span>
+                    <span className="text-[0.625rem] opacity-75">({profileGalleryItems.length})</span>
                   </button>
                 )}
               </div>
@@ -752,7 +752,7 @@ export default function PublicProfile() {
 
                     {/* Event title tag on thumbnail */}
                     {galleryFilter === 'all' && item.eventTitle && (
-                      <span className="absolute bottom-1.5 left-1.5 max-w-[85%] truncate text-[10px] font-medium px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-white border border-white/10 pointer-events-none">
+                      <span className="absolute bottom-1.5 left-1.5 max-w-[85%] truncate text-[0.625rem] font-medium px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-white border border-white/10 pointer-events-none">
                         {item.eventTitle}
                       </span>
                     )}
@@ -859,7 +859,7 @@ export default function PublicProfile() {
         return (
           <div
             onClick={() => setPreviewIndex(null)}
-            className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-50 p-4 select-none"
+            className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-[80] p-4 select-none"
           >
             {/* Top Bar */}
             <div
@@ -937,7 +937,7 @@ export default function PublicProfile() {
               <img
                 src={item.url}
                 alt={item.eventTitle || 'Event photo preview'}
-                className="max-w-full max-h-[78vh] rounded-2xl object-contain shadow-2xl"
+                className="max-w-full max-h-[78dvh] rounded-2xl object-contain shadow-2xl"
               />
 
               {hasNext && (

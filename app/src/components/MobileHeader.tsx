@@ -380,7 +380,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md p-4 safe-area-pt"
+            className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-md p-4 safe-area-pt"
             onClick={() => setShowSearchModal(false)}
           >
             <motion.div
@@ -445,7 +445,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className="fixed right-0 top-0 bottom-0 w-[86vw] max-w-[340px] bg-white dark:bg-[#070e05] border-l border-black/10 dark:border-white/10 z-[120] safe-area-pt shadow-2xl text-[#020b00] dark:text-white flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-[86vw] max-w-[21.25rem] bg-white dark:bg-[#070e05] border-l border-black/10 dark:border-white/10 z-[120] safe-area-pt shadow-2xl text-[#020b00] dark:text-white flex flex-col"
             >
               <div className="flex flex-col h-full px-5 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
                 {/* Close button at top right of card */}
@@ -525,7 +525,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                       {isAuthenticated ? usernameHandle : 'Tap to sign in or create account'}
                     </p>
                     {isAuthenticated && (
-                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-gray-600 dark:text-gray-300 font-medium">
+                      <div className="flex items-center gap-1.5 mt-1 text-[0.6875rem] text-gray-600 dark:text-gray-300 font-medium">
                         <span>{roleSubtitle}</span>
                         <Headphones className="w-3.5 h-3.5 text-[#9fa505] dark:text-[#d3da0c]" />
                       </div>
@@ -549,7 +549,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
                           <Icon className="w-[18px] h-[18px] text-[#8a8f04] dark:text-[#d3da0c] shrink-0" />
-                          <span className="text-[14px] font-medium text-[#020b00] dark:text-gray-100 group-hover:text-black dark:group-hover:text-white truncate">
+                          <span className="text-sm font-medium text-[#020b00] dark:text-gray-100 group-hover:text-black dark:group-hover:text-white truncate">
                             {item.label}
                           </span>
                         </div>
@@ -634,7 +634,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto pb-4">
+              <div className="grid grid-cols-3 gap-2 max-h-[50dvh] overflow-y-auto pb-4">
                 {chinaCities.map((city) => (
                   <button
                     key={city.id}

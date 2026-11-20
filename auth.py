@@ -385,7 +385,17 @@ async def require_vendor(current_user: User = Depends(get_current_user)) -> User
 
 async def require_artist(current_user: User = Depends(get_current_user)) -> User:
     from models import UserRole
-    if current_user.role not in [UserRole.ARTIST, UserRole.DJ, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+    role_str = str(getattr(current_user, "role", "")).lower()
+    role_type = str(getattr(current_user, "role_type", "")).lower()
+    is_artist = (
+        current_user.role in [UserRole.ARTIST, UserRole.ADMIN, UserRole.SUPER_ADMIN]
+        or "artist" in role_str
+        or "dj" in role_str
+        or "artist" in role_type
+        or "dj" in role_type
+        or getattr(current_user, "artist_profile", None) is not None
+    )
+    if not is_artist:
         from services.security_logger import log_security_event
         log_security_event(
             event_type="UNAUTHORIZED_ROLE_ACCESS",

@@ -1,3 +1,4 @@
+from typing import Optional, List, Dict, Any
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, Float, ForeignKey, Text, Enum, JSON, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -981,11 +982,16 @@ class BookingRequest(Base):
     # Payment proof
     payment_screenshot = Column(String(500), nullable=True)
     payment_amount = Column(Float, nullable=True)
+    deposit_amount = Column(Float, nullable=True)
+    payment_currency = Column(String(3), default="CNY", nullable=True)
     payer_name = Column(String(100), nullable=True)
     payer_notes = Column(Text, nullable=True)
     payment_status = Column(String(20), default="pending", nullable=True)
     payment_proof_hash = Column(String(64), nullable=True, index=True)
     payment_reference = Column(String(100), nullable=True)
+    payment_submitted_at = Column(DateTime(timezone=True), nullable=True)
+    payment_reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    payment_verified_at = Column(DateTime(timezone=True), nullable=True)
     
     # Review / moderation
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
@@ -1386,6 +1392,27 @@ class Event(Base):
     # Promoter relationships
     event_promoters = relationship("EventPromoter", back_populates="event")
     promoter_referrals = relationship("PromoterReferral", back_populates="event")
+
+    # Backward-compatible convenience properties
+    @property
+    def venue_name(self) -> Optional[str]:
+        if self.venue and getattr(self.venue, "name", None):
+            return self.venue.name
+        return self.address or ""
+
+    @property
+    def flyer_url(self) -> Optional[str]:
+        return self.flyer_image
+
+    @property
+    def images(self) -> list:
+        if self.gallery_images and isinstance(self.gallery_images, list):
+            return self.gallery_images
+        return [self.flyer_image] if self.flyer_image else []
+
+    @property
+    def is_free(self) -> bool:
+        return not self.ticket_price or self.ticket_price <= 0
     
     # Composite indexes for common event queries
     __table_args__ = (

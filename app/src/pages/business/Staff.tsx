@@ -393,14 +393,14 @@ const Staff = () => {
   const pendingStaffCount = staff.filter(s => s.status === 'Pending').length;
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28 pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28 pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       {/* Page Title & Glowing 3D Team Graphic */}
       <div className="flex items-start justify-between gap-4 pt-2 pb-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Staff
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[280px] sm:max-w-md leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 max-w-[17.5rem] sm:max-w-md leading-relaxed">
             Invite team members and assign roles to help manage your events.
           </p>
         </div>
@@ -445,10 +445,10 @@ const Staff = () => {
             <Layers className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
-            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
               Finance
             </span>
-            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
               Workspace
             </span>
           </div>
@@ -464,10 +464,10 @@ const Staff = () => {
             <UserPlus className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
-            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
               Add Finance
             </span>
-            <span className="block text-[11px] sm:text-xs font-semibold text-white/90 leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-semibold text-white/90 leading-tight">
               Staff
             </span>
           </div>
@@ -483,10 +483,10 @@ const Staff = () => {
             <UserPlus className="w-4 h-4 text-black stroke-[2.5]" />
           </div>
           <div>
-            <span className="block text-[11px] sm:text-xs font-extrabold text-black leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-extrabold text-black leading-tight">
               Invite
             </span>
-            <span className="block text-[11px] sm:text-xs font-extrabold text-black leading-tight">
+            <span className="block text-[0.6875rem] sm:text-xs font-extrabold text-black leading-tight">
               Staff
             </span>
           </div>
@@ -536,7 +536,7 @@ const Staff = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between pb-1">
           <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Team Members</h2>
-          <span className="text-[11px] font-medium text-gray-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+          <span className="text-[0.6875rem] font-medium text-gray-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
             {totalStaffCount} {totalStaffCount === 1 ? 'Member' : 'Members'}
           </span>
         </div>
@@ -591,7 +591,7 @@ const Staff = () => {
                     {/* Right side: Status Badge + 3-dots Menu */}
                     <div className="flex items-center gap-2 shrink-0">
                       <span
-                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                        className={`text-[0.6875rem] font-medium px-2.5 py-0.5 rounded-full border ${
                           member.status === 'Active'
                             ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                             : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
@@ -658,7 +658,7 @@ const Staff = () => {
                   <div className="mt-3.5 flex flex-wrap items-center gap-2">
                     {/* Guest Check-In */}
                     {member.permissions.checkedInInfo && !member.permissions.financials && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
                         <Users className="w-3 h-3 text-[#38bdf8]" />
                         Guest Check-In
                       </span>
@@ -666,7 +666,7 @@ const Staff = () => {
 
                     {/* QR Scanner */}
                     {member.permissions.qrScanner && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#2a1708] text-[#fb923c] border border-[#ea580c]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#2a1708] text-[#fb923c] border border-[#ea580c]/40">
                         <QrCode className="w-3 h-3 text-[#fb923c]" />
                         QR Scanner
                       </span>
@@ -674,7 +674,7 @@ const Staff = () => {
 
                     {/* $ Finance & Revenue */}
                     {member.permissions.financials && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#092617] text-[#34d399] border border-[#059669]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#092617] text-[#34d399] border border-[#059669]/40">
                         <DollarSign className="w-3 h-3 text-[#34d399]" />
                         Finance & Revenue
                       </span>
@@ -682,7 +682,7 @@ const Staff = () => {
 
                     {/* Payment Approvals */}
                     {member.permissions.ordersApproval && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#2d1e05] text-[#fbbf24] border border-[#d97706]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#2d1e05] text-[#fbbf24] border border-[#d97706]/40">
                         <CreditCard className="w-3 h-3 text-[#fbbf24]" />
                         Payment Approvals
                       </span>
@@ -690,7 +690,7 @@ const Staff = () => {
 
                     {/* Payouts */}
                     {member.permissions.payouts && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#07242a] text-[#22d3ee] border border-[#0891b2]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#07242a] text-[#22d3ee] border border-[#0891b2]/40">
                         <Wallet className="w-3 h-3 text-[#22d3ee]" />
                         Payouts
                       </span>
@@ -698,7 +698,7 @@ const Staff = () => {
 
                     {/* Checked-in Info (for finance or manager) */}
                     {member.permissions.checkedInInfo && member.permissions.financials && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-medium bg-[#0a1e30] text-[#38bdf8] border border-[#0284c7]/40">
                         <ClipboardList className="w-3 h-3 text-[#38bdf8]" />
                         Checked-in Info
                       </span>
@@ -726,7 +726,7 @@ const Staff = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto text-white"
+              className="bg-[#0e160d] rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-lg max-h-[90dvh] overflow-y-auto text-white"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
@@ -814,9 +814,9 @@ const Staff = () => {
                         >
                           <div className="min-w-0">
                             <p className="text-xs font-medium text-white truncate">{user.name}</p>
-                            <p className="text-[10px] text-gray-400 truncate">{user.email || user.phone}</p>
+                            <p className="text-[0.625rem] text-gray-400 truncate">{user.email || user.phone}</p>
                           </div>
-                          <span className="text-[10px] text-[#d3da0c] font-semibold">Select</span>
+                          <span className="text-[0.625rem] text-[#d3da0c] font-semibold">Select</span>
                         </button>
                       ))}
                     </div>
@@ -826,7 +826,7 @@ const Staff = () => {
                     <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between">
                       <div>
                         <p className="text-xs font-semibold text-white">{selectedUser.name}</p>
-                        <p className="text-[10px] text-emerald-400">{selectedUser.email || selectedUser.phone}</p>
+                        <p className="text-[0.625rem] text-emerald-400">{selectedUser.email || selectedUser.phone}</p>
                       </div>
                       <button
                         type="button"

@@ -229,7 +229,7 @@ export default function EventPromoters() {
   const getPromoterShareUrl = (code: string) => `${WEB_ORIGIN}/events/${eventId}?ref=${code}`;
 
   return (
-    <div className="min-h-screen bg-[#020b00] pt-16 lg:pt-20">
+    <div className="min-h-dvh bg-[#020b00] pt-16 lg:pt-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -448,7 +448,7 @@ export default function EventPromoters() {
       {/* Add Promoter Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -537,7 +537,7 @@ export default function EventPromoters() {
       {/* QR Code Modal */}
       <AnimatePresence>
         {showQrModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

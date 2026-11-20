@@ -144,7 +144,7 @@ export default function Events() {
   const moreEvents = filteredEvents.slice(1);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Top Filter Pills & Search Controls */}
       <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 md:py-4">
@@ -426,11 +426,11 @@ export default function Events() {
                           <h4 className="text-[#020b00] dark:text-white font-bold text-sm truncate mb-1">
                             {event.title}
                           </h4>
-                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 text-[11px] mb-1">
+                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 text-[0.6875rem] mb-1">
                             <Calendar className="w-3 h-3 text-[#9fa505] dark:text-[#d3da0c] flex-shrink-0" />
                             <span className="truncate">{formatEventDateTime(event.start_date)}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-[11px]">
+                          <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-[0.6875rem]">
                             <MapPin className="w-3 h-3 text-[#9fa505] dark:text-[#d3da0c] flex-shrink-0" />
                             <span className="truncate">{venueLabel}</span>
                           </div>
@@ -474,7 +474,7 @@ export default function Events() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-md bg-white dark:bg-[#161616] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl border border-black/10 dark:border-white/10 z-10 max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+              className="relative w-full max-w-md bg-white dark:bg-[#161616] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl border border-black/10 dark:border-white/10 z-10 max-h-[85dvh] flex flex-col shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-5 pb-3 border-b border-black/8 dark:border-white/8">

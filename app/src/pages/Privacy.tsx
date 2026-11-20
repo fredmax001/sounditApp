@@ -109,11 +109,11 @@ const Privacy = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-dvh bg-[#000000]">
       {/* Hero Section */}
       <section className="relative py-16 md:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#d3da0c]/5 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#d3da0c]/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(92vw,37.5rem)] h-[600px] bg-[#d3da0c]/10 rounded-full blur-[150px]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div

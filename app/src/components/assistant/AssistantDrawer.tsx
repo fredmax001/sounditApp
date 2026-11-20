@@ -125,11 +125,16 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
             className="fixed inset-0 bg-black/60 z-[90] md:hidden"
           />
           <motion.div
+            data-modal-open="true"
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 right-0 md:bottom-24 md:right-6 z-[95] w-full md:w-[420px] h-[80vh] md:h-[600px] bg-[#020b00] border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{
+              bottom: 'var(--keyboard-offset, 0px)',
+              maxHeight: 'min(85dvh, calc(var(--vvh, 100dvh) - 1rem))',
+            }}
+            className="fixed right-0 md:bottom-24 md:right-6 z-[95] w-full md:w-[26.25rem] h-[80dvh] md:h-[37.5rem] bg-[#020b00] border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#111111]">
@@ -228,7 +233,7 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
                                   <button
                                     key={aidx}
                                     onClick={() => { setInput(action); handleSendWithText(action); }}
-                                    className="px-2.5 py-1 bg-white/5 hover:bg-[#d3da0c]/10 border border-white/10 hover:border-[#d3da0c]/30 rounded-full text-[11px] text-gray-400 hover:text-[#d3da0c] transition-colors"
+                                    className="px-2.5 py-1 bg-white/5 hover:bg-[#d3da0c]/10 border border-white/10 hover:border-[#d3da0c]/30 rounded-full text-[0.6875rem] text-gray-400 hover:text-[#d3da0c] transition-colors"
                                   >
                                     {action}
                                   </button>
@@ -253,7 +258,7 @@ export default function AssistantDrawer({ mode = 'public' }: AssistantDrawerProp
                                     )}
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs text-white font-medium truncate group-hover:text-[#d3da0c]">{evt.title}</p>
-                                      <p className="text-[10px] text-gray-500 truncate">
+                                      <p className="text-[0.625rem] text-gray-500 truncate">
                                         {evt.start_date} {evt.venue ? `• ${evt.venue}` : ''}
                                         {evt.ticket_price ? ` • ¥${evt.ticket_price}` : ''}
                                       </p>

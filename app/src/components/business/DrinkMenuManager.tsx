@@ -319,11 +319,11 @@ const DrinkMenuManager = ({ eventId }: { eventId: number | null }) => {
                 <input type="checkbox" defaultChecked={item.price != null} id={`imp-${idx}`} className="accent-[#d3da0c] shrink-0" />
                 <label htmlFor={`imp-${idx}`} className="flex-1 text-gray-300 truncate">{item.name}</label>
                 <select defaultValue={item.category || 'other'} onChange={e => { const next = [...parsedItems]; next[idx] = { ...next[idx], category: e.target.value }; setParsedItems(next); }}
-                  className="bg-[#020b00] border border-white/10 text-gray-400 rounded-lg px-1.5 py-1 text-[10px]">
+                  className="bg-[#020b00] border border-white/10 text-gray-400 rounded-lg px-1.5 py-1 text-[0.625rem]">
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <input type="number" defaultValue={item.price ?? ''} placeholder="¥" onChange={e => { const next = [...parsedItems]; next[idx] = { ...next[idx], price: e.target.value ? parseFloat(e.target.value) : null }; setParsedItems(next); }}
-                  className="w-16 bg-[#020b00] border border-white/10 text-white rounded-lg px-1.5 py-1 text-[11px]" />
+                  className="w-16 bg-[#020b00] border border-white/10 text-white rounded-lg px-1.5 py-1 text-[0.6875rem]" />
               </div>
             ))}
           </div>
@@ -489,11 +489,11 @@ const DrinkTable = ({
 
   return (
     <div>
-      <p className="text-gray-500 text-[11px] font-semibold uppercase tracking-wide mb-2">{title} ({items.length})</p>
+      <p className="text-gray-500 text-[0.6875rem] font-semibold uppercase tracking-wide mb-2">{title} ({items.length})</p>
       <div className="space-y-4">
         {catOrder.map(cat => (
           <div key={cat}>
-            <p className="text-[#d3da0c]/70 text-[10px] font-bold uppercase tracking-wider mb-1.5 px-1">
+            <p className="text-[#d3da0c]/70 text-[0.625rem] font-bold uppercase tracking-wider mb-1.5 px-1">
               {CATEGORY_LABELS[cat] || cat.replace(/_/g, ' ')}
             </p>
             <div className="space-y-1.5">
@@ -511,7 +511,7 @@ const DrinkTable = ({
                       <Martini className="w-4 h-4 text-[#d3da0c] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm truncate">{item.name}</p>
-                        <p className="text-gray-500 text-[11px] flex flex-wrap items-center gap-1">
+                        <p className="text-gray-500 text-[0.6875rem] flex flex-wrap items-center gap-1">
                           {item.supports_mixers && (
                             <span className="text-[#d3da0c]/80 font-medium">
                               {item.mixer_included_qty || 4} mixers included
@@ -568,7 +568,7 @@ const DrinkTable = ({
                             title={t('tables.clickToEditPrice', 'Click to edit price')}
                           >
                             <p className="text-[#d3da0c] text-sm font-semibold">{fmt(showEffective ? item.effective_price : item.price)}</p>
-                            {showEffective && item.event_price != null && <p className="text-gray-600 text-[10px]">{fmt(item.price)} master</p>}
+                            {showEffective && item.event_price != null && <p className="text-gray-600 text-[0.625rem]">{fmt(item.price)} master</p>}
                           </button>
                           <button
                             type="button"

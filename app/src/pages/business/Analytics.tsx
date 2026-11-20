@@ -187,7 +187,7 @@ export default function BusinessAnalytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -218,7 +218,7 @@ export default function BusinessAnalytics() {
               className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-3 shadow-xs dark:shadow-none">
               <div className="flex items-center gap-2 mb-1">
                 <s.icon className="w-3.5 h-3.5 text-[#d3da0c]" />
-                <span className="text-gray-500 dark:text-gray-400 text-[10px]">{s.label}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-[0.625rem]">{s.label}</span>
               </div>
               <p className="text-[#020b00] dark:text-white font-bold text-sm lg:text-base">{s.value}</p>
             </motion.div>
@@ -239,7 +239,7 @@ export default function BusinessAnalytics() {
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-xs">{s.label}</p>
             <p className="text-[#020b00] dark:text-white font-bold text-lg">{s.value}</p>
-            <p className="text-gray-500 dark:text-gray-400 text-[10px]">{s.sub}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-[0.625rem]">{s.sub}</p>
           </motion.div>
         ))}
       </div>
@@ -363,7 +363,7 @@ export default function BusinessAnalytics() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-gray-500 dark:text-gray-400 text-[10px] uppercase border-b border-black/5 dark:border-white/5">
+                <tr className="text-gray-500 dark:text-gray-400 text-[0.625rem] uppercase border-b border-black/5 dark:border-white/5">
                   <th className="py-3 px-4">Event</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Views</th>
@@ -378,11 +378,11 @@ export default function BusinessAnalytics() {
                 {eventsPerf.map((ev) => (
                   <tr key={ev.id} className="border-b border-black/5 dark:border-white/5 text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                     <td className="py-3 px-4">
-                      <p className="text-[#020b00] dark:text-white font-medium truncate max-w-[120px] lg:max-w-[200px]">{ev.title}</p>
-                      <p className="text-gray-500 dark:text-gray-400 text-[10px]">{ev.start_date ? new Date(ev.start_date).toLocaleDateString() : ''}</p>
+                      <p className="text-[#020b00] dark:text-white font-medium truncate max-w-[7.5rem] lg:max-w-[12.5rem]">{ev.title}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-[0.625rem]">{ev.start_date ? new Date(ev.start_date).toLocaleDateString() : ''}</p>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded text-[0.625rem] font-bold ${
                         ev.status === 'approved' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
                         ev.status === 'pending' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
                         ev.status === 'rejected' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
@@ -544,7 +544,7 @@ export default function BusinessAnalytics() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="text-gray-500 dark:text-gray-400 text-[10px] uppercase border-b border-black/5 dark:border-white/5">
+                    <tr className="text-gray-500 dark:text-gray-400 text-[0.625rem] uppercase border-b border-black/5 dark:border-white/5">
                       <th className="py-3 px-4">Promoter</th>
                       <th className="py-3 px-4">Code</th>
                       <th className="py-3 px-4 text-right">Clicks</th>
@@ -557,7 +557,7 @@ export default function BusinessAnalytics() {
                     {promoters.top_promoters.map((p) => (
                       <tr key={p.id} className="border-b border-black/5 dark:border-white/5 text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                         <td className="py-3 px-4 text-[#020b00] dark:text-white font-medium">{p.name}</td>
-                        <td className="py-3 px-4"><code className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-[10px]">{p.referral_code}</code></td>
+                        <td className="py-3 px-4"><code className="text-[#020b00] dark:text-[#d3da0c] font-semibold text-[0.625rem]">{p.referral_code}</code></td>
                         <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">{p.clicks}</td>
                         <td className="py-3 px-4 text-right text-[#020b00] dark:text-white">{p.sales}</td>
                         <td className="py-3 px-4 text-right text-[#020b00] dark:text-white font-medium">¥{p.revenue.toLocaleString()}</td>
@@ -581,7 +581,7 @@ export default function BusinessAnalytics() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50/50 dark:bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
+    <div className="min-h-dvh bg-neutral-50/50 dark:bg-[#020b00] pt-6 pb-4 px-4 lg:p-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>

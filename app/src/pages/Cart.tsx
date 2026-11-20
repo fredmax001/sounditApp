@@ -45,7 +45,7 @@ export default function Cart() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-[#020b00] pt-20 lg:pt-24">
+            <div className="min-h-dvh bg-[#020b00] pt-20 lg:pt-24">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="text-center">
                         <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -65,16 +65,16 @@ export default function Cart() {
     }
 
     return (
-        <div className="min-h-screen bg-[#020b00] pt-20 lg:pt-24">
+        <div className="min-h-dvh bg-[#020b00] pt-20 lg:pt-24 pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-3xl font-bold text-white">{t('cart.title')}</h1>
+                <div className="flex items-center justify-between gap-3 mb-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('cart.title')}</h1>
                     <button
                         onClick={() => {
                             clearCart();
                             toast.success(t('cart.cartCleared'));
                         }}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium"
+                        className="text-red-400 hover:text-red-300 text-sm font-medium shrink-0"
                     >
                         {t('cart.clearCart')}
                     </button>
@@ -86,20 +86,22 @@ export default function Cart() {
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#141414] rounded-2xl p-6 border border-white/5"
+                            className="bg-[#141414] rounded-2xl p-4 sm:p-6 border border-white/5"
                         >
-                            <div className="flex gap-6">
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="w-20 h-20 rounded-xl object-cover"
-                                />
-                                <div className="flex-1">
-                                    <h3 className="text-white font-semibold text-lg mb-1">{item.title}</h3>
-                                    <p className="text-[#d3da0c] font-medium mb-2">{item.tierName}</p>
-                                    <p className="text-gray-400 text-sm">¥{item.price} {t('cart.each')}</p>
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                                <div className="flex gap-4 flex-1 min-w-0">
+                                    <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-20 h-20 rounded-xl object-cover shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-semibold text-base sm:text-lg mb-1 break-words">{item.title}</h3>
+                                        <p className="text-[#d3da0c] font-medium mb-2 truncate">{item.tierName}</p>
+                                        <p className="text-gray-400 text-sm">¥{item.price} {t('cart.each')}</p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-4">
+                                <div className="flex sm:flex-col items-center sm:items-end justify-between gap-4">
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => handleQuantityChange(item.id, item.quantity - 1)}

@@ -35,7 +35,7 @@ const Field = ({ label, children, hint }: { label: string; children: React.React
   <div>
     <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-semibold">{label}</label>
     {children}
-    {hint && <p className="text-[11px] text-gray-500 mt-1">{hint}</p>}
+    {hint && <p className="text-[0.6875rem] text-gray-500 mt-1">{hint}</p>}
   </div>
 );
 
@@ -47,7 +47,7 @@ const Section = ({ title, subtitle, children }: { title: string; subtitle?: stri
   >
     <div>
       <h2 className="text-sm font-extrabold text-[#020b00] dark:text-white">{title}</h2>
-      {subtitle && <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>}
+      {subtitle && <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>}
     </div>
     {children}
   </motion.div>
@@ -61,7 +61,7 @@ const Toggle = ({ checked, onChange, label, desc }: { checked: boolean; onChange
   >
     <div className="min-w-0">
       <p className="text-sm text-[#020b00] dark:text-white font-medium">{label}</p>
-      {desc && <p className="text-[11px] text-gray-500">{desc}</p>}
+      {desc && <p className="text-[0.6875rem] text-gray-500">{desc}</p>}
     </div>
     <span className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${checked ? 'bg-[#d3da0c]' : 'bg-black/15 dark:bg-white/15'}`}>
       <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-black transition-all ${checked ? 'left-[22px]' : 'left-0.5'}`} />
@@ -299,7 +299,7 @@ const EditProfile = () => {
     form.email.split('@')[0];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-16 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-16 transition-colors duration-200">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020B00]/95 backdrop-blur-xl border-b border-black/10 dark:border-white/10 safe-area-pt">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -438,7 +438,7 @@ const EditProfile = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">Google</p>
-                        <p className="text-[11px] text-gray-500">Sign in faster with your Google account</p>
+                        <p className="text-[0.6875rem] text-gray-500">Sign in faster with your Google account</p>
                       </div>
                       {linkedAccounts.google ? (
                         <span className="flex items-center gap-1 px-3 h-8 rounded-full bg-[#d3da0c]/10 text-[#d3da0c] text-xs font-bold border border-[#d3da0c]/30">

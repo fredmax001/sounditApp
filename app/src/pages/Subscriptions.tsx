@@ -101,8 +101,9 @@ export default function Subscriptions() {
   const fetchData = async () => {
     try {
       setLoadError(false);
+      const targetRole = role === 'organizer' ? 'business' : role;
       const [plansRes, statusRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/subscriptions/plans?role=${role}`, {
+        axios.get(`${API_BASE_URL}/subscriptions/plans?role=${targetRole}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API_BASE_URL}/subscriptions/my-subscription`, {
@@ -276,7 +277,7 @@ export default function Subscriptions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
@@ -289,7 +290,7 @@ export default function Subscriptions() {
   const formattedEndDate = activeSub?.end_date ? new Date(activeSub.end_date).toLocaleDateString() : '';
 
   return (
-    <div className="min-h-screen bg-[#020b00] px-4 pt-24 pb-12 lg:py-12">
+    <div className="min-h-dvh bg-[#020b00] px-4 pt-24 pb-12 lg:py-12">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
@@ -339,6 +340,28 @@ export default function Subscriptions() {
           </div>
         ) : (
           <>
+            {/* Trial Expired Alert Banner */}
+            {(status as any)?.is_trial_expired && !activeSub && (
+              <div className="mb-8 p-5 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-[#211105] via-[#2a1708] to-[#1c0c03] text-white shadow-xl">
+                <div className="flex items-start gap-3.5">
+                  <div className="p-2.5 rounded-xl shrink-0 bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-white font-bold text-lg">Your 1-Month Free Trial Has Ended</span>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase font-bold tracking-wider">
+                        Action Required
+                      </span>
+                    </div>
+                    <p className="text-gray-300 text-sm mt-1.5 leading-relaxed">
+                      Feature limits are now active. Select a plan below to restore full access to unlimited event creation, table reservations, booking deposits, and listings.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Active Subscription Banner */}
             {activeSub && (
               <div className={`mb-8 p-5 rounded-2xl border backdrop-blur-sm ${
@@ -361,8 +384,8 @@ export default function Subscriptions() {
                           </span>
                         )}
                         {activeSub.is_trial && (
-                          <span className="text-amber-400 text-xs px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 font-medium">
-                            Free Trial
+                          <span className="text-[#d3da0c] text-xs px-2.5 py-0.5 rounded-full bg-[#d3da0c]/15 border border-[#d3da0c]/30 font-bold uppercase tracking-wider">
+                            1-Month Free Trial
                           </span>
                         )}
                       </p>
@@ -530,7 +553,7 @@ export default function Subscriptions() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4"
             onClick={() => setCancelModalOpen(false)}
           >
             <motion.div
@@ -601,7 +624,7 @@ export default function Subscriptions() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4"
             onClick={() => setPaymentModal({ open: false, planType: null, details: null })}
           >
             <motion.div

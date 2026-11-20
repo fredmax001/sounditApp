@@ -40,7 +40,7 @@ const Checkout = () => {
 
   if (!eventId) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-dvh pt-20 flex items-center justify-center">
         <p className="text-red-400">{t('payment.checkout.missingEventId')}</p>
       </div>
     );
@@ -48,7 +48,7 @@ const Checkout = () => {
 
   if (isEventLoading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-dvh pt-20 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -56,7 +56,7 @@ const Checkout = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center px-4">
+      <div className="min-h-dvh pt-20 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-400 mb-4">{t('payment.eventNotFound')}</p>
           <button
@@ -151,7 +151,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
+    <div className="min-h-dvh pt-20 pb-24 bg-[#020b00]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="py-6">
@@ -226,7 +226,7 @@ const Checkout = () => {
                   <div>
                     <div className="text-sm font-bold text-white flex items-center gap-2">
                       <span>Use Sound It Points</span>
-                      <span className="px-2 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[11px] font-extrabold">
+                      <span className="px-2 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[0.6875rem] font-extrabold">
                         {userPointsBalance.toLocaleString()} pts
                       </span>
                     </div>

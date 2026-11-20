@@ -26,14 +26,12 @@ def _aware(dt):
 class SubscriptionService:
     @staticmethod
     def has_active_artist_subscription(db: Session, user_id: int) -> bool:
-        """Deposit receiving requires an active subscription row for the artist role."""
+        """Deposit receiving requires an active subscription or active trial for the artist role."""
         sub = SubscriptionService.get_active_subscription(db, user_id)
         return bool(
             sub
-            and sub.role == UserRole.ARTIST
+            and sub.role in [UserRole.ARTIST, UserRole.ADMIN, UserRole.SUPER_ADMIN]
             and sub.status == SubscriptionStatus.ACTIVE
-            and not sub.is_trial
-            and (sub.price or 0) > 0
         )
 
     @staticmethod
@@ -67,14 +65,46 @@ class SubscriptionService:
                     "priority_support": True,
                     "verified_badge": True,
                     "homepage_spotlight": True,
-                    "features": ["unlimited_events", "verified_badge", "analytics", "priority_support", "community_posts", "table_reservations", "payouts"],
+                    "table_reservations": True,
+                    "event_booths": True,
+                    "can_receive_deposits": True,
+                    "features": ["unlimited_events", "verified_badge", "analytics", "priority_support", "community_posts", "table_reservations", "payouts", "event_booths", "can_receive_deposits"],
                 },
                 "can_access_features": True,
                 "is_verified_premium": True,
+                "is_trial": False,
+                "is_trial_expired": False,
             }
         
         active_sub = SubscriptionService.get_active_subscription(db, user_id)
         
+        # Check if user ever had a trial
+        any_trial = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.is_trial == True
+        ).first()
+
+        # If user is in a creator/business role (vendor, organizer, business, artist)
+        # and has never had a trial or subscription, auto-grant 30-day trial if account was created within last 30 days
+        if not active_sub and not any_trial and user.role in [UserRole.BUSINESS, UserRole.ORGANIZER, UserRole.ARTIST, UserRole.VENDOR]:
+            account_created = _aware(user.created_at) if getattr(user, 'created_at', None) else None
+            now = datetime.now(timezone.utc)
+            if account_created and (now - account_created).days < 30:
+                trial = Subscription(
+                    user_id=user.id,
+                    role=user.role,
+                    plan_type=SubscriptionPlan.PREMIUM,
+                    price=0.0,
+                    status=SubscriptionStatus.ACTIVE,
+                    start_date=account_created,
+                    end_date=account_created + timedelta(days=30),
+                    is_trial=True,
+                )
+                db.add(trial)
+                db.commit()
+                db.refresh(trial)
+                active_sub = trial
+
         if not active_sub:
             pending_sub = db.query(Subscription).filter(
                 and_(
@@ -83,12 +113,19 @@ class SubscriptionService:
                 )
             ).order_by(Subscription.created_at.desc()).first()
             
+            is_trial_expired = (any_trial is not None) or (
+                user.role in [UserRole.BUSINESS, UserRole.ORGANIZER, UserRole.ARTIST, UserRole.VENDOR]
+            )
+
             return {
                 "has_active_subscription": False,
                 "has_pending_subscription": pending_sub is not None,
                 "pending_subscription": pending_sub,
                 "role": user.role.value,
                 "can_access_features": False,
+                "is_trial": False,
+                "is_trial_expired": is_trial_expired,
+                "days_remaining": 0,
             }
         
         # Get plan features from database
@@ -109,7 +146,25 @@ class SubscriptionService:
                 "homepage_spotlight": plan_config.homepage_spotlight,
                 "features": plan_config.features,
             }
+        else:
+            from subscription_config import get_plan_features
+            features = dict(get_plan_features(active_sub.role.value, active_sub.plan_type.value) or {})
+
+        # If trial is active, ensure all premium features are fully unlocked
+        if getattr(active_sub, 'is_trial', False):
+            features["event_limit"] = None
+            features["portfolio_limit"] = None
+            features["media_limit"] = None
+            features["featured_listing"] = True
+            features["analytics_access"] = True
+            features["priority_support"] = True
+            features["homepage_spotlight"] = True
+            features["table_reservations"] = True
+            features["event_booths"] = True
+            features["can_receive_deposits"] = True
         
+        days_left = max(0, (_aware(active_sub.end_date) - datetime.now(timezone.utc)).days)
+
         return {
             "has_active_subscription": True,
             "subscription": active_sub,
@@ -118,10 +173,11 @@ class SubscriptionService:
             "start_date": active_sub.start_date,
             "end_date": active_sub.end_date,
             # SQLite drops tzinfo on read — normalize before arithmetic
-            "days_remaining": (_aware(active_sub.end_date) - datetime.now(timezone.utc)).days,
+            "days_remaining": days_left,
             "features": features,
             "can_access_features": True,
             "is_trial": getattr(active_sub, 'is_trial', False),
+            "is_trial_expired": False,
         }
     
     @staticmethod
@@ -160,6 +216,8 @@ class SubscriptionService:
         status = SubscriptionService.get_subscription_status(db, user_id)
         
         if not status["has_active_subscription"]:
+            if status.get("is_trial_expired"):
+                return False, "Your 1-month free trial has ended. An active subscription is required to create events."
             return False, "Active subscription required"
         
         features = status.get("features", {})
@@ -343,7 +401,20 @@ class SubscriptionService:
     
     @staticmethod
     def create_trial_subscription(db: Session, user_id: int, role: UserRole):
-        """Create a 30-day free PREMIUM trial subscription"""
+        """Create a 30-day free PREMIUM trial subscription for new vendors, organizers, and artists."""
+        # Only grant trials to creator/business roles
+        valid_roles = [UserRole.BUSINESS, UserRole.ORGANIZER, UserRole.ARTIST, UserRole.VENDOR]
+        if role not in valid_roles:
+            return None
+
+        # Check if user already had a trial
+        existing = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.is_trial == True
+        ).first()
+        if existing:
+            return existing
+
         now = datetime.now(timezone.utc)
         trial = Subscription(
             user_id=user_id,

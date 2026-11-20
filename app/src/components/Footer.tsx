@@ -149,7 +149,7 @@ const Footer = ({ isMobile = false }: FooterProps) => {
                     <span className="text-xs font-bold tracking-widest text-[#d3da0c] uppercase">
                       Sound It Insider
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30">
+                    <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-semibold bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30">
                       Weekly / Bi-Weekly
                     </span>
                   </div>
@@ -195,7 +195,7 @@ const Footer = ({ isMobile = false }: FooterProps) => {
                         )}
                       </button>
                     </div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 pl-1">
+                    <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 pl-1">
                       <span>🔒 No spam ever. Sent 1-2x weekly. One-click unsubscribe anytime.</span>
                     </p>
                   </form>

@@ -191,7 +191,7 @@ const BeatzOfAfrikaRecap = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-dvh bg-black text-white">
       <div className="border-b border-amber-300/30 bg-amber-300/10 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#F4E059]">
         Editorial preview · Not published · Photography pending verification
       </div>
@@ -293,7 +293,7 @@ const BeatzOfAfrikaRecap = () => {
                     >
                       <div className="text-center">
                         <span className="block text-5xl font-black text-[#F4E059]/80">{String(index + 1).padStart(2, '0')}</span>
-                        <span className="mt-2 block text-[10px] uppercase tracking-[0.18em] text-white/45">Verified portrait pending</span>
+                        <span className="mt-2 block text-[0.625rem] uppercase tracking-[0.18em] text-white/45">Verified portrait pending</span>
                       </div>
                     </div>
                     <div className="p-5">

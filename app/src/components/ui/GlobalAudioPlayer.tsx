@@ -69,7 +69,10 @@ const GlobalAudioPlayer = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-[90px] left-2 right-2 md:left-auto md:right-4 md:w-80 bg-[#1A1A1A]/95 backdrop-blur-md border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 flex items-center gap-3 touch-none"
+            style={{
+              bottom: 'calc(var(--bottom-nav-height, 0px) + env(safe-area-inset-bottom, 0px) + 0.75rem)',
+            }}
+            className="fixed left-2 right-2 md:left-auto md:right-4 md:w-80 bg-[#1A1A1A]/95 backdrop-blur-md border border-white/10 rounded-2xl p-2.5 shadow-2xl z-[38] flex items-center gap-3 touch-none hide-on-keyboard"
           >
             {/* Album Art */}
             <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-black/50 border border-white/5 flex items-center justify-center">
@@ -85,7 +88,7 @@ const GlobalAudioPlayer = () => {
               <p className="text-white text-sm font-semibold truncate leading-tight">
                 {currentTrack.title}
               </p>
-              <p className="text-[#d3da0c] text-[10px] truncate leading-tight">
+              <p className="text-[#d3da0c] text-[0.625rem] truncate leading-tight">
                 {currentTrack.artist}
               </p>
             </div>

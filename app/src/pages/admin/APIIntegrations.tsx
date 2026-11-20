@@ -360,7 +360,7 @@ const APIIntegrations = () => {
 
       {/* Add Webhook Modal */}
       {showAddWebhook && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <h2 className="text-xl font-bold text-[#020b00] dark:text-white mb-4">{t('admin.apiIntegrations.addWebhook')}</h2>
             <form onSubmit={handleAddWebhook} className="space-y-4">

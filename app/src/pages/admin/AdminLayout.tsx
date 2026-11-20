@@ -12,9 +12,10 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3, Sun, Moon
+  BarChart3, Sun, Moon, Send
 } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
+import NotificationBell from '@/components/NotificationBell';
 
 // Grouped sidebar menu structure - each item has a permission key
 const menuGroups = [
@@ -59,7 +60,7 @@ const menuGroups = [
     label: 'Security',
     items: [
       { id: 'verification', label: 'Verification', icon: ShieldCheck, path: '/admin/verification-center', permission: 'verifications_read' },
-      { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications', permission: 'marketing_read' },
+      { id: 'notifications', label: 'Broadcasts & Alerts', icon: Send, path: '/admin/notifications', permission: 'marketing_read' },
       { id: 'roles', label: 'Roles', icon: Shield, path: '/admin/roles', permission: 'admins_write' },
       { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings', permission: 'settings_read' },
       { id: 'logs', label: 'Security Logs', icon: Lock, path: '/admin/logs', permission: 'settings_read' },
@@ -150,7 +151,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-white dark:bg-[#020b00] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-500 text-sm">Loading admin panel…</p>
@@ -160,7 +161,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex">
+    <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] flex overflow-x-clip">
       {/* Mobile Overlay */}
       <AnimatePresence>
         {isMobile && isSidebarOpen && (
@@ -169,7 +170,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -182,7 +183,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           x: isMobile && !isSidebarOpen ? -260 : 0
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={`fixed lg:sticky lg:top-0 lg:h-screen lg:self-start inset-y-0 left-0 bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/[0.06] z-50 flex flex-col overflow-hidden shadow-xs dark:shadow-none`}
+        className={`fixed lg:sticky lg:top-0 lg:h-dvh lg:self-start inset-y-0 left-0 bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/[0.06] z-[70] lg:z-30 flex flex-col overflow-hidden shadow-xs dark:shadow-none`}
       >
         {/* Logo */}
         <div className="h-[64px] flex items-center px-4 border-b border-black/8 dark:border-white/[0.06] shrink-0">
@@ -203,7 +204,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                     alt="Sound It"
                     className="h-6 w-auto object-contain"
                   />
-                  <p className="text-[#d3da0c] text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap mt-0.5">Admin Panel</p>
+                  <p className="text-[#d3da0c] text-[0.625rem] font-semibold uppercase tracking-widest whitespace-nowrap mt-0.5">Admin Panel</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -230,7 +231,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                       onClick={() => toggleGroup(group.label)}
                       className="w-full flex items-center justify-between px-3 py-1.5 mb-0.5 group"
                     >
-                      <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${hasActiveItem ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-gray-500 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-gray-400'}`}>
+                      <span className={`text-[0.625rem] font-bold uppercase tracking-widest transition-colors ${hasActiveItem ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-gray-500 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-gray-400'}`}>
                         {group.label}
                       </span>
                       <ChevronDown className={`w-3 h-3 text-gray-400 dark:text-gray-600 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
@@ -320,7 +321,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                   <p className="text-[#020b00] dark:text-white text-sm font-medium whitespace-nowrap truncate">
                     {profile?.first_name} {profile?.last_name}
                   </p>
-                  <p className="text-gray-500 dark:text-[#d3da0c] text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
+                  <p className="text-gray-500 dark:text-[#d3da0c] text-[0.625rem] font-semibold uppercase tracking-wider whitespace-nowrap">
                     {profile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                   </p>
                 </motion.div>
@@ -389,13 +390,8 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
               {isDark ? <Sun className="w-4 h-4 text-[#d3da0c]" /> : <Moon className="w-4 h-4 text-[#020b00]" />}
             </button>
 
-            <button
-              onClick={() => navigate('/admin/notifications')}
-              className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-            </button>
+            {/* Actual Notification Updates Bell with real-time unread badge */}
+            <NotificationBell className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all" />
 
             <button
               onClick={() => navigate('/admin/settings')}
@@ -418,7 +414,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-8">
           {children || <Outlet />}
         </main>
       </div>

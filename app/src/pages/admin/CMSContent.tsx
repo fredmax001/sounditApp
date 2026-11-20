@@ -290,8 +290,8 @@ const CMSContent = () => {
 
       {/* Page Editor Modal */}
       {showEditor && editingPage && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-3xl max-h-[90dvh] overflow-auto shadow-2xl">
             <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">
                 {editingPage.id ? t('admin.cmsContent.editPage') : t('admin.cmsContent.newPage')}

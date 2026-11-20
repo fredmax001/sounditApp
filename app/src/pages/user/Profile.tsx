@@ -283,7 +283,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 pt-3 md:pt-6 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 pt-3 md:pt-6 transition-colors duration-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
         {/* Top bar with back button & title */}
         <div className="flex items-center gap-2 mb-4">
@@ -396,7 +396,7 @@ const Profile = () => {
                 </button>
               </div>
               {profile?.username && <p className="text-gray-300/90 text-sm mt-0.5 drop-shadow">@{profile.username}</p>}
-              <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-black/50 backdrop-blur-sm text-[#d3da0c] border border-[#d3da0c]/30">
+              <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[0.6875rem] font-semibold uppercase tracking-wide bg-black/50 backdrop-blur-sm text-[#d3da0c] border border-[#d3da0c]/30">
                 {roleKey === 'user' ? t('user.profile.user') : t(`kit.profile.role.${roleKey}`, roleKey)}
               </span>
               {profile?.bio && <p className="text-gray-200 text-sm mt-2 max-w-xs drop-shadow">{profile.bio}</p>}
@@ -412,7 +412,7 @@ const Profile = () => {
                 className="flex-1 py-3.5 flex flex-col items-center gap-0.5 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 transition-colors"
               >
                 <span className="text-lg font-bold text-[#020b00] dark:text-white">{stat.value}</span>
-                <span className="text-[11px] text-gray-500">{stat.label}</span>
+                <span className="text-[0.6875rem] text-gray-500">{stat.label}</span>
               </button>
             ))}
           </div>
@@ -464,7 +464,7 @@ const Profile = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
             onClick={() => setShowLogoutConfirm(false)}
           >
             <motion.div

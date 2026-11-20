@@ -474,7 +474,7 @@ const SystemSettings = () => {
 
             {/* Add City Modal */}
             {showAddCityModal && (
-                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-[80] p-4">
                     <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.systemSettings.addNewCity')}</h3>

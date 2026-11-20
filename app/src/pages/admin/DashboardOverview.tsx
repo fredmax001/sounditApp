@@ -202,7 +202,7 @@ const DashboardOverview = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[10px] font-black uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-black uppercase tracking-wider">
                 {isFinance ? 'Finance' : isMarketing ? 'Marketing' : isModerator ? 'Moderation' : isCommunity ? 'Community' : isSupport ? 'Support' : 'Command Center'}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">

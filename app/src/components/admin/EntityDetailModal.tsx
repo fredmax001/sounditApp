@@ -228,7 +228,7 @@ export default function EntityDetailModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -264,7 +264,7 @@ export default function EntityDetailModal({
               <p className="text-base font-semibold text-[#020b00] dark:text-white">Profile details not found</p>
             </div>
           ) : (
-            <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+            <div className="p-6 space-y-6 max-h-[75dvh] overflow-y-auto">
               {/* Profile Card Lockup */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-4">
@@ -296,7 +296,7 @@ export default function EntityDetailModal({
                       {entitySubtitle}
                     </p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+                      <span className={`px-2 py-0.5 rounded-md text-[0.6875rem] font-bold uppercase tracking-wider ${
                         isSuspended
                           ? 'bg-red-500/15 text-red-600 dark:text-red-400'
                           : 'bg-green-500/15 text-green-600 dark:text-green-400'
@@ -304,7 +304,7 @@ export default function EntityDetailModal({
                         {isSuspended ? 'Suspended' : 'Active'}
                       </span>
                       {data.is_approved !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+                        <span className={`px-2 py-0.5 rounded-md text-[0.6875rem] font-bold uppercase tracking-wider ${
                           data.is_approved
                             ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
                             : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
@@ -313,7 +313,7 @@ export default function EntityDetailModal({
                         </span>
                       )}
                       {data.is_featured && (
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-md text-[0.6875rem] font-bold uppercase tracking-wider bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center gap-1">
                           Featured
                         </span>
                       )}

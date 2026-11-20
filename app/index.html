@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 
     <!-- ── Primary identity, must match OAuth consent screen app name exactly ── -->
     <title>Sound It - Entertainment Platform in China</title>
@@ -201,8 +201,8 @@
         <!-- Subtle brand-colour glow behind logo -->
         <div style="
           position: absolute;
-          width: 320px;
-          height: 320px;
+          width: min(85vw, 20rem);
+          height: min(85vw, 20rem);
           border-radius: 50%;
           background: rgba(211, 218, 12, 0.2);
           filter: blur(100px);
@@ -214,17 +214,17 @@
           <img
             src="/intro_drum.png"
             alt="Sound It"
-            style="height: 128px; width: auto; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 28px rgba(211, 218, 12, 0.5));"
+            style="height: 8rem; width: auto; max-width: 80vw; object-fit: contain; margin-bottom: 1.25rem; filter: drop-shadow(0 0 28px rgba(211, 218, 12, 0.5));"
             onerror="this.src='/mobile-logo.png'"
           />
           <img
             src="/intro_sound.png"
             alt="SOUND IT"
-            style="height: 48px; width: auto; object-fit: contain; margin-bottom: 14px; filter: drop-shadow(0 0 22px rgba(211, 218, 12, 0.45));"
+            style="height: 3rem; width: auto; max-width: 80vw; object-fit: contain; margin-bottom: 0.875rem; filter: drop-shadow(0 0 22px rgba(211, 218, 12, 0.45));"
           />
           <p style="
             color: #d3da0c;
-            font-size: 11px;
+            font-size: 0.6875rem;
             font-weight: 800;
             letter-spacing: 0.14em;
             text-transform: uppercase;
@@ -236,8 +236,8 @@
         </div>
 
         <!-- WeChat prompt if applicable -->
-        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:320px; margin-top:24px; position: relative; z-index: 2;">
-          <p style="color:#999; font-size:14px; text-align:center; margin:0; line-height:1.6;">
+        <div id="wechat-open-btn" style="display:none; flex-direction:column; align-items:center; gap:1rem; width:100%; max-width:20rem; margin-top:1.5rem; position: relative; z-index: 2;">
+          <p style="color:#999; font-size:0.875rem; text-align:center; margin:0; line-height:1.6;">
             For the best experience, open Sound It in your default browser.
           </p>
           <a
@@ -247,35 +247,35 @@
             style="
               display: block;
               width: 100%;
-              padding: 14px 0;
+              padding: 0.875em 1.25em;
               background: #d3da0c;
               color: #000;
               text-align: center;
-              border-radius: 12px;
+              border-radius: 0.75rem;
               font-weight: 800;
-              font-size: 16px;
+              font-size: 1rem;
               text-decoration: none;
               box-sizing: border-box;
             "
           >
             🌐 Open in Browser
           </a>
-          <p style="color:#555; font-size:12px; text-align:center; margin:0;">
+          <p style="color:#555; font-size:0.75rem; text-align:center; margin:0;">
             Tap <strong style="color:#d3da0c;">···</strong> in the top right → <strong style="color:#d3da0c;">Open in Browser</strong>
           </p>
         </div>
 
         <!-- Loading circle at the bottom -->
-        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:12px; position:absolute; bottom:max(28px, calc(12px + env(safe-area-inset-bottom, 0px))); left:50%; transform:translateX(-50%); z-index: 2;">
+        <div id="loading-spinner" style="display:flex; flex-direction:column; align-items:center; gap:0.75rem; position:absolute; bottom:max(1.75rem, calc(0.75rem + env(safe-area-inset-bottom, 0px))); left:50%; transform:translateX(-50%); z-index: 2;">
           <div style="
-            width: 32px; height: 32px;
+            width: 2rem; height: 2rem;
             border: 2.5px solid rgba(211, 218, 12, 0.2);
             border-top-color: #d3da0c;
             border-radius: 50%;
             box-shadow: 0 0 14px rgba(211, 218, 12, 0.25);
             animation: spin 0.85s linear infinite;
           "></div>
-          <p style="color:rgba(255, 255, 255, 0.75); font-size:12px; font-weight:500; letter-spacing:0.05em; margin:0; white-space:nowrap;">Loading Sound It…</p>
+          <p style="color:rgba(255, 255, 255, 0.75); font-size:0.75rem; font-weight:500; letter-spacing:0.05em; margin:0; white-space:nowrap;">Loading Sound It…</p>
         </div>
 
         <style>
@@ -316,8 +316,8 @@
     </div>
 
     <noscript>
-      <main style="font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#020b00;color:#e5e5e5;min-height:100vh;">
-        <img src="/logo.png" alt="Sound It" style="height:48px;margin-bottom:24px;" />
+      <main style="font-family:sans-serif;max-width:50rem;margin:2.5rem auto;padding:0 1.25rem;background:#020b00;color:#e5e5e5;min-height:100dvh;">
+        <img src="/logo.png" alt="Sound It" style="height:3rem;margin-bottom:1.5rem;" />
         <h1 style="color:#d3da0c;">Sound It, Entertainment Platform</h1>
         <p>Sound It is an entertainment platform for the African and international community in China. Please enable JavaScript to use the full platform.</p>
         <ul>

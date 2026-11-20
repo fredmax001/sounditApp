@@ -165,7 +165,7 @@ const SecuritySettings = () => {
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className={`bg-white dark:bg-[#111111] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border max-h-[85vh] overflow-y-auto shadow-2xl ${danger ? 'border-red-500/30' : 'border-black/10 dark:border-white/10'}`}
+        className={`bg-white dark:bg-[#111111] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border max-h-[85dvh] overflow-y-auto shadow-2xl ${danger ? 'border-red-500/30' : 'border-black/10 dark:border-white/10'}`}
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -174,13 +174,13 @@ const SecuritySettings = () => {
     document.body);
 
   const StatusBadge = ({ enabled }: { enabled: boolean }) => (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${enabled ? 'bg-black/5 text-[#020b00] border border-black/10 dark:bg-[#d3da0c]/15 dark:text-[#d3da0c] dark:border-[#d3da0c]/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 border border-black/10 dark:border-white/10'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-bold ${enabled ? 'bg-black/5 text-[#020b00] border border-black/10 dark:bg-[#d3da0c]/15 dark:text-[#d3da0c] dark:border-[#d3da0c]/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 border border-black/10 dark:border-white/10'}`}>
       {enabled ? t('kit.security.statusEnabled') : t('kit.security.statusDisabled')}
     </span>
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
       <MobilePageHeader title={t('kit.security.title')} onBack={() => navigate('/settings')} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
@@ -265,7 +265,7 @@ const SecuritySettings = () => {
           <div className="bg-white rounded-2xl p-4 w-fit mx-auto mb-3 border border-black/10 shadow-xs">
             <QRCodeSVG value={modal.otpauthUrl} size={180} level="M" />
           </div>
-          <p className="text-center text-[11px] text-gray-600 dark:text-gray-400 font-mono break-all mb-4">{modal.secret}</p>
+          <p className="text-center text-[0.6875rem] text-gray-600 dark:text-gray-400 font-mono break-all mb-4">{modal.secret}</p>
           <input
             type="text"
             inputMode="numeric"

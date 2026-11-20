@@ -15,6 +15,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import VerificationBadge from '@/components/VerificationBadge';
+import SubscriptionTrialBanner from '@/components/SubscriptionTrialBanner';
 
 interface VendorEvent {
   id: number;
@@ -373,7 +374,7 @@ const VendorDashboard = () => {
       : [];
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28">
       {/* Top Bar matching reference Screen 1 (Vendor Dashboard) */}
       <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 border-b border-white/5">
         <div className="flex items-center justify-between h-11 max-w-4xl mx-auto">
@@ -385,7 +386,7 @@ const VendorDashboard = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <h1 className="text-[17px] font-bold text-white tracking-tight">Vendor Dashboard</h1>
+          <h1 className="text-[1.0625rem] font-bold text-white tracking-tight">Vendor Dashboard</h1>
 
           <div className="flex items-center gap-2">
             <Link
@@ -426,14 +427,17 @@ const VendorDashboard = () => {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 pt-3 space-y-5">
+        {/* 1-Month Free Trial / Subscription Status Banner */}
+        <SubscriptionTrialBanner />
+
         {/* Kicker + Business Title + Edit Button */}
         <div>
-          <p className="text-[#d3da0c] text-[11px] font-extrabold uppercase tracking-[0.14em] mb-1">
+          <p className="text-[#d3da0c] text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] mb-1">
             VENDOR DASHBOARD
           </p>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="text-[22px] sm:text-2xl font-extrabold text-white leading-tight flex items-center gap-2 flex-wrap">
+              <h2 className="text-[1.375rem] sm:text-2xl font-extrabold text-white leading-tight flex items-center gap-2 flex-wrap">
                 <span>{displayName}</span>
                 {vendorProfile?.is_verified && (
                   <VerificationBadge size="md" className="shrink-0" />
@@ -455,14 +459,14 @@ const VendorDashboard = () => {
             {activeCategories.map((cat) => (
               <span
                 key={cat}
-                className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-gray-300 font-medium shrink-0"
+                className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[0.6875rem] text-gray-300 font-medium shrink-0"
               >
                 {cat}
               </span>
             ))}
             <button
               onClick={() => setShowEditProfileModal(true)}
-              className="px-2.5 py-0.5 rounded-full bg-[#d3da0c]/15 border border-[#d3da0c]/30 text-[11px] text-[#d3da0c] font-bold shrink-0"
+              className="px-2.5 py-0.5 rounded-full bg-[#d3da0c]/15 border border-[#d3da0c]/30 text-[0.6875rem] text-[#d3da0c] font-bold shrink-0"
             >
               + Categories
             </button>
@@ -506,7 +510,7 @@ const VendorDashboard = () => {
             className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#d3da0c] text-black font-extrabold shadow-[0_4px_20px_rgba(211,218,12,0.25)] active:scale-[0.98] transition-all"
           >
             <Plus className="w-5 h-5 stroke-[2.5]" />
-            <span className="text-[11px] leading-tight text-center">
+            <span className="text-[0.6875rem] leading-tight text-center">
               Add
               <br />
               Product
@@ -518,7 +522,7 @@ const VendorDashboard = () => {
             className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
           >
             <Store className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-[11px] leading-tight text-center text-gray-200">
+            <span className="text-[0.6875rem] leading-tight text-center text-gray-200">
               Event
               <br />
               Booth
@@ -530,7 +534,7 @@ const VendorDashboard = () => {
             className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
           >
             <QrCode className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-[11px] leading-tight text-center text-gray-200">
+            <span className="text-[0.6875rem] leading-tight text-center text-gray-200">
               Scan
               <br />
               Order
@@ -542,14 +546,14 @@ const VendorDashboard = () => {
             className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl bg-[#11150E] border border-white/10 hover:border-white/20 text-white font-semibold active:scale-[0.98] transition-all"
           >
             <Layers className="w-5 h-5 text-[#d3da0c]" />
-            <span className="text-[11px] leading-tight text-center text-gray-200">Inventory</span>
+            <span className="text-[0.6875rem] leading-tight text-center text-gray-200">Inventory</span>
           </button>
         </div>
 
         {/* Overview Section (Primary 2x2 Grid + 7 Required Vendor Summaries) */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[17px] font-bold text-white">Overview</h3>
+            <h3 className="text-[1.0625rem] font-bold text-white">Overview</h3>
             <div className="relative">
               <select
                 value={period}
@@ -610,10 +614,10 @@ const VendorDashboard = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <ShoppingBag className="w-3.5 h-3.5 text-[#d3da0c]" />
-                <span className="text-[10px] text-gray-400">Regular</span>
+                <span className="text-[0.625rem] text-gray-400">Regular</span>
               </div>
               <p className="text-base font-extrabold text-white">{regularOrdersCount}</p>
-              <p className="text-[10px] text-gray-400 truncate">Regular Orders</p>
+              <p className="text-[0.625rem] text-gray-400 truncate">Regular Orders</p>
             </button>
 
             <button
@@ -622,10 +626,10 @@ const VendorDashboard = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#d3da0c]" />
-                <span className="text-[10px] text-[#d3da0c] font-semibold">Preorder</span>
+                <span className="text-[0.625rem] text-[#d3da0c] font-semibold">Preorder</span>
               </div>
               <p className="text-base font-extrabold text-white">{preordersCount}</p>
-              <p className="text-[10px] text-gray-400 truncate">Preorders</p>
+              <p className="text-[0.625rem] text-gray-400 truncate">Preorders</p>
             </button>
 
             <button
@@ -634,10 +638,10 @@ const VendorDashboard = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-[10px] text-amber-400">Action</span>
+                <span className="text-[0.625rem] text-amber-400">Action</span>
               </div>
               <p className="text-base font-extrabold text-white">{pendingOrdersCount}</p>
-              <p className="text-[10px] text-gray-400 truncate">Pending Orders</p>
+              <p className="text-[0.625rem] text-gray-400 truncate">Pending Orders</p>
             </button>
 
             <button
@@ -646,10 +650,10 @@ const VendorDashboard = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[10px] text-emerald-400">Done</span>
+                <span className="text-[0.625rem] text-emerald-400">Done</span>
               </div>
               <p className="text-base font-extrabold text-white">{completedOrdersCount}</p>
-              <p className="text-[10px] text-gray-400 truncate">Completed</p>
+              <p className="text-[0.625rem] text-gray-400 truncate">Completed</p>
             </button>
 
             <button
@@ -658,10 +662,10 @@ const VendorDashboard = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
-                <span className="text-[10px] text-orange-400">Alert</span>
+                <span className="text-[0.625rem] text-orange-400">Alert</span>
               </div>
               <p className="text-base font-extrabold text-white">{lowStockProductsCount}</p>
-              <p className="text-[10px] text-gray-400 truncate">Low-Stock Items</p>
+              <p className="text-[0.625rem] text-gray-400 truncate">Low-Stock Items</p>
             </button>
           </div>
         </div>
@@ -669,7 +673,7 @@ const VendorDashboard = () => {
         {/* Recent Orders Section matching reference Screen 1 */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <h3 className="text-[17px] font-bold text-white">Recent Orders</h3>
+            <h3 className="text-[1.0625rem] font-bold text-white">Recent Orders</h3>
             <Link
               to="/dashboard/vendor/orders"
               className="text-xs font-bold text-[#d3da0c] flex items-center gap-0.5 hover:opacity-80"
@@ -698,7 +702,7 @@ const VendorDashboard = () => {
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-white truncate">{order.customer_name}</p>
                           {order.is_preorder && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[9px] font-extrabold uppercase">
+                            <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[0.5625rem] font-extrabold uppercase">
                               Preorder
                             </span>
                           )}
@@ -710,7 +714,7 @@ const VendorDashboard = () => {
                     <div className="text-right shrink-0">
                       <p className="text-sm font-extrabold text-white">¥{order.amount}</p>
                       <span
-                        className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[0.625rem] font-bold ${
                           isCompleted
                             ? 'bg-emerald-500/20 text-emerald-400'
                             : isConfirmed
@@ -747,7 +751,7 @@ const VendorDashboard = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90vh] overflow-y-auto space-y-4"
+              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90dvh] overflow-y-auto space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <div>
@@ -945,7 +949,7 @@ const VendorDashboard = () => {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 100, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] overflow-y-auto space-y-4"
+                className="w-full max-w-md bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] max-h-[85dvh] overflow-y-auto space-y-4"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">
                   <div>

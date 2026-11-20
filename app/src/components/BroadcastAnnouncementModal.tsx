@@ -208,7 +208,7 @@ export default function BroadcastAnnouncementModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -243,7 +243,7 @@ export default function BroadcastAnnouncementModal({
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 flex items-center justify-between">
                 <span>{t('organizer.broadcast.selectEventLabel', 'Select Event to Target')}</span>
                 {isLoadingEvents && (
-                  <span className="flex items-center gap-1 text-[#d3da0c] text-[11px]">
+                  <span className="flex items-center gap-1 text-[#d3da0c] text-[0.6875rem]">
                     <Loader2 className="w-3 h-3 animate-spin" /> Loading events...
                   </span>
                 )}
@@ -410,7 +410,7 @@ export default function BroadcastAnnouncementModal({
                 maxLength={5000}
                 required
               />
-              <div className="text-right text-[11px] text-gray-500 mt-1">
+              <div className="text-right text-[0.6875rem] text-gray-500 mt-1">
                 {message.length} / 5000
               </div>
             </div>

@@ -257,7 +257,7 @@ const VendorOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28">
       {/* Top Header matching reference Screen 3 (Orders) */}
       <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
         <div className="flex items-center justify-between h-11 max-w-4xl mx-auto">
@@ -269,7 +269,7 @@ const VendorOrders = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <h1 className="text-[17px] font-bold text-white tracking-tight">Orders</h1>
+          <h1 className="text-[1.0625rem] font-bold text-white tracking-tight">Orders</h1>
 
           <div className="flex items-center gap-2">
             <Link
@@ -408,11 +408,11 @@ const VendorOrders = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-[15px] font-bold text-white truncate">
+                        <p className="text-[0.9375rem] font-bold text-white truncate">
                           {order.customer_name}
                         </p>
                         {order.is_preorder && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[9px] font-extrabold uppercase">
+                          <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[0.5625rem] font-extrabold uppercase">
                             Preorder
                           </span>
                         )}
@@ -488,14 +488,14 @@ const VendorOrders = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90vh] overflow-y-auto space-y-4"
+              className="w-full max-w-lg bg-[#11150E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[90dvh] overflow-y-auto space-y-4"
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <span>Order #{selectedOrder.order_code || `OD-${selectedOrder.id}`}</span>
                     {selectedOrder.is_preorder && (
-                      <span className="px-2 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[10px] font-extrabold">
+                      <span className="px-2 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] text-[0.625rem] font-extrabold">
                         PREORDER
                       </span>
                     )}
@@ -546,7 +546,7 @@ const VendorOrders = () => {
                     <div key={idx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between">
                       <div>
                         <p className="text-white font-semibold">{item.product_name}</p>
-                        <p className="text-gray-400 text-[11px]">
+                        <p className="text-gray-400 text-[0.6875rem]">
                           ¥{item.product_price} × {item.quantity}
                         </p>
                       </div>
@@ -648,7 +648,7 @@ const VendorOrders = () => {
               <img
                 src={viewScreenshotUrl}
                 alt="Payment Proof"
-                className="w-full max-h-[80vh] object-contain rounded-xl"
+                className="w-full max-h-[80dvh] object-contain rounded-xl"
               />
             </div>
           </div>

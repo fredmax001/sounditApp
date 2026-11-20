@@ -5,7 +5,130 @@
 ---
 
 ## Last Updated
-2026-11-10
+2026-11-11
+
+---
+
+### 181. Community & Recap Post Publishing Crash Fix (`venue_name` / `flyer_url` Model & API Resolution) (2026-11-11)
+- **Objectives & Issues Addressed**:
+  1. **Root Cause Analysis (`Failed to publish post` in Recaps/Community)**:
+     - *Issue Reported*: Submitting an event recap post (e.g. title "What a Night.!!", caption "Amazing!!" with event "AFTER 90's Halloween Party") threw an immediate error toast `Failed to publish post` in the mobile app.
+     - *Root Cause Discovered in Production Journalctl Logs*:
+       ```python
+       File "/var/www/soundit/releases/20261016182618/api/community.py", line 216, in _build_post_response
+           "venue_name": ev.venue_name,
+       AttributeError: 'Event' object has no attribute 'venue_name'
+       ```
+       The database table `events` does not have a `venue_name` column (it stores `venue_id` referencing `venues.id` and `address`). Nor does `Event` have `flyer_url` (it has `flyer_image`) or `images` (it has `gallery_images`).
+       When `POST /community/posts` committed the new post, `_build_post_response` attempted to read `ev.venue_name`, crashing with `AttributeError` and returning HTTP 500 to the client.
+  2. **Backward-Compatible Model Properties (`models.py`)**:
+     - Added convenient backward-compatible properties to `class Event(Base)`:
+       - `venue_name`: Resolves `self.venue.name` if `self.venue` is present, falling back to `self.address` or `""`.
+       - `flyer_url`: Aliases `self.flyer_image`.
+       - `images`: Returns `self.gallery_images` if a list, or `[self.flyer_image]` if set, otherwise `[]`.
+       - `is_free`: Returns `True` if `not self.ticket_price or self.ticket_price <= 0`.
+  3. **Defensive API Hardening Across Endpoints**:
+     - *`api/community.py`*: Updated `_build_post_response` (lines 209–221) and `create_post` (line 522) to defensively resolve `venue_name` (`(ev.venue.name if getattr(ev, 'venue', None) else None) or getattr(ev, 'venue_name', None) or ev.address or ''`) and `flyer_url` with fallback chains so it never raises an `AttributeError`.
+     - *`api/reels.py`*: Defensive resolution for `event_data["venue_name"]`, `event_data["flyer_url"]`, and reel creation (`venue_name` and `thumbnail_url`).
+     - *`api/events.py`*: Fixed event search crash at line 511 where `(Event.venue_name.ilike(term))` was called on a non-column. Replaced with `query.outerjoin(Venue, Event.venue_id == Venue.id).filter((Event.title.ilike(term)) | (Event.address.ilike(term)) | (Venue.name.ilike(term)))`. Verified searching by venue name/address (`静安区`) finds events accurately.
+     - *`api/notifications.py`*: Safely handles `venue_name`, `banner_url`, `city` (stringified enum), and `is_free`.
+  4. **Production Verification & Multi-Tenant Regression Testing**:
+     - Deployed patch tarball to `/var/www/soundit/current/` on `72.62.254.251`, cleaned extended attributes, set permissions (`chown -R nginx:nginx`, `chmod -R a+rX`), and restarted `soundit.service`.
+     - Verified health check: `https://sounditent.com/health` -> `{"status":"healthy"}`.
+     - Executed full security regression test suite `tests/test_tenant_isolation_security.py`: **13/13 passed in 9.12s (100% pass rate)**.
+     - Tested real production database serialization on Post ID 8 (`What a Night.!!` on event 13 `AFTER 90's Halloween Party`): returned full serialized payload with `venue_name='上海市静安区西康路850号C103室'` and valid flyer URL without error.
+
+---
+
+### 180. 1-Month Full Features Free Trial & Post-Trial Feature Limits Across Vendors, Organizers, and Artists (2026-11-11)
+- **Objectives & Issues Addressed**:
+  1. **1-Month Full Features Free Trial Mechanism**:
+     - *Scope*: Automatic 30-day `SubscriptionPlan.PREMIUM` trial for all creator/business accounts (`UserRole.VENDOR`, `UserRole.ORGANIZER`, `UserRole.BUSINESS`, and `UserRole.ARTIST`).
+     - *Trial Registration Gating (`api/auth.py`, `api/otp.py`)*: Fixed role omission where `UserRole.ORGANIZER` was excluded from trial generation; all signup flows (email, OTP, Google OAuth) now guarantee trial creation for organizers, businesses, artists, and vendors.
+     - *Trial Idempotency & Auto-Enactment (`services/subscription_service.py`)*: Hardened `create_trial_subscription` to be fully idempotent, preventing duplicate trials. In `get_subscription_status`, if a vendor, organizer, or artist account was created within the last 30 days and never had a trial or subscription, it automatically grants the 30-day trial with full premium features.
+     - *Full Trial Feature Parity*: During the 30-day trial, all feature gates (`event_limit`, `portfolio_limit`, `media_limit`, `featured_listing`, `analytics_access`, `priority_support`, `table_reservations`, `event_booths`, `can_receive_deposits`) are unlocked. Removed the legacy trial exclusion in `has_active_artist_subscription` that blocked artists from receiving booking deposits during their trial.
+  2. **Post-Trial Expiration & Feature Limits Enforcement**:
+     - *Organizers / Businesses*: Once the 30-day trial expires without an active paid subscription, event creation is restricted with `plan_restricted_error` ("Your 1-month free trial has ended. Subscribe to create events."), table reservations require active Pro/Premium (`api/table_reservations.py`), and adding more than 1 staff member requires a subscription (`api/business.py`). Existing events remain viewable.
+     - *Vendors*: Once the trial expires, product catalog creation is capped at 2 products on free tier; creating more than 2 products requires a subscription (`api/vendors.py`). Event booth registration requires active subscription.
+     - *Artists / DJs*: Once the trial expires, receiving booking deposits and uploading payment QR codes is restricted with `PLAN_RESTRICTED` 403 error (`api/artist_dashboard.py`), accepting booking requests requires an active subscription, and portfolio media is limited to 2 items on free tier.
+  3. **Role & Subscription Matrix Normalization (`subscription_config.py`, `api/subscriptions.py`)**:
+     - Added `UserRole.ORGANIZER` explicitly to `SUBSCRIPTION_PRICING` and `SUBSCRIPTION_FEATURES`, mirroring `UserRole.BUSINESS`.
+     - Added `event_booths: True` to Vendor Premium configuration and `can_receive_deposits: True`, `media_limit: None` to Artist Premium configuration.
+     - Normalized organizer role handling in `api/subscriptions.py` (`get_subscription_plans`, `create_subscription`) so querying plans or subscribing as `organizer` resolves seamlessly without throwing HTTP 400.
+     - Added `is_trial` and `is_trial_expired` flags to subscription API responses (`/subscriptions/my-subscription`, `/subscriptions/plans`).
+  4. **Frontend Architecture & UX Enhancements**:
+     - *Subscription Store (`app/src/store/subscriptionStore.ts`)*: Added `isTrial` and `isTrialExpired` state properties, along with feature minimum plan mappings for `event_creation`, `can_receive_deposits`, `portfolio_limit`, `media_limit`, `recaps`, and `staff_members`.
+     - *Dedicated `<SubscriptionTrialBanner />` (`SubscriptionTrialBanner.tsx`)*: Created a responsive, dark-mode/emerald/neon-lime status banner. Displays active trial countdown (`1-Month Free Trial Active • {daysRemaining} days left`) with a `View Plans` CTA; automatically transitions to a high-contrast attention card (`1-Month Free Trial Ended • Feature Limits In Effect`) when expired, with a `Subscribe Now` CTA linking directly to `/subscriptions`. Automatically hides for verified accounts and administrators.
+     - *Integrated Trial Banner on Dashboards*: Mounted `<SubscriptionTrialBanner />` across `business/Dashboard.tsx`, `vendor/Dashboard.tsx`, and `artist/Dashboard.tsx`.
+     - *Enhanced `<UpgradeModal />` (`UpgradeModal.tsx`)*: Added custom preset explanations for booking deposits, product portfolio limits, media limits, recaps, and event creation limits with clear trial expiration messaging.
+     - *Subscriptions Page Upgrade (`app/src/pages/Subscriptions.tsx`)*: Added a prominent trial expired banner when `is_trial_expired` is true, and properly resolved `role === 'organizer'`.
+  5. **Production Verification, Multi-Tenant Security & Device Deployment**:
+     - Extracted backend patch to `/var/www/soundit/current/` on `72.62.254.251`, set file permissions (`chmod -R a+rX`, `chown -R nginx:nginx`), and restarted `soundit.service`.
+     - Verified production health check: `https://sounditent.com/health` -> `{"status":"healthy"}`.
+     - Executed full security regression test suite `tests/test_tenant_isolation_security.py`: **13/13 passed in 9.47s (100% pass rate)**.
+     - Built frontend bundle on server (`tsc -b && vite build` in 1m) and synced to local `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app/public/`.
+     - Stripped extended attributes, re-signed `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+     - Installed and launched `app.sounditent.com` directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 179. Admin Notification Bell Routing & Inbox Integration (2026-11-11)
+- **Objectives & Issues Addressed**:
+  1. **Notification Bell Routing Correction (`AdminLayout.tsx`)**:
+     - *Issue*: Clicking the notification bell in the Admin Dashboard header previously routed to `/admin/notifications` (the create broadcast/automation composer) rather than taking the admin to their actual notifications/updates feed (`/notifications`). Furthermore, the bell had a hardcoded static red dot instead of querying real unread notification counts.
+     - *Fix*: Replaced the static button in `AdminLayout.tsx` with `<NotificationBell />`. Enhanced `NotificationBell.tsx` to support custom `className` properties while retaining live unread polling (`/notifications/unread-count`), active badge rendering, and navigation directly to the user's personal notifications inbox (`/notifications`).
+     - Clarified sidebar terminology: renamed the admin composer sidebar link from generic "Notifications" to "Broadcasts & Alerts" (with the `Send` icon) to cleanly distinguish the admin broadcast tool from the admin's personal inbox of platform updates.
+  2. **Production Compilation & Physical Device Deployment**:
+     - Compiled production bundle on remote server (`tsc -b && vite build` in 58.41s) and deployed to `/var/www/soundit/current/app/dist/`.
+     - Downloaded bundle to local `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app/public/`.
+     - Re-signed Xcode `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3`.
+     - Re-installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
+
+---
+
+### 178. Automated Notification Engine & SMTP Hostinger Integration Across All Channels (2026-11-11)
+- **Objectives & Issues Addressed**:
+  1. **Automated Messages & Smart Notification Scheduler Connection (`services/notification_worker.py`)**:
+     - Previously, the background scheduler (`process_single_scheduled_notification`) only created in-app notification rows and attempted APNs/WebPush, completely ignoring user email preferences (`email_enabled`) and leaving Hostinger SMTP (`smtp.hostinger.com:465`) disconnected.
+     - Connected Hostinger SMTP SSL delivery: when `send_email_allowed = (target_channel in ('all', 'email')) and (not pref or getattr(pref, 'email_enabled', True))` and recipient has a valid deliverable email (`is_deliverable_email`), the worker renders a branded, dark-mode-proof HTML email via `_email_wrapper`, appends a high-contrast CTA button linking to the event or notifications center, and dispatches via `send_email()`.
+     - Connected emergency SMS delivery: when `target_channel in ('all', 'sms')`, user has `sms_enabled: true`, priority is `critical`, and phone is present, safely dispatches via Alibaba Cloud SMS (`_send_sms_safe`).
+  2. **Real-Time Notification Center SMTP Relay (`api/notifications.py`)**:
+     - Upgraded `create_notification()`: for key transactional, messaging, and communication events (`message`, `booking`, `table`, `payout`, `staff`, `verification`, `ticket`, `order`, `broadcast`), if the recipient has `email_enabled: true`, it automatically formats and sends an email notification via Hostinger SMTP SSL with a 1-click CTA button to open Sound It.
+     - Fully isolated with exception safeguards so email delivery never impedes in-app notification creation or database transactions.
+  3. **Verification OTP Pipeline Repair (`api/otp.py`)**:
+     - Replaced non-functional SendGrid implementation (which lacked credentials in production `.env` and crashed with 500) with a resilient dual-mode sender: attempts SendGrid if keys exist, and seamlessly falls back to production Hostinger SMTP SSL (`email_service.send_email`) with a 6-digit branded OTP card and expiration notice.
+  4. **Production Verification & Multi-Tenant Regression Testing**:
+     - Deployed patch to `/var/www/soundit/current/` on `72.62.254.251`, set permissions (`chown -R nginx:nginx`), and restarted `soundit.service`.
+     - Verified health check: `https://sounditent.com/health` -> `{"status":"healthy"}`.
+     - Executed live security regression suite `tests/test_tenant_isolation_security.py`: **13/13 passed in 10.05s (100% pass rate)**.
+
+---
+
+### 177. DJ/Artist Dashboard Complete Redesign, Backend Bookings API & Model Repair, and Physical iPhone Deployment (2026-11-10)
+- **Objectives & Issues Addressed**:
+  1. **Complete Redesign of DJ & Artist Dashboard Suite**:
+     - Redesigned all Artist/DJ pages to match the modern visual direction established on the Staff and Payouts pages (dark green/black `#020b00` backdrops, radiant 3D vector headers, `#d3da0c` neon-lime primary tokens, high-contrast action bars, 2x2 stats grids, pill filter tabs, and mobile safe-area padding `pb-[calc(6rem+env(safe-area-inset-bottom,24px))]`):
+       - `Bookings.tsx`: 3D ticket pass hero with glowing emerald aura, 3-card action bar ("Calendar View", "Rate Card", "Share Profile"), 2x2 real-time stats (Total Bookings, Confirmed, Pending Requests, Declined), status filter tabs, modern booking cards with avatar initials, status pills, date/location/budget chips, and expandable drawer featuring organizer contact shortcuts, full-screen payment proof zoom modal, and decline modal.
+       - `Performances.tsx`: 3D turntable/vinyl hero with radial emerald glow, 3-card action bar ("Add Gig", "Past Gigs", "Setlist Manager"), 3-column stats row (Total Gigs, Upcoming, Completed), filter tabs, modern performance cards with date pills, venue, status badges, earnings display, and setlist preview.
+       - `Analytics.tsx`: 3D analytics graph hero, 3-card action bar ("Export CSV", "Date Range", "Audience Insights"), 2x2 metrics grid (Followers, Total Gigs, Total Revenue, Overall Rating), dynamic monthly revenue gradient bar chart, recent settlements ledger, and top musical styles chip list.
+       - `Recaps.tsx`: 3D camera/film reel hero, 3-card action bar ("Upload Recap", "Recap Guidelines", "Share Profile"), 2x2 stats grid (Total Recaps, Total Views, Likes, Comments), published media grid with view badges, deletion integration via `DELETE /api/v1/artist/recaps/{id}`, and modal for uploading new recap videos/photos.
+       - `Messages.tsx`: Redesigned dark chat interface with neon-lime `#d3da0c` active chat pill, send button, and mobile bottom clearance above floating nav.
+       - `Dashboard.tsx`: Added bottom safe-area clearance and dark emerald tab bar styling (`dark:bg-[#0b140b]`).
+       - `Community.tsx`: Wrapped with max-width container and mobile safe-area clearance.
+  2. **Root Cause Analysis & Backend Model/API Repair**:
+     - *Issue 1*: Bookings endpoint crashed with HTTP 500 when accessed by artists/DJs.
+       *Root Cause*: `BookingRequest` in `models.py` did not declare the columns `deposit_amount` (Float), `payment_currency` (String(3)), `payment_submitted_at` (DateTime), `payment_reviewed_at` (DateTime), and `payment_verified_at` (DateTime), even though the PostgreSQL table had them. SQLAlchemy mapper threw `AttributeError: 'BookingRequest' object has no attribute 'deposit_amount'`.
+       *Fix*: Added missing columns to `BookingRequest` in `models.py` and wrapped all endpoint serialization in defensive `getattr(..., None)` handling in `api/artist_dashboard.py`.
+     - *Issue 2*: DJ accounts were blocked or miscategorized.
+       *Root Cause*: `auth.py` and `api/artist_dashboard.py` checked `current_user.role == UserRole.ARTIST` or referenced non-existent `UserRole.DJ`. In Sound It's architecture, DJ is an `artist_type` in `ArtistProfile`, not a `UserRole`.
+       *Fix*: Updated `require_artist` in `auth.py` and introduced `is_artist_user(user)` in `api/artist_dashboard.py` checking roles (`ARTIST`, `ADMIN`, `SUPER_ADMIN`), `role_type`, and artist profiles dynamically.
+  3. **Multi-Tenant Security & Regression Verification**:
+     - Ran automated security suite `tests/test_tenant_isolation_security.py` against live PostgreSQL production environment: **13/13 passed in 18.85s (100% pass rate)**.
+  4. **Production Build & Native Device Deployment**:
+     - Compiled production bundle on remote server (`tsc -b && vite build`): generated `index-BkxxGZf_.js`, `Bookings-BbipNopx.js`, `Analytics-C9WTbV3y.js`, `Performances-C2AM-EiY.js`, `Recaps-BuMF6Cwa.js`, `Messages-DLE2XFIb.js`, `Dashboard-DqOOleby.js`.
+     - Synced production bundle to local `app/dist/`, `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and Xcode `Debug-iphoneos/App.app/public/`.
+     - Re-signed Xcode `App.app` with Apple Developer certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and entitlements `App.app.xcent`.
+     - Installed and launched directly on physical iPhone ("Fred Max", iPhone 14 Pro Max) via `devicectl`.
 
 ---
 

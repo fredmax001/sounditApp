@@ -18,7 +18,7 @@ const CompactEventCard = ({ event }: CompactEventCardProps) => {
           className="w-full h-full object-cover"
         />
         {event.ticket_tiers?.[0]?.price && (
-          <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-semibold text-[#d3da0c]">
+          <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[0.625rem] font-semibold text-[#d3da0c]">
             {event.ticket_tiers[0].currency} {event.ticket_tiers[0].price}
           </div>
         )}
@@ -30,17 +30,17 @@ const CompactEventCard = ({ event }: CompactEventCardProps) => {
         </h3>
         
         <div className="space-y-1">
-          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[11px]">
+          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[0.6875rem]">
             <Calendar className="w-3.5 h-3.5 mr-1.5 text-gray-500 dark:text-[#d3da0c]/70 shrink-0" />
             <span className="truncate">{new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
           
-          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[11px]">
+          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[0.6875rem]">
             <Clock className="w-3.5 h-3.5 mr-1.5 text-gray-500 dark:text-[#d3da0c]/70 shrink-0" />
             <span className="truncate">{new Date(event.start_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
 
-          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[11px]">
+          <div className="flex items-center text-gray-600 dark:text-gray-400 text-[0.6875rem]">
             <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-500 dark:text-[#d3da0c]/70 shrink-0" />
             <span className="truncate">{event.venue?.name || event.city || 'TBA'}</span>
           </div>

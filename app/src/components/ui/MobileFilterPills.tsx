@@ -49,7 +49,7 @@ const MobileFilterPills = ({
               key={pill.id}
               whileTap={{ scale: 0.94 }}
               onClick={() => onDateChange(pill.id)}
-              className={`flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-all ${
+              className={`flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all ${
                 isActive
                   ? 'bg-[#d3da0c] text-black shadow-md shadow-[#d3da0c]/30'
                   : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-400 border border-black/8 dark:border-white/8 hover:bg-black/10 dark:hover:bg-white/10'
@@ -82,7 +82,7 @@ const MobileFilterPills = ({
                 key={cat}
                 whileTap={{ scale: 0.94 }}
                 onClick={() => onCategoryChange(isActive ? '' : cat)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[0.6875rem] font-medium transition-all ${
                   isActive
                     ? 'bg-[#FF2D8F]/15 text-[#FF2D8F] border border-[#FF2D8F]/40'
                     : 'bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-black/8 dark:border-white/8'

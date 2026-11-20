@@ -275,7 +275,7 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center transition-colors">
+      <div className="min-h-dvh bg-white dark:bg-[#020b00] flex items-center justify-center transition-colors">
         <div className="w-12 h-12 border-4 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -283,7 +283,7 @@ export default function EventDetail() {
 
   if (!currentEvent) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#020b00] pt-32 px-4 text-center transition-colors">
+      <div className="min-h-dvh bg-white dark:bg-[#020b00] pt-32 px-4 text-center transition-colors">
         <h1 className="text-2xl text-[#020b00] dark:text-white mb-4">{t('eventDetail.eventNotFound')}</h1>
         <button
           onClick={() => id && fetchEventById(id)}
@@ -422,7 +422,7 @@ export default function EventDetail() {
   const mapQuery = encodeURIComponent([venuePrimary, venueSecondary].filter(Boolean).join(', '));
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-16 lg:pt-20 md:pb-0 pb-32 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-16 lg:pt-20 md:pb-0 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] transition-colors duration-200">
       {/* Back Button (desktop) */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
@@ -435,7 +435,7 @@ export default function EventDetail() {
       </div>
 
       {/* Hero Image */}
-      <div className="relative h-[40vh] lg:h-[50vh]">
+      <div className="relative h-[40dvh] lg:h-[50dvh]">
         {/* Mobile floating back button */}
         <button
           onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/'); }}
@@ -526,9 +526,9 @@ export default function EventDetail() {
               <div className="md:hidden grid grid-cols-3 gap-2 mb-3">
                 <div className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0">
                   <Calendar className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
-                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.date')}</p>
-                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight">{chipDate}</p>
-                  <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight">{chipTime}</p>
+                  <p className="text-gray-500 dark:text-white/40 text-[0.5625rem] uppercase tracking-wide">{t('eventDetail.date')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[0.6875rem] font-semibold leading-tight">{chipDate}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-[0.625rem] leading-tight">{chipTime}</p>
                 </div>
                 <a
                   href={`https://maps.apple.com/?q=${mapQuery}`}
@@ -537,15 +537,15 @@ export default function EventDetail() {
                   className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0"
                 >
                   <MapPin className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
-                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.venue')}</p>
-                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight line-clamp-2">{venuePrimary || t('eventDetail.venueTba', 'Venue to be announced')}</p>
-                  {venueSecondary && <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight line-clamp-1">{venueSecondary}</p>}
+                  <p className="text-gray-500 dark:text-white/40 text-[0.5625rem] uppercase tracking-wide">{t('eventDetail.venue')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[0.6875rem] font-semibold leading-tight line-clamp-2">{venuePrimary || t('eventDetail.venueTba', 'Venue to be announced')}</p>
+                  {venueSecondary && <p className="text-gray-600 dark:text-white/60 text-[0.625rem] leading-tight line-clamp-1">{venueSecondary}</p>}
                 </a>
                 <div className="flex flex-col gap-1 p-3 bg-neutral-50 dark:bg-[#141414] border border-black/8 dark:border-white/5 rounded-xl min-w-0">
                   <Users className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c] shrink-0" />
-                  <p className="text-gray-500 dark:text-white/40 text-[9px] uppercase tracking-wide">{t('eventDetail.going', 'Going')}</p>
-                  <p className="text-[#020b00] dark:text-white text-[11px] font-semibold leading-tight">{currentEvent.tickets_sold || 0}</p>
-                  <p className="text-gray-600 dark:text-white/60 text-[10px] leading-tight">{t('eventDetail.attending', 'attending')}</p>
+                  <p className="text-gray-500 dark:text-white/40 text-[0.5625rem] uppercase tracking-wide">{t('eventDetail.going', 'Going')}</p>
+                  <p className="text-[#020b00] dark:text-white text-[0.6875rem] font-semibold leading-tight">{currentEvent.tickets_sold || 0}</p>
+                  <p className="text-gray-600 dark:text-white/60 text-[0.625rem] leading-tight">{t('eventDetail.attending', 'attending')}</p>
                 </div>
               </div>
 
@@ -655,7 +655,7 @@ export default function EventDetail() {
                 {hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {hashtags.slice(0, 12).map((tag) => (
-                      <span key={tag} className="px-2 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-[10px] text-gray-600 dark:text-white/40">
+                      <span key={tag} className="px-2 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-[0.625rem] text-gray-600 dark:text-white/40">
                         {tag}
                       </span>
                     ))}
@@ -1058,14 +1058,17 @@ export default function EventDetail() {
         </div>
       </div>
 
-      {/* Mobile sticky purchase bar */}
+      {/* Mobile sticky purchase bar (MobileBottomNav hides on /events/:id) */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md border-t border-black/8 dark:border-white/10 px-4 pt-3 transition-colors"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+        className="md:hidden fixed left-0 right-0 z-[35] bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md border-t border-black/8 dark:border-white/10 px-4 pt-3 transition-all"
+        style={{
+          bottom: 'var(--keyboard-offset, 0px)',
+          paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+        }}
       >
         <div className="flex items-center gap-3">
           <div className="min-w-0 shrink-0">
-            <p className="text-gray-500 dark:text-white/50 text-[10px] uppercase tracking-wide leading-none mb-1">
+            <p className="text-gray-500 dark:text-white/50 text-[0.625rem] uppercase tracking-wide leading-none mb-1">
               {t('eventDetail.startingFrom', 'Starting from')}
             </p>
             <p className="text-[#020b00] dark:text-white font-bold text-lg leading-none">
@@ -1113,7 +1116,7 @@ export default function EventDetail() {
 
       {/* Quantity Selector Modal */}
       {showQuantityModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.selectQuantity')}</h3>
@@ -1177,8 +1180,8 @@ export default function EventDetail() {
 
       {/* QR Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 max-h-[85dvh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.scanToPay')}</h3>
               <button onClick={() => setShowQrModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-500 dark:text-white" /></button>
@@ -1213,7 +1216,7 @@ export default function EventDetail() {
 
       {/* Pay-return prompt - buyer came back from Alipay/WeChat */}
       {payReturnPrompt && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-[#d3da0c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Smartphone className="w-8 h-8 text-[#020b00] dark:text-[#d3da0c]" />
@@ -1253,7 +1256,7 @@ export default function EventDetail() {
 
       {/* Resume unfinished payment — browser tab was discarded while paying */}
       {resumePrompt && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Clock className="w-8 h-8 text-amber-500" />
@@ -1298,8 +1301,8 @@ export default function EventDetail() {
 
       {/* Order Modal */}
       {showOrderModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90dvh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('eventDetail.confirmPayment')}</h3>
               <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-gray-500 dark:text-white" /></button>
@@ -1401,7 +1404,7 @@ export default function EventDetail() {
 
       {/* Order Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
           <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-sm w-full border border-black/10 dark:border-white/10 text-center shadow-2xl text-[#020b00] dark:text-white">
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-500" />
@@ -1444,8 +1447,8 @@ export default function EventDetail() {
 
       {/* Auth Modal - Login / Register inline */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+          <div className="bg-white dark:bg-[#141414] rounded-2xl p-6 max-w-md w-full border border-black/10 dark:border-white/10 max-h-[90dvh] overflow-y-auto shadow-2xl text-[#020b00] dark:text-white">
             <div className="flex items-center justify-between mb-6">
               <div className="flex gap-4">
                 <button
@@ -1650,7 +1653,7 @@ export default function EventDetail() {
       {previewImage && (
         <div
           onClick={() => setPreviewImage(null)}
-          className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-50 p-4 select-none"
+          className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-[80] p-4 select-none"
         >
           <div
             className="flex items-center justify-between gap-3 text-white max-w-5xl w-full mx-auto"
@@ -1705,7 +1708,7 @@ export default function EventDetail() {
             <img
               src={previewImage}
               alt="Event Photo Preview"
-              className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl"
+              className="max-w-full max-h-[80dvh] rounded-2xl object-contain shadow-2xl"
             />
           </div>
 

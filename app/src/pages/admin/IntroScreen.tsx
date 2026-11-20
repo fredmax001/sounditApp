@@ -200,7 +200,7 @@ const IntroScreen = () => {
                   <img src={settings.logo_url} alt="Logo" className="w-12 h-12 object-contain rounded-lg bg-black/40 p-1" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-[#020b00] dark:text-white font-medium truncate">{settings.logo_url}</p>
-                    <p className="text-[11px] text-gray-500">Custom logo active</p>
+                    <p className="text-[0.6875rem] text-gray-500">Custom logo active</p>
                   </div>
                   <button
                     type="button"
@@ -227,7 +227,7 @@ const IntroScreen = () => {
                     <>
                       <Upload className="w-5 h-5 text-[#d3da0c] mb-1" />
                       <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Click to upload brand logo</span>
-                      <span className="text-[10px] text-gray-500 mt-0.5">PNG transparent recommended, up to 5MB</span>
+                      <span className="text-[0.625rem] text-gray-500 mt-0.5">PNG transparent recommended, up to 5MB</span>
                     </>
                   )}
                 </label>
@@ -355,7 +355,7 @@ const IntroScreen = () => {
                         <>
                           <Upload className="w-5 h-5 text-[#d3da0c] mb-1" />
                           <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Click to upload ad banner</span>
-                          <span className="text-[10px] text-gray-500 mt-0.5">High quality landscape image (16:9 or 4:3)</span>
+                          <span className="text-[0.625rem] text-gray-500 mt-0.5">High quality landscape image (16:9 or 4:3)</span>
                         </>
                       )}
                     </label>
@@ -403,7 +403,7 @@ const IntroScreen = () => {
                     onChange={(e) => setSettings(prev => ({ ...prev, duration_seconds: parseFloat(e.target.value) }))}
                     className="w-full accent-[#d3da0c] cursor-pointer"
                   />
-                  <div className="flex justify-between text-[11px] text-gray-500 mt-1">
+                  <div className="flex justify-between text-[0.6875rem] text-gray-500 mt-1">
                     <span>2.5s (Fast)</span>
                     <span>3.5s (Recommended)</span>
                     <span>6.0s (Long)</span>
@@ -436,9 +436,9 @@ const IntroScreen = () => {
 
             {/* Skip Button Simulation */}
             <div className="absolute top-4 right-4 z-20">
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-[10px] text-white/80">
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-[0.625rem] text-white/80">
                 <span>Skip</span>
-                <span className="text-[9px]">✕</span>
+                <span className="text-[0.5625rem]">✕</span>
               </div>
             </div>
 
@@ -458,7 +458,7 @@ const IntroScreen = () => {
               ) : (
                 <img src="/intro_sound.png" alt="Sound It" className="h-10 w-auto object-contain mb-1" />
               )}
-              <p className="text-[#d3da0c] text-[10px] font-semibold tracking-wider uppercase">
+              <p className="text-[#d3da0c] text-[0.625rem] font-semibold tracking-wider uppercase">
                 {settings.tagline || DEFAULTS.tagline}
               </p>
 
@@ -466,10 +466,10 @@ const IntroScreen = () => {
               {settings.show_ad && settings.ad_image_url && (
                 <div className="mt-5 w-full bg-[#111111]/90 border border-[#d3da0c]/40 rounded-xl p-2.5 text-left shadow-xl">
                   <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[8px] font-bold uppercase">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#d3da0c]/15 text-[#d3da0c] text-[0.5rem] font-bold uppercase">
                       {settings.ad_badge || 'Featured Sponsor'}
                     </span>
-                    <span className="text-gray-400 flex items-center gap-0.5 text-[9px]">
+                    <span className="text-gray-400 flex items-center gap-0.5 text-[0.5625rem]">
                       Visit <ExternalLink className="w-2.5 h-2.5" />
                     </span>
                   </div>
@@ -488,7 +488,7 @@ const IntroScreen = () => {
             {/* Bottom Loading Spinner Simulation */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5">
               <div className="w-6 h-6 rounded-full border-2 border-neutral-700 border-t-[#d3da0c] animate-spin" />
-              <p className="text-gray-500 text-[10px]">Loading Sound It...</p>
+              <p className="text-gray-500 text-[0.625rem]">Loading Sound It...</p>
             </div>
           </div>
 

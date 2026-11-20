@@ -114,7 +114,7 @@ function EntityBadge({ type }: { type: GuideItem['type'] }) {
     business: 'Business',
   };
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors[type] || 'bg-gray-500/20 text-gray-400'}`}>
+    <span className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full ${colors[type] || 'bg-gray-500/20 text-gray-400'}`}>
       {labels[type] || type}
     </span>
   );
@@ -122,7 +122,7 @@ function EntityBadge({ type }: { type: GuideItem['type'] }) {
 
 function MetricPill({ icon: Icon, value }: { icon: typeof Star; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-1 text-[0.6875rem] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
       <Icon className="w-3 h-3" />
       {value}
     </span>
@@ -340,10 +340,10 @@ const CityGuide = () => {
       marker.addListener('click', () => {
         setSelectedItem(item);
         const content = `
-          <div style="color:#111;min-width:180px;">
-            <div style="font-weight:700;margin-bottom:4px;">${item.name}</div>
-            ${item.address ? `<div style="font-size:12px;color:#555;margin-bottom:8px;">${item.address}</div>` : ''}
-            <button id="gw-dir-${item.type}-${item.id}" style="background:#d3da0c;border:none;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;">${t('cityGuide.getDirections') || 'Get Directions'}</button>
+          <div style="color:#111;min-width:min(11.25rem,70vw);max-width:75vw;">
+            <div style="font-weight:700;margin-bottom:0.25rem;">${item.name}</div>
+            ${item.address ? `<div style="font-size:0.75rem;color:#555;margin-bottom:0.5rem;">${item.address}</div>` : ''}
+            <button id="gw-dir-${item.type}-${item.id}" style="background:#d3da0c;border:none;padding:0.45em 0.9em;border-radius:0.375rem;font-weight:600;cursor:pointer;">${t('cityGuide.getDirections') || 'Get Directions'}</button>
           </div>
         `;
         infoWindow.setContent(content);
@@ -364,10 +364,10 @@ const CityGuide = () => {
       const marker = markersRef.current.find((m) => m.getTitle() === selectedItem.name);
       if (marker) {
         const content = `
-          <div style="color:#111;min-width:180px;">
-            <div style="font-weight:700;margin-bottom:4px;">${selectedItem.name}</div>
-            ${selectedItem.address ? `<div style="font-size:12px;color:#555;margin-bottom:8px;">${selectedItem.address}</div>` : ''}
-            <button id="gw-dir-${selectedItem.type}-${selectedItem.id}" style="background:#d3da0c;border:none;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;">${t('cityGuide.getDirections') || 'Get Directions'}</button>
+          <div style="color:#111;min-width:min(11.25rem,70vw);max-width:75vw;">
+            <div style="font-weight:700;margin-bottom:0.25rem;">${selectedItem.name}</div>
+            ${selectedItem.address ? `<div style="font-size:0.75rem;color:#555;margin-bottom:0.5rem;">${selectedItem.address}</div>` : ''}
+            <button id="gw-dir-${selectedItem.type}-${selectedItem.id}" style="background:#d3da0c;border:none;padding:0.45em 0.9em;border-radius:0.375rem;font-weight:600;cursor:pointer;">${t('cityGuide.getDirections') || 'Get Directions'}</button>
           </div>
         `;
         infoWindow.setContent(content);
@@ -457,7 +457,7 @@ const CityGuide = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-0 pb-28 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh pt-0 pb-28 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Filter Pills & Search Controls */}
       <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2.5 md:py-4">
@@ -629,7 +629,7 @@ const CityGuide = () => {
                   <div className="absolute bottom-2.5 left-3 right-3">
                     <p className="text-xs font-bold text-white truncate">{item.name}</p>
                     {item.address && (
-                      <p className="text-[10px] text-gray-300 truncate">{item.address}</p>
+                      <p className="text-[0.625rem] text-gray-300 truncate">{item.address}</p>
                     )}
                   </div>
                 </motion.div>
@@ -651,7 +651,7 @@ const CityGuide = () => {
         <div className={`flex ${hasMap ? 'flex-col lg:flex-row' : 'flex-col'} gap-4`}>
           {/* Map - stacked on top when active tab is mappable */}
           {hasMap && MAPPABLE_TYPES.has(activeTab) && (
-            <div className="w-full lg:w-[55%] h-[38vh] lg:h-[calc(100vh-220px)] min-h-[240px] rounded-2xl overflow-hidden border border-white/10 relative bg-[#0d140a]">
+            <div className="w-full lg:w-[55%] h-[38dvh] lg:h-[calc(100dvh-220px)] min-h-[240px] rounded-2xl overflow-hidden border border-white/10 relative bg-[#0d140a]">
               <div ref={mapRef} className="w-full h-full" />
               {!mapReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#0d140a]">
@@ -776,12 +776,12 @@ const CityGuide = () => {
                               className="inline-flex items-center gap-1 text-xs text-[#d3da0c] hover:text-white transition-colors font-medium"
                             >
                               <MapPin className="w-3 h-3" />
-                              <span className="truncate max-w-[160px] md:max-w-[200px]">{item.address}</span>
+                              <span className="truncate max-w-[10rem] md:max-w-[12.5rem]">{item.address}</span>
                               <ExternalLink className="w-2.5 h-2.5" />
                             </button>
                           )}
                           {item.meta?.start_date && (
-                            <p className="text-[11px] text-gray-400">
+                            <p className="text-[0.6875rem] text-gray-400">
                               {(() => {
                                 const d = new Date(String(item.meta.start_date));
                                 return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {
@@ -807,7 +807,7 @@ const CityGuide = () => {
                               e.stopPropagation();
                               openDirections(item.lat, item.lng, item.name);
                             }}
-                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#d3da0c] hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 text-[0.6875rem] font-medium text-[#d3da0c] hover:text-white transition-colors"
                           >
                             <Navigation className="w-3 h-3" />
                             {t('cityGuide.getDirections') || 'Directions'}

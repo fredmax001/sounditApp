@@ -194,7 +194,7 @@ export default function RecapsManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00] p-4 md:p-6">
+    <div className="min-h-dvh bg-[#020b00] p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -339,13 +339,13 @@ export default function RecapsManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+              className="bg-[#111] rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-hidden"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-white/5">
@@ -365,7 +365,7 @@ export default function RecapsManagement() {
               </div>
 
               {/* Modal Body */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              <div className="p-6 overflow-y-auto max-h-[calc(90dvh-200px)]">
                 {/* Title */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -528,7 +528,7 @@ export default function RecapsManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black flex flex-col"
+            className="fixed inset-0 z-[80] bg-black flex flex-col"
           >
             {/* Top Bar */}
             <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent z-10">

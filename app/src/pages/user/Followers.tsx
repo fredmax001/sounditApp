@@ -312,25 +312,25 @@ const Followers = () => {
         switch (type) {
             case 'artist':
                 return (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/30">
                         DJ / Artist
                     </span>
                 );
             case 'organizer':
                 return (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
                         <Building2 className="w-2.5 h-2.5 text-blue-400" /> Business / Venue
                     </span>
                 );
             case 'vendor':
                 return (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                         <Store className="w-2.5 h-2.5 text-pink-400" /> Merchant / Vendor
                     </span>
                 );
             default:
                 return (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 dark:bg-white/10 text-gray-700 dark:text-gray-300">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-neutral-200 dark:bg-white/10 text-gray-700 dark:text-gray-300">
                         <Users className="w-2.5 h-2.5" /> Community
                     </span>
                 );
@@ -338,7 +338,7 @@ const Followers = () => {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors">
+        <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors">
             {/* Header */}
             <MobilePageHeader
               wide
@@ -398,7 +398,7 @@ const Followers = () => {
                         <div className="mt-2 text-2xl font-bold font-display text-[#020b00] dark:text-white">
                             {following.length}
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Accounts you follow</p>
+                        <p className="text-[0.6875rem] text-gray-400 mt-0.5">Accounts you follow</p>
                     </button>
 
                     <button
@@ -416,7 +416,7 @@ const Followers = () => {
                         <div className="mt-2 text-2xl font-bold font-display text-[#020b00] dark:text-white">
                             {followers.length}
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-0.5">People following you</p>
+                        <p className="text-[0.6875rem] text-gray-400 mt-0.5">People following you</p>
                     </button>
 
                     <button
@@ -434,7 +434,7 @@ const Followers = () => {
                         <div className="mt-2 text-2xl font-bold font-display text-[#020b00] dark:text-white">
                             {suggested.length}
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Recommended creators</p>
+                        <p className="text-[0.6875rem] text-gray-400 mt-0.5">Recommended creators</p>
                     </button>
 
                     <div className="p-4 rounded-2xl border bg-white/80 dark:bg-[#111111]/70 border-black/5 dark:border-white/5">
@@ -444,7 +444,7 @@ const Followers = () => {
                         <div className="mt-2 text-2xl font-bold font-display text-[#020b00] dark:text-white">
                             {following.reduce((acc, curr) => acc + (curr.followers_count || 0), 0) + followers.length}
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Combined audience</p>
+                        <p className="text-[0.6875rem] text-gray-400 mt-0.5">Combined audience</p>
                     </div>
                 </div>
 
@@ -604,7 +604,7 @@ const Followers = () => {
                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                                     {roleBadge(item.type)}
                                                     {item.city && (
-                                                        <span className="inline-flex items-center gap-0.5 text-[11px] text-gray-500 capitalize">
+                                                        <span className="inline-flex items-center gap-0.5 text-[0.6875rem] text-gray-500 capitalize">
                                                             <MapPin className="w-2.5 h-2.5 text-[#d3da0c]" />
                                                             {item.city}
                                                         </span>
@@ -618,7 +618,7 @@ const Followers = () => {
                                                 )}
 
                                                 {(item.followers_count ?? item.follower_count ?? 0) > 0 && (
-                                                    <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                                                    <p className="text-[0.6875rem] text-gray-400 mt-0.5 flex items-center gap-1">
                                                         <Users className="w-3 h-3 text-[#d3da0c]" />
                                                         {(item.followers_count ?? item.follower_count ?? 0).toLocaleString()} followers
                                                     </p>

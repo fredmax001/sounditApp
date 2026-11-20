@@ -307,7 +307,7 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Sticky Top Header matching reference screenshot */}
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020B00]/95 backdrop-blur-xl border-b border-black/10 dark:border-white/10 safe-area-pt">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -464,7 +464,7 @@ const Notifications = () => {
                     {cleanMessage && cleanMessage !== cleanTitle && (
                       <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-0.5">{cleanMessage}</p>
                     )}
-                    <p className="text-[11px] text-gray-500 mt-1">
+                    <p className="text-[0.6875rem] text-gray-500 mt-1">
                       {formatRelativeTime(notif.created_at)}
                     </p>
                   </div>
@@ -505,7 +505,7 @@ const Notifications = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowClearConfirm(false)}
           >
             <motion.div

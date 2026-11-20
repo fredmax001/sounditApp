@@ -28,7 +28,7 @@ export default function MyOrders() {
 
     if (!session?.access_token) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-white text-lg">Please log in to view your orders</p>
                 </div>
@@ -37,7 +37,7 @@ export default function MyOrders() {
     }
 
     return (
-        <div className="min-h-screen pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
+        <div className="min-h-dvh pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
             {/* Header */}
       <MobilePageHeader title="My" accent="Orders" />
 

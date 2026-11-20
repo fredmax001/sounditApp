@@ -129,7 +129,68 @@ def process_single_scheduled_notification(db: Session, item: ScheduledNotificati
         except Exception as pe:
             logger.warning(f"Push delivery failed for scheduled notification {item.id}: {pe}")
 
-        # C. Mark ScheduledNotification as sent
+        # C. Email Delivery via Hostinger SMTP SSL
+        target_channel = getattr(item, "channel", "all") or "all"
+        send_email_allowed = (target_channel in ("all", "email")) and (not pref or getattr(pref, "email_enabled", True))
+
+        if send_email_allowed and user.email:
+            try:
+                from email_service import send_email, _email_wrapper, is_deliverable_email
+                if is_deliverable_email(user.email):
+                    # Format call-to-action button if event_id or url is present
+                    event_id = (item.data or {}).get("event_id") if isinstance(item.data, dict) else None
+                    action_url = (item.data or {}).get("action_url") if isinstance(item.data, dict) else None
+                    if not action_url and event_id:
+                        action_url = f"https://sounditent.com/events/{event_id}"
+                    elif not action_url:
+                        action_url = "https://sounditent.com/notifications"
+
+                    cta_button = f'''
+                    <div style="margin: 28px 0; text-align: center;">
+                        <a href="{action_url}" style="background-color: #d3da0c; color: #020b00; padding: 14px 28px; text-decoration: none; border-radius: 9999px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 14px rgba(211,218,12,0.35);">
+                            View Details on Sound It &rarr;
+                        </a>
+                    </div>
+                    '''
+
+                    email_content = f'''
+                    <h2 style="color: #020b00; font-size: 20px; font-weight: 800; margin: 0 0 16px;">{item.title}</h2>
+                    <p style="color: #3f3f46; font-size: 15px; line-height: 1.6; margin: 0 0 20px; white-space: pre-wrap;">{item.message}</p>
+                    {cta_button}
+                    <p style="color: #a1a1aa; font-size: 12px; margin-top: 24px; text-align: center;">
+                        You received this because email notifications are enabled in your Sound It account.
+                        <br/>
+                        <a href="https://sounditent.com/settings/notifications" style="color: #71717a; text-decoration: underline;">Manage Notification Preferences</a>
+                    </p>
+                    '''
+
+                    html_body = _email_wrapper(item.title, email_content)
+                    email_sent = send_email(
+                        to_email=user.email,
+                        subject=item.title,
+                        body=item.message,
+                        html_body=html_body,
+                        is_marketing=(item.category in ("recommendation", "reengagement", "promotional", "social"))
+                    )
+                    if email_sent:
+                        logger.info(f"Successfully sent automated email for notification {item.id} to {user.email}")
+            except Exception as ee:
+                logger.warning(f"Automated email delivery failed for notification {item.id}: {ee}")
+
+        # D. SMS Delivery for Critical Alerts
+        if (target_channel in ("all", "sms")) and pref and getattr(pref, "sms_enabled", False) and item.priority == "critical" and user.phone:
+            try:
+                from services.sms_notifications import _send_sms_safe
+                _send_sms_safe(
+                    phone_number=user.phone,
+                    template_code=None,
+                    template_param={},
+                    fallback_message=f"Sound It Alert: {item.title} - {item.message}"
+                )
+            except Exception as se:
+                logger.warning(f"SMS delivery failed for notification {item.id}: {se}")
+
+        # E. Mark ScheduledNotification as sent
         item.status = "sent"
         item.sent_at = datetime.utcnow()
         db.commit()

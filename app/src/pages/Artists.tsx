@@ -172,7 +172,7 @@ export default function Artists() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Header */}
       <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
@@ -266,11 +266,11 @@ export default function Artists() {
 
                     {/* Role / Genre Badge */}
                     <div className="absolute top-4 left-4 flex items-center gap-1.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 bg-[#d3da0c] text-black text-[11px] font-black uppercase tracking-wider rounded-full shadow-xs">
+                      <span className="px-2.5 py-0.5 bg-[#d3da0c] text-black text-[0.6875rem] font-black uppercase tracking-wider rounded-full shadow-xs">
                         {artist.artist_type || artistProfile?.artist_type || 'DJ'}
                       </span>
                       {artistProfile?.genres?.[0] && (
-                        <span className="hidden sm:inline-block px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium rounded-full border border-white/10">
+                        <span className="hidden sm:inline-block px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[0.625rem] font-medium rounded-full border border-white/10">
                           {artistProfile.genres[0]}
                         </span>
                       )}

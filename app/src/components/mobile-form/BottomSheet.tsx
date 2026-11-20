@@ -52,7 +52,7 @@ const BottomSheet = ({ open, title, onClose, children, header, footer }: BottomS
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label={title} data-modal-open="true">
           <motion.div
             className="absolute inset-0 bg-black/70"
             initial={{ opacity: 0 }}
@@ -62,7 +62,11 @@ const BottomSheet = ({ open, title, onClose, children, header, footer }: BottomS
           />
           <motion.div
             ref={panelRef}
-            className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-2xl border-t border-black/10 bg-white text-[#020b00] dark:border-white/10 dark:bg-[#0d130c] dark:text-white"
+            className="absolute inset-x-0 flex flex-col rounded-t-2xl border-t border-black/10 bg-white text-[#020b00] dark:border-white/10 dark:bg-[#0d130c] dark:text-white transition-[bottom] duration-150 ease-out"
+            style={{
+              bottom: 'var(--keyboard-offset, 0px)',
+              maxHeight: 'min(88dvh, calc(var(--vvh, 100dvh) - 1.5rem))',
+            }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

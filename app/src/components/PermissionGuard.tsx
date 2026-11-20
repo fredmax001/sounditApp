@@ -13,7 +13,7 @@ const PermissionGuard = ({ children, permission }: PermissionGuardProps) => {
   // Wait until permissions are loaded
   if (isAdmin() && permissions.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#111111]">
+      <div className="flex items-center justify-center h-dvh bg-[#111111]">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );

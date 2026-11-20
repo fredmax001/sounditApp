@@ -13,7 +13,7 @@ export default function AssistantPage() {
   }, [setOpen]);
 
   return (
-    <div className="min-h-screen bg-[#020b00] pt-20 pb-24 px-4">
+    <div className="min-h-dvh bg-[#020b00] pt-20 pb-24 px-4">
       <div className="max-w-2xl mx-auto text-center">
         <h1 className="text-3xl font-bold text-white mb-4">Sound It Assistant</h1>
         <p className="text-gray-400 mb-8">

@@ -344,14 +344,14 @@ export default function WeatherWidget({ city = 'Shanghai' }: WeatherWidgetProps)
         <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2.5 border border-white/5">
           <Droplets className="w-4 h-4 text-blue-400" />
           <div>
-            <p className="text-white/40 text-[10px] uppercase tracking-wider">Humidity</p>
+            <p className="text-white/40 text-[0.625rem] uppercase tracking-wider">Humidity</p>
             <p className="text-white text-sm font-semibold">{weather.humidity}%</p>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2.5 border border-white/5">
           <Wind className="w-4 h-4 text-teal-400" />
           <div>
-            <p className="text-white/40 text-[10px] uppercase tracking-wider">Wind</p>
+            <p className="text-white/40 text-[0.625rem] uppercase tracking-wider">Wind</p>
             <p className="text-white text-sm font-semibold">{weather.windSpeed} <span className="text-white/40 font-normal">km/h</span></p>
           </div>
         </div>

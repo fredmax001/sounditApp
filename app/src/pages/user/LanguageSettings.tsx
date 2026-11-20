@@ -106,7 +106,7 @@ const LanguageSettings = () => {
     >
       <span className={`text-sm font-semibold flex-1 ${selected === lang.code ? 'text-[#020b00] dark:text-[#d3da0c]' : 'text-[#020b00] dark:text-white'}`}>
         {lang.nativeName}
-        <span className={`block text-[11px] font-normal ${selected === lang.code ? 'text-[#020b00]/70 dark:text-[#d3da0c]/70' : 'text-gray-500 dark:text-gray-400'}`}>{lang.englishName}</span>
+        <span className={`block text-[0.6875rem] font-normal ${selected === lang.code ? 'text-[#020b00]/70 dark:text-[#d3da0c]/70' : 'text-gray-500 dark:text-gray-400'}`}>{lang.englishName}</span>
       </span>
       {selected === lang.code && (
         <span className="w-6 h-6 rounded-full bg-[#020b00] dark:bg-[#d3da0c] flex items-center justify-center shrink-0 shadow-xs">
@@ -120,7 +120,7 @@ const LanguageSettings = () => {
   const all = LANGUAGES.filter(l => !l.suggested);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-12 transition-colors">
       <MobilePageHeader
         title={t('kit.language.title')}
         onBack={() => navigate('/settings')}

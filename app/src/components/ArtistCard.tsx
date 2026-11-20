@@ -30,7 +30,7 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="group flex flex-col items-center gap-2 w-[100px]"
+          className="group flex flex-col items-center gap-2 w-[min(100%,6.25rem)]"
         >
           {/* Avatar with ring */}
           <div className="relative w-20 h-20">
@@ -52,10 +52,10 @@ const ArtistCard = ({ artist, variant = 'default' }: ArtistCardProps) => {
 
           {/* Name */}
           <div className="text-center">
-            <p className="text-[#020b00] dark:text-white text-xs font-semibold truncate max-w-[90px] group-hover:text-[#d3da0c] transition-colors">
+            <p className="text-[#020b00] dark:text-white text-xs font-semibold truncate max-w-[5.625rem] group-hover:text-[#d3da0c] transition-colors">
               {displayName}
             </p>
-            <p className="text-gray-500 text-[10px] truncate max-w-[90px]">{displayGenre}</p>
+            <p className="text-gray-500 text-[0.625rem] truncate max-w-[5.625rem]">{displayGenre}</p>
           </div>
         </motion.div>
       </Link>

@@ -8,7 +8,7 @@ const ProtectedRoute = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
+      <div className="min-h-dvh flex items-center justify-center bg-[#020b00]">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -28,7 +28,7 @@ const ProtectedRoute = () => {
   if (!profile) {
     // Removed console.log for production
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
+      <div className="min-h-dvh flex items-center justify-center bg-[#020b00]">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}

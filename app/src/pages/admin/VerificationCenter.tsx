@@ -625,7 +625,7 @@ const VerificationCenter = () => {
                                             className="w-20 h-28 rounded-xl object-cover shrink-0 bg-black"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-1 ${
+                                            <span className={`inline-block px-2 py-0.5 rounded text-[0.625rem] font-bold uppercase mb-1 ${
                                                 reel.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
                                             }`}>
                                                 {reel.status || 'approved'}
@@ -636,7 +636,7 @@ const VerificationCenter = () => {
                                             <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                                                 {reel.caption}
                                             </p>
-                                            <p className="text-[11px] text-[#d3da0c] mt-1">
+                                            <p className="text-[0.6875rem] text-[#d3da0c] mt-1">
                                                 @{reel.author?.username || 'creator'} • {reel.likes_count || 0} likes
                                             </p>
                                         </div>
@@ -784,10 +784,10 @@ const VerificationCenter = () => {
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getTypeColor(req.type)}`}>
+                                                <span className={`px-2 py-0.5 rounded text-[0.625rem] font-bold uppercase ${getTypeColor(req.type)}`}>
                                                     {t(`admin.verificationCenter.entityType.${req.type}`)}
                                                 </span>
-                                                <span className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                                <span className="text-[0.625rem] text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                     <Clock className="w-3 h-3" />
                                                     {formatTimeAgo(req.submitted_at)}
                                                 </span>
@@ -949,7 +949,7 @@ const VerificationCenter = () => {
 
                     {/* Reject Modal */}
                     {showRejectModal && selectedRequest && (
-                        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center z-[80] p-4">
                             <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-xl font-semibold text-[#020b00] dark:text-white">{t('admin.verificationCenter.rejectVerificationModalTitle')}</h3>

@@ -244,7 +244,7 @@ const SmartNotificationAutomation: React.FC = () => {
           <div>
             <h3 className="text-white font-bold text-base flex items-center gap-2">
               Automated Intelligence Engine
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="text-[0.625rem] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 ACTIVE
               </span>
             </h3>
@@ -300,7 +300,7 @@ const SmartNotificationAutomation: React.FC = () => {
           <div className="text-2xl font-black text-white">
             {stats?.total_activities_tracked?.toLocaleString() || 0}
           </div>
-          <div className="text-[11px] text-gray-400 mt-1">Weighted behaviour events</div>
+          <div className="text-[0.6875rem] text-gray-400 mt-1">Weighted behaviour events</div>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0c1a08] border border-white/5">
@@ -311,7 +311,7 @@ const SmartNotificationAutomation: React.FC = () => {
           <div className="text-2xl font-black text-white">
             {stats?.total_user_interests?.toLocaleString() || 0}
           </div>
-          <div className="text-[11px] text-gray-400 mt-1">21-day decay weighted</div>
+          <div className="text-[0.6875rem] text-gray-400 mt-1">21-day decay weighted</div>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0c1a08] border border-white/5">
@@ -322,7 +322,7 @@ const SmartNotificationAutomation: React.FC = () => {
           <div className="text-2xl font-black text-white">
             {stats?.total_delivered?.toLocaleString() || 0}
           </div>
-          <div className="text-[11px] text-emerald-400 mt-1">
+          <div className="text-[0.6875rem] text-emerald-400 mt-1">
             {stats?.delivery_rate_percent || 100}% success rate
           </div>
         </div>
@@ -335,7 +335,7 @@ const SmartNotificationAutomation: React.FC = () => {
           <div className="text-2xl font-black text-white">
             {stats?.total_pending?.toLocaleString() || 0}
           </div>
-          <div className="text-[11px] text-gray-400 mt-1">
+          <div className="text-[0.6875rem] text-gray-400 mt-1">
             {stats?.total_failed ? `${stats.total_failed} failed` : 'Zero errors'}
           </div>
         </div>
@@ -355,7 +355,7 @@ const SmartNotificationAutomation: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white"
               >
                 <span className="font-semibold capitalize">{c.category}</span>
-                <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] font-mono text-[10px]">
+                <span className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#d3da0c] font-mono text-[0.625rem]">
                   {c.users_count} users (avg {c.avg_score})
                 </span>
               </div>
@@ -391,7 +391,7 @@ const SmartNotificationAutomation: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-white">{rule.name}</span>
                     <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full uppercase ${
+                      className={`text-[0.625rem] font-mono px-2 py-0.5 rounded-full uppercase ${
                         rule.priority === 'critical'
                           ? 'bg-rose-500/20 text-rose-300'
                           : rule.priority === 'high'
@@ -403,7 +403,7 @@ const SmartNotificationAutomation: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mt-1 line-clamp-2">{rule.description}</p>
-                  <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500 font-mono">
+                  <div className="flex items-center gap-3 mt-2 text-[0.6875rem] text-gray-500 font-mono">
                     <span>Cooldown: {rule.cooldown_hours}h</span>
                     <span>•</span>
                     <span className="capitalize">{rule.category}</span>
@@ -487,22 +487,22 @@ const SmartNotificationAutomation: React.FC = () => {
                     <td className="py-2.5 font-mono text-gray-300">#{log.user_id}</td>
                     <td className="py-2.5 max-w-xs pr-4">
                       <div className="font-semibold text-white truncate">{log.title}</div>
-                      <div className="text-[11px] text-gray-400 truncate">{log.message}</div>
+                      <div className="text-[0.6875rem] text-gray-400 truncate">{log.message}</div>
                       {log.error_reason && (
-                        <div className="text-[10px] text-rose-400 flex items-center gap-1 mt-0.5">
+                        <div className="text-[0.625rem] text-rose-400 flex items-center gap-1 mt-0.5">
                           <AlertTriangle className="w-3 h-3 shrink-0" />
                           <span className="truncate">{log.error_reason}</span>
                         </div>
                       )}
                     </td>
                     <td className="py-2.5">
-                      <span className="px-2 py-0.5 rounded bg-white/5 text-gray-300 capitalize text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-white/5 text-gray-300 capitalize text-[0.625rem]">
                         {log.category}
                       </span>
                     </td>
                     <td className="py-2.5">
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded uppercase ${
+                        className={`text-[0.625rem] font-mono px-1.5 py-0.5 rounded uppercase ${
                           log.priority === 'critical'
                             ? 'text-rose-400 bg-rose-500/10'
                             : log.priority === 'high'
@@ -513,12 +513,12 @@ const SmartNotificationAutomation: React.FC = () => {
                         {log.priority}
                       </span>
                     </td>
-                    <td className="py-2.5 text-gray-400 font-mono text-[11px]">
+                    <td className="py-2.5 text-gray-400 font-mono text-[0.6875rem]">
                       {log.scheduled_for_utc ? new Date(log.scheduled_for_utc).toLocaleString() : 'Immediate'}
                     </td>
                     <td className="py-2.5">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-medium ${
                           log.status === 'sent'
                             ? 'bg-emerald-500/20 text-emerald-300'
                             : log.status === 'pending'
@@ -536,7 +536,7 @@ const SmartNotificationAutomation: React.FC = () => {
                         <button
                           onClick={() => handleRetryNotification(log.id)}
                           disabled={retryingId === log.id}
-                          className="px-2 py-1 rounded bg-[#d3da0c]/20 hover:bg-[#d3da0c]/30 text-[#d3da0c] text-[10px] font-bold transition-all"
+                          className="px-2 py-1 rounded bg-[#d3da0c]/20 hover:bg-[#d3da0c]/30 text-[#d3da0c] text-[0.625rem] font-bold transition-all"
                         >
                           {retryingId === log.id ? (
                             <Loader2 className="w-3 h-3 animate-spin inline" />

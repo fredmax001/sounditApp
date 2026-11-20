@@ -24,9 +24,9 @@ const MainLayout = () => {
     location.pathname === '/profile/edit';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative overflow-x-clip transition-colors duration-200">
       {/* Global Background Effects */}
-      <div className="fixed inset-0 pointer-events-none z-0">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Subtle Noise Texture */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -36,8 +36,8 @@ const MainLayout = () => {
         />
 
         {/* Gradient Orbs */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#d3da0c]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-[#FF2D8F]/5 rounded-full blur-[150px]" />
+        <div className="absolute top-0 left-1/4 w-[min(85vw,37.5rem)] h-[min(85vw,37.5rem)] bg-[#d3da0c]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-0 w-[min(80vw,31.25rem)] h-[min(80vw,31.25rem)] bg-[#FF2D8F]/5 rounded-full blur-[150px]" />
       </div>
 
       {/* Desktop Navigation */}

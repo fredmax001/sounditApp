@@ -149,10 +149,10 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 
   // Button sizing classes
   const sizeClasses = {
-    sm: 'px-2.5 py-1 text-[11px] gap-1',
+    sm: 'px-2.5 py-1 text-[0.6875rem] gap-1',
     md: 'px-3.5 py-1.5 text-xs gap-1.5',
     lg: 'px-5 py-2.5 text-sm gap-2',
-    compact: 'px-2 py-0.5 text-[10px] gap-1'
+    compact: 'px-2 py-0.5 text-[0.625rem] gap-1'
   }[size];
 
   // Visual appearance based on relationship state

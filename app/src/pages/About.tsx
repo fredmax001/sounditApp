@@ -154,7 +154,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-[#020b00]">
+    <div className="min-h-dvh pt-20 pb-24 bg-[#020b00]">
       {/* Hero */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0">
@@ -805,11 +805,11 @@ const About = () => {
                         {/* Top Badge */}
                         <div className="absolute top-3 left-3 z-10">
                           {collab.headline ? (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#d3da0c] text-black text-[11px] font-bold tracking-wider uppercase shadow-lg shadow-[#d3da0c]/30">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#d3da0c] text-black text-[0.6875rem] font-bold tracking-wider uppercase shadow-lg shadow-[#d3da0c]/30">
                               2026 BOA Headliner
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-white/90 text-[11px] font-semibold">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-white/90 text-[0.6875rem] font-semibold">
                               {collab.badge}
                             </span>
                           )}
@@ -849,7 +849,7 @@ const About = () => {
                 <AnimatePresence>
                   {selectedCollaborator && (
                     <div
-                      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+                      className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
                       onClick={() => setSelectedCollaborator(null)}
                     >
                       <motion.div
@@ -870,7 +870,7 @@ const About = () => {
                           <X className="w-5 h-5" />
                         </button>
 
-                        <div className="grid sm:grid-cols-[240px_1fr] max-h-[85vh] overflow-y-auto">
+                        <div className="grid sm:grid-cols-[240px_1fr] max-h-[85dvh] overflow-y-auto">
                           {/* Image Column */}
                           <div className="relative bg-black flex items-center justify-center min-h-[280px] sm:min-h-full overflow-hidden">
                             <img
@@ -904,7 +904,7 @@ const About = () => {
 
                               {/* Event Hosted Box */}
                               <div className="glass rounded-xl p-3.5 border border-white/10 mb-4 bg-white/[0.03]">
-                                <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 font-semibold flex items-center gap-1">
+                                <p className="text-[0.625rem] text-gray-400 uppercase tracking-wider mb-1 font-semibold flex items-center gap-1">
                                   <Calendar className="w-3 h-3 text-[#d3da0c]" /> Event Hosted / Headline
                                 </p>
                                 <p className="text-white text-sm font-semibold">

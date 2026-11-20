@@ -607,7 +607,7 @@ export default function UniversalShareModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 60, scale: 0.98 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="relative z-10 bg-[#0e110d] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6 my-0 sm:my-auto"
+          className="relative z-10 bg-[#0e110d] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col max-h-[92dvh] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6 my-0 sm:my-auto"
         >
           {/* Top Drag Handle */}
           <div className="pt-3 pb-1">
@@ -667,7 +667,7 @@ export default function UniversalShareModal({
           </div>
 
           {/* Tab Content */}
-          <div className="px-5 max-h-[70vh] overflow-y-auto space-y-4 no-scrollbar pb-8">
+          <div className="px-5 max-h-[70dvh] overflow-y-auto space-y-4 no-scrollbar pb-8">
             {activeTab === 'quick' && (
               <>
                 {/* 1. Recap Preview Card */}
@@ -691,14 +691,14 @@ export default function UniversalShareModal({
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-1">
-                    <span className="inline-block px-2 py-0.5 text-[10px] font-black bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/40 rounded-full uppercase tracking-wider">
+                    <span className="inline-block px-2 py-0.5 text-[0.625rem] font-black bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/40 rounded-full uppercase tracking-wider">
                       {item.type === 'reel' ? 'REEL' : (item.type === 'post' ? 'POST' : item.type.toUpperCase())}
                     </span>
                     <h4 className="text-sm font-black text-white truncate">{item.title}</h4>
                     <p className="text-xs text-gray-400 truncate">
                       {item.subtitle ? (item.subtitle.startsWith('By') ? item.subtitle : `By ${item.subtitle}`) : 'By creator'}
                     </p>
-                    <div className="flex items-center gap-1.5 text-[#d3da0c] text-[11px] font-extrabold">
+                    <div className="flex items-center gap-1.5 text-[#d3da0c] text-[0.6875rem] font-extrabold">
                       <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
                         <path d="M4 10h2v4H4zm4-4h2v12H8zm4-2h2v16h-2zm4 4h2v12h-2zm4 4h2v4h-2z" />
                       </svg>
@@ -828,7 +828,7 @@ export default function UniversalShareModal({
                         className="h-6 w-auto object-contain drop-shadow-[0_0_10px_rgba(211,218,12,0.3)]"
                       />
                     </div>
-                    <span className="px-2.5 py-0.5 bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                    <span className="px-2.5 py-0.5 bg-[#d3da0c]/15 text-[#d3da0c] border border-[#d3da0c]/30 text-[0.625rem] font-bold rounded-full uppercase tracking-wider">
                       OFFICIAL {item.type}
                     </span>
                   </div>
@@ -873,7 +873,7 @@ export default function UniversalShareModal({
                   <div className="flex items-center justify-between pt-3 border-t border-white/10 bg-black/40 p-3 rounded-xl">
                     <div>
                       <p className="text-xs font-bold text-white">{t('common.scanQrCode', 'Scan QR Code')}</p>
-                      <p className="text-[11px] text-gray-400">{t('common.scanQrToView', 'View live details on Sound It')}</p>
+                      <p className="text-[0.6875rem] text-gray-400">{t('common.scanQrToView', 'View live details on Sound It')}</p>
                     </div>
 
                     <div className="w-16 h-16 bg-white p-1 rounded-lg shrink-0 flex items-center justify-center">

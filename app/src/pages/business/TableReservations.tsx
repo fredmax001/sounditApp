@@ -434,14 +434,14 @@ export default function BusinessTableReservations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] p-6">
+    <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -522,7 +522,7 @@ export default function BusinessTableReservations() {
                   {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
                 </select>
               )}
-              <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+              <div className="flex items-center gap-2 flex-1 min-w-[min(100%,13.75rem)]">
                 <label className="text-gray-600 dark:text-white/60 text-xs whitespace-nowrap">{t('tables.tableAllocationPct', 'Table allocation (% of one ticket price, once per table)')}</label>
                 <input type="number" min={0} max={100} value={allocationPct} onChange={e => setAllocationPct(e.target.value)}
                   className="w-20 bg-neutral-50 dark:bg-[#020b00] border border-black/10 dark:border-white/10 text-[#020b00] dark:text-white text-sm rounded-xl px-3 py-2.5" />
@@ -709,7 +709,7 @@ export default function BusinessTableReservations() {
                           <h3 className="text-[#020b00] dark:text-white font-semibold">{order.package.name}</h3>
                           {order.buyer_confirmed_at && (
                             <span
-                              className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-[10px] font-bold uppercase tracking-wider"
+                              className="px-1.5 py-0.5 rounded bg-[#d3da0c]/20 text-[#020b00] dark:text-[#d3da0c] text-[0.625rem] font-bold uppercase tracking-wider"
                               title={t('business.ticketOrders.buyerConfirmedHint') || 'Buyer confirmed payment in the app'}
                             >
                               {t('business.ticketOrders.buyerConfirmed') || 'Confirmed'}
@@ -823,8 +823,8 @@ export default function BusinessTableReservations() {
                             <div className="grid grid-cols-2 gap-2">
                               {order.tickets!.map((tk, idx) => (
                                 <div key={tk.id} className="bg-white dark:bg-[#020b00] border border-black/5 dark:border-transparent rounded-lg px-2.5 py-2">
-                                  <p className="text-[10px] text-gray-500">{order.guest_names?.[idx] || `Guest ${idx + 1}`}</p>
-                                  <p className="text-[11px] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
+                                  <p className="text-[0.625rem] text-gray-500">{order.guest_names?.[idx] || `Guest ${idx + 1}`}</p>
+                                  <p className="text-[0.6875rem] text-[#020b00] dark:text-white font-mono truncate">{tk.ticket_number}</p>
                                 </div>
                               ))}
                             </div>
@@ -916,11 +916,11 @@ export default function BusinessTableReservations() {
 
       {/* Create Package Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl"
+            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto shadow-xl"
           >
             <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{t('business.tableReservations.createTablePackage')}</h2>
@@ -1176,11 +1176,11 @@ export default function BusinessTableReservations() {
 
       {/* Edit Package Modal */}
       {showEditModal && editingPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl"
+            className="bg-white dark:bg-[#141414] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto shadow-xl"
           >
             <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#020b00] dark:text-white">{t('business.tableReservations.editTablePackage') || 'Edit Table Package'}</h2>
@@ -1449,7 +1449,7 @@ export default function BusinessTableReservations() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-xs p-4"
             onClick={() => setSelectedQrOrder(null)}
           >
             <motion.div

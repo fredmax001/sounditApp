@@ -353,7 +353,7 @@ const CreateEventMobile = (p: CreateEventMobileProps) => {
         >
           {formData.image ? (
             <div className="overflow-hidden rounded-xl border border-black/10 bg-black dark:border-white/10">
-              <img src={formData.image} alt="Event flyer preview" className="mx-auto max-h-[55vh] w-full object-contain" />
+              <img src={formData.image} alt="Event flyer preview" className="mx-auto max-h-[55dvh] w-full object-contain" />
             </div>
           ) : (
             <label className="flex min-h-40 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-black/20 px-4 text-center text-gray-500 active:border-[#d3da0c] dark:border-white/20">
@@ -812,7 +812,7 @@ const CreateEventMobile = (p: CreateEventMobileProps) => {
       </div>
 
       {/* ───────── Form actions (in-flow below all cards so it never overlaps content) ───────── */}
-      <div className="mt-5 rounded-2xl border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-[#111111]">
+      <div className="mt-5 mb-[calc(2rem+env(safe-area-inset-bottom,0px))] rounded-2xl border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-[#111111]">
         {blockingIssue && !overAllocated && <p className="mb-2 text-xs font-medium text-red-500">{blockingIssue}</p>}
         <div className="flex items-stretch gap-2">
           <button

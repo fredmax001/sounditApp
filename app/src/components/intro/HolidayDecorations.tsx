@@ -182,7 +182,7 @@ export const HolidayDecorations: React.FC<HolidayDecorationsProps> = ({ override
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-400 text-[11px] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(249,115,22,0.25)]"
+            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-400 text-[0.6875rem] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(249,115,22,0.25)]"
           >
             <span>🎃</span>
             <span>HALLOWEEN SPECIAL</span>
@@ -206,7 +206,7 @@ export const HolidayDecorations: React.FC<HolidayDecorationsProps> = ({ override
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/40 border border-red-500/30 text-red-300 text-[11px] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(239,68,68,0.25)]"
+            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/40 border border-red-500/30 text-red-300 text-[0.6875rem] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(239,68,68,0.25)]"
           >
             <span>🎄</span>
             <span>MERRY CHRISTMAS</span>
@@ -248,7 +248,7 @@ export const HolidayDecorations: React.FC<HolidayDecorationsProps> = ({ override
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-950/40 border border-[#d3da0c]/40 text-[#d3da0c] text-[11px] font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(211,218,12,0.3)]"
+            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-950/40 border border-[#d3da0c]/40 text-[#d3da0c] text-[0.6875rem] font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(211,218,12,0.3)]"
           >
             <span>🎉</span>
             <span>HAPPY NEW YEAR {currentYear}</span>
@@ -290,14 +290,14 @@ export const HolidayDecorations: React.FC<HolidayDecorationsProps> = ({ override
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl bg-red-950/60 border border-red-500/40 text-amber-300 text-[11px] font-bold tracking-widest uppercase shadow-[0_0_25px_rgba(239,68,68,0.35)]"
+            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl bg-red-950/60 border border-red-500/40 text-amber-300 text-[0.6875rem] font-bold tracking-widest uppercase shadow-[0_0_25px_rgba(239,68,68,0.35)]"
           >
             <div className="flex items-center gap-2">
               <span>🏮</span>
               <span>CHINESE NEW YEAR • {cnyZodiac.title.toUpperCase()}</span>
               <span>🏮</span>
             </div>
-            <div className="text-[10px] text-amber-400 font-normal tracking-wider">
+            <div className="text-[0.625rem] text-amber-400 font-normal tracking-wider">
               {cnyZodiac.blessing} • {cnyZodiac.zh}年吉祥
             </div>
           </motion.div>
@@ -334,7 +334,7 @@ export const HolidayDecorations: React.FC<HolidayDecorationsProps> = ({ override
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-pink-950/40 border border-pink-500/30 text-pink-300 text-[11px] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+            className="absolute top-10 sm:top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 rounded-full bg-pink-950/40 border border-pink-500/30 text-pink-300 text-[0.6875rem] font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(236,72,153,0.3)]"
           >
             <span>💖</span>
             <span>HAPPY VALENTINE'S</span>

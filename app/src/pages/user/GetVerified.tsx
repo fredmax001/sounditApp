@@ -188,7 +188,7 @@ const GetVerified = () => {
   const formVisible = showForm || st === 'not_applied';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-24 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-24 transition-colors duration-200">
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020B00]/95 backdrop-blur-xl border-b border-black/10 dark:border-white/10 safe-area-pt">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center" aria-label="Back">
@@ -310,7 +310,7 @@ const GetVerified = () => {
                   Start Verification
                   {!submitting && <ArrowRight className="w-4 h-4" />}
                 </button>
-                <p className="text-[11px] text-gray-500 text-center">
+                <p className="text-[0.6875rem] text-gray-500 text-center">
                   Your documents are only visible to the Sound It verification team.
                 </p>
               </div>

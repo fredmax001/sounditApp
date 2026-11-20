@@ -22,6 +22,8 @@ export interface SubscriptionState {
   features: SubscriptionFeatures;
   role: string | null;
   daysRemaining: number | null;
+  isTrial: boolean;
+  isTrialExpired: boolean;
   isLoading: boolean;
   error: string | null;
   checkSubscription: (token: string) => Promise<void>;
@@ -43,6 +45,12 @@ const FEATURE_MIN_PLAN: Record<string, PlanType> = {
   verified_badge: 'premium',
   homepage_spotlight: 'premium',
   priority_support: 'premium',
+  event_creation: 'basic',
+  portfolio_limit: 'premium',
+  media_limit: 'premium',
+  recaps: 'premium',
+  can_receive_deposits: 'premium',
+  staff_members: 'pro',
 };
 
 const PLAN_RANK: Record<string, number> = {
@@ -57,6 +65,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   features: {},
   role: null,
   daysRemaining: null,
+  isTrial: false,
+  isTrialExpired: false,
   isLoading: false,
   error: null,
 
@@ -72,6 +82,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       const feats = data?.features || {};
       const roleValue = data?.role || null;
       const days = data?.subscription?.days_remaining ?? null;
+      const isTrialActive = Boolean(data?.is_trial || data?.subscription?.is_trial);
+      const isTrialEnded = Boolean(data?.is_trial_expired);
 
       set({
         hasSubscription: hasSub,
@@ -79,6 +91,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         features: feats,
         role: roleValue,
         daysRemaining: days,
+        isTrial: isTrialActive,
+        isTrialExpired: isTrialEnded,
         isLoading: false,
       });
     } catch (err: any) {
@@ -88,6 +102,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         features: {},
         role: null,
         daysRemaining: null,
+        isTrial: false,
+        isTrialExpired: false,
         isLoading: false,
         error: err?.response?.data?.detail || err?.message || 'Failed to check subscription',
       });
@@ -101,6 +117,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       features: {},
       role: null,
       daysRemaining: null,
+      isTrial: false,
+      isTrialExpired: false,
       isLoading: false,
       error: null,
     });

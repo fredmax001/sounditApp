@@ -7,7 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 const PaymentSuccess = () => {
   const { t } = useTranslation();
   return (
-    <div className="min-h-screen pt-20 pb-24 flex items-center justify-center">
+    <div className="min-h-dvh pt-20 pb-24 flex items-center justify-center">
       <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

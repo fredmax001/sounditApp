@@ -59,7 +59,7 @@ export default function OrderTracking() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
             </div>
         );
@@ -67,7 +67,7 @@ export default function OrderTracking() {
 
     if (error || !order) {
         return (
-            <div className="min-h-screen pt-20 flex items-center justify-center">
+            <div className="min-h-dvh pt-20 flex items-center justify-center">
                 <div className="text-center">
                     <Package className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                     <p className="text-white">{error || 'Order not found'}</p>
@@ -78,7 +78,7 @@ export default function OrderTracking() {
     }
 
     return (
-        <div className="min-h-screen pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
+        <div className="min-h-dvh pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors">
             {/* Header */}
       <MobilePageHeader title={`Order #${order.id}`} />
 

@@ -667,7 +667,7 @@ const Profile = () => {
               ) : (
                 <>
                   <Plus className="w-7 h-7 text-gray-400 dark:text-gray-600" />
-                  <span className="text-[11px] text-gray-500 mt-1 font-medium">Upload Photos</span>
+                  <span className="text-[0.6875rem] text-gray-500 mt-1 font-medium">Upload Photos</span>
                 </>
               )}
             </button>

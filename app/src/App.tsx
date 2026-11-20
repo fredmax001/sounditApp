@@ -54,6 +54,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AndroidAppPrompt from './components/AndroidAppPrompt';
 import CookieConsent from './components/CookieConsent';
+import { MobileViewportManager } from './hooks/useMobileViewport';
 
 // ── Lazy-loaded pages (code-split by route) ──
 
@@ -177,7 +178,7 @@ const OrderTracking = lazy(() => import('./pages/user/OrderTracking'));
 
 // Simple inline fallback while lazy chunks load
 const PageLoader = () => (
-  <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
+  <div className="min-h-dvh bg-white dark:bg-[#020b00] flex items-center justify-center">
     <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
   </div>
 );
@@ -317,7 +318,7 @@ function App() {
 
   if (maintenanceMode && !isAdminUser) {
     return (
-      <div className="min-h-screen bg-[#020b00] flex items-center justify-center px-4">
+      <div className="min-h-dvh bg-[#020b00] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-[#d3da0c]/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-[#d3da0c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,6 +341,7 @@ function App() {
 
   return (
     <ErrorBoundary>
+    <MobileViewportManager />
     <Router>
       <GlobalAudioPlayer />
       <Toaster
@@ -349,6 +351,7 @@ function App() {
             background: '#111111',
             color: '#FFFFFF',
             border: '1px solid rgba(211, 218, 12, 0.3)',
+            zIndex: 110,
           },
         }}
       />

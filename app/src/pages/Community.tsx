@@ -357,7 +357,7 @@ const Community = ({
             <p className="text-[#020b00] dark:text-white text-sm font-medium flex items-center gap-2">
               {comment.user.first_name} {comment.user.last_name}
               {comment.user.is_guest && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-white/70 rounded-full">
+                <span className="text-[0.625rem] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-white/70 rounded-full">
                   {t('community.guest') || 'Guest'}
                 </span>
               )}
@@ -461,7 +461,7 @@ const Community = ({
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 transition-colors duration-200">
       {/* Top Recaps Sub-Navigation */}
       <div className="py-2.5 flex justify-center px-4 bg-white/95 dark:bg-[#020b00]/95 border-b border-black/5 dark:border-white/5 sticky top-0 z-35">
         <RecapsSegmentNav
@@ -548,7 +548,7 @@ const Community = ({
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate max-w-[64px]">
+                <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300 truncate max-w-[4rem]">
                   {story.label}
                 </span>
               </button>
@@ -565,7 +565,7 @@ const Community = ({
                   <MoreHorizontal className="w-5 h-5" />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">More</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">More</span>
             </button>
           </div>
         </div>
@@ -594,7 +594,7 @@ const Community = ({
                     <X className="w-5 h-5" />
                   </button>
 
-                  <h2 className="text-[17px] font-bold text-white tracking-tight">Create Post</h2>
+                  <h2 className="text-[1.0625rem] font-bold text-white tracking-tight">Create Post</h2>
 
                   <button
                     type="button"
@@ -646,7 +646,7 @@ const Community = ({
                         }`}
                       >
                         <Icon className="w-5 h-5" />
-                        <span className="text-[11px] leading-tight font-bold">{card.label}</span>
+                        <span className="text-[0.6875rem] leading-tight font-bold">{card.label}</span>
                       </button>
                     );
                   })}
@@ -785,7 +785,7 @@ const Community = ({
                                   });
                                 }
                               }}
-                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px]"
+                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[0.625rem]"
                             >
                               <ArrowLeft className="w-3 h-3" />
                             </button>
@@ -802,7 +802,7 @@ const Community = ({
                                   });
                                 }
                               }}
-                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px] ml-auto"
+                              className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[0.625rem] ml-auto"
                             >
                               <ArrowRight className="w-3 h-3" />
                             </button>
@@ -821,8 +821,8 @@ const Community = ({
                         <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#d3da0c]">
                           <Plus className="w-5 h-5" />
                         </div>
-                        <span className="text-[11px] font-bold text-gray-300">Add More</span>
-                        <span className="text-[10px] text-gray-500">(Up to 10)</span>
+                        <span className="text-[0.6875rem] font-bold text-gray-300">Add More</span>
+                        <span className="text-[0.625rem] text-gray-500">(Up to 10)</span>
                       </button>
                     )}
                   </div>
@@ -1038,12 +1038,12 @@ const Community = ({
                             <VerificationBadge size="xs" className="shrink-0" />
                           )}
                           {post.user.is_guest && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-full font-normal">
+                            <span className="text-[0.625rem] px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-full font-normal">
                               {t('community.guest') || 'Guest'}
                             </span>
                           )}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-[11px]">
+                        <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem]">
                           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                       </div>
@@ -1081,13 +1081,13 @@ const Community = ({
                   {(post.section || post.event_title) && (
                     <div className="pb-2 flex flex-wrap gap-1.5">
                       {post.section && (
-                        <div className="inline-flex items-center gap-1 bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full text-[11px] font-medium">
+                        <div className="inline-flex items-center gap-1 bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full text-[0.6875rem] font-medium">
                           <FolderOpen className="w-3 h-3 text-[#9fa505] dark:text-[#d3da0c]" />
                           {post.section.name}
                         </div>
                       )}
                       {post.event_title && (
-                        <div className="inline-flex items-center gap-1 bg-[#d3da0c]/20 text-black dark:text-[#d3da0c] border border-[#d3da0c]/40 px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+                        <div className="inline-flex items-center gap-1 bg-[#d3da0c]/20 text-black dark:text-[#d3da0c] border border-[#d3da0c]/40 px-2.5 py-0.5 rounded-full text-[0.6875rem] font-semibold">
                           <Calendar className="w-3 h-3" />
                           {post.event_title}
                         </div>
@@ -1327,7 +1327,10 @@ const Community = ({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           aria-label="Create community post"
-          className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#d3da0c] text-black flex items-center justify-center shadow-xl shadow-[#d3da0c]/30 hover:bg-[#bbc10b] active:scale-90 transition-all"
+          style={{
+            bottom: 'calc(var(--bottom-nav-height, 5.25rem) + env(safe-area-inset-bottom, 0px) + 1rem)',
+          }}
+          className="fixed right-5 z-[35] w-14 h-14 rounded-full bg-[#d3da0c] text-black flex items-center justify-center shadow-xl shadow-[#d3da0c]/30 hover:bg-[#bbc10b] active:scale-90 transition-all hide-on-keyboard"
         >
           <Plus className="w-7 h-7 stroke-[2.5]" />
         </button>
@@ -1336,7 +1339,7 @@ const Community = ({
       {/* Share Modal */}
       {isShareModalOpen && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-xs z-[80] flex items-center justify-center p-4"
           onClick={() => setIsShareModalOpen(false)}
         >
           <motion.div

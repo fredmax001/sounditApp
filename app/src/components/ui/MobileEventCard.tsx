@@ -66,7 +66,7 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
       <motion.div
         whileTap={{ scale: 0.97 }}
         className={`relative overflow-hidden rounded-2xl ${
-          isFeatured ? 'h-[240px] w-full' : 'h-[200px] w-[220px] flex-shrink-0'
+          isFeatured ? 'h-[240px] w-full' : 'h-[200px] w-[min(100%,13.75rem)] flex-shrink-0'
         }`}
       >
         {/* Background image */}
@@ -86,7 +86,7 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10">
           {/* Date badge */}
           <div className="bg-black/60 backdrop-blur-md rounded-xl px-2.5 py-1.5 text-center border border-white/10">
-            <div className="text-[#d3da0c] text-[9px] font-bold uppercase tracking-wider leading-none">{dayStr} · {monthStr}</div>
+            <div className="text-[#d3da0c] text-[0.5625rem] font-bold uppercase tracking-wider leading-none">{dayStr} · {monthStr}</div>
             <div className="text-white text-sm font-bold leading-tight">{dayNum}</div>
           </div>
 
@@ -112,16 +112,16 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
         {(event.is_featured || isSoldOut || isPast) && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
             {isPast ? (
-              <span className="px-2 py-0.5 bg-neutral-900/90 text-gray-300 border border-white/20 text-[9px] font-bold rounded-full backdrop-blur-sm">
+              <span className="px-2 py-0.5 bg-neutral-900/90 text-gray-300 border border-white/20 text-[0.5625rem] font-bold rounded-full backdrop-blur-sm">
                 ENDED · RECAP
               </span>
             ) : (
               <>
                 {event.is_featured && !isSoldOut && (
-                  <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[9px] font-bold rounded-full">FEATURED</span>
+                  <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[0.5625rem] font-bold rounded-full">FEATURED</span>
                 )}
                 {isSoldOut && (
-                  <span className="px-2 py-0.5 bg-[#FF2D8F] text-white text-[9px] font-bold rounded-full">SOLD OUT</span>
+                  <span className="px-2 py-0.5 bg-[#FF2D8F] text-white text-[0.5625rem] font-bold rounded-full">SOLD OUT</span>
                 )}
               </>
             )}
@@ -136,7 +136,7 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
               <div className="w-4 h-4 rounded-full bg-[#d3da0c]/20 border border-[#d3da0c]/40 flex items-center justify-center">
                 <Users className="w-2.5 h-2.5 text-[#d3da0c]" />
               </div>
-              <span className="text-gray-300 text-[10px] font-medium">
+              <span className="text-gray-300 text-[0.625rem] font-medium">
                 {event.business?.business_name || event.djs?.[0]?.stage_name}
               </span>
             </div>
@@ -149,22 +149,22 @@ const MobileEventCard = ({ event, variant = 'standard', className = '' }: Mobile
 
           {/* Meta row */}
           <div className="flex items-center gap-3 min-w-0">
-            <span className="flex items-center gap-1 text-gray-300/80 text-[10px] whitespace-nowrap">
+            <span className="flex items-center gap-1 text-gray-300/80 text-[0.625rem] whitespace-nowrap">
               <Clock className="w-2.5 h-2.5 shrink-0" />
               {timeStr}
             </span>
             {event.city && (
-              <span className="flex items-center gap-1 text-gray-300/80 text-[10px] min-w-0 truncate">
+              <span className="flex items-center gap-1 text-gray-300/80 text-[0.625rem] min-w-0 truncate">
                 <MapPin className="w-2.5 h-2.5 shrink-0" />
                 {event.city.replace(/^\w/, (c) => c.toUpperCase())}
               </span>
             )}
             {isPast ? (
-              <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold text-[#d3da0c]">
+              <span className="ml-auto shrink-0 whitespace-nowrap text-[0.625rem] font-semibold text-[#d3da0c]">
                 View Recap →
               </span>
             ) : (
-              <span className={`ml-auto shrink-0 whitespace-nowrap text-[10px] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
+              <span className={`ml-auto shrink-0 whitespace-nowrap text-[0.625rem] font-semibold ${price > 0 ? 'text-[#d3da0c]' : 'text-emerald-400'}`}>
                 {price > 0 ? `${currency === 'CNY' ? '¥' : '$'}${price}` : 'Free'}
               </span>
             )}

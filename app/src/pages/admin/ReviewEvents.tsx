@@ -314,14 +314,14 @@ const ReviewEvents = () => {
                                         <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(event.start_date).toLocaleDateString()}</span>
                                     </div>
                                     <div className="flex items-center gap-3 mt-3">
-                                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${event.status === 'approved' ? 'bg-green-500/10 text-green-500' :
+                                        <span className={`px-2 py-0.5 text-[0.625rem] font-bold rounded uppercase ${event.status === 'approved' ? 'bg-green-500/10 text-green-500' :
                                             event.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
                                                 event.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
                                                     'bg-blue-500/10 text-blue-500'
                                             }`}>
                                             {t(`admin.reviewEvents.status.${event.status || 'draft'}`)}
                                         </span>
-                                        <span className="text-gray-500 text-[10px] flex items-center gap-1">
+                                        <span className="text-gray-500 text-[0.625rem] flex items-center gap-1">
                                             {t('admin.reviewEvents.organizedByLabel')} <span className="text-[#020b00] dark:text-white font-medium">{event.business?.business_name || t('admin.reviewEvents.unknown')}</span>
                                         </span>
                                     </div>

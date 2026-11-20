@@ -104,7 +104,7 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
                     </div>
                 ) : product.is_preorder_enabled ? (
                     <div className="absolute top-2 left-2">
-                        <span className="text-black font-extrabold text-[10px] px-2.5 py-0.5 bg-[#d3da0c] rounded-full shadow-md">
+                        <span className="text-black font-extrabold text-[0.625rem] px-2.5 py-0.5 bg-[#d3da0c] rounded-full shadow-md">
                             PREORDER
                         </span>
                     </div>
@@ -116,7 +116,7 @@ export default function ProductCard({ product, vendorId, compact = false, vendor
                     <p className="text-gray-500 text-xs mt-0.5">{vendorName}</p>
                 )}
                 {product.is_preorder_enabled && product.preorder_fulfilment_date && (
-                    <p className="text-[#d3da0c] text-[11px] font-medium mt-1">
+                    <p className="text-[#d3da0c] text-[0.6875rem] font-medium mt-1">
                         Est. Collection: {product.preorder_fulfilment_date}
                     </p>
                 )}

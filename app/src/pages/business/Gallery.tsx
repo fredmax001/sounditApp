@@ -433,7 +433,7 @@ export default function BusinessGallery() {
           >
             <Building2 className="w-3.5 h-3.5" />
             <span>General Profile Gallery</span>
-            <span className="text-[10px] opacity-80">({generalGallery.length})</span>
+            <span className="text-[0.625rem] opacity-80">({generalGallery.length})</span>
           </button>
 
           {/* Event Pills */}
@@ -452,8 +452,8 @@ export default function BusinessGallery() {
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span className="max-w-[160px] truncate">{evt.title}</span>
-                <span className="text-[10px] opacity-80">({count})</span>
+                <span className="max-w-[10rem] truncate">{evt.title}</span>
+                <span className="text-[0.625rem] opacity-80">({count})</span>
               </button>
             );
           })}
@@ -469,7 +469,7 @@ export default function BusinessGallery() {
               Connect Google Cloud / Drive / External Album
             </h3>
           </div>
-          <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-[0.6875rem] font-medium text-gray-500 dark:text-gray-400">
             For: <span className="text-[#020b00] dark:text-white font-semibold">{currentTitle}</span>
           </span>
         </div>
@@ -674,7 +674,7 @@ export default function BusinessGallery() {
                 </button>
               </div>
 
-              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[10px] text-white font-medium">
+              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[0.625rem] text-white font-medium">
                 #{idx + 1}
               </span>
             </div>
@@ -706,7 +706,7 @@ export default function BusinessGallery() {
         return (
           <div
             onClick={() => setPreviewIndex(null)}
-            className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-50 p-4 select-none"
+            className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col justify-between z-[80] p-4 select-none"
           >
             {/* Top Bar */}
             <div
@@ -771,7 +771,7 @@ export default function BusinessGallery() {
               <img
                 src={url}
                 alt="Preview"
-                className="max-w-full max-h-[78vh] rounded-2xl object-contain shadow-2xl"
+                className="max-w-full max-h-[78dvh] rounded-2xl object-contain shadow-2xl"
               />
 
               {hasNext && (

@@ -106,18 +106,19 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[42]"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[70]"
           />
 
           {/* Bottom Sheet Drawer matching exact reference visual */}
           <motion.div
+            data-modal-open="true"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-            className="fixed inset-x-0 bottom-0 z-[45] max-h-[88vh] sm:max-w-md sm:mx-auto rounded-t-[28px] bg-[#020b00] border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-white"
+            className="fixed inset-x-0 bottom-0 z-[80] max-h-[88dvh] sm:max-w-md sm:mx-auto rounded-t-[1.75rem] bg-[#020b00] border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-white"
             style={{
-              paddingBottom: 'calc(76px + max(0.5rem, env(safe-area-inset-bottom, 0px)))',
+              paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
             }}
           >
             {/* Grab Handle */}
@@ -137,7 +138,7 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
                   }}
                 />
                 <span className="text-white/30 text-lg font-light leading-none">|</span>
-                <span className="text-white font-extrabold text-[17px] tracking-tight">More</span>
+                <span className="text-white font-extrabold text-[1.0625rem] tracking-tight">More</span>
               </div>
               <button
                 type="button"

@@ -101,7 +101,7 @@ export default function VendorDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-dvh pt-20 flex items-center justify-center">
         <div className="animate-spin w-12 h-12 border-4 border-[#d3da0c] border-t-transparent rounded-full" />
       </div>
     );
@@ -109,7 +109,7 @@ export default function VendorDetail() {
 
   if (!vendor) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
+      <div className="min-h-dvh pt-20 flex items-center justify-center bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
         <div className="text-center">
           <Store className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-[#020b00] dark:text-white mb-2">{t('vendorDetail.notFound') || 'Vendor not found'}</h2>
@@ -122,7 +122,7 @@ export default function VendorDetail() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh pt-20 pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Hero */}
       <div className="relative h-[300px] md:h-[400px] overflow-hidden bg-neutral-900 dark:bg-[#141414]">
         {vendor.banner_url || vendor.logo_url ? (

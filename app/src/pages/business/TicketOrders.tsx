@@ -318,41 +318,41 @@ const TicketOrdersPage = () => {
 
     if (isCheckedIn) {
       return (
-        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#1d4ed8]/30 text-[#60a5fa] border border-[#3b82f6]/30 shrink-0">
+        <span className="px-3 py-1 rounded-full text-[0.6875rem] font-bold bg-[#1d4ed8]/30 text-[#60a5fa] border border-[#3b82f6]/30 shrink-0">
           Checked In
         </span>
       );
     }
     if (order.status === 'pending' && order.buyer_confirmed) {
       return (
-        <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#d3da0c] text-black shrink-0">
+        <span className="px-3 py-1 rounded-full text-[0.6875rem] font-extrabold bg-[#d3da0c] text-black shrink-0">
           Confirmed
         </span>
       );
     }
     if (order.status === 'pending') {
       return (
-        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+        <span className="px-3 py-1 rounded-full text-[0.6875rem] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
           Pending
         </span>
       );
     }
     if (order.status === 'approved') {
       return (
-        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+        <span className="px-3 py-1 rounded-full text-[0.6875rem] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
           Approved
         </span>
       );
     }
     return (
-      <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-500/20 text-red-400 shrink-0">
+      <span className="px-3 py-1 rounded-full text-[0.6875rem] font-bold bg-red-500/20 text-red-400 shrink-0">
         {order.status}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#020b00] text-white pb-28">
+    <div className="min-h-dvh bg-[#020b00] text-white pb-28">
       {/* Top Header matching reference Screen 3 (Ticket Orders) */}
       <div className="sticky top-0 z-30 bg-[#020b00]/95 backdrop-blur-xl px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
         <div className="flex items-center justify-between h-11 max-w-4xl mx-auto">
@@ -363,7 +363,7 @@ const TicketOrdersPage = () => {
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-[17px] font-bold text-white tracking-tight">Ticket Orders</h1>
+          <h1 className="text-[1.0625rem] font-bold text-white tracking-tight">Ticket Orders</h1>
           <div className="flex items-center gap-1 -mr-1">
             <button
               onClick={handleExportCsv}
@@ -497,7 +497,7 @@ const TicketOrdersPage = () => {
                       {getInitials(buyerName)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[15px] font-bold text-white truncate">{buyerName}</p>
+                      <p className="text-[0.9375rem] font-bold text-white truncate">{buyerName}</p>
                       <p className="text-xs text-gray-400 truncate">{buyerEmail}</p>
                     </div>
                   </div>
@@ -797,7 +797,7 @@ const TicketOrdersPage = () => {
           onClick={() => setSelectedOrderTickets(null)}
         >
           <div
-            className="bg-[#11150E] rounded-2xl p-6 max-w-2xl w-full border border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto"
+            className="bg-[#11150E] rounded-2xl p-6 max-w-2xl w-full border border-white/10 shadow-2xl max-h-[85dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -828,11 +828,11 @@ const TicketOrdersPage = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white font-bold text-sm">#{idx + 1}</span>
                     {ticket.is_used ? (
-                      <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
+                      <span className="px-2 py-0.5 bg-green-500 text-white text-[0.625rem] font-bold rounded-full">
                         USED
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[10px] font-bold rounded-full">
+                      <span className="px-2 py-0.5 bg-[#d3da0c] text-black text-[0.625rem] font-bold rounded-full">
                         ACTIVE
                       </span>
                     )}
@@ -844,7 +844,7 @@ const TicketOrdersPage = () => {
                       No QR
                     </div>
                   )}
-                  <p className="text-white text-[10px] font-mono mt-2 truncate">{ticket.ticket_number}</p>
+                  <p className="text-white text-[0.625rem] font-mono mt-2 truncate">{ticket.ticket_number}</p>
                 </div>
               ))}
             </div>

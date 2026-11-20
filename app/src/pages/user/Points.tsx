@@ -126,7 +126,7 @@ const Points = () => {
     new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-24 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020B00] text-[#020b00] dark:text-white pb-24 transition-colors duration-200">
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020B00]/95 backdrop-blur-xl border-b border-black/10 dark:border-white/10 safe-area-pt">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center" aria-label="Back">
@@ -149,7 +149,7 @@ const Points = () => {
               {(data?.balance || 0).toLocaleString()} <span className="text-[#8a8f04] dark:text-[#d3da0c]">pts</span>
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Your Points Balance</p>
-            <div className="flex items-center justify-center gap-4 mt-3 text-[11px] text-gray-500">
+            <div className="flex items-center justify-center gap-4 mt-3 text-[0.6875rem] text-gray-500">
               <span>Earned {(data?.lifetime_earned || 0).toLocaleString()}</span>
               <span className="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-600" />
               <span>Redeemed {(data?.lifetime_redeemed || 0).toLocaleString()}</span>
@@ -215,7 +215,7 @@ const Points = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#020b00] dark:text-white truncate">{tx.title}</p>
-                      <p className="text-[11px] text-gray-500">{fmtDate(tx.created_at)}</p>
+                      <p className="text-[0.6875rem] text-gray-500">{fmtDate(tx.created_at)}</p>
                     </div>
                     <span className={`text-sm font-extrabold ${positive ? 'text-[#8a8f04] dark:text-[#d3da0c]' : 'text-red-500 dark:text-red-400'}`}>
                       {positive ? '+' : ''}{tx.amount.toLocaleString()} pts
@@ -238,12 +238,13 @@ const Points = () => {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSheet(null)}
-              className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm"
+              className="fixed inset-0 z-[75] bg-black/75 backdrop-blur-sm"
             />
             <motion.div
+              data-modal-open="true"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1408] border-t border-white/15 rounded-t-3xl max-h-[80vh] flex flex-col safe-area-pb"
+              className="fixed bottom-0 left-0 right-0 z-[80] bg-[#0a1408] border-t border-white/15 rounded-t-3xl max-h-[80dvh] flex flex-col safe-area-pb"
             >
               <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <h3 className="text-sm font-extrabold">
@@ -261,7 +262,7 @@ const Points = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold">{rule.title}</p>
-                        <p className="text-[11px] text-gray-400">{rule.description}</p>
+                        <p className="text-[0.6875rem] text-gray-400">{rule.description}</p>
                       </div>
                       <span className="text-sm font-extrabold text-[#d3da0c] shrink-0">+{rule.points}</span>
                     </div>
@@ -280,7 +281,7 @@ const Points = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold">{r.title}</p>
-                          <p className="text-[11px] text-gray-400">{r.points_cost.toLocaleString()} pts</p>
+                          <p className="text-[0.6875rem] text-gray-400">{r.points_cost.toLocaleString()} pts</p>
                         </div>
                         <button
                           onClick={() => redeem(r.id)}
@@ -308,7 +309,7 @@ const Points = () => {
                       {positive ? <ArrowUpRight className="w-4 h-4 text-[#d3da0c]" /> : <ArrowDownRight className="w-4 h-4 text-red-400" />}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{tx.title}</p>
-                        <p className="text-[11px] text-gray-500 truncate">{tx.description || fmtDate(tx.created_at)}</p>
+                        <p className="text-[0.6875rem] text-gray-500 truncate">{tx.description || fmtDate(tx.created_at)}</p>
                       </div>
                       <span className={`text-sm font-extrabold ${positive ? 'text-[#d3da0c]' : 'text-red-400'}`}>
                         {positive ? '+' : ''}{tx.amount}

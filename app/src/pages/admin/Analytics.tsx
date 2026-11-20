@@ -343,17 +343,17 @@ export default function AnalyticsPage() {
 
   if (loading && !summary) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#020b00] flex items-center justify-center">
+      <div className="min-h-dvh bg-white dark:bg-[#020b00] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <BarChart3 className="w-7 h-7 text-[#d3da0c]" />
@@ -436,7 +436,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <AnimatePresence mode="wait">
           {activeTab === "overview" && (
             <motion.div
@@ -454,7 +454,7 @@ export default function AnalyticsPage() {
                       <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/20 flex items-center justify-center">
                         <Wallet className="w-5 h-5 text-yellow-700 dark:text-[#d3da0c]" />
                       </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c]">
+                      <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c]">
                         All-Time
                       </span>
                     </div>
@@ -462,7 +462,7 @@ export default function AnalyticsPage() {
                       ¥{(summary.total_platform_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Platform Revenue</div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Tickets, VIP Tables, Merch & Subscriptions</p>
+                    <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 mt-1">Tickets, VIP Tables, Merch & Subscriptions</p>
                   </div>
 
                   <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
@@ -470,7 +470,7 @@ export default function AnalyticsPage() {
                       <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
                         <TrendingUp className="w-5 h-5 text-blue-500" />
                       </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
                         {days} Days
                       </span>
                     </div>
@@ -478,7 +478,7 @@ export default function AnalyticsPage() {
                       ¥{(summary.period_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Period Revenue</div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Income earned in selected date window</p>
+                    <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 mt-1">Income earned in selected date window</p>
                   </div>
 
                   <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
@@ -486,7 +486,7 @@ export default function AnalyticsPage() {
                       <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                         <Heart className="w-5 h-5 text-purple-500" />
                       </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                      <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
                         Community
                       </span>
                     </div>
@@ -494,7 +494,7 @@ export default function AnalyticsPage() {
                       {(summary.total_followers ?? 0).toLocaleString()}
                     </div>
                     <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Platform Followers</div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Across Artists, Venues, Vendors & Events</p>
+                    <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 mt-1">Across Artists, Venues, Vendors & Events</p>
                   </div>
 
                   <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/5 rounded-2xl p-5 shadow-xs dark:shadow-none hover:border-[#d3da0c]/30 transition-colors">
@@ -502,7 +502,7 @@ export default function AnalyticsPage() {
                       <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
                         <Ticket className="w-5 h-5 text-green-500" />
                       </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                      <span className="text-[0.6875rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                         Verified
                       </span>
                     </div>
@@ -510,7 +510,7 @@ export default function AnalyticsPage() {
                       {(summary.total_tickets_sold ?? 0).toLocaleString()}
                     </div>
                     <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Tickets Sold</div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Paid & confirmed attendee admissions</p>
+                    <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 mt-1">Paid & confirmed attendee admissions</p>
                   </div>
                 </div>
               )}
@@ -668,7 +668,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-2">
                       {summary.top_pages.map((p, i) => (
                         <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
-                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[12.5rem]">{p.path}</span>
                           <span className="text-sm font-medium text-[#d3da0c]">{p.count}</span>
                         </div>
                       ))}
@@ -679,7 +679,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-2">
                       {summary.entry_pages.map((p, i) => (
                         <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
-                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[12.5rem]">{p.path}</span>
                           <span className="text-sm font-medium text-green-500 dark:text-green-400">{p.count}</span>
                         </div>
                       ))}
@@ -690,7 +690,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-2">
                       {summary.exit_pages.map((p, i) => (
                         <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
-                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{p.path}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[12.5rem]">{p.path}</span>
                           <span className="text-sm font-medium text-red-500 dark:text-red-400">{p.count}</span>
                         </div>
                       ))}
@@ -980,7 +980,7 @@ export default function AnalyticsPage() {
                       <div className="space-y-2">
                         {eventAnalytics.top_events_by_views.map((e, i) => (
                           <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
-                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[250px]">{e.title}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[15.625rem]">{e.title}</span>
                             <span className="text-sm font-medium text-[#d3da0c]">{e.views} views</span>
                           </div>
                         ))}
@@ -991,7 +991,7 @@ export default function AnalyticsPage() {
                       <div className="space-y-2">
                         {eventAnalytics.top_events_by_revenue.map((e, i) => (
                           <div key={i} className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/5 last:border-0">
-                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{e.title}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[12.5rem]">{e.title}</span>
                             <div className="text-right">
                               <div className="text-sm font-medium text-green-500 dark:text-green-400">¥{e.revenue.toLocaleString()}</div>
                               <div className="text-xs text-gray-500">{e.tickets_sold} tickets</div>

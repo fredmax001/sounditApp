@@ -24,12 +24,12 @@ const MobileSectionHeader = ({
       <div>
         {label && (
           <span
-            className="block text-[10px] font-semibold uppercase tracking-widest mb-0.5 text-[#8a8f04] dark:text-[#d3da0c]"
+            className="block text-[0.625rem] font-semibold uppercase tracking-widest mb-0.5 text-[#8a8f04] dark:text-[#d3da0c]"
           >
             {label}
           </span>
         )}
-        <h2 className="text-[17px] font-bold text-[#020b00] dark:text-white leading-tight">{title}</h2>
+        <h2 className="text-[1.0625rem] font-bold text-[#020b00] dark:text-white leading-tight">{title}</h2>
       </div>
       {seeAllPath && (
         <Link

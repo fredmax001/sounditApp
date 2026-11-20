@@ -272,7 +272,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Show loading state while profile is loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020b00]">
+      <div className="min-h-dvh flex items-center justify-center bg-[#020b00]">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -285,7 +285,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // If no profile after loading, session may have expired - redirect to login
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020b00] p-6">
+      <div className="min-h-dvh flex items-center justify-center bg-[#020b00] p-6">
         <div className="text-center max-w-sm">
           <p className="text-white text-lg font-bold mb-2">
             {t('auth.sessionExpired') || 'Session Expired'}
@@ -308,7 +308,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#020b00] text-[#020b00] dark:text-white flex transition-colors duration-200">
+    <div className="min-h-dvh bg-neutral-50 dark:bg-[#020b00] text-[#020b00] dark:text-white flex transition-colors duration-200">
       {/* Sidebar */}
       <aside
         className="bg-white dark:bg-[#111111] border-r border-black/8 dark:border-white/5 flex flex-col fixed h-full overflow-hidden"
@@ -323,7 +323,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               className="h-10 w-auto max-w-full object-contain"
             />
           </Link>
-          <p className="text-gray-500 text-[10px] mt-1 truncate">
+          <p className="text-gray-500 text-[0.625rem] mt-1 truncate">
             {portalName}
           </p>
         </div>
@@ -378,7 +378,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 {locked && (
                   <>
                     <Lock className="w-3.5 h-3.5 ml-auto text-gray-500" />
-                    <span className="ml-1 text-[10px] uppercase tracking-wider text-gray-500">
+                    <span className="ml-1 text-[0.625rem] uppercase tracking-wider text-gray-500">
                       {formatPlanName(getRequiredPlan(item.feature || ''))}
                     </span>
                   </>
@@ -444,7 +444,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen pt-6" style={{ marginLeft: sidebarWidth }}>
+      <main className="flex-1 min-h-dvh pt-6" style={{ marginLeft: sidebarWidth }}>
         {children || <Outlet />}
       </main>
 

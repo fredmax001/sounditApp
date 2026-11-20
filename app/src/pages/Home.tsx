@@ -477,7 +477,7 @@ const Home = () => {
               {t(greetingKey)}, {profile.first_name}
             </p>
           )}
-          <h1 className="text-[#020b00] dark:text-white font-display font-extrabold text-[22px] tracking-tight leading-tight uppercase">
+          <h1 className="text-[#020b00] dark:text-white font-display font-extrabold text-[1.375rem] tracking-tight leading-tight uppercase">
             {t('home.headlineFind', 'FIND YOUR NEXT')}{' '}
             <span className="text-[#9fa505] dark:text-[#d3da0c]">{t('home.headlineExperience', 'EXPERIENCE')}</span>
           </h1>
@@ -504,7 +504,7 @@ const Home = () => {
             className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-neutral-100 dark:bg-[#0d140a] border border-black/10 dark:border-white/10 text-xs font-bold text-[#020b00] dark:text-white shrink-0 active:scale-95 transition-transform shadow-xs cursor-pointer"
           >
             <MapPin className="w-3.5 h-3.5 text-[#d3da0c] shrink-0" />
-            <span className="max-w-[75px] truncate">
+            <span className="max-w-[4.6875rem] truncate">
               {(chinaCities.find((c) => c.id === selectedCity) || chinaCities[0]).name.split(' ')[0]}
             </span>
             <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
@@ -540,7 +540,7 @@ const Home = () => {
                   <Plus className="w-2.5 h-2.5 stroke-[3]" />
                 </span>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Your Story</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">Your Story</span>
             </button>
 
             {/* Events Story Circle */}
@@ -558,7 +558,7 @@ const Home = () => {
                   />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Events</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">Events</span>
             </button>
 
             {/* Artists Story Circle */}
@@ -576,7 +576,7 @@ const Home = () => {
                   />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Artists</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">Artists</span>
             </button>
 
             {/* Venues Story Circle */}
@@ -594,7 +594,7 @@ const Home = () => {
                   />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">Venues</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">Venues</span>
             </button>
 
             {/* More Circle */}
@@ -608,7 +608,7 @@ const Home = () => {
                   <MoreHorizontal className="w-5 h-5" />
                 </div>
               </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">More</span>
+              <span className="text-[0.6875rem] font-medium text-gray-700 dark:text-gray-300">More</span>
             </button>
           </div>
         </div>
@@ -648,7 +648,7 @@ const Home = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#d3da0c] text-[10px] font-extrabold uppercase mb-1">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-[#d3da0c]/20 text-[#d3da0c] text-[0.625rem] font-extrabold uppercase mb-1">
                           Upcoming Event
                         </span>
                         <h2 className="text-white font-display font-extrabold text-xl leading-tight truncate mb-1">
@@ -711,7 +711,7 @@ const Home = () => {
 
                     {/* Top slide controls & indicators */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md border border-[#d3da0c]/40 text-[#d3da0c] text-[10px] font-extrabold uppercase">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md border border-[#d3da0c]/40 text-[#d3da0c] text-[0.625rem] font-extrabold uppercase">
                         <Sparkles className="w-3 h-3 text-[#d3da0c]" />
                         Featured Event
                       </span>
@@ -854,10 +854,10 @@ const Home = () => {
                     <Play className="w-3 h-3 text-[#d3da0c] fill-[#d3da0c] ml-0.5" />
                   </div>
                   <div className="absolute bottom-2 left-2 right-2">
-                    <p className="text-[10px] font-bold text-[#d3da0c] truncate">
+                    <p className="text-[0.625rem] font-bold text-[#d3da0c] truncate">
                       @{reel.author?.username || 'soundit'}
                     </p>
-                    <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">
+                    <p className="text-[0.6875rem] font-semibold text-white leading-tight line-clamp-2">
                       {reel.title || reel.caption || 'Watch Reel'}
                     </p>
                   </div>
@@ -971,7 +971,7 @@ const Home = () => {
                     <div className="text-white font-bold text-sm">{item.title}</div>
                     <div className="flex items-center gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#d3da0c]" />
-                      <span className="text-gray-300 text-[11px]">{item.count} listed</span>
+                      <span className="text-gray-300 text-[0.6875rem]">{item.count} listed</span>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#d3da0c]" />
@@ -983,7 +983,7 @@ const Home = () => {
 
         {/* Story Preview Modal */}
         {activeStoryPreview && (
-          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[80] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
             <div className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-white/15 bg-[#091206] shadow-2xl">
               <div className="relative h-80">
                 <img
@@ -1000,7 +1000,7 @@ const Home = () => {
                   <X className="w-4 h-4" />
                 </button>
                 <div className="absolute bottom-4 left-4 right-4">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[10px] font-extrabold uppercase tracking-wider mb-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[0.625rem] font-extrabold uppercase tracking-wider mb-2">
                     <Sparkles className="w-3 h-3" /> Sound It Story
                   </span>
                   <h3 className="text-white font-bold text-xl">{activeStoryPreview.title}</h3>
@@ -1035,7 +1035,7 @@ const Home = () => {
       {/* ==================== DESKTOP HOME (hidden on mobile) ==================== */}
       <div className="hidden md:block bg-[#060608]">
         {/* ==================== 1. HERO SECTION ==================== */}
-        <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden bg-[#050507]">
+        <section ref={heroRef} className="relative min-h-[88dvh] flex items-center overflow-hidden bg-[#050507]">
           {/* Right-weighted DJ & Crowd Photography Slideshow */}
           {HERO_SLIDES.map((src, i) => (
             <motion.div
@@ -1365,7 +1365,7 @@ const Home = () => {
                     </svg>
 
                     <div className="text-left pr-2">
-                      <span className="block text-[10px] font-bold tracking-[0.2em] uppercase text-gray-300">
+                      <span className="block text-[0.625rem] font-bold tracking-[0.2em] uppercase text-gray-300">
                         GET IT ON
                       </span>
                       <span className="block text-xl lg:text-2xl font-bold text-white leading-tight">
@@ -1408,7 +1408,7 @@ const Home = () => {
                 {/* Left / Foreground Phone (sds.png) */}
                 <Link
                   to="/download"
-                  className="relative z-20 w-[260px] xl:w-[295px] -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
+                  className="relative z-20 w-[min(100%,16.25rem)] xl:w-[min(100%,18.4375rem)] -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
                 >
                   <img
                     src="/web-hero/sds.png"
@@ -1420,7 +1420,7 @@ const Home = () => {
                 {/* Right / Secondary Phone (wew.png) */}
                 <Link
                   to="/download"
-                  className="relative z-10 w-[245px] xl:w-[275px] -ml-14 mt-10 rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
+                  className="relative z-10 w-[min(100%,15.3125rem)] xl:w-[min(100%,17.1875rem)] -ml-14 mt-10 rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)]"
                 >
                   <img
                     src="/web-hero/wew.png"
@@ -1528,7 +1528,7 @@ const Home = () => {
                             className="absolute top-4 left-4 w-13 h-14 px-3 py-1.5 rounded-xl flex flex-col items-center justify-center shadow-lg"
                             style={{ backgroundColor: badge.bg, color: badge.text }}
                           >
-                            <span className="text-[10px] font-extrabold tracking-wider uppercase leading-none">
+                            <span className="text-[0.625rem] font-extrabold tracking-wider uppercase leading-none">
                               {month}
                             </span>
                             <span className="text-xl font-black leading-tight mt-0.5">{day}</span>
@@ -1649,7 +1649,7 @@ const Home = () => {
                       <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
                       <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
                     </div>
-                    <div className="flex-1 mx-2 px-2.5 py-0.5 rounded-md bg-black/50 border border-white/10 text-[11px] text-gray-300 truncate font-mono text-center">
+                    <div className="flex-1 mx-2 px-2.5 py-0.5 rounded-md bg-black/50 border border-white/10 text-[0.6875rem] text-gray-300 truncate font-mono text-center">
                       {site.domain}
                     </div>
                     <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#d3da0c] transition-colors shrink-0" />
@@ -1676,12 +1676,12 @@ const Home = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f14] via-transparent to-transparent" />
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
                       <span
-                        className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md border border-white/15"
+                        className="px-2.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md border border-white/15"
                         style={{ color: site.accent }}
                       >
                         {site.badge}
                       </span>
-                      <span className="px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-lg">
+                      <span className="px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[0.6875rem] font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-lg">
                         Visit Site <ArrowRight className="w-3 h-3" />
                       </span>
                     </div>
