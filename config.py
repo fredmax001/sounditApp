@@ -94,9 +94,14 @@ class Settings(BaseSettings):
     # Optional APNs token-auth credentials for native iOS push delivery.
     APNS_KEY_ID: str = ""
     APNS_TEAM_ID: str = ""
-    APNS_BUNDLE_ID: str = "com.sounditent.app"
+    APNS_BUNDLE_ID: str = "app.sounditent.com"
     APNS_AUTH_KEY: str = ""
     APNS_USE_SANDBOX: bool = False
+
+    # Optional FCM credentials for native Android push delivery (HTTP v1 service account JSON or legacy key).
+    FCM_PROJECT_ID: str = ""
+    FCM_SERVICE_ACCOUNT_JSON: str = ""
+    FCM_SERVER_KEY: str = ""
     
     # SIA — Sound It Assistant (optional LLM enhancement)
     SIA_ENABLED: bool = True

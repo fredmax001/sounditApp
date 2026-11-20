@@ -34,6 +34,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import SubscriptionTrialBanner from '@/components/SubscriptionTrialBanner';
+import NativeGettingStartedChecklist from '@/components/onboarding/NativeGettingStartedChecklist';
 import VerificationBadge from '@/components/VerificationBadge';
 import BroadcastAnnouncementModal from '@/components/BroadcastAnnouncementModal';
 import NotificationBell from '@/components/NotificationBell';
@@ -405,6 +406,7 @@ const BusinessDashboard = () => {
       <div className="max-w-5xl mx-auto px-4 pt-4 space-y-5">
         {/* 1-Month Free Trial / Subscription Status Banner */}
         <SubscriptionTrialBanner />
+        <NativeGettingStartedChecklist />
 
         {/* Kicker + Role Switcher Pill */}
         <div>

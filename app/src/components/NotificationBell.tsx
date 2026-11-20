@@ -16,6 +16,7 @@ const NotificationBell = ({
   const navigate = useNavigate();
   const { session, isAuthenticated } = useAuthStore();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasLivePulse, setHasLivePulse] = useState(false);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!session?.access_token) return;
@@ -40,7 +41,13 @@ const NotificationBell = ({
           count += invites.filter((i: any) => i.status === 'Pending').length;
         }
       }
-      setUnreadCount(count);
+      setUnreadCount((prev) => {
+        if (count > prev) {
+          setHasLivePulse(true);
+          window.setTimeout(() => setHasLivePulse(false), 3500);
+        }
+        return count;
+      });
     } catch {
       // silent fail
     }
@@ -52,10 +59,17 @@ const NotificationBell = ({
       fetchUnreadCount();
       const interval = setInterval(fetchUnreadCount, 25000);
       const handleRefresh = () => fetchUnreadCount();
+      const handleVisibility = () => {
+        if (!document.hidden) fetchUnreadCount();
+      };
       window.addEventListener('notifications-updated', handleRefresh);
+      window.addEventListener('notifications-updated-local', handleRefresh);
+      document.addEventListener('visibilitychange', handleVisibility);
       return () => {
         clearInterval(interval);
         window.removeEventListener('notifications-updated', handleRefresh);
+        window.removeEventListener('notifications-updated-local', handleRefresh);
+        document.removeEventListener('visibilitychange', handleVisibility);
       };
     }
   }, [isAuthenticated, fetchUnreadCount]);
@@ -67,13 +81,14 @@ const NotificationBell = ({
   }, [unreadCount, isAuthenticated]);
 
   const handleClick = () => {
+    setHasLivePulse(false);
     navigate('/notifications');
   };
 
   return (
     <button
       onClick={handleClick}
-      aria-label="Notifications"
+      aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
       title="View Notifications"
       className={
         className
@@ -88,13 +103,11 @@ const NotificationBell = ({
       <Bell className={mobile ? 'w-[18px] h-[18px]' : 'w-4 h-4 sm:w-5 sm:h-5'} />
       {unreadCount > 0 && (
         <span
-          className={`absolute ${
-            mobile
-              ? 'top-1 right-1 w-2.5 h-2.5 border border-[#020b00]'
-              : '-top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[0.625rem] flex items-center justify-center text-white font-bold'
-          } bg-red-500 rounded-full`}
+          className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[0.625rem] flex items-center justify-center text-white font-bold bg-red-500 rounded-full border border-[#020b00]/40 ${
+            hasLivePulse ? 'ring-2 ring-[#d3da0c] animate-pulse' : ''
+          }`}
         >
-          {!mobile && (unreadCount > 99 ? '99+' : unreadCount)}
+          {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
     </button>

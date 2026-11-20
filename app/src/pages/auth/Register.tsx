@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User as UserIcon, Loader2, Check, MapPin, Mail } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useOnboardingStore } from '@/store/onboardingStore';
+import { isNativeMobileApp } from '@/lib/platform';
 import { chinaCities } from '@/data/constants';
 import { toast } from 'sonner';
 import GoogleAuthButton from '@/components/GoogleAuthButton';
@@ -13,9 +15,19 @@ type Role = 'user' | 'business' | 'artist_dj' | 'vendor';
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { registerWithEmail, isLoading } = useAuthStore();
 
   const [selectedRole, setSelectedRole] = useState<Role | ''>('');
+
+  useEffect(() => {
+    const roleParam = (searchParams.get('role') || '').toLowerCase();
+    if (roleParam === 'user' || roleParam === 'business' || roleParam === 'vendor') {
+      setSelectedRole(roleParam);
+    } else if (roleParam === 'artist' || roleParam === 'artist_dj' || roleParam === 'dj') {
+      setSelectedRole('artist_dj');
+    }
+  }, [searchParams]);
   const [selectedArtistType, setSelectedArtistType] = useState<string>('DJ');
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -86,7 +98,12 @@ const Register = () => {
       });
 
       toast.success(t('auth.register.accountCreated'));
-      navigate('/');
+      if (isNativeMobileApp()) {
+        await useOnboardingStore.getState().initNewNativeUser();
+        navigate('/onboarding?mode=setup', { replace: true });
+      } else {
+        navigate('/');
+      }
     } catch (error: unknown) {
       toast.error((error as Error).message || t('auth.register.registrationFailed'));
     }
@@ -109,6 +126,13 @@ const Register = () => {
 
       await useAuthStore.getState().loginWithEmail(data.user?.email || '', '', data);
       toast.success(t('auth.register.accountCreated'));
+      if (isNativeMobileApp()) {
+        const ob = await useOnboardingStore.getState().initNewNativeUser();
+        if (ob?.is_first_time_eligible && !ob.completed) {
+          navigate('/onboarding?mode=setup', { replace: true });
+          return;
+        }
+      }
       navigate(data.redirect_url || '/');
     } catch (error) {
       toast.error((error as Error)?.message || t('auth.register.googleSignUpFailed'));

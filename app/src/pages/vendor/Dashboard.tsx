@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import VerificationBadge from '@/components/VerificationBadge';
 import SubscriptionTrialBanner from '@/components/SubscriptionTrialBanner';
+import NativeGettingStartedChecklist from '@/components/onboarding/NativeGettingStartedChecklist';
 
 interface VendorEvent {
   id: number;
@@ -429,6 +430,7 @@ const VendorDashboard = () => {
       <div className="max-w-4xl mx-auto px-4 pt-3 space-y-5">
         {/* 1-Month Free Trial / Subscription Status Banner */}
         <SubscriptionTrialBanner />
+        <NativeGettingStartedChecklist />
 
         {/* Kicker + Business Title + Edit Button */}
         <div>

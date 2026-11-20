@@ -31,6 +31,7 @@ import api.monitoring as monitoring
 import api.reels as reels
 import api.points as points
 import api.smart_notifications as smart_notifications
+import api.onboarding as onboarding
 from services.notification_worker import start_smart_notification_worker
 
 settings = get_settings()
@@ -424,6 +425,7 @@ app.include_router(newsletter.router, prefix="/api/v1")
 app.include_router(reels.router, prefix="/api/v1")
 app.include_router(points.router, prefix="/api/v1")
 app.include_router(smart_notifications.router, prefix="/api/v1")
+app.include_router(onboarding.router, prefix="/api/v1")
 app.include_router(sitemap.router)
 
 

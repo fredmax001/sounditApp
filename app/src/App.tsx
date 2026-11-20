@@ -55,6 +55,10 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AndroidAppPrompt from './components/AndroidAppPrompt';
 import CookieConsent from './components/CookieConsent';
 import { MobileViewportManager } from './hooks/useMobileViewport';
+import LiveNotificationBridge from './components/notifications/LiveNotificationBridge';
+import UploadProgressHUD from './components/notifications/UploadProgressHUD';
+import NativeProductTour from './components/onboarding/NativeProductTour';
+import { isNativeMobileApp } from './lib/platform';
 
 // ── Lazy-loaded pages (code-split by route) ──
 
@@ -183,39 +187,28 @@ const PageLoader = () => (
   </div>
 );
 
-const isNativeApp = () => {
-  if (typeof window === 'undefined') return false;
-  return Boolean(
-    Capacitor.isNativePlatform() ||
-    (window as any).__capacitor?.isNativePlatform?.() === true ||
-    (window as any).Capacitor?.isNativePlatform?.() === true ||
-    (window as any).Capacitor?.getPlatform?.() === 'ios' ||
-    (window as any).Capacitor?.getPlatform?.() === 'android'
-  );
-};
+const isNativeApp = () => isNativeMobileApp();
 
 // Root route handler:
-// Onboarding is exclusively for native mobile apps (iOS & Android)
-// Web and Mobile Layout use the Intro screen only and land directly on Home
+// Onboarding is exclusively for native mobile apps (iOS & Android).
+// Web, Mobile Web, and PWA land directly on Home with zero onboarding changes.
 const RootEntry = () => {
   const { isAuthenticated } = useAuthStore();
   const isApp = isNativeApp();
   const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_COMPLETED_KEY) === 'true';
 
-  // First-time user on native iOS / Android App:
+  // First-time unauthenticated user on native iOS / Android App:
   if (isApp && !hasCompletedOnboarding && !isAuthenticated) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Web and Mobile layout (and returning App users) browse Home directly
+  // Web, Mobile Web, PWA, and returning App users browse Home directly
   return <Home />;
 };
 
 const OnboardingGuard = () => {
-  const isApp = isNativeApp();
-  const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
-  // Onboarding is only for native apps. Web & Mobile Layout use Intro Screen.
-  if (!isApp && !isPreview) {
+  // Strictly native iOS & Android apps ONLY — never expose on web or PWA
+  if (!isNativeApp()) {
     return <Navigate to="/" replace />;
   }
   return <Onboarding />;
@@ -343,6 +336,9 @@ function App() {
     <ErrorBoundary>
     <MobileViewportManager />
     <Router>
+      <LiveNotificationBridge />
+      <UploadProgressHUD />
+      <NativeProductTour />
       <GlobalAudioPlayer />
       <Toaster
         position="top-right"

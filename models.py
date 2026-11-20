@@ -1922,14 +1922,18 @@ class PushSubscription(Base):
 
 
 class NativePushToken(Base):
-    """APNs device tokens registered by native iOS app installs."""
+    """APNs (iOS) and FCM (Android) device tokens registered by native mobile app installs."""
     __tablename__ = "native_push_tokens"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     token = Column(String(512), nullable=False, unique=True)
-    platform = Column(String(20), nullable=False, default="ios")
+    platform = Column(String(20), nullable=False, default="ios", index=True)  # ios | android
+    device_id = Column(String(128), nullable=True, index=True)
+    app_version = Column(String(32), nullable=True)
+    failure_count = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -1949,18 +1953,24 @@ class NotificationPreference(Base):
     verifications = Column(Boolean, default=True)
     subscriptions = Column(Boolean, default=True)
     events = Column(Boolean, default=True)
+    event_invitations = Column(Boolean, default=True)
+    event_reminders = Column(Boolean, default=True)
+    business_enquiries = Column(Boolean, default=True)
+    system_alerts = Column(Boolean, default=True)
     marketing = Column(Boolean, default=False)
     artist_updates = Column(Boolean, default=True)
     recommendations = Column(Boolean, default=True)
     social = Column(Boolean, default=True)
     reengagement = Column(Boolean, default=True)
     
-    # Global toggles
+    # Global channel toggles
+    in_app_enabled = Column(Boolean, default=True)
     push_enabled = Column(Boolean, default=True)
     email_enabled = Column(Boolean, default=True)
     sms_enabled = Column(Boolean, default=False)
     
     # Quiet hours (stored as "HH:MM" strings)
+    quiet_hours_enabled = Column(Boolean, default=True)
     quiet_hours_start = Column(String(5), nullable=True)
     quiet_hours_end = Column(String(5), nullable=True)
     preferred_delivery_hour = Column(Integer, default=18)

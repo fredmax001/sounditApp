@@ -39,6 +39,7 @@ import {
 import { useEventStore } from '@/store/eventStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
+import NativeGettingStartedChecklist from '@/components/onboarding/NativeGettingStartedChecklist';
 import { getEntitySlug } from '@/lib/slug';
 import { chinaCities } from '@/data/constants';
 import EventCard from '@/components/EventCard';
@@ -481,6 +482,11 @@ const Home = () => {
             {t('home.headlineFind', 'FIND YOUR NEXT')}{' '}
             <span className="text-[#9fa505] dark:text-[#d3da0c]">{t('home.headlineExperience', 'EXPERIENCE')}</span>
           </h1>
+        </div>
+
+        {/* Native-Only First-Time User Getting Started Checklist (renders null on Web/PWA & existing users) */}
+        <div className="px-4 mb-3 empty:hidden">
+          <NativeGettingStartedChecklist />
         </div>
 
         {/* Search bar + Location Filter */}

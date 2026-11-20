@@ -5,7 +5,32 @@
 ---
 
 ## Last Updated
-2026-11-11
+2026-11-20
+
+---
+
+### 182. System-Wide Mobile UI/UX Responsive Audit, Native-Only Onboarding Enhancements & Cross-Platform Intelligent Notification System (2026-11-20)
+- **Objectives & Issues Addressed**:
+  1. **System-Wide Mobile UI/UX Layout, Bottom Navigation Clearance, Keyboard Handling & Responsive Unit Audit**:
+     - *Dynamic Viewport & Keyboard Engine (`app/index.html`, `app/src/hooks/useMobileViewport.ts`, `app/src/index.css`)*: Added `interactive-widget=resizes-content` to viewport meta, created `useMobileViewport()` subscribing to `window.visualViewport` resize/scroll and focus events, toggling `html.keyboard-open`, updating `--visual-viewport-height` and `--keyboard-inset-height`, and smoothly scrolling focused inputs and sticky action buttons above the on-screen keyboard.
+     - *Bottom Navigation & Modal Z-Index Elevation (`MobileBottomNav.tsx`, `MainLayout.tsx`, `DashboardLayout.tsx`, `AdminLayout.tsx`, `StaffLayout.tsx`, `PromoterLayout.tsx`)*: Set bottom nav to `z-40`, auto-hides when `isKeyboardOpen` is true or on focused checkout/editor routes, applied `.pb-safe-nav` (`calc(var(--mobile-bottom-nav-offset) + 2rem)`) across all layout shells, and elevated all Radix UI overlays (`dialog`, `sheet`, `drawer`, `alert-dialog`, `select`, `popover`, `dropdown-menu`, `sonner`) to `z-[100]`/`z-[110]`.
+     - *Eliminated Hardcoded `px` & Rigid `vh` Across 181 Frontend Files*: Converted rigid `100vh` to `100dvh`, arbitrary pixel font sizes `text-[Xpx]` to `rem`, button padding to `em`, and hardcoded container pixel widths to responsive `rem`/`%` with `max-w-full`.
+  2. **Part 1 — Existing Onboarding Enhancement (Native iOS & Android Applications ONLY)**:
+     - *Strict Native Platform Gate (`app/src/lib/platform.ts`)*: Built `isNativeMobileApp()` using `Capacitor.isNativePlatform()` and `Capacitor.getPlatform() === 'ios' | 'android'`. Web browsers and PWAs retain their existing experience untouched.
+     - *First-Time User & Multi-Device Backend Persistence (`api/onboarding.py`, `app/src/store/onboardingStore.ts`)*: Added owner-scoped endpoints (`GET /api/v1/onboarding/state`, `POST /api/v1/onboarding/init-new-user`, `PATCH /api/v1/onboarding/progress`, `POST /api/v1/onboarding/complete`) backed by `User.profile_data["onboarding"]` with local state hydration. Protects existing users via a 30-minute new-account window check and persists completion across logout/login, app updates, and devices.
+     - *8 Integrated Onboarding UX Patterns*:
+       1. **Welcome Carousel (`Onboarding.tsx`)**: Enhanced existing intro into a 4-slide value proposition carousel (`Discover`, `Book & Connect`, `Share the Vibe`, `Curated For You`).
+       2. **Setup Wizard (`/onboarding?mode=setup`)**: Post-registration multi-step wizard with progress bar, 1 question per step (City -> Interests -> Permission Priming), Back/Continue, automatic backend saving, and resume capability.
+       3. **Interests Selection (`Onboarding.tsx`, `api/onboarding.py`)**: 12 Sound It categories & genres wired directly to `services/interest_engine.py` (`UserInterest` table, weight `3.0`).
+       4. **Permission Priming (`Onboarding.tsx`)**: Contextual explanation cards before native iOS/Android permission dialogs (`Geolocation.requestPermissions()`, `registerNativePush()`), respecting declined states without nagging.
+       5. **Getting Started Checklist (`NativeGettingStartedChecklist.tsx`)**: Role-tailored interactive checklist (Regular Users, Organizers, Artists/DJs, Vendors) mounted on `Home.tsx` and role dashboards with real-time progress computed from actual database state.
+       6. **Interactive Coach Marks & 7. Product Tour (`NativeProductTour.tsx`, `MobileBottomNav.tsx`)**: Multi-stop spotlight overlay targeting live DOM elements (`[data-tour="discover" | "events" | "recaps" | "community" | "notifications" | "profile"]`) with real route navigation.
+       8. **Intelligent Empty States (`IntelligentEmptyState.tsx`)**: Reusable empty state card integrated into `Notifications.tsx` and feeds.
+  3. **Part 2 — Cross-Platform Notification System (iOS APNs, Android FCM, Desktop/Mobile Web, PWA)**:
+     - *Unified Push Delivery (`services/push_service.py`, `api/notifications.py`, `models.py`)*: Extended `NativePushToken` for both `ios` (APNs HTTP/2 JWT ES256) and `android` (FCM HTTP v1 OAuth2 RS256 + legacy key fallback) plus WebPush (VAPID), with automatic deactivation of expired/unregistered tokens (`410`, `BadDeviceToken`, `UNREGISTERED`) and `DELETE /notifications/native-token` on logout.
+     - *Smart Deduplication, Quiet Hours & Mandatory Security Alerts (`api/notifications.py`)*: Added 60-second / `dedupe_key` duplicate suppression, per-category and per-channel user preferences (`NotificationSettings.tsx`), quiet hours enforcement, and mandatory security alert bypass (`security_*`, `login_alert`, `password_changed`).
+     - *8 Notification UI Patterns*: Toast notifications (`LiveNotificationBridge.tsx`), push notification banners (`nativePush.ts`, `service-worker.js`), live activity indicators (`NotificationBell.tsx`), unread badges (`NotificationBell.tsx`, `MobileBottomNav.tsx`), inline alerts (`InlineNotificationAlert.tsx`), confirmation dialogs (`Notifications.tsx`), grouped notifications (`Notifications.tsx`), and upload/publishing progress HUD (`UploadProgressHUD.tsx`, `uploadProgressStore.ts`).
+     - *Automated Security & Functional Test Suite (`tests/test_onboarding_and_notifications.py`)*: Comprehensive tests verifying first-time vs. existing user onboarding gates, role checklists, iOS/Android token registration, expired token cleanup, deduplication, mandatory security alerts, and IDOR prevention.
 
 ---
 

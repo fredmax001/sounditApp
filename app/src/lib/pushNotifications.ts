@@ -43,12 +43,34 @@ class PushNotificationManager {
         sessionStorage.setItem('soundit_push_synced', '1');
       }
 
-      // Listen for messages from service worker
+      // Listen for messages from service worker (click deep-links, foreground pushes, key rotations)
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'NOTIFICATION_CLICK') {
           window.dispatchEvent(new CustomEvent('notification-click', {
             detail: event.data
           }));
+        } else if (event.data?.type === 'PUSH_RECEIVED') {
+          window.dispatchEvent(new CustomEvent('web-push-received', {
+            detail: event.data
+          }));
+          window.dispatchEvent(new Event('notifications-updated'));
+        } else if (event.data?.type === 'PUSH_SUBSCRIPTION_CHANGE' && event.data?.subscription) {
+          const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
+          if (token) {
+            fetch(`${API_BASE_URL}/notifications/push-subscribe`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                endpoint: event.data.subscription.endpoint,
+                keys: event.data.subscription.keys,
+                device_type: this.detectDeviceType(),
+                browser: this.detectBrowser()
+              })
+            }).catch(() => {});
+          }
         }
       });
 

@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import VerificationBadge from '@/components/VerificationBadge';
 import SubscriptionTrialBanner from '@/components/SubscriptionTrialBanner';
+import NativeGettingStartedChecklist from '@/components/onboarding/NativeGettingStartedChecklist';
 import {
   SpotifyIcon,
   AppleMusicIcon,
@@ -869,6 +870,9 @@ const ArtistDashboard = () => {
       <div className="px-4 pt-4 lg:px-10 lg:pt-5">
         {/* 1-Month Free Trial / Subscription Status Banner */}
         <SubscriptionTrialBanner className="mb-4" />
+        <div className="mb-4 empty:hidden">
+          <NativeGettingStartedChecklist />
+        </div>
 
         {/* Horizontally scrollable on mobile - full labels always shown */}
         <div className="flex gap-1.5 overflow-x-auto bg-neutral-100 dark:bg-[#0b140b] p-1.5 rounded-2xl border border-black/8 dark:border-white/10 hide-scrollbar">

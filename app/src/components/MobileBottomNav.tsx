@@ -386,6 +386,7 @@ const MobileBottomNav = () => {
               return (
                 <button
                   key={item.path}
+                  data-tour-path={item.path}
                   onClick={() => handleNavClick(item.path)}
                   className="relative flex-1 flex flex-col items-center justify-center h-full py-1 rounded-full touch-feedback group min-w-0"
                   aria-label={item.label}

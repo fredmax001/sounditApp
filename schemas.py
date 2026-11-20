@@ -1207,10 +1207,20 @@ class NotificationPreferenceResponse(BaseModel):
     verifications: bool = True
     subscriptions: bool = True
     events: bool = True
+    event_invitations: bool = True
+    event_reminders: bool = True
+    business_enquiries: bool = True
+    system_alerts: bool = True
+    social: bool = True
+    artist_updates: bool = True
+    recommendations: bool = True
+    reengagement: bool = True
     marketing: bool = False
+    in_app_enabled: bool = True
     push_enabled: bool = True
     email_enabled: bool = True
     sms_enabled: bool = False
+    quiet_hours_enabled: bool = True
     quiet_hours_start: Optional[str] = None
     quiet_hours_end: Optional[str] = None
     
@@ -1227,10 +1237,20 @@ class NotificationPreferenceUpdate(BaseModel):
     verifications: Optional[bool] = None
     subscriptions: Optional[bool] = None
     events: Optional[bool] = None
+    event_invitations: Optional[bool] = None
+    event_reminders: Optional[bool] = None
+    business_enquiries: Optional[bool] = None
+    system_alerts: Optional[bool] = None
+    social: Optional[bool] = None
+    artist_updates: Optional[bool] = None
+    recommendations: Optional[bool] = None
+    reengagement: Optional[bool] = None
     marketing: Optional[bool] = None
+    in_app_enabled: Optional[bool] = None
     push_enabled: Optional[bool] = None
     email_enabled: Optional[bool] = None
     sms_enabled: Optional[bool] = None
+    quiet_hours_enabled: Optional[bool] = None
     quiet_hours_start: Optional[str] = None
     quiet_hours_end: Optional[str] = None
 

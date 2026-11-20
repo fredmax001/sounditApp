@@ -293,6 +293,44 @@ def init_db():
                     conn.commit()
                 except Exception:
                     pass
+
+            # NativePushToken & NotificationPreference columns + notification indexes (SQLite)
+            for col, col_type in [
+                ("device_id", "VARCHAR(128)"),
+                ("app_version", "VARCHAR(32)"),
+                ("failure_count", "INTEGER DEFAULT 0"),
+                ("last_used_at", "DATETIME"),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE native_push_tokens ADD COLUMN {col} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            for col, col_type in [
+                ("event_invitations", "BOOLEAN DEFAULT 1"),
+                ("event_reminders", "BOOLEAN DEFAULT 1"),
+                ("business_enquiries", "BOOLEAN DEFAULT 1"),
+                ("system_alerts", "BOOLEAN DEFAULT 1"),
+                ("in_app_enabled", "BOOLEAN DEFAULT 1"),
+                ("quiet_hours_enabled", "BOOLEAN DEFAULT 1"),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE notification_preferences ADD COLUMN {col} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            for idx_sql in [
+                "CREATE INDEX IF NOT EXISTS ix_notifications_user_read_created ON notifications (user_id, is_read, created_at)",
+                "CREATE INDEX IF NOT EXISTS ix_notifications_user_type_created ON notifications (user_id, type, created_at)",
+                "CREATE INDEX IF NOT EXISTS ix_native_push_user_platform ON native_push_tokens (user_id, platform, is_active)",
+            ]:
+                try:
+                    conn.execute(text(idx_sql))
+                    conn.commit()
+                except Exception:
+                    pass
             
             # Seed subscription plans if empty
             try:
@@ -373,6 +411,28 @@ def init_db():
                     ("points_balance", "INTEGER DEFAULT 0"),
                 ]:
                     conn.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+                for col, col_type in [
+                    ("device_id", "VARCHAR(128)"),
+                    ("app_version", "VARCHAR(32)"),
+                    ("failure_count", "INTEGER NOT NULL DEFAULT 0"),
+                    ("last_used_at", "TIMESTAMP WITH TIME ZONE"),
+                ]:
+                    conn.execute(text(f"ALTER TABLE native_push_tokens ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+                for col, col_type in [
+                    ("event_invitations", "BOOLEAN DEFAULT TRUE"),
+                    ("event_reminders", "BOOLEAN DEFAULT TRUE"),
+                    ("business_enquiries", "BOOLEAN DEFAULT TRUE"),
+                    ("system_alerts", "BOOLEAN DEFAULT TRUE"),
+                    ("in_app_enabled", "BOOLEAN DEFAULT TRUE"),
+                    ("quiet_hours_enabled", "BOOLEAN DEFAULT TRUE"),
+                ]:
+                    conn.execute(text(f"ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+                for idx_sql in [
+                    "CREATE INDEX IF NOT EXISTS ix_notifications_user_read_created ON notifications (user_id, is_read, created_at DESC)",
+                    "CREATE INDEX IF NOT EXISTS ix_notifications_user_type_created ON notifications (user_id, type, created_at DESC)",
+                    "CREATE INDEX IF NOT EXISTS ix_native_push_user_platform ON native_push_tokens (user_id, platform, is_active)",
+                ]:
+                    conn.execute(text(idx_sql))
             conn.execute(text("UPDATE booking_requests SET payment_status = 'submitted' WHERE payment_status = 'paid'"))
             conn.execute(text("SELECT 1"))
             conn.commit()

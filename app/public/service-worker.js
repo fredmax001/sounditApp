@@ -35,7 +35,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 // Sound It - Service Worker for Push Notifications & PWA Cache
 // Must be at the root scope: /service-worker.js
 
-const CACHE_NAME = 'soundit-v17';
+const CACHE_NAME = 'soundit-v18';
 const urlsToCache = [
   '/',
   '/logo-dark.png',
@@ -110,12 +110,25 @@ self.addEventListener('push', (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Sound It', options)
+    Promise.all([
+      self.registration.showNotification(data.title || 'Sound It', options),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsList) => {
+        for (const client of clientsList) {
+          client.postMessage({
+            type: 'PUSH_RECEIVED',
+            title: data.title || 'Sound It',
+            body: data.body || '',
+            data: options.data,
+          });
+        }
+      }),
+    ])
   );
 
-  // Update badge count
+  // Update badge count (use numeric badge if provided)
   if ('setAppBadge' in self.navigator) {
-    self.navigator.setAppBadge().catch(() => {});
+    const count = Number(data.badge_count || data.data?.badge || 0);
+    (count > 0 ? self.navigator.setAppBadge(count) : self.navigator.setAppBadge()).catch(() => {});
   }
 });
 
