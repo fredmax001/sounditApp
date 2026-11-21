@@ -228,26 +228,31 @@ export default function EntityDetailModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-8"
+          initial={{ opacity: 0, y: 36 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 36 }}
+          className="bg-white dark:bg-[#111111] border-t sm:border border-black/10 dark:border-white/10 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden"
         >
+          {/* Mobile Drag Handle */}
+          <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-neutral-50 dark:bg-white/5 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-black/15 dark:bg-white/20" />
+          </div>
+
           {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-black/8 dark:border-white/10 bg-neutral-50 dark:bg-white/5">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c]">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-black/8 dark:border-white/10 bg-neutral-50 dark:bg-white/5 shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c] shrink-0">
                 {type} details
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 ID #{entityId}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -264,7 +269,7 @@ export default function EntityDetailModal({
               <p className="text-base font-semibold text-[#020b00] dark:text-white">Profile details not found</p>
             </div>
           ) : (
-            <div className="p-6 space-y-6 max-h-[75dvh] overflow-y-auto">
+            <div className="p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-5 sm:space-y-6 overflow-y-auto flex-1">
               {/* Profile Card Lockup */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-4">

@@ -11,21 +11,31 @@ interface AdminPageHeaderProps {
 
 /**
  * Shared page header for all admin pages — keeps a consistent hero-band
- * layout (role chip, title, subtitle, actions) across the whole admin panel.
+ * layout (role chip, title, subtitle, actions) optimized for both mobile apps and desktop.
  */
 export const AdminPageHeader = ({ title, subtitle, chip, actions }: AdminPageHeaderProps) => (
-  <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-5 lg:p-6 shadow-xs dark:shadow-none mb-6">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="min-w-0">
+  <div className="relative w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-4 sm:p-5 lg:p-6 shadow-xs dark:shadow-none mb-4 sm:mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
+      <div className="min-w-0 flex-1">
         {chip && (
           <span className="inline-block px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-black uppercase tracking-wider mb-1.5">
             {chip}
           </span>
         )}
-        <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">{title}</h1>
-        {subtitle && <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">{subtitle}</p>}
+        <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white tracking-tight break-words">
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm leading-relaxed">
+            {subtitle}
+          </p>
+        )}
       </div>
-      {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
+      {actions && (
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-shrink-0">
+          {actions}
+        </div>
+      )}
     </div>
   </div>
 );

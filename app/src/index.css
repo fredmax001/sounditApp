@@ -1313,3 +1313,30 @@ img, video, svg {
     outline: none;
   }
 }
+
+/* ============================================
+   Admin Mobile Shell (iOS & Android)
+   ============================================ */
+@media (max-width: 1023px) {
+  .admin-shell main > div {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Prevent implicit CSS grid tracks or wide children from breaking mobile viewport */
+  .admin-shell main .grid > * {
+    min-width: 0;
+  }
+
+  /* Smooth momentum scrolling for any data tables or horizontal filter bars */
+  .admin-shell main .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Ensure form controls are comfortably tappable on iOS/Android */
+  .admin-shell main input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .admin-shell main select {
+    min-height: 2.625rem;
+  }
+}

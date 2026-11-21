@@ -468,7 +468,56 @@ const SmartNotificationAutomation: React.FC = () => {
             No scheduled notification records found.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile Notification Log Cards */}
+          <div className="md:hidden space-y-2.5">
+            {logs.map((log) => (
+              <div key={log.id} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/8 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-white text-xs truncate">{log.title}</p>
+                    <p className="text-[0.6875rem] text-gray-400 line-clamp-2 mt-0.5">{log.message}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-semibold shrink-0 ${
+                      log.status === 'sent'
+                        ? 'bg-emerald-500/20 text-emerald-300'
+                        : log.status === 'pending'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : log.status === 'failed'
+                        ? 'bg-rose-500/20 text-rose-300'
+                        : 'bg-gray-500/20 text-gray-300'
+                    }`}
+                  >
+                    {log.status}
+                  </span>
+                </div>
+                {log.error_reason && (
+                  <p className="text-[0.625rem] text-rose-400 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{log.error_reason}</span>
+                  </p>
+                )}
+                <div className="flex items-center justify-between text-[0.625rem] text-gray-400 pt-1">
+                  <span>User #{log.user_id} · {log.category}</span>
+                  <span>{log.scheduled_for_utc ? new Date(log.scheduled_for_utc).toLocaleDateString() : 'Immediate'}</span>
+                </div>
+                {log.status === 'failed' && (
+                  <button
+                    onClick={() => handleRetryNotification(log.id)}
+                    disabled={retryingId === log.id}
+                    className="w-full py-2 rounded-lg bg-[#d3da0c]/20 text-[#d3da0c] text-xs font-bold flex items-center justify-center gap-1.5"
+                  >
+                    {retryingId === log.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                    Retry Delivery
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-white/10 text-gray-400 font-mono">
@@ -552,6 +601,7 @@ const SmartNotificationAutomation: React.FC = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

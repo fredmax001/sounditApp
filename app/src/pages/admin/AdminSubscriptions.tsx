@@ -322,6 +322,81 @@ export default function AdminSubscriptions() {
       </div>
 
       <div className="bg-white dark:bg-[#141414] rounded-2xl border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none overflow-hidden">
+        {/* Mobile Native Subscription Cards */}
+        <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+          {subscriptions
+            .filter((sub) =>
+              !search ||
+              sub.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
+              sub.user?.name?.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((sub) => (
+            <div key={sub.id} className="p-4 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-[#020b00] dark:text-white truncate">{sub.user?.name || t('admin.adminSubscriptions.na')}</p>
+                  <p className="text-xs text-gray-500 dark:text-white/60 truncate">{sub.user?.email}</p>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[0.6875rem] font-semibold capitalize shrink-0 ${
+                  sub.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-500' :
+                  sub.status === 'active' ? 'bg-green-500/15 text-green-700 dark:text-green-500' :
+                  sub.status === 'expired' ? 'bg-orange-500/15 text-orange-700 dark:text-orange-500' :
+                  'bg-red-500/15 text-red-700 dark:text-red-500'
+                }`}>
+                  {sub.status}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs bg-neutral-50 dark:bg-white/[0.03] rounded-xl px-3 py-2">
+                <span className="capitalize font-semibold text-[#020b00] dark:text-[#d3da0c]">
+                  {sub.role} · {sub.plan_type}
+                </span>
+                <span className="font-bold text-[#020b00] dark:text-white">¥{sub.price}</span>
+              </div>
+
+              <div className="flex items-center justify-between text-[0.6875rem] text-gray-500 dark:text-gray-400">
+                <span>Start: {sub.start_date ? new Date(sub.start_date).toLocaleDateString() : '-'}</span>
+                <span>End: {sub.end_date ? new Date(sub.end_date).toLocaleDateString() : '-'}</span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => setSelectedSub(sub)}
+                  className="flex-1 py-2 px-3 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-xs font-semibold text-[#020b00] dark:text-white flex items-center justify-center gap-1.5"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#d3da0c]" /> Details
+                </button>
+                {sub.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleApprove(sub.id)}
+                      disabled={processing === sub.id}
+                      className="py-2 px-3 rounded-xl bg-green-500/15 text-green-700 dark:text-green-400 text-xs font-bold flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(sub.id)}
+                      disabled={processing === sub.id}
+                      className="py-2 px-3 rounded-xl bg-red-500/15 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-1"
+                    >
+                      <X className="w-3.5 h-3.5" /> Reject
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+          {subscriptions.length === 0 && (
+            <div className="px-6 py-12 text-center text-gray-400 dark:text-white/40">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              {t('admin.adminSubscriptions.noSubscriptionsFound')}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
             <tr>
@@ -422,6 +497,7 @@ export default function AdminSubscriptions() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Detail Modal */}

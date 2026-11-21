@@ -541,7 +541,7 @@ const UserDashboard = () => {
                   </Link>
                 </div>
               ) : (
-                <div className="grid gap-10">
+                <div className="flex flex-col gap-10 w-full min-w-0">
                   {upcomingTickets.map(ticket => (
                     <div key={ticket.id} className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xs dark:shadow-2xl">
                       <div className="relative w-full aspect-video">
@@ -611,7 +611,7 @@ const UserDashboard = () => {
                   </Link>
                 </div>
               ) : (
-                <div className="grid gap-6">
+                <div className="flex flex-col gap-6 w-full min-w-0">
                   {bookings.map(booking => {
                     const canUpload = ['pending', 'accepted'].includes(booking.status) && ['pending', 'rejected'].includes(booking.payment_status || 'pending') && booking.artist?.deposit_eligible !== false;
                     return (

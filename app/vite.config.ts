@@ -6,8 +6,8 @@ import { inspectAttr } from 'kimi-plugin-inspect-react'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const configuredApiUrl = env.VITE_API_URL?.trim()
-  const apiUrl = configuredApiUrl || (mode === 'development' ? 'http://127.0.0.1:8000/api/v1' : '')
+  const configuredApiUrl = process.env.VITE_API_URL?.trim() || env.VITE_API_URL?.trim()
+  const apiUrl = configuredApiUrl || (mode === 'development' ? 'http://127.0.0.1:8000/api/v1' : 'https://sounditent.com/api/v1')
 
   if (!apiUrl) {
     throw new Error('VITE_API_URL must be configured for non-development builds.')
@@ -45,6 +45,5 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-  },
   }
 });

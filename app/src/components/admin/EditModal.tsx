@@ -72,7 +72,7 @@ export const EditModal = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -82,26 +82,31 @@ export const EditModal = ({
           className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         />
 
-        {/* Modal */}
+        {/* Modal (Bottom Sheet on mobile, centered dialog on desktop) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-[#111111] border border-white/10 rounded-xl overflow-hidden"
+          initial={{ opacity: 0, y: 36 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 36 }}
+          className="relative w-full sm:max-w-lg max-h-[92dvh] flex flex-col bg-white dark:bg-[#111111] border-t sm:border border-black/10 dark:border-white/10 rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl"
         >
+          {/* Mobile drag indicator */}
+          <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+            <div className="w-10 h-1 rounded-full bg-black/15 dark:bg-white/20" />
+          </div>
+
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-            <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-black/8 dark:border-white/10 shrink-0">
+            <h3 className="text-base sm:text-lg font-bold text-[#020b00] dark:text-white truncate pr-2">{title}</h3>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="w-9 h-9 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors shrink-0"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-4 overflow-y-auto flex-1">
             {fields.map((field) => (
               <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-300 mb-1">

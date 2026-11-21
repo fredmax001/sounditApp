@@ -530,7 +530,7 @@ export default function AnalyticsPage() {
                       </a>
                     }
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 pt-2">
                     {summary.revenue_by_source.map((source, i) => (
                       <div
                         key={i}
@@ -615,7 +615,7 @@ export default function AnalyticsPage() {
               {insights && insights.insights.length > 0 && (
                 <ChartCard>
                   <SectionHeader title="Insights" action={<span className="text-xs text-gray-500">Generated {new Date(insights.generated_at).toLocaleTimeString()}</span>} />
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
                     {insights.insights.map((insight, i) => (
                       <motion.div
                         key={i}
@@ -794,7 +794,7 @@ export default function AnalyticsPage() {
 
               {/* Devices */}
               {device && (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                   <ChartCard>
                     <SectionHeader title="Browsers" icon={Monitor} />
                     <ResponsiveContainer width="100%" height={200}>

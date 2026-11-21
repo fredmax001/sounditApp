@@ -17,7 +17,7 @@ export const MobilePageTransition = ({ children }: MobilePageTransitionProps) =>
         damping: 30,
         mass: 0.8,
       }}
-      className="w-full h-full"
+      className="w-full max-w-full min-w-0 overflow-x-clip h-full"
     >
       {children}
     </motion.div>

@@ -458,7 +458,7 @@ const VerificationCenter = () => {
                         {badgeSearchResults.map((user) => (
                             <div
                                 key={user.id}
-                                className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl"
                             >
                                 <div className="flex items-center gap-3">
                                     {user.avatar_url ? (
@@ -527,7 +527,7 @@ const VerificationCenter = () => {
                         {verifiedUsers.map((user) => (
                             <div
                                 key={user.id}
-                                className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl"
                             >
                                 <div className="flex items-center gap-3">
                                     {user.avatar_url ? (

@@ -6,7 +6,7 @@ export default function ArtistCommunity() {
   const { t } = useTranslation();
   useSubscriptionGuard('fan_feed');
   return (
-    <div className="min-h-dvh bg-[#020b00] text-white pb-[calc(6rem+env(safe-area-inset-bottom,24px))] pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="min-h-dvh w-full max-w-4xl min-w-0 overflow-x-hidden bg-[#020b00] text-white pb-[calc(6rem+env(safe-area-inset-bottom,24px))] pt-2 px-4 sm:px-6 lg:px-8 mx-auto">
       <CommunityDashboard
         authorType="artist"
         title={t('artist.community.title')}

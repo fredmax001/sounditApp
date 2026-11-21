@@ -105,7 +105,7 @@ const SecurityLogs = () => {
       <AdminPageHeader chip="System" title={t('admin.securityLogs.title')} subtitle={t('admin.securityLogs.subtitle')} />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#d3da0c]/10 rounded-lg">
@@ -142,56 +142,87 @@ const SecurityLogs = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
+      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4">
+        <div className="flex-1 relative min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.securityLogs.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#d3da0c] focus:outline-none text-sm"
           />
         </div>
-        <select
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
-        >
-          <option value="">{t('admin.securityLogs.allActions')}</option>
-          <option value="login">{t('admin.securityLogs.action.login')}</option>
-          <option value="logout">{t('admin.securityLogs.action.logout')}</option>
-          <option value="create">{t('admin.securityLogs.action.create')}</option>
-          <option value="update">{t('admin.securityLogs.action.update')}</option>
-          <option value="delete">{t('admin.securityLogs.action.delete')}</option>
-          <option value="freeze">{t('admin.securityLogs.action.freeze')}</option>
-          <option value="unfreeze">{t('admin.securityLogs.action.unfreeze')}</option>
-        </select>
-        <select
-          value={dateRange}
-          onChange={(e) => setDateRange(e.target.value)}
-          className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-lg text-[#020b00] dark:text-white"
-        >
-          <option value="1">{t('admin.securityLogs.last24Hours')}</option>
-          <option value="7">{t('admin.securityLogs.last7Days')}</option>
-          <option value="30">{t('admin.securityLogs.last30Days')}</option>
-          <option value="90">{t('admin.securityLogs.last90Days')}</option>
-        </select>
+        <div className="grid grid-cols-2 sm:flex gap-2.5">
+          <select
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            className="w-full sm:w-auto px-3 sm:px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm"
+          >
+            <option value="">{t('admin.securityLogs.allActions')}</option>
+            <option value="login">{t('admin.securityLogs.action.login')}</option>
+            <option value="logout">{t('admin.securityLogs.action.logout')}</option>
+            <option value="create">{t('admin.securityLogs.action.create')}</option>
+            <option value="update">{t('admin.securityLogs.action.update')}</option>
+            <option value="delete">{t('admin.securityLogs.action.delete')}</option>
+            <option value="freeze">{t('admin.securityLogs.action.freeze')}</option>
+            <option value="unfreeze">{t('admin.securityLogs.action.unfreeze')}</option>
+          </select>
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="w-full sm:w-auto px-3 sm:px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm"
+          >
+            <option value="1">{t('admin.securityLogs.last24Hours')}</option>
+            <option value="7">{t('admin.securityLogs.last7Days')}</option>
+            <option value="30">{t('admin.securityLogs.last30Days')}</option>
+            <option value="90">{t('admin.securityLogs.last90Days')}</option>
+          </select>
+        </div>
       </div>
 
-      {/* Logs Table */}
-      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl overflow-hidden shadow-xs dark:shadow-none">
+      {/* Logs Table / Mobile Cards */}
+      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden shadow-xs dark:shadow-none">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400 px-4 text-center">
             <FileX className="w-12 h-12 mb-4 text-gray-400 dark:text-gray-600" />
             <p className="text-lg font-medium text-[#020b00] dark:text-white mb-1">{t('admin.securityLogs.noLogs') || 'No security logs found'}</p>
             <p className="text-sm">{t('admin.securityLogs.noLogsHint') || 'Logs will appear here once security events are recorded.'}</p>
           </div>
         ) : (
+          <>
+          {/* Mobile Audit Log Cards */}
+          <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+            {filteredLogs.map((log) => (
+              <div key={log.id} className="p-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${getActionColor(log.event_type)}`}>
+                    {getActionIcon(log.event_type)}
+                    <span className="capitalize">{t(`admin.securityLogs.action.${log.event_type}`)}</span>
+                  </div>
+                  <span className="text-[0.6875rem] text-gray-500 font-mono">
+                    {log.ip_address || '-'}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-[#020b00] dark:text-white truncate">
+                  {log.user_email || t('admin.securityLogs.unknownUser') || 'Unknown'}
+                </p>
+                {log.details && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{log.details}</p>
+                )}
+                <p className="text-[0.6875rem] text-gray-400">
+                  {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
@@ -228,6 +259,8 @@ const SecurityLogs = () => {
               ))}
             </tbody>
           </table>
+          </div>
+          </>
         )}
       </div>
     </div>

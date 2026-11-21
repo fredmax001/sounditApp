@@ -360,7 +360,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       {/* Main Content */}
       <main
         ref={mainRef}
-        className={`flex-1 ${
+        className={`flex-1 w-full max-w-full min-w-0 overflow-x-hidden ${
           hasCustomHeader ? 'pb-app-nav' : 'pt-[calc(4rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav'
         } overflow-y-auto app-page`}
       >

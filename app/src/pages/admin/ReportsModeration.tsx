@@ -126,7 +126,7 @@ const ReportsModeration = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-500/10 rounded-lg">
@@ -174,7 +174,7 @@ const ReportsModeration = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input

@@ -206,7 +206,56 @@ const ManageCommunitySections = () => {
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile Section Cards */}
+          <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+            {filteredSections.map((section) => (
+              <div key={section.id} className="p-4 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#020b00] dark:text-white flex items-center gap-1.5">
+                      {section.icon && <span className="text-[#d3da0c]">{section.icon}</span>}
+                      <span className="truncate">{section.name}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 font-mono truncate">/{section.slug}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0 ${section.is_active ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                    {section.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                {section.description && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{section.description}</p>
+                )}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-gray-500">Order #{section.sort_order} · {section.post_count} posts</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openEditModal(section)}
+                      disabled={actionLoading === `edit-${section.id}`}
+                      className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-xs font-semibold text-[#020b00] dark:text-white flex items-center gap-1"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(section.id)}
+                      disabled={actionLoading === `delete-${section.id}`}
+                      className="p-2 rounded-xl bg-red-500/10 text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredSections.length === 0 && (
+              <div className="px-4 py-12 text-center text-gray-500 text-sm">
+                {t('admin.manageCommunitySections.noSectionsFound')}
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
                 <tr>
@@ -277,6 +326,7 @@ const ManageCommunitySections = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

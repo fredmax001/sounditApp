@@ -148,7 +148,7 @@ export default function ArtistRecaps() {
   const totalViews = recaps.reduce((acc, r) => acc + (r.views || 0), 0);
 
   return (
-    <div className="min-h-dvh bg-[#020b00] text-white pb-[calc(6rem+env(safe-area-inset-bottom,24px))] pt-2 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="min-h-dvh w-full max-w-4xl min-w-0 overflow-x-hidden bg-[#020b00] text-white pb-[calc(6rem+env(safe-area-inset-bottom,24px))] pt-2 px-4 sm:px-6 lg:px-8 mx-auto">
       {/* Header & Glowing 3D Camera / Film Reel SVG */}
       <div className="flex items-start justify-between gap-4 pt-2 pb-6">
         <div>

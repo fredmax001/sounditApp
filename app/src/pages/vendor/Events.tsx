@@ -206,7 +206,7 @@ const VendorEvents = () => {
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : events.length > 0 ? (
-          <div className="grid gap-6">
+          <div className="flex flex-col gap-6 w-full min-w-0">
             {events.map((event) => (
               <div
                 key={event.id}

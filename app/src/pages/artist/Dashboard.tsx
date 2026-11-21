@@ -740,7 +740,7 @@ const ArtistDashboard = () => {
   const artistBgUrl = profile?.background_url || profile?.banner_url || null;
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 lg:pb-10 transition-colors duration-200">
+    <div className="min-h-dvh w-full max-w-full min-w-0 overflow-x-hidden bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-24 lg:pb-10 transition-colors duration-200">
 
       {/* ── Hero Header ── */}
       <div className="relative overflow-hidden">
@@ -867,7 +867,7 @@ const ArtistDashboard = () => {
       </div>
 
       {/* ── Tab Bar ── */}
-      <div className="px-4 pt-4 lg:px-10 lg:pt-5">
+      <div className="px-4 pt-4 lg:px-10 lg:pt-5 w-full max-w-full min-w-0">
         {/* 1-Month Free Trial / Subscription Status Banner */}
         <SubscriptionTrialBanner className="mb-4" />
         <div className="mb-4 empty:hidden">
@@ -875,7 +875,7 @@ const ArtistDashboard = () => {
         </div>
 
         {/* Horizontally scrollable on mobile - full labels always shown */}
-        <div className="flex gap-1.5 overflow-x-auto bg-neutral-100 dark:bg-[#0b140b] p-1.5 rounded-2xl border border-black/8 dark:border-white/10 hide-scrollbar">
+        <div className="flex gap-1.5 overflow-x-auto w-full max-w-full bg-neutral-100 dark:bg-[#0b140b] p-1.5 rounded-2xl border border-black/8 dark:border-white/10 hide-scrollbar">
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 lg:px-5 lg:text-sm cursor-pointer ${
@@ -892,7 +892,7 @@ const ArtistDashboard = () => {
 
 
       {/* Main Content Area */}
-      <div className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,24px))] lg:px-10 lg:pt-6">
+      <div className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,24px))] lg:px-10 lg:pt-6 w-full max-w-full min-w-0">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -900,22 +900,22 @@ const ArtistDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
-          className="bg-white dark:bg-[#0b140b] border border-black/8 dark:border-white/10 rounded-2xl p-4 min-h-[400px] lg:rounded-2xl lg:p-6 lg:min-h-[500px] shadow-xs dark:shadow-none"
+          className="w-full max-w-full min-w-0 overflow-hidden bg-white dark:bg-[#0b140b] border border-black/8 dark:border-white/10 rounded-2xl p-4 min-h-[400px] lg:rounded-2xl lg:p-6 lg:min-h-[500px] shadow-xs dark:shadow-none"
         >
           {activeTab === 'overview' && (
-            <div className="grid gap-5">
+            <div className="flex flex-col gap-5 w-full max-w-full min-w-0">
               {/* ── Bento Stats ── */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 w-full max-w-full min-w-0">
                 {/* Featured - Earnings: full width on mobile, 2-col on lg */}
-                <div className="col-span-2">
+                <div className="col-span-2 min-w-0">
                   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     className="bg-[#d3da0c]/10 dark:bg-[#d3da0c]/[0.07] border border-[#d3da0c]/30 dark:border-[#d3da0c]/20 rounded-2xl p-4 flex items-center gap-4 hover:border-[#d3da0c]/40 transition-all lg:p-5 shadow-xs dark:shadow-none">
                     <div className="p-3 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c]/15 dark:text-[#d3da0c] rounded-xl flex-shrink-0 shadow-xs">
                       <DollarSign className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-gray-600 dark:text-[#d3da0c]/60 text-[0.625rem] font-bold uppercase tracking-widest mb-0.5">{t('artist.dashboard.stat.earnings')}</p>
-                      <p className="text-2xl font-bold text-[#020b00] dark:text-white lg:text-3xl">¥{stats.totalRevenue.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-[#020b00] dark:text-white lg:text-3xl truncate">¥{stats.totalRevenue.toLocaleString()}</p>
                     </div>
                   </motion.div>
                 </div>
@@ -925,15 +925,15 @@ const ArtistDashboard = () => {
                   { label: artistVariant.gigsLabel, value: stats.totalBookings.toString(), icon: Calendar },
                   { label: t('artist.dashboard.stat.pending') || 'Pending', value: stats.pendingBookings.toString(), icon: Clock },
                 ].map((stat, idx) => (
-                  <div key={idx} className="col-span-1">
+                  <div key={idx} className="col-span-1 min-w-0">
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * (idx + 1) }}
                       className="h-full bg-neutral-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/[0.07] rounded-2xl p-3.5 flex flex-col gap-3 hover:border-black/20 dark:hover:border-[#d3da0c]/25 transition-all group lg:p-4 shadow-xs dark:shadow-none">
                       <div className="p-2 bg-black/5 dark:bg-white/[0.05] rounded-xl w-fit group-hover:bg-[#020b00]/10 dark:group-hover:bg-[#d3da0c]/10 transition-colors">
                         <stat.icon className="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover:text-[#020b00] dark:group-hover:text-[#d3da0c] transition-colors" />
                       </div>
-                      <div>
-                        <p className="text-gray-500 text-[0.625rem] font-medium uppercase tracking-wider mb-0.5">{stat.label}</p>
-                        <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-2xl">{stat.value}</p>
+                      <div className="min-w-0">
+                        <p className="text-gray-500 text-[0.625rem] font-medium uppercase tracking-wider mb-0.5 truncate">{stat.label}</p>
+                        <p className="text-xl font-bold text-[#020b00] dark:text-white lg:text-2xl truncate">{stat.value}</p>
                       </div>
                     </motion.div>
                   </div>
@@ -942,21 +942,21 @@ const ArtistDashboard = () => {
 
 
               {/* Content Split */}
-              <div className="grid gap-4">
+              <div className="flex flex-col gap-4 w-full max-w-full min-w-0">
                 {/* Upcoming Performances */}
-                <section>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-black text-[#020b00] dark:text-white lg:text-xl">{t('artist.dashboard.upcomingPerformances')}</h2>
-                    <button onClick={() => setActiveTab('bookings')} className="text-[#020b00] dark:text-[#d3da0c] text-xs font-bold hover:underline">{t('artist.dashboard.manageAll')}</button>
+                <section className="min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <h2 className="text-lg font-black text-[#020b00] dark:text-white lg:text-xl truncate">{t('artist.dashboard.upcomingPerformances')}</h2>
+                    <button onClick={() => setActiveTab('bookings')} className="text-[#020b00] dark:text-[#d3da0c] text-xs font-bold hover:underline shrink-0">{t('artist.dashboard.manageAll')}</button>
                   </div>
                   <div className="space-y-2.5">
                     {incomingBookings.filter((b: Booking) => b.status === 'accepted').slice(0, 3).map((booking) => (
-                      <div key={booking.id} className="bg-neutral-50 dark:bg-white/[0.04] border border-black/5 dark:border-white/[0.06] p-3.5 rounded-xl flex items-center justify-between gap-3 shadow-xs dark:shadow-none">
-                        <div className="flex items-center gap-3 min-w-0">
+                      <div key={booking.id} className="bg-neutral-50 dark:bg-white/[0.04] border border-black/5 dark:border-white/[0.06] p-3.5 rounded-xl flex items-center justify-between gap-3 min-w-0 shadow-xs dark:shadow-none">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-9 h-9 bg-[#020b00]/5 dark:bg-[#d3da0c]/10 rounded-xl flex items-center justify-center flex-shrink-0">
                             <Music className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <h4 className="text-[#020b00] dark:text-white font-bold text-sm truncate">{booking.event_name}</h4>
                             <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] truncate">
                               {new Date(booking.proposed_date || booking.event_date).toLocaleDateString()}
@@ -1023,11 +1023,11 @@ const ArtistDashboard = () => {
           )}
 
           {activeTab === 'profile' && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl w-full min-w-0">
               <h2 className="text-lg font-bold text-[#020b00] dark:text-white mb-3 lg:text-2xl">{t('artist.dashboard.editProfileTitle')}</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-10">{t('artist.dashboard.editProfileSubtitle')}</p>
 
-              <div className="grid gap-5">
+              <div className="flex flex-col gap-5 w-full min-w-0">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">
                     <label className="text-[0.625rem] font-semibold text-gray-700 dark:text-gray-400 uppercase tracking-wider">{t('artist.dashboard.label.stageName')}</label>
@@ -1342,11 +1342,11 @@ const ArtistDashboard = () => {
           )}
 
           {activeTab === 'music' && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl w-full min-w-0">
               <h2 className="text-lg font-bold text-[#020b00] dark:text-white mb-3 lg:text-2xl">{t('artist.dashboard.musicTitle')}</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-10">{t('artist.dashboard.musicSubtitle')}</p>
 
-              <div className="grid gap-8">
+              <div className="flex flex-col gap-8 w-full min-w-0">
                 {/* Music Platform Links */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-bold text-[#020b00] dark:text-white">{t('artist.dashboard.yourMusicLinks')}</h3>
@@ -1489,14 +1489,14 @@ const ArtistDashboard = () => {
           )}
 
           {activeTab === 'bookings' && (
-            <div className="space-y-5">
+            <div className="space-y-5 w-full max-w-full min-w-0">
               <div>
                 <h2 className="text-lg font-bold text-[#020b00] dark:text-white mb-1 lg:text-2xl">{t('artist.dashboard.bookingRequests')}</h2>
                 <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('artist.dashboard.manageBookingRequests')}</p>
               </div>
               {/* Filter - horizontally scrollable on mobile */}
-              <div className="overflow-x-auto hide-scrollbar -mx-1 px-1">
-                <div className="flex gap-1.5 bg-neutral-100 dark:bg-white/[0.04] p-1 rounded-xl border border-black/8 dark:border-white/[0.07] w-fit min-w-full">
+              <div className="overflow-x-auto hide-scrollbar w-full max-w-full">
+                <div className="flex gap-1.5 bg-neutral-100 dark:bg-white/[0.04] p-1 rounded-xl border border-black/8 dark:border-white/[0.07] w-max">
                   {(['all', 'pending', 'accepted', 'rejected', 'completed'] as const).map((filter) => (
                     <button
                       key={filter}
@@ -1530,7 +1530,7 @@ const ArtistDashboard = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid gap-3">
+                <div className="flex flex-col gap-3 w-full min-w-0">
                   {filteredBookings.map((booking) => (
                     <motion.div
                       key={booking.id}

@@ -417,7 +417,7 @@ const RolePermissions = () => {
         <div className="lg:col-span-2 bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none">
           {selectedRole ? (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${
                     selectedRole.is_system ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : 'bg-[#d3da0c]/10 text-[#d3da0c]'

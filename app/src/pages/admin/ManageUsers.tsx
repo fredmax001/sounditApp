@@ -276,49 +276,51 @@ const ManageUsers = () => {
                 </button>
             </div>
 
-            <div className="flex gap-4">
-                <div className="flex-1 relative">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4">
+                <div className="flex-1 relative min-w-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <input
                         type="text"
                         placeholder={t('admin.manageUsers.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
                     />
                 </div>
-                <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
-                >
-                    <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allRoles')}</option>
-                    <option value="user" className="bg-white dark:bg-[#111111]">User</option>
-                    <option value="business" className="bg-white dark:bg-[#111111]">Business</option>
-                    <option value="vendor" className="bg-white dark:bg-[#111111]">Vendor</option>
-                    <option value="artist" className="bg-white dark:bg-[#111111]">Artist</option>
-                    <option value="organizer" className="bg-white dark:bg-[#111111]">Organizer</option>
-                    <option value="admin" className="bg-white dark:bg-[#111111]">Admin</option>
-                    {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111]">Super Admin</option>}
-                </select>
-                <select
-                    value={cityFilter}
-                    onChange={(e) => setCityFilter(e.target.value)}
-                    className="px-4 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
-                >
-                    <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
-                    {cities.map((city) => (
-                        <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111]">{city.name}</option>
-                    ))}
-                </select>
-                <button
-                    onClick={loadUsers}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
-                >
-                    <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    {t('admin.manageUsers.refresh')}
-                </button>
+                <div className="grid grid-cols-2 sm:flex gap-2.5 sm:gap-3">
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    >
+                        <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allRoles')}</option>
+                        <option value="user" className="bg-white dark:bg-[#111111]">User</option>
+                        <option value="business" className="bg-white dark:bg-[#111111]">Business</option>
+                        <option value="vendor" className="bg-white dark:bg-[#111111]">Vendor</option>
+                        <option value="artist" className="bg-white dark:bg-[#111111]">Artist</option>
+                        <option value="organizer" className="bg-white dark:bg-[#111111]">Organizer</option>
+                        <option value="admin" className="bg-white dark:bg-[#111111]">Admin</option>
+                        {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111]">Super Admin</option>}
+                    </select>
+                    <select
+                        value={cityFilter}
+                        onChange={(e) => setCityFilter(e.target.value)}
+                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                    >
+                        <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
+                        {cities.map((city) => (
+                            <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111]">{city.name}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={loadUsers}
+                        disabled={isLoading}
+                        className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                    >
+                        <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        {t('admin.manageUsers.refresh')}
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">
@@ -337,6 +339,151 @@ const ManageUsers = () => {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    {/* Mobile Native Card List */}
+                    <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+                        {filteredUsers.map((user: AdminUser) => (
+                            <div key={user.id} className={`p-4 space-y-3 ${isFrozen(user.id) ? 'opacity-60' : ''}`}>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div
+                                        onClick={() => handleViewUserCard(user.id)}
+                                        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                                    >
+                                        <div className="w-11 h-11 rounded-xl bg-neutral-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 relative overflow-hidden shrink-0">
+                                            {user.avatar_url ? (
+                                                <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User className="w-5 h-5" />
+                                            )}
+                                            {isFrozen(user.id) && (
+                                                <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-[#111111]">
+                                                    <Lock className="w-2 h-2 text-white" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[#020b00] dark:text-white font-semibold text-sm truncate">
+                                                {`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'}
+                                            </p>
+                                            <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{user.email}</p>
+                                        </div>
+                                    </div>
+                                    {user.status === 'suspended' || isFrozen(user.id) ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[0.625rem] font-bold uppercase shrink-0">
+                                            <ShieldAlert className="w-3 h-3" />
+                                            {user.status === 'suspended' ? t('admin.manageUsers.statusSuspended') : t('admin.manageUsers.statusFrozen')}
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[0.625rem] font-bold uppercase shrink-0">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                            {t('admin.manageUsers.statusActive')}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <select
+                                        value={user.role}
+                                        onChange={(e) => handleEditRole(user.id, e.target.value)}
+                                        disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                        className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-bold uppercase tracking-wider border-0 ${getRoleColor(user.role)} disabled:opacity-50`}
+                                    >
+                                        <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
+                                        <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
+                                        <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
+                                        <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
+                                        <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
+                                        <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
+                                        {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
+                                    </select>
+                                    <div className="flex items-center gap-3">
+                                        {user.preferred_city && (
+                                            <span className="inline-flex items-center gap-1">
+                                                <MapPin className="w-3 h-3 text-[#d3da0c]" />
+                                                {cities.find(c => c.id === user.preferred_city)?.name || user.preferred_city}
+                                            </span>
+                                        )}
+                                        <span>{user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-1">
+                                    <button
+                                        onClick={() => handleViewUserCard(user.id)}
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-xs font-semibold text-[#020b00] dark:text-white active:scale-95 transition-all"
+                                    >
+                                        <Eye className="w-3.5 h-3.5 text-[#d3da0c]" />
+                                        Details
+                                    </button>
+                                    <button
+                                        onClick={() => handleToggleVerification(user.id, !!user.is_verified)}
+                                        disabled={actionLoading === `verify-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                        className={`p-2.5 rounded-xl transition-colors disabled:opacity-50 ${user.is_verified ? 'bg-[#d3da0c]/20 text-yellow-700 dark:text-[#d3da0c]' : 'bg-neutral-100 dark:bg-white/[0.06] text-gray-500 dark:text-gray-400'}`}
+                                        aria-label="Toggle verification"
+                                    >
+                                        {actionLoading === `verify-${user.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
+                                    </button>
+                                    {isFrozen(user.id) || user.status === 'suspended' ? (
+                                        <button
+                                            onClick={async () => {
+                                                unfreezeUser(session?.access_token || '', user.id);
+                                                try {
+                                                    const token = session?.access_token;
+                                                    await fetch(`${API_BASE_URL}/admin/users/${user.id}/activate`, {
+                                                        method: 'POST',
+                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                    });
+                                                    toast.success(t('admin.manageUsers.accountRestored'));
+                                                    loadUsers();
+                                                } catch {
+                                                    toast.error(t('admin.manageUsers.failedToRestoreAccount'));
+                                                }
+                                            }}
+                                            className="p-2.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded-xl"
+                                            aria-label="Restore access"
+                                        >
+                                            <Unlock className="w-4 h-4" />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={async () => {
+                                                if (user.role === 'super_admin') return toast.error('Cannot freeze super admin');
+                                                if (user.role === 'admin' && !isSuperAdmin) return toast.error('Cannot freeze another admin');
+                                                freezeUser(session?.access_token || '', user.id);
+                                                try {
+                                                    const token = session?.access_token;
+                                                    await fetch(`${API_BASE_URL}/admin/users/${user.id}/suspend`, {
+                                                        method: 'POST',
+                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                    });
+                                                    toast.error(t('admin.manageUsers.accountLocked'));
+                                                    loadUsers();
+                                                } catch {
+                                                    toast.error(t('admin.manageUsers.failedToLockAccount'));
+                                                }
+                                            }}
+                                            disabled={user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                            className="p-2.5 bg-red-500/10 text-red-500 rounded-xl disabled:opacity-50"
+                                            aria-label="Suspend user"
+                                        >
+                                            <Lock className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleDeleteUser(user.id)}
+                                        disabled={actionLoading === `delete-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                        className="p-2.5 bg-neutral-100 dark:bg-white/[0.06] text-gray-500 hover:text-red-500 rounded-xl disabled:opacity-50"
+                                        aria-label="Delete user"
+                                    >
+                                        {actionLoading === `delete-${user.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-black/8 dark:border-white/10 bg-neutral-50 dark:bg-white/5">
@@ -498,6 +645,8 @@ const ManageUsers = () => {
                             ))}
                         </tbody>
                     </table>
+                    </div>
+                    </>
                 )}
             </div>
 

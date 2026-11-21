@@ -26,18 +26,19 @@ interface StatCardProps {
 const StatCard = ({ title, value, icon: Icon, onClick, loading, color }: StatCardProps) => (
   <motion.div
     whileHover={{ y: -2 }}
+    whileTap={onClick ? { scale: 0.98 } : undefined}
     onClick={onClick}
-    className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-xl p-6 shadow-xs dark:shadow-none ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50' : ''}`}
+    className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-3.5 sm:p-5 lg:p-6 shadow-xs dark:shadow-none min-w-0 ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50 active:border-[#d3da0c]/60' : ''}`}
   >
-    <div className="flex items-start justify-between">
-      <div className="flex-1">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
-        <h3 className="text-2xl lg:text-3xl font-bold text-[#020b00] dark:text-white mt-2">
-          {loading ? <Loader2 className="w-6 h-6 animate-spin text-[#d3da0c]" /> : value}
+    <div className="flex items-start justify-between gap-2 min-w-0">
+      <div className="flex-1 min-w-0">
+        <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] sm:text-sm font-medium truncate">{title}</p>
+        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#020b00] dark:text-white mt-1.5 sm:mt-2 truncate">
+          {loading ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-[#d3da0c]" /> : value}
         </h3>
       </div>
-      <div className={`p-3 rounded-xl ${color || 'bg-[#d3da0c]/10'}`}>
-        <Icon className={`w-6 h-6 ${color ? 'text-white' : 'text-[#d3da0c]'}`} />
+      <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${color || 'bg-[#d3da0c]/10'}`}>
+        <Icon className={`w-4 h-4 sm:w-6 sm:h-6 ${color ? 'text-white' : 'text-[#d3da0c]'}`} />
       </div>
     </div>
   </motion.div>
@@ -198,18 +199,18 @@ const DashboardOverview = () => {
       )}
 
       {/* Header — hero band */}
-      <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-5 lg:p-6 shadow-xs dark:shadow-none">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-4 sm:p-5 lg:p-6 shadow-xs dark:shadow-none">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-black uppercase tracking-wider">
                 {isFinance ? 'Finance' : isMarketing ? 'Marketing' : isModerator ? 'Moderation' : isCommunity ? 'Community' : isSupport ? 'Support' : 'Command Center'}
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              <span className="text-[0.6875rem] sm:text-xs text-gray-500 dark:text-gray-400">
+                {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-[#020b00] dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">
               {isFinance ? 'Finance & Revenue Workspace' :
                isMarketing ? 'Marketing & Campaigns Hub' :
                isModerator ? 'Content Moderation Workspace' :
@@ -217,7 +218,7 @@ const DashboardOverview = () => {
                isSupport ? 'Support & Verification Desk' :
                t('admin.dashboardOverview.title')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm">
               {isFinance ? 'Track platform revenue, ticket volume, subscriptions, and withdrawals' :
                isMarketing ? 'Manage promotional campaigns, ads, push notifications, and audience reach' :
                isModerator ? 'Review user reports, moderate community posts, recaps, and content' :
@@ -226,11 +227,11 @@ const DashboardOverview = () => {
                t('admin.dashboardOverview.subtitle')}
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
             {pendingActions.length > 0 && (
               <button
                 onClick={() => navigate('/admin/verification-center')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/15 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/15 transition-colors"
               >
                 <AlertCircle className="w-3.5 h-3.5" />
                 {pendingActions.length} pending
@@ -239,7 +240,7 @@ const DashboardOverview = () => {
             <button
               onClick={loadDashboardData}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-lg hover:opacity-90 disabled:opacity-50 transition-all font-bold text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl hover:opacity-90 disabled:opacity-50 transition-all font-bold text-xs sm:text-sm"
             >
               {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.dashboardOverview.refresh')}
             </button>
@@ -250,7 +251,7 @@ const DashboardOverview = () => {
       {/* Stats Grid - Tailored to Role */}
       {isFinance ? (
         /* Finance Workspace Stats */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title="Total Platform Revenue"
             value={formatCurrency(stats.totalRevenue)}
@@ -296,7 +297,7 @@ const DashboardOverview = () => {
         </div>
       ) : isMarketing ? (
         /* Marketing Workspace Stats */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title="Total Platform Users"
             value={formatNumber(stats.totalUsers)}
@@ -342,7 +343,7 @@ const DashboardOverview = () => {
         </div>
       ) : isModerator || isCommunity ? (
         /* Community / Moderator Workspace Stats */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title="Community Hub"
             value="Active"
@@ -388,7 +389,7 @@ const DashboardOverview = () => {
         </div>
       ) : isSupport ? (
         /* Support Workspace Stats */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title="Verification Requests"
             value={stats.pendingVerifications}
@@ -434,7 +435,7 @@ const DashboardOverview = () => {
         </div>
       ) : (
         /* Full Admin / Super Admin Default Stats */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title={t('admin.dashboardOverview.totalUsers')}
             value={formatNumber(stats.totalUsers)}

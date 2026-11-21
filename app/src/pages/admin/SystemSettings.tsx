@@ -332,7 +332,7 @@ const SystemSettings = () => {
 
     return (
         <div className="space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <AdminPageHeader chip="System" title={t('admin.systemSettings.title')} subtitle={t('admin.systemSettings.subtitle')} />
                 <div className="flex gap-3">
                     <button
@@ -371,7 +371,7 @@ const SystemSettings = () => {
                             </div>
 
                             <div className="space-y-4">
-                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
                                     <div>
                                         <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.commissionRateLabel') || 'Cities Commission Rate'}</p>
                                         <p className="text-gray-500 text-xs">Applies to all cities platform-wide</p>
@@ -410,7 +410,7 @@ const SystemSettings = () => {
                             </h2>
 
                             <div className="space-y-4">
-                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
                                     <div>
                                         <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.maintenanceMode')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.maintenanceModeHint')}</p>
@@ -423,7 +423,7 @@ const SystemSettings = () => {
                                     </button>
                                 </div>
 
-                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
                                     <div>
                                         <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.allowNewRegistrations')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.allowNewRegistrationsHint')}</p>
@@ -436,7 +436,7 @@ const SystemSettings = () => {
                                     </button>
                                 </div>
 
-                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between">
+                                <div className="p-4 bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
                                     <div className="flex-1">
                                         <p className="text-[#020b00] dark:text-white font-medium">{t('admin.systemSettings.featuredEventLimit')}</p>
                                         <p className="text-gray-500 text-xs">{t('admin.systemSettings.featuredEventLimitHint')}</p>

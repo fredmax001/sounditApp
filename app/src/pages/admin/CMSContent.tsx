@@ -206,6 +206,43 @@ const CMSContent = () => {
         </div>
       ) : activeTab === 'pages' ? (
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl overflow-hidden">
+          {/* Mobile Native CMS Cards */}
+          <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+            {filteredPages.map((page) => (
+              <div key={page.id} className="p-4 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#020b00] dark:text-white truncate">{page.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">/{page.slug}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0 ${page.is_published ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-gray-500/15 text-gray-600 dark:text-gray-400'}`}>
+                    {page.is_published ? t('admin.cmsContent.published') : t('admin.cmsContent.draft')}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-gray-500">Updated {new Date(page.updated_at).toLocaleDateString()}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setEditingPage(page); setShowEditor(true); }}
+                      className="px-3 py-1.5 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center gap-1"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeletePage(page.id)}
+                      disabled={actionLoading === `delete-${page.id}`}
+                      className="p-2 rounded-xl bg-red-500/10 text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
@@ -257,6 +294,7 @@ const CMSContent = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

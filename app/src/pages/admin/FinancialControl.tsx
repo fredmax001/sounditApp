@@ -129,7 +129,7 @@ const FinancialControl = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2.5 bg-[#d3da0c]/15 text-yellow-700 dark:text-[#d3da0c] rounded-xl">
@@ -249,6 +249,38 @@ const FinancialControl = () => {
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />
           </div>
         ) : (
+          <>
+          {/* Mobile Transaction Cards */}
+          <div className="md:hidden divide-y divide-black/5 dark:divide-white/5">
+            {transactions.slice(0, 10).map((tx) => (
+              <div key={tx.id} className="p-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#020b00] dark:text-white truncate">{tx.type}</p>
+                    <p className="text-xs text-gray-500 font-mono">#{tx.id} · {new Date(tx.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0 ${
+                    tx.status === 'completed' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
+                    tx.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' :
+                    'bg-red-500/15 text-red-600 dark:text-red-400'
+                  }`}>
+                    {tx.status}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs bg-neutral-50 dark:bg-white/[0.03] rounded-xl px-3 py-2">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Amount: <strong className="text-[#020b00] dark:text-white">¥{tx.amount?.toLocaleString()}</strong>
+                  </span>
+                  <span className="text-yellow-700 dark:text-[#d3da0c] font-semibold">
+                    Fee: ¥{tx.commission?.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
@@ -281,6 +313,8 @@ const FinancialControl = () => {
               ))}
             </tbody>
           </table>
+          </div>
+          </>
         )}
       </div>
     </div>
