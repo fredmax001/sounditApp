@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, ChevronRight, Globe, HelpCircle, LogOut, Moon, Sun, Monitor,
-  Shield, User as UserIcon, UserPlus, X, Store, LayoutDashboard, Sparkles,
+  Shield, User as UserIcon, UserPlus, X, Store, LayoutDashboard, Sparkles, Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -201,6 +201,20 @@ const Settings = () => {
           <LogOut className="w-5 h-5" />
           {t('kit.settingsMenu.logOut')}
         </motion.button>
+
+        {/* Delete account shortcut */}
+        {role !== 'admin' && role !== 'super_admin' && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.14 }}
+            onClick={() => navigate('/settings/security?action=delete')}
+            className="w-full mt-3 flex items-center justify-center gap-2 py-3.5 min-h-[44px] rounded-2xl bg-transparent border border-red-500/20 text-red-600/80 dark:text-red-400/80 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/5 font-medium text-xs transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            {t('kit.security.deleteAccount', 'Delete Account')}
+          </motion.button>
+        )}
       </div>
 
       {/* Logout confirmation dialog */}

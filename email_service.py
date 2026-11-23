@@ -3,11 +3,14 @@ Email service module using SMTP SSL for transactional emails.
 If SMTP is not configured, emails are logged to console (dev mode).
 """
 import base64
+import hashlib
+import hmac
 import io
 import logging
 import re
 import smtplib
 import ssl
+import urllib.parse
 import zipfile
 from email import encoders
 from email.mime.base import MIMEBase
@@ -103,6 +106,170 @@ def is_deliverable_email(email: Optional[str]) -> bool:
     return True
 
 
+# ─────────────────────────── Unsubscribe Helpers (RFC 8058 + HMAC) ───────────────────────────
+
+CRITICAL_TRANSACTIONAL_KEYWORDS = (
+    "verification code",
+    "verify your email",
+    "otp",
+    "reset your",
+    "password reset",
+    "password was changed",
+    "account has been deleted",
+    "two-factor",
+    "security alert",
+    "ticket confirmed",
+    "your tickets for",
+    "qr ticket",
+    "order receipt",
+    "payment receipt",
+    "payment confirmed",
+    "invited to join sound it as",
+)
+
+
+def _get_unsubscribe_secret() -> str:
+    settings = get_settings()
+    return (getattr(settings, "JWT_SECRET", None) or getattr(settings, "RESET_TOKEN_SECRET", None) or "soundit-unsub-secret").strip()
+
+
+def generate_unsubscribe_token(email: str, scope: str = "all") -> str:
+    """Generate a stateless, tamper-proof HMAC-SHA256 unsubscribe token for an email + scope."""
+    clean_email = (email or "").strip().lower()
+    clean_scope = (scope or "all").strip().lower()
+    secret = _get_unsubscribe_secret().encode("utf-8")
+    payload = f"soundit-unsub:{clean_email}:{clean_scope}".encode("utf-8")
+    return hmac.new(secret, payload, hashlib.sha256).hexdigest()[:40]
+
+
+def verify_unsubscribe_token(email: str, token: Optional[str], scope: str = "all") -> bool:
+    """Verify an HMAC-SHA256 unsubscribe token for the given email."""
+    if not email or not token:
+        return False
+    clean_email = email.strip().lower()
+    clean_token = token.strip()
+    clean_scope = (scope or "all").strip().lower()
+    # Accept tokens minted for the requested scope or any valid canonical scope for that email
+    for candidate_scope in {clean_scope, "all", "marketing", "newsletter"}:
+        expected = generate_unsubscribe_token(clean_email, candidate_scope)
+        if hmac.compare_digest(expected, clean_token):
+            return True
+    return False
+
+
+def build_unsubscribe_url(to_email: str, scope: str = "all") -> str:
+    """Build the browser-facing branded unsubscribe URL embedded in email footers."""
+    clean_email = (to_email or "").strip().lower()
+    clean_scope = (scope or "all").strip().lower()
+    token = generate_unsubscribe_token(clean_email, clean_scope)
+    qs = urllib.parse.urlencode({"email": clean_email, "token": token, "scope": clean_scope})
+    return f"https://sounditent.com/unsubscribe?{qs}"
+
+
+def build_one_click_unsubscribe_api_url(to_email: str, scope: str = "all") -> str:
+    """Build the RFC 8058 one-click POST API URL for List-Unsubscribe headers."""
+    clean_email = (to_email or "").strip().lower()
+    clean_scope = (scope or "all").strip().lower()
+    token = generate_unsubscribe_token(clean_email, clean_scope)
+    qs = urllib.parse.urlencode({"email": clean_email, "token": token, "scope": clean_scope})
+    return f"https://sounditent.com/api/v1/notifications/unsubscribe?{qs}"
+
+
+def _is_critical_transactional_subject(subject: str) -> bool:
+    subj = (subject or "").strip().lower()
+    return any(kw in subj for kw in CRITICAL_TRANSACTIONAL_KEYWORDS)
+
+
+def _is_email_unsubscribed(to_email: str, is_marketing: bool = False) -> bool:
+    """Check if the recipient has opted out of non-critical / marketing emails."""
+    clean_email = (to_email or "").strip().lower()
+    if not clean_email:
+        return False
+    db = None
+    try:
+        from sqlalchemy import func
+        from database import SessionLocal
+        from models import User, NotificationPreference, NewsletterSubscriber
+
+        db = SessionLocal()
+        user = db.query(User).filter(func.lower(User.email) == clean_email).first()
+        if user:
+            pref = db.query(NotificationPreference).filter(NotificationPreference.user_id == user.id).first()
+            if pref:
+                if pref.email_enabled is False:
+                    return True
+                if is_marketing and pref.marketing is False:
+                    # Respect explicit opt-out when newsletter subscriber record also indicates unsubscribed
+                    sub = db.query(NewsletterSubscriber).filter(
+                        func.lower(NewsletterSubscriber.email) == clean_email
+                    ).first()
+                    if sub and sub.is_active is False and sub.unsubscribed_at is not None:
+                        return True
+
+        # For marketing / broadcast / newsletter emails, also honor NewsletterSubscriber opt-out (covers guests & users)
+        if is_marketing:
+            sub = db.query(NewsletterSubscriber).filter(
+                func.lower(NewsletterSubscriber.email) == clean_email
+            ).first()
+            if sub and sub.is_active is False and sub.unsubscribed_at is not None:
+                return True
+        return False
+    except Exception as e:
+        logger.debug(f"Unsubscribe status check skipped due to error: {e}")
+        return False
+    finally:
+        if db is not None:
+            try:
+                db.close()
+            except Exception:
+                pass
+
+
+def _inject_unsubscribe_footer(
+    body: str,
+    html_body: Optional[str],
+    to_email: str,
+    scope: str = "all",
+) -> tuple:
+    """Ensure both plain-text and HTML emails include a clear, working unsubscribe link."""
+    unsub_url = build_unsubscribe_url(to_email, scope=scope)
+    prefs_url = "https://sounditent.com/settings/notifications"
+
+    # Plain-text footer
+    updated_body = body or ""
+    if "sounditent.com/unsubscribe" not in updated_body and "/unsubscribe?" not in updated_body:
+        updated_body = (
+            f"{updated_body.rstrip()}\n\n"
+            f"---\n"
+            f"Don't want to receive these emails? Unsubscribe: {unsub_url}\n"
+            f"Manage email preferences: {prefs_url}"
+        )
+
+    # HTML footer
+    updated_html = html_body
+    if updated_html and "sounditent.com/unsubscribe" not in updated_html:
+        unsub_html = (
+            f'<p style="margin-top: 12px; font-size: 11px; color: #71717a;">'
+            f'Don\'t want these emails? '
+            f'<a href="{unsub_url}" style="color: #71717a; text-decoration: underline; font-weight: 600;">Unsubscribe</a>'
+            f' &nbsp;&middot;&nbsp; '
+            f'<a href="{prefs_url}" style="color: #71717a; text-decoration: underline;">Manage Preferences</a>'
+            f'</p>'
+        )
+        # Insert inside the standard _email_wrapper footer if present, otherwise before </body>
+        footer_marker = "© 2026 Sound It. All rights reserved.</p>"
+        if footer_marker in updated_html:
+            updated_html = updated_html.replace(footer_marker, f"{footer_marker}\n                {unsub_html}", 1)
+        elif "</body>" in updated_html.lower():
+            idx = updated_html.lower().rfind("</body>")
+            fallback_block = f'<div style="text-align:center;padding:16px;font-family:sans-serif;">{unsub_html}</div>'
+            updated_html = updated_html[:idx] + fallback_block + updated_html[idx:]
+        else:
+            updated_html = f"{updated_html}\n{unsub_html}"
+
+    return updated_body, updated_html
+
+
 # ─────────────────────────── Core Transport ───────────────────────────
 
 def _smtp_send(
@@ -112,13 +279,27 @@ def _smtp_send(
     html_body: Optional[str] = None,
     from_email: Optional[str] = None,
     attachments: Optional[List[tuple]] = None,
-    is_marketing: bool = False
+    is_marketing: bool = False,
+    include_unsubscribe: Optional[bool] = None,
+    bypass_unsubscribe: bool = False,
+    unsubscribe_scope: Optional[str] = None,
 ) -> bool:
     """Send email via SMTP SSL (Hostinger/any provider).
     attachments: list of (filename, bytes, mimetype) tuples
     """
     if not is_deliverable_email(to_email):
         logger.warning(f"[EMAIL SKIPPED] Non-deliverable or dummy email blocked: '{to_email}'")
+        return False
+
+    is_critical = bypass_unsubscribe or _is_critical_transactional_subject(subject)
+    effective_marketing = is_marketing or (
+        not is_critical
+        and any(w in subject.lower() for w in ["update", "announcement", "newsletter", "broadcast", "featured", "digest", "insider"])
+    )
+
+    # Enforce user unsubscribe preference for all non-critical emails
+    if not is_critical and _is_email_unsubscribed(to_email, is_marketing=effective_marketing):
+        logger.info(f"[EMAIL SKIPPED] Recipient '{to_email}' has unsubscribed (subject='{subject}')")
         return False
 
     settings = get_settings()
@@ -128,26 +309,31 @@ def _smtp_send(
     sender_addr = from_email or settings.SMTP_FROM or settings.SMTP_USER
     sender_formatted = f"Sound It <{sender_addr}>" if "<" not in sender_addr else sender_addr
 
+    should_add_unsub = include_unsubscribe if include_unsubscribe is not None else (not is_critical)
+    scope = unsubscribe_scope or ("marketing" if effective_marketing else "all")
+
+    if should_add_unsub:
+        body, html_body = _inject_unsubscribe_footer(body, html_body, to_email, scope=scope)
+
     try:
         msg = MIMEMultipart("mixed")
         msg["Subject"] = subject
         msg["From"] = sender_formatted
         msg["To"] = to_email
 
-        # One-click unsubscribe headers per RFC 8058 for marketing/broadcast emails
-        if is_marketing or any(w in subject.lower() for w in ["update", "announcement", "newsletter", "broadcast", "featured", "sound it"]):
-            import urllib.parse
-            encoded_email = urllib.parse.quote(to_email)
-            unsub_url = f"https://sounditent.com/api/v1/notifications/unsubscribe?email={encoded_email}"
+        # One-click unsubscribe headers per RFC 8058 for all non-critical emails
+        if should_add_unsub:
+            encoded_email = urllib.parse.quote(to_email.strip().lower())
+            unsub_api_url = build_one_click_unsubscribe_api_url(to_email, scope=scope)
             unsub_mailto = f"<mailto:support@sounditent.com?subject=unsubscribe%20{encoded_email}>"
-            msg["List-Unsubscribe"] = f"<{unsub_url}>, {unsub_mailto}"
+            msg["List-Unsubscribe"] = f"<{unsub_api_url}>, {unsub_mailto}"
             msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
         # Body part
         body_part = MIMEMultipart("alternative")
-        body_part.attach(MIMEText(body, "plain"))
+        body_part.attach(MIMEText(body, "plain", "utf-8"))
         if html_body:
-            body_part.attach(MIMEText(html_body, "html"))
+            body_part.attach(MIMEText(html_body, "html", "utf-8"))
         msg.attach(body_part)
 
         # Attachments
@@ -189,6 +375,10 @@ def send_email(
     from_email: Optional[str] = None,
     attachments: Optional[List[tuple]] = None,
     html_content: Optional[str] = None,
+    is_marketing: bool = False,
+    include_unsubscribe: Optional[bool] = None,
+    bypass_unsubscribe: bool = False,
+    unsubscribe_scope: Optional[str] = None,
     **kwargs
 ) -> bool:
     """
@@ -202,11 +392,19 @@ def send_email(
         logger.warning(f"[EMAIL SKIPPED] Email address '{to_email}' is not deliverable or blocked.")
         return False
 
-    settings = get_settings()
-    sender = from_email or settings.SMTP_FROM or settings.SMTP_USER or "support@sounditent.com"
-
     # Send via SMTP SSL
-    if _smtp_send(to_email, subject, body, html_body, from_email, attachments):
+    if _smtp_send(
+        to_email,
+        subject,
+        body,
+        html_body,
+        from_email,
+        attachments,
+        is_marketing=is_marketing,
+        include_unsubscribe=include_unsubscribe,
+        bypass_unsubscribe=bypass_unsubscribe,
+        unsubscribe_scope=unsubscribe_scope,
+    ):
         return True
 
     # Dev fallback
@@ -1095,11 +1293,11 @@ def send_broadcast_email(
     body: str,
     html_body: Optional[str] = None
 ) -> dict:
-    """Send broadcast email to multiple recipients."""
+    """Send broadcast email to multiple recipients (with marketing unsubscribe enforcement)."""
     sent = 0
     failed = 0
     for email in to_emails:
-        if send_email(email, subject, body, html_body):
+        if send_email(email, subject, body, html_body, is_marketing=True, unsubscribe_scope="marketing"):
             sent += 1
         else:
             failed += 1
@@ -1189,7 +1387,7 @@ def send_organizer_announcement_email(
     </p>
 
     <div style="background-color: #f9fafb; border: 1px solid #e4e4e7; border-radius: 12px; padding: 22px; margin: 20px 0;">
-        <p style="font-size: 15px; color: #e1e1e1; line-height: 1.7; white-space: pre-wrap; margin: 0;">
+        <p style="font-size: 15px; color: #27272a; line-height: 1.7; white-space: pre-wrap; margin: 0;">
             {announcement_body}
         </p>
     </div>

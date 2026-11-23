@@ -416,14 +416,15 @@ const EditProfile = () => {
                     {[
                       { label: 'Change Password', icon: Lock, path: '/settings/security' },
                       { label: 'Two-Factor Authentication', icon: ShieldCheck, path: '/settings/security' },
+                      { label: 'Delete Account', icon: ShieldCheck, path: '/settings/security?action=delete', danger: true },
                     ].map(item => (
                       <button
                         key={item.label}
                         onClick={() => navigate(item.path)}
                         className="w-full flex items-center justify-between py-1"
                       >
-                        <span className="flex items-center gap-3 text-sm text-[#020b00] dark:text-white">
-                          <item.icon className="w-4 h-4 text-[#8a8f04] dark:text-[#d3da0c]" />
+                        <span className={`flex items-center gap-3 text-sm ${item.danger ? 'text-red-500 font-medium' : 'text-[#020b00] dark:text-white'}`}>
+                          <item.icon className={`w-4 h-4 ${item.danger ? 'text-red-500' : 'text-[#8a8f04] dark:text-[#d3da0c]'}`} />
                           {item.label}
                         </span>
                         <ChevronRight className="w-4 h-4 text-gray-500" />

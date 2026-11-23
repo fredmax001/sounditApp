@@ -97,6 +97,7 @@ const NotificationDetailPage = lazy(() => import('./pages/NotificationDetail'));
 const ReelsPage = lazy(() => import('./pages/Reels'));
 const NotificationSettings = lazy(() => import('./pages/user/NotificationSettings'));
 const SecuritySettings = lazy(() => import('./pages/user/SecuritySettings'));
+const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
 const LanguageSettings = lazy(() => import('./pages/user/LanguageSettings'));
 const InviteFriends = lazy(() => import('./pages/user/InviteFriends'));
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'));
@@ -394,6 +395,7 @@ function App() {
             <Route path="/news/beatz-of-afrika-2026-shanghai-recap" element={<Suspense fallback={<PageLoader />}><BeatzOfAfrikaRecap /></Suspense>} />
             <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
             <Route path="/help" element={<Suspense fallback={<PageLoader />}><Help /></Suspense>} />
+            <Route path="/unsubscribe" element={<Suspense fallback={<PageLoader />}><Unsubscribe /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<PageLoader />}><Terms /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><Privacy /></Suspense>} />
             <Route path="/refund-policy" element={<Suspense fallback={<PageLoader />}><RefundPolicy /></Suspense>} />

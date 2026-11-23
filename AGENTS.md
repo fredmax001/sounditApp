@@ -5,7 +5,33 @@
 ---
 
 ## Last Updated
-2026-11-23
+2026-11-24
+
+---
+
+### 188. Self-Service Account Deletion Overhaul & RFC 8058 Email Unsubscribe System (2026-11-24)
+- **Objectives & Issues Addressed**:
+  1. **Self-Service Account Deletion Audit & Hardening (`api/auth_password.py`, `SecuritySettings.tsx`, `Settings.tsx`, `EditProfile.tsx`)**:
+     - *Backend (`DELETE /api/v1/auth/me`)*:
+       - Added explicit staff-token guard (`getattr(current_user, "_staff_context", None)`) so business staff tokens can never delete the business owner's account.
+       - Preserved admin self-delete protection (`403 Forbidden`).
+       - Expanded soft-delete anonymization to unlink OAuth identities (`google_id`, `apple_id`, `wechat_id`), clear `tiktok`, `gender`, `date_of_birth`, `refresh_token`, `totp_secret`/`totp_enabled`, `pin_hash`/`pin_enabled`, `profile_data`, revoke `PushSubscription` & `NativePushToken` rows, disable all `NotificationPreference` channels, unsubscribe `NewsletterSubscriber`, deactivate/anonymize linked public role profiles (`ArtistProfile`, `OrganizerProfile`, `BusinessProfile`, `VendorProfile`), and send a confirmation email to the original address.
+     - *Frontend (`SecuritySettings.tsx`, `Settings.tsx`, `EditProfile.tsx`)*:
+       - Fixed mobile keyboard whitespace/case mismatch (`deleteConfirmText.trim().toUpperCase() !== 'DELETE'`), fixed FastAPI error message parsing (`error?.detail || error?.error?.message`), awaited `logout()` before navigating to `/`, rendered the confirmation label above the input, raised modal z-index to `z-[110]` with safe-area bottom padding, and added `?action=delete` deep-link support from `/settings` and `/profile/edit`.
+  2. **Complete Email Unsubscribe System (`email_service.py`, `api/notifications.py`, `api/newsletter.py`, `api/admin.py`, `app/src/pages/Unsubscribe.tsx`)**:
+     - *Fixed Dead Endpoint & Dropped Kwargs*: Previously `email_service.py` generated `List-Unsubscribe` pointing to `/api/v1/notifications/unsubscribe` (404 Not Found), and `send_email()` accepted `**kwargs` without forwarding `is_marketing` to `_smtp_send()`.
+     - *Cryptographic Signed Unsubscribe Links & Automatic Footers (`email_service.py`)*:
+       - Added HMAC-SHA256 stateless token helpers (`generate_unsubscribe_token`, `verify_unsubscribe_token`, `build_unsubscribe_url`, `build_one_click_unsubscribe_api_url`).
+       - Added automatic pre-send unsubscribe enforcement (`_is_email_unsubscribed`) so unsubscribed recipients are skipped for non-critical/marketing/broadcast/notification emails while mandatory transactional/security emails (OTPs, password resets, QR tickets, order receipts, account deletion notices) continue to deliver.
+       - Automatically injects a visible **Unsubscribe** + **Manage Preferences** footer into both HTML and plain-text outgoing non-critical emails AND attaches RFC 8058 `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers for Gmail/Apple Mail/Yahoo native one-click unsubscribe.
+     - *API Endpoints (`api/notifications.py`, `api/newsletter.py`, `api/admin.py`)*:
+       - Added `GET`/`POST /api/v1/notifications/unsubscribe` (supporting RFC 8058 one-click POST, JSON POST, and browser 302 redirect to `https://sounditent.com/unsubscribe`), `GET /api/v1/notifications/unsubscribe/status`, and signed-token `POST /api/v1/notifications/resubscribe`.
+       - Updated `api/newsletter.py` and `api/admin.py` broadcast dispatch to use signed unsubscribe URLs and enforce unsubscribe preferences.
+     - *Branded Frontend Page (`app/src/pages/Unsubscribe.tsx`, route `/unsubscribe`)*:
+       - Mobile-first dark-mode Sound It unsubscribe page supporting automatic 1-click opt-out from email links, toggling between "All non-essential emails" vs "Marketing & newsletters only", signed-token undo/re-subscribe, and manual email opt-out.
+  3. **Production Deployment, Native Wrapper Sync & Live E2E Verification**:
+     - Built production frontend bundle (`tsc -b && vite build`, 0 errors), restarted `soundit.service`, synced `app/dist/` to local & native iOS/Android wrappers.
+     - Verified live E2E test suite on production (4/4 passed): self-service account deletion + JWT revocation + admin guard, HMAC token verification + footer injection, RFC 8058 one-click POST + browser 302 redirect + pre-send opt-out enforcement + re-subscribe, and HTTPS 200 on `/unsubscribe` and `/health`.
 
 ---
 

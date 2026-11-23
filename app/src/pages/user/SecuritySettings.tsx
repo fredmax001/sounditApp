@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Loader2, Lock, ShieldCheck, Trash2, X } from 'lucide-react';
+import { ChevronRight, Eye, EyeOff, Loader2, Lock, ShieldCheck, Trash2, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
@@ -20,7 +20,8 @@ type Modal =
 const SecuritySettings = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { session, logout } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { session, profile, logout } = useAuthStore();
 
   const [modal, setModal] = useState<Modal>(null);
   const [twoFaEnabled, setTwoFaEnabled] = useState(false);
@@ -31,6 +32,9 @@ const SecuritySettings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const [code, setCode] = useState('');
+
+  const userRole = String(profile?.role_type || profile?.role || '').toLowerCase();
+  const isAdminAccount = userRole === 'admin' || userRole === 'super_admin';
 
   const token = () => session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('token');
 
@@ -125,18 +129,43 @@ const SecuritySettings = () => {
     }
   };
 
+  useEffect(() => {
+    if (searchParams.get('action') === 'delete') {
+      setDeleteConfirmText('');
+      setModal({ kind: 'delete' });
+      const next = new URLSearchParams(searchParams);
+      next.delete('action');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return toast.error(t('kit.security.deleteConfirmLabel'));
+    if (isAdminAccount) {
+      return toast.error(t('kit.security.adminDeleteBlocked', 'Admin accounts must be deleted by another administrator.'));
+    }
+    const tk = token();
+    if (!tk) return toast.error(t('user.favorites.youMustBeLoggedIn'));
+    if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') {
+      return toast.error(t('kit.security.deleteConfirmLabel'));
+    }
     setIsSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/me`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tk}`,
+        },
+      });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
-        throw new Error(error?.error?.message || 'Failed');
+        throw new Error(error?.detail || error?.error?.message || error?.message || t('kit.security.deleteFailed'));
       }
+      setModal(null);
+      setDeleteConfirmText('');
       toast.success(t('kit.security.deleted'));
-      logout();
-      navigate('/');
+      await logout();
+      navigate('/', { replace: true });
     } catch (e) {
       toast.error((e as Error).message || t('kit.security.deleteFailed'));
     } finally {
@@ -160,12 +189,12 @@ const SecuritySettings = () => {
   );
 
   const ModalShell = ({ children, danger }: { children: React.ReactNode; danger?: boolean }) => createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4" onClick={() => setModal(null)}>
+    <div data-modal-open="true" className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4" onClick={() => setModal(null)}>
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className={`bg-white dark:bg-[#111111] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md border-t sm:border max-h-[85dvh] overflow-y-auto shadow-2xl ${danger ? 'border-red-500/30' : 'border-black/10 dark:border-white/10'}`}
+        className={`bg-white dark:bg-[#111111] text-[#020b00] dark:text-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6 w-full sm:max-w-md border-t sm:border max-h-[85dvh] overflow-y-auto shadow-2xl ${danger ? 'border-red-500/30' : 'border-black/10 dark:border-white/10'}`}
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -220,7 +249,7 @@ const SecuritySettings = () => {
         </motion.button>
 
         {/* Delete account */}
-        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }} onClick={() => setModal({ kind: 'delete' })} className="w-full flex items-center gap-3 bg-white dark:bg-[#111111] border border-red-500/20 rounded-2xl p-4 text-left hover:border-red-500/40 shadow-xs dark:shadow-none transition-all min-h-[44px]">
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }} onClick={() => { setDeleteConfirmText(''); setModal({ kind: 'delete' }); }} className="w-full flex items-center gap-3 bg-white dark:bg-[#111111] border border-red-500/20 rounded-2xl p-4 text-left hover:border-red-500/40 shadow-xs dark:shadow-none transition-all min-h-[44px]">
           <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
             <Trash2 className="w-5 h-5 text-red-500" />
           </div>
@@ -318,19 +347,35 @@ const SecuritySettings = () => {
           </div>
           <h3 className="text-lg font-bold text-[#020b00] dark:text-white text-center mb-1">{t('kit.security.deleteConfirmTitle')}</h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-4">{t('kit.security.deleteConfirmDesc')}</p>
-          <input
-            type="text"
-            value={deleteConfirmText}
-            onChange={e => setDeleteConfirmText(e.target.value)}
-            placeholder="DELETE"
-            className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-red-500/30 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-600 focus:border-red-500 focus:outline-none mb-4"
-          />
+          {isAdminAccount ? (
+            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs text-center">
+              {t('kit.security.adminDeleteBlocked', 'Admin accounts cannot be self-deleted here. Another administrator must deactivate this account from the Admin Console.')}
+            </div>
+          ) : (
+            <>
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5">
+                {t('kit.security.deleteConfirmLabel')}
+              </label>
+              <input
+                type="text"
+                autoCapitalize="characters"
+                autoComplete="off"
+                autoCorrect="off"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="w-full px-3 py-3 bg-neutral-50 dark:bg-white/5 border border-red-500/30 rounded-xl text-[#020b00] dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-600 focus:border-red-500 focus:outline-none mb-4"
+              />
+            </>
+          )}
           <div className="flex gap-3">
-            <button onClick={() => setModal(null)} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
-            <button onClick={handleDeleteAccount} disabled={isSaving || deleteConfirmText !== 'DELETE'} className="flex-1 min-h-[44px] bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm">
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {t('kit.security.deleteAccount')}
-            </button>
+            <button onClick={() => { setDeleteConfirmText(''); setModal(null); }} className="flex-1 min-h-[44px] bg-neutral-100 dark:bg-white/5 text-gray-800 dark:text-white text-sm font-semibold rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors">{t('kit.common.cancel')}</button>
+            {!isAdminAccount && (
+              <button onClick={handleDeleteAccount} disabled={isSaving || deleteConfirmText.trim().toUpperCase() !== 'DELETE'} className="flex-1 min-h-[44px] bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm">
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {t('kit.security.deleteAccount')}
+              </button>
+            )}
           </div>
         </ModalShell>
       )}
