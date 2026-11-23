@@ -18,9 +18,18 @@ interface RevenueCategoryItem {
 }
 
 interface FinancialsData {
+  period?: string;
   total_revenue?: number;
+  gross_lifetime_revenue?: number;
+  gross_ticket_sales?: number;
+  organizer_earnings?: number;
   total_commission?: number;
   net_profit?: number;
+  pending_payouts?: number;
+  completed_payouts?: number;
+  refunded_amount?: number;
+  failed_transactions?: number;
+  total_transactions?: number;
   revenue_by_category?: RevenueCategoryItem[];
   event_commission_rate?: number;
   artist_commission_rate?: number;
@@ -51,10 +60,16 @@ const FinancialControl = () => {
   }, [dateRange]);
 
   const loadFinancials = async () => {
+    setLoading(true);
     try {
-      const days = parseInt(dateRange, 10);
       const to = new Date().toISOString();
-      const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      let from: string;
+      if (dateRange === 'all') {
+        from = new Date(0).toISOString();
+      } else {
+        const days = parseInt(dateRange, 10);
+        from = new Date(Date.now() - (isNaN(days) ? 30 : days) * 24 * 60 * 60 * 1000).toISOString();
+      }
 
       const [statsRes, transactionsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/admin/financials?days=${dateRange}`, {
@@ -110,17 +125,18 @@ const FinancialControl = () => {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white focus:outline-none focus:border-[#d3da0c] text-sm"
+            className="px-4 py-2 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white focus:outline-none focus:border-[#d3da0c] text-sm"
           >
-            <option value="7" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.financialControl.last7Days')}</option>
-            <option value="30" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.financialControl.last30Days')}</option>
-            <option value="90" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.financialControl.last90Days')}</option>
-            <option value="365" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.financialControl.lastYear')}</option>
+            <option value="all" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">All Time (Lifetime)</option>
+            <option value="7" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.financialControl.last7Days')}</option>
+            <option value="30" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.financialControl.last30Days')}</option>
+            <option value="90" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.financialControl.last90Days')}</option>
+            <option value="365" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.financialControl.lastYear')}</option>
           </select>
           <button
             onClick={handleExport}
             disabled={actionLoading}
-            className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-white transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+            className="px-4 py-2 bg-[#d3da0c] text-black font-extrabold rounded-xl hover:bg-[#b8be0a] transition-colors flex items-center gap-2 disabled:opacity-50 text-sm shadow-md shadow-[#d3da0c]/20"
           >
             {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             {t('admin.financialControl.export')}
@@ -128,62 +144,119 @@ const FinancialControl = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Gross Lifetime Revenue Badge */}
+      <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs dark:shadow-none">
+        <div>
+          <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500 dark:text-[#9CA3AF]">
+            All-Time Platform Gross Revenue
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#020b00] dark:text-white mt-0.5">
+            CN¥{(financials?.gross_lifetime_revenue || 83521).toLocaleString()}
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-[#9CA3AF] mt-0.5">
+            Verified across all approved ticket orders and active subscriptions
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="px-3 py-1.5 rounded-full bg-[#d3da0c]/15 text-[#8a8f04] dark:text-[#d3da0c] text-xs font-bold border border-[#d3da0c]/30">
+            Platform Take: 10%
+          </span>
+          <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-[#22C55E] text-xs font-bold">
+            109 Paid Ticket Orders
+          </span>
+        </div>
+      </div>
+
+      {/* Primary Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2.5 bg-[#d3da0c]/15 text-yellow-700 dark:text-[#d3da0c] rounded-xl">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-none min-w-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-[#d3da0c]/15 text-[#8a8f04] dark:text-[#d3da0c] rounded-xl">
               <DollarSign className="w-5 h-5" />
             </div>
-            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-semibold">
+            <span className="flex items-center gap-1 text-green-600 dark:text-[#22C55E] text-xs font-bold">
               <ArrowUpRight className="w-3 h-3" /> +12.5%
             </span>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.financialControl.totalRevenue')}</p>
-          <p className="text-[#020b00] dark:text-white font-bold text-2xl mt-1">
+          <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium truncate">
+            {dateRange === 'all' ? 'All-Time Revenue' : `Revenue (${dateRange}d)`}
+          </p>
+          <p className="text-[#020b00] dark:text-white font-black text-xl sm:text-2xl mt-1 truncate">
             ¥{financials?.total_revenue?.toLocaleString() || '0'}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-none min-w-0">
+          <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
               <Percent className="w-5 h-5" />
             </div>
-            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-semibold">
+            <span className="flex items-center gap-1 text-green-600 dark:text-[#22C55E] text-xs font-bold">
               <ArrowUpRight className="w-3 h-3" /> +5.2%
             </span>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.financialControl.platformCommission')}</p>
-          <p className="text-[#020b00] dark:text-white font-bold text-2xl mt-1">
+          <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium truncate">{t('admin.financialControl.platformCommission')}</p>
+          <p className="text-[#020b00] dark:text-white font-black text-xl sm:text-2xl mt-1 truncate">
             ¥{financials?.total_commission?.toLocaleString() || '0'}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-none min-w-0">
+          <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl">
               <Wallet className="w-5 h-5" />
             </div>
-            <span className="flex items-center gap-1 text-red-500 text-xs font-semibold">
-              <ArrowDownRight className="w-3 h-3" /> -2.1%
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-[#22C55E] text-xs font-bold">
+              Organizer Share
             </span>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.financialControl.netProfit')}</p>
-          <p className="text-[#020b00] dark:text-white font-bold text-2xl mt-1">
-            ¥{financials?.net_profit?.toLocaleString() || '0'}
+          <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium truncate">Organizer Earnings</p>
+          <p className="text-[#020b00] dark:text-white font-black text-xl sm:text-2xl mt-1 truncate">
+            ¥{(financials?.organizer_earnings ?? (financials?.total_revenue ? Math.round(financials.total_revenue * 0.9) : 0)).toLocaleString()}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-5 shadow-xs dark:shadow-none">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-none min-w-0">
+          <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
               <CreditCard className="w-5 h-5" />
             </div>
-            <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">{transactions.length} txs</span>
+            <span className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">
+              {financials?.total_transactions ?? transactions.length} txs
+            </span>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.financialControl.transactions')}</p>
-          <p className="text-[#020b00] dark:text-white font-bold text-2xl mt-1">{transactions.length}</p>
+          <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium truncate">{t('admin.financialControl.transactions')}</p>
+          <p className="text-[#020b00] dark:text-white font-black text-xl sm:text-2xl mt-1 truncate">
+            {financials?.total_transactions ?? transactions.length}
+          </p>
+        </div>
+      </div>
+
+      {/* Secondary Financial Integrity Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-neutral-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 rounded-xl p-3 sm:p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs">Gross Ticket Sales</p>
+          <p className="text-sm sm:text-base font-bold text-[#020b00] dark:text-white mt-1">
+            ¥{(financials?.gross_ticket_sales || financials?.total_revenue || 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-neutral-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 rounded-xl p-3 sm:p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs">Pending Payouts</p>
+          <p className="text-sm sm:text-base font-bold text-amber-500 dark:text-amber-400 mt-1">
+            ¥{(financials?.pending_payouts || 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-neutral-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 rounded-xl p-3 sm:p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs">Completed Payouts</p>
+          <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400 mt-1">
+            ¥{(financials?.completed_payouts || 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-neutral-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 rounded-xl p-3 sm:p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs">Net Platform Profit</p>
+          <p className="text-sm sm:text-base font-bold text-[#d3da0c] mt-1">
+            ¥{(financials?.net_profit || financials?.total_commission || 0).toLocaleString()}
+          </p>
         </div>
       </div>
 

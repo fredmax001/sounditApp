@@ -269,9 +269,9 @@ const ManageUsers = () => {
                 <AdminPageHeader chip="Management" title={t('admin.manageUsers.title')} subtitle={t('admin.manageUsers.subtitle')} />
                 <button
                     onClick={() => setShowInviteModal(true)}
-                    className="px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-white transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-[#d3da0c] text-black font-extrabold rounded-xl hover:bg-[#b8be0a] transition-colors flex items-center gap-2 shadow-md shadow-[#d3da0c]/20 text-xs sm:text-sm"
                 >
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlus className="w-4 h-4 text-black stroke-[2.5]" />
                     {t('admin.manageUsers.inviteUser')}
                 </button>
             </div>
@@ -284,43 +284,48 @@ const ManageUsers = () => {
                         placeholder={t('admin.manageUsers.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:border-[#d3da0c] focus:outline-none"
                     />
                 </div>
                 <div className="grid grid-cols-2 sm:flex gap-2.5 sm:gap-3">
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                     >
-                        <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allRoles')}</option>
-                        <option value="user" className="bg-white dark:bg-[#111111]">User</option>
-                        <option value="business" className="bg-white dark:bg-[#111111]">Business</option>
-                        <option value="vendor" className="bg-white dark:bg-[#111111]">Vendor</option>
-                        <option value="artist" className="bg-white dark:bg-[#111111]">Artist</option>
-                        <option value="organizer" className="bg-white dark:bg-[#111111]">Organizer</option>
-                        <option value="admin" className="bg-white dark:bg-[#111111]">Admin</option>
-                        {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111]">Super Admin</option>}
+                        <option value="" className="bg-white dark:bg-[#0F140D]">{t('admin.manageUsers.allRoles')}</option>
+                        <option value="user" className="bg-white dark:bg-[#0F140D]">User</option>
+                        <option value="business" className="bg-white dark:bg-[#0F140D]">Business</option>
+                        <option value="vendor" className="bg-white dark:bg-[#0F140D]">Vendor</option>
+                        <option value="artist" className="bg-white dark:bg-[#0F140D]">Artist</option>
+                        <option value="organizer" className="bg-white dark:bg-[#0F140D]">Organizer</option>
+                        <option value="admin" className="bg-white dark:bg-[#0F140D]">Admin</option>
+                        {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#0F140D]">Super Admin</option>}
                     </select>
                     <select
                         value={cityFilter}
                         onChange={(e) => setCityFilter(e.target.value)}
-                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
+                        className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white text-sm focus:border-[#d3da0c] focus:outline-none"
                     >
-                        <option value="" className="bg-white dark:bg-[#111111]">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
+                        <option value="" className="bg-white dark:bg-[#0F140D]">{t('admin.manageUsers.allCities') || 'All Cities'}</option>
                         {cities.map((city) => (
-                            <option key={city.id} value={city.id} className="bg-white dark:bg-[#111111]">{city.name}</option>
+                            <option key={city.id} value={city.id} className="bg-white dark:bg-[#0F140D]">{city.name}</option>
                         ))}
                     </select>
                     <button
                         onClick={loadUsers}
                         disabled={isLoading}
-                        className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                        className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white text-sm hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
                     >
                         <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                         {t('admin.manageUsers.refresh')}
                     </button>
                 </div>
+            </div>
+
+            {/* Active filtered count */}
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-[#9CA3AF] px-1">
+                <span>{filteredUsers.length} users</span>
             </div>
 
             <div className="bg-white dark:bg-[#111111] rounded-2xl overflow-hidden border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none">

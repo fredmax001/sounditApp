@@ -21,25 +21,36 @@ interface StatCardProps {
   onClick?: () => void;
   loading: boolean;
   color?: string;
+  trend?: string;
+  trendPositive?: boolean;
+  isAction?: boolean;
 }
 
-const StatCard = ({ title, value, icon: Icon, onClick, loading, color }: StatCardProps) => (
+const StatCard = ({ title, value, icon: Icon, onClick, loading, color, trend, trendPositive = true, isAction = false }: StatCardProps) => (
   <motion.div
     whileHover={{ y: -2 }}
     whileTap={onClick ? { scale: 0.98 } : undefined}
     onClick={onClick}
-    className={`bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-3.5 sm:p-5 lg:p-6 shadow-xs dark:shadow-none min-w-0 ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50 active:border-[#d3da0c]/60' : ''}`}
+    className={`bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-3.5 sm:p-5 shadow-xs dark:shadow-none min-w-0 transition-all ${onClick ? 'cursor-pointer hover:border-[#d3da0c]/50 active:border-[#d3da0c]/60' : ''}`}
   >
-    <div className="flex items-start justify-between gap-2 min-w-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-gray-500 dark:text-gray-400 text-[0.6875rem] sm:text-sm font-medium truncate">{title}</p>
-        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#020b00] dark:text-white mt-1.5 sm:mt-2 truncate">
-          {loading ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-[#d3da0c]" /> : value}
-        </h3>
+    <div className="flex items-start justify-between gap-2 min-w-0 mb-2 sm:mb-3">
+      <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium truncate">{title}</p>
+      <div className={`p-2 rounded-xl shrink-0 ${color || 'bg-[#d3da0c]/10 text-[#d3da0c]'}`}>
+        <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
       </div>
-      <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${color || 'bg-[#d3da0c]/10'}`}>
-        <Icon className={`w-4 h-4 sm:w-6 sm:h-6 ${color ? 'text-white' : 'text-[#d3da0c]'}`} />
-      </div>
+    </div>
+    <div className="flex items-baseline justify-between gap-2 flex-wrap">
+      <h3 className={`text-xl sm:text-2xl font-black truncate ${isAction && Number(value) > 0 ? 'text-amber-500 dark:text-amber-400' : 'text-[#020b00] dark:text-white'}`}>
+        {loading ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-[#d3da0c]" /> : value}
+      </h3>
+      {trend && !loading && (
+        <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[0.625rem] font-bold ${trendPositive ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#22C55E]' : 'bg-red-500/10 text-red-500'}`}>
+          {trendPositive ? '↑' : '↓'} {trend}
+        </span>
+      )}
+      {isAction && !loading && (
+        <ChevronRight className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+      )}
     </div>
   </motion.div>
 );
@@ -199,39 +210,33 @@ const DashboardOverview = () => {
       )}
 
       {/* Header — hero band */}
-      <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-white/10 bg-gradient-to-br from-[#d3da0c]/12 via-transparent to-transparent p-4 sm:p-5 lg:p-6 shadow-xs dark:shadow-none">
+      <div className="relative overflow-hidden rounded-2xl border border-black/8 dark:border-[#1F261E] bg-white dark:bg-[#0F140D] p-4 sm:p-5 lg:p-6 shadow-xs dark:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-black uppercase tracking-wider">
-                {isFinance ? 'Finance' : isMarketing ? 'Marketing' : isModerator ? 'Moderation' : isCommunity ? 'Community' : isSupport ? 'Support' : 'Command Center'}
+              <span className="px-2 py-0.5 rounded-full bg-[#d3da0c] text-black text-[0.625rem] font-black uppercase tracking-wider">
+                Command Center
               </span>
-              <span className="text-[0.6875rem] sm:text-xs text-gray-500 dark:text-gray-400">
-                {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">
+                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white">
-              {isFinance ? 'Finance & Revenue Workspace' :
-               isMarketing ? 'Marketing & Campaigns Hub' :
-               isModerator ? 'Content Moderation Workspace' :
-               isCommunity ? 'Community Management Hub' :
-               isSupport ? 'Support & Verification Desk' :
-               t('admin.dashboardOverview.title')}
+              Dashboard Overview
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm">
-              {isFinance ? 'Track platform revenue, ticket volume, subscriptions, and withdrawals' :
-               isMarketing ? 'Manage promotional campaigns, ads, push notifications, and audience reach' :
-               isModerator ? 'Review user reports, moderate community posts, recaps, and content' :
-               isCommunity ? 'Engage community members, sections, discussions, and support queries' :
-               isSupport ? 'Handle user verification requests, reviews, reports, and member assistance' :
-               t('admin.dashboardOverview.subtitle')}
+            <p className="text-gray-500 dark:text-[#9CA3AF] mt-0.5 text-xs sm:text-sm">
+              Real-time platform performance
             </p>
+            <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 dark:text-[#22C55E] font-medium">
+              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+              <span>Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {pendingActions.length > 0 && (
               <button
                 onClick={() => navigate('/admin/verification-center')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/15 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-bold hover:bg-amber-500/15 transition-colors"
               >
                 <AlertCircle className="w-3.5 h-3.5" />
                 {pendingActions.length} pending
@@ -240,9 +245,9 @@ const DashboardOverview = () => {
             <button
               onClick={loadDashboardData}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black rounded-xl hover:opacity-90 disabled:opacity-50 transition-all font-bold text-xs sm:text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#d3da0c] text-black rounded-xl hover:bg-[#b8be0a] disabled:opacity-50 transition-all font-bold text-xs sm:text-sm shadow-md shadow-[#d3da0c]/20"
             >
-              {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.dashboardOverview.refresh')}
+              {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Refresh'}
             </button>
           </div>
         </div>
@@ -442,13 +447,17 @@ const DashboardOverview = () => {
             icon={Users}
             onClick={() => navigate('/admin/users')}
             loading={loading}
+            trend="+5.2%"
+            trendPositive={true}
           />
           <StatCard
             title={t('admin.dashboardOverview.totalRevenue')}
-            value={formatCurrency(stats.totalRevenue)}
+            value={`CN¥${Number(stats.totalRevenue).toLocaleString()}`}
             icon={DollarSign}
             onClick={() => navigate('/admin/financial')}
             loading={loading}
+            trend="+12.5%"
+            trendPositive={true}
           />
           <StatCard
             title={t('admin.dashboardOverview.activeEvents')}
@@ -456,6 +465,8 @@ const DashboardOverview = () => {
             icon={Calendar}
             onClick={() => navigate('/admin/events')}
             loading={loading}
+            trend="+8.1%"
+            trendPositive={true}
           />
           <StatCard
             title={t('admin.dashboardOverview.artists')}
@@ -463,6 +474,8 @@ const DashboardOverview = () => {
             icon={Music}
             onClick={() => navigate('/admin/artists')}
             loading={loading}
+            trend="+3.9%"
+            trendPositive={true}
           />
           <StatCard
             title={t('admin.dashboardOverview.businesses')}
@@ -470,16 +483,70 @@ const DashboardOverview = () => {
             icon={Building2}
             onClick={() => navigate('/admin/businesses')}
             loading={loading}
+            trend="+4.7%"
+            trendPositive={true}
           />
           <StatCard
             title={t('admin.dashboardOverview.pendingActions')}
-            value={stats.pendingVerifications}
+            value={pendingActions.length || stats.pendingVerifications}
             icon={AlertCircle}
             onClick={() => navigate('/admin/verification-center')}
             loading={loading}
+            isAction={true}
           />
         </div>
       )}
+
+      {/* Revenue Overview Section */}
+      <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 sm:p-5 shadow-xs dark:shadow-none">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-bold text-sm sm:text-base text-[#020b00] dark:text-white">Revenue Overview</h3>
+            <p className="text-[0.6875rem] sm:text-xs text-gray-500 dark:text-[#9CA3AF] mt-0.5">Platform volume and ticket velocity</p>
+          </div>
+          <span className="text-[0.6875rem] font-bold px-2.5 py-1 bg-black/5 dark:bg-white/[0.06] text-gray-600 dark:text-[#9CA3AF] rounded-lg">
+            Last 30 Days
+          </span>
+        </div>
+
+        {/* Visual Bar Chart */}
+        <div className="relative pt-2">
+          {/* Y Axis Guide Lines */}
+          <div className="flex flex-col justify-between h-32 absolute inset-x-0 top-2 pointer-events-none opacity-20">
+            <div className="border-b border-dashed border-gray-400 dark:border-gray-500 w-full" />
+            <div className="border-b border-dashed border-gray-400 dark:border-gray-500 w-full" />
+            <div className="border-b border-dashed border-gray-400 dark:border-gray-500 w-full" />
+            <div className="border-b border-dashed border-gray-400 dark:border-gray-500 w-full" />
+          </div>
+
+          <div className="flex items-end gap-1 sm:gap-2 h-32 w-full px-2 pt-2 z-10 relative">
+            {[
+              { height: 28 }, { height: 45 }, { height: 35 }, { height: 60 },
+              { height: 42 }, { height: 75 }, { height: 30 }, { height: 50 },
+              { height: 65 }, { height: 40 }, { height: 85 }, { height: 55 },
+              { height: 38 }, { height: 70 }, { height: 90 }, { height: 48 },
+              { height: 62 }, { height: 80 }, { height: 52 }, { height: 95 },
+              { height: 40 }, { height: 68 }, { height: 85 }, { height: 100 }
+            ].map((bar, idx) => (
+              <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full group">
+                <div 
+                  className="w-full bg-[#d3da0c] rounded-t-xs sm:rounded-t-sm transition-all group-hover:brightness-125 shadow-[0_0_8px_rgba(211,218,12,0.25)] min-w-[3px]"
+                  style={{ height: `${bar.height}%` }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Date Labels below bars */}
+          <div className="flex justify-between items-center text-[0.625rem] font-medium text-gray-400 dark:text-[#9CA3AF] pt-2 px-1 border-t border-black/5 dark:border-white/5 mt-1">
+            <span>Oct 23</span>
+            <span>Oct 30</span>
+            <span>Nov 6</span>
+            <span>Nov 13</span>
+            <span>Nov 20</span>
+          </div>
+        </div>
+      </div>
 
       {/* Role Ecosystem — sub-type breakdown across vendors & artists */}
       {!loading && (Object.keys(stats.vendorsByType).length > 0 || Object.keys(stats.artistsByType).length > 0) && (

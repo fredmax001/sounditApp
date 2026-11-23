@@ -179,15 +179,15 @@ const ManageEvents = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl">
               <Check className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageEvents.approved')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageEvents.approved')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
-                {events.filter(e => e.status === 'approved').length}
+                {events.filter(e => e.status === 'approved' || e.status === 'completed').length}
               </p>
             </div>
           </div>
@@ -222,13 +222,14 @@ const ManageEvents = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-xl text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
+          className="px-4 py-2.5 bg-white dark:bg-[#0F140D] border border-black/10 dark:border-[#1F261E] rounded-xl text-[#020b00] dark:text-white text-sm focus:outline-none focus:border-[#d3da0c]"
         >
-          <option value="" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.allStatus')}</option>
-          <option value="pending" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusPending')}</option>
-          <option value="approved" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusApproved')}</option>
-          <option value="rejected" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusRejected')}</option>
-          <option value="draft" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusDraft')}</option>
+          <option value="" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.manageEvents.allStatus')}</option>
+          <option value="pending" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusPending')}</option>
+          <option value="approved" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusApproved')}</option>
+          <option value="completed" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">Completed</option>
+          <option value="rejected" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusRejected')}</option>
+          <option value="draft" className="bg-white dark:bg-[#0F140D] text-[#020b00] dark:text-white">{t('admin.manageEvents.statusDraft')}</option>
         </select>
       </div>
 
@@ -246,19 +247,19 @@ const ManageEvents = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none"
+                className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   <img
                     src={event.flyer_image || '/placeholder-event.jpg'}
                     alt={event.title}
-                    className="w-24 h-24 rounded-xl object-cover"
+                    className="w-full sm:w-24 h-48 sm:h-24 rounded-xl object-cover shrink-0"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-[#020b00] dark:text-white font-semibold text-base">{event.title}</h3>
-                        <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm mt-1">
+                  <div className="flex-1 min-w-0 w-full">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-[#020b00] dark:text-white font-bold text-base truncate">{event.title}</h3>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-600 dark:text-[#9CA3AF] text-xs sm:text-sm mt-1">
                           <span className="flex items-center gap-1">
                             <MapPin className="w-4 h-4 text-[#d3da0c]" /> {event.city}
                           </span>
@@ -266,12 +267,14 @@ const ManageEvents = () => {
                             <Calendar className="w-4 h-4" /> {new Date(event.start_date).toLocaleDateString()}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" /> {event.attendees_count || 0} {t('admin.manageEvents.attendees')}
+                            <Users className="w-4 h-4 text-[#d3da0c]" /> {event.attendees_count ?? (event as any).tickets_sold ?? 0} {t('admin.manageEvents.attendees')}
                           </span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{t('admin.manageEvents.by')} {event.business_name}</p>
+                        <p className="text-gray-500 dark:text-[#9CA3AF] text-xs sm:text-sm mt-2 font-medium truncate">
+                          {t('admin.manageEvents.by')} {event.business_name || (event as any).organizer_name || 'Sound It Partner'}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {event.status === 'pending' && (
                           <>
                             <button
@@ -307,8 +310,9 @@ const ManageEvents = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
                         event.status === 'approved' ? 'bg-green-500/15 text-green-700 dark:text-green-400' :
+                        event.status === 'completed' ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#22C55E]' :
                         event.status === 'pending' ? 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' :
                         event.status === 'rejected' ? 'bg-red-500/15 text-red-600 dark:text-red-400' :
                         'bg-black/5 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400'

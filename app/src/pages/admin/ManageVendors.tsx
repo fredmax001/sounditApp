@@ -234,73 +234,73 @@ const ManageVendors = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#d3da0c]/15 text-yellow-700 dark:text-[#d3da0c] rounded-xl">
+            <div className="p-2.5 bg-[#d3da0c]/15 text-[#8a8f04] dark:text-[#d3da0c] rounded-xl">
               <Store className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.totalVendors')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageVendors.totalVendors')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">{vendors.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl">
               <Check className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.verified')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageVendors.verified')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {vendors.filter(v => v.is_verified).length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-xl">
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.totalProducts')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageVendors.totalProducts')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {vendors.reduce((acc, v) => acc + (v.products_count || 0), 0)}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded-xl">
               <DollarSign className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.totalSales')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageVendors.totalSales')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 ¥{vendors.reduce((acc, v) => acc + (v.total_sales || 0), 0).toLocaleString()}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-xl">
               <Check className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">Approved</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">Approved</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {vendors.filter(v => v.is_approved).length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl p-4 shadow-xs dark:shadow-none">
+        <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl p-4 shadow-xs dark:shadow-none">
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">{t('admin.manageVendors.featured')}</p>
+              <p className="text-gray-500 dark:text-[#9CA3AF] text-xs font-medium">{t('admin.manageVendors.featured')}</p>
               <p className="text-[#020b00] dark:text-white font-bold text-xl">
                 {vendors.filter(v => v.is_featured).length}
               </p>
@@ -332,7 +332,7 @@ const ManageVendors = () => {
       </div>
 
       {/* Vendors Table / Mobile Cards */}
-      <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 rounded-2xl overflow-hidden shadow-xs dark:shadow-none">
+      <div className="bg-white dark:bg-[#0F140D] border border-black/8 dark:border-[#1F261E] rounded-2xl overflow-hidden shadow-xs dark:shadow-none">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-[#d3da0c] animate-spin" />

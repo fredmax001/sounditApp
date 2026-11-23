@@ -9,6 +9,7 @@
  * - Foreground push banner events ('native-push-received')
  * - Background/terminated notification tap deep-link routing ('notification-click')
  */
+// @ts-ignore
 import { PushNotifications } from '@capacitor/push-notifications';
 import { API_BASE_URL } from '@/config/api';
 import { getNativePlatform } from '@/lib/platform';

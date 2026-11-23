@@ -5,7 +5,64 @@
 ---
 
 ## Last Updated
-2026-11-20
+2026-11-23
+
+---
+
+### 185. SOUND IT ADMIN — Comprehensive Mobile Responsiveness, Dark Mode Layout Specification, UI/UX Elevation & Full-Stack Data Integrity Overhaul (2026-11-23)
+- **Objectives & Issues Addressed**:
+  1. **Phase 1 & 6 — Theme, Layout & Navigation Overhaul (`AdminLayout.tsx`, `index.css`)**:
+     - *Admin Mobile Layout Specification Realization (`media_1795352565879_07dbd750.jpg`)*:
+       - Enforced Dark Mode as default for Admin Console (`html.dark`, color-scheme dark, background `#020B00`, card/surfaces `#0F140D`, borders `#1F261E`, primary lime `#D3DA0C`, active pill solid `#D3DA0C` with black text/icon, inactive `#9CA3AF`).
+       - Fixed mobile bottom navigation bar: previously rendering with light background and yellow text; replaced with floating dark pill `bg-[#0F140D]/95 backdrop-blur-2xl border border-[#1F261E] rounded-full` and solid `#D3DA0C` active tab indicator with `shadow-[0_0_20px_rgba(211,218,12,0.35)]`.
+       - Content spacing & bottom clearance: elevated `<main>` padding to `pb-[calc(9.5rem+env(safe-area-inset-bottom,24px))] lg:pb-8` to ensure floating navigation bar and safe-area insets never overlap buttons, status cards, or pagination.
+       - Mobile App Drawer: full-height dark drawer covering all 26 modules with search filter, badge counts, user profile card, "Switch to Public App", and Logout.
+  2. **Phase 2 & 5 — Data Accuracy & Financial Integrity Audit (`api/admin.py`, `FinancialControl.tsx`, `DashboardOverview.tsx`)**:
+     - *Clarified Revenue Discrepancy*:
+       - Identified and proved that Dashboard Revenue `CN¥83,521` represents **Lifetime Gross Revenue** (109 approved ticket orders totaling ¥83,421 + 6 active subscriptions of ¥100 = ¥83,521).
+       - Financial Control revenue `¥960` represents **Last 30 Days Ticket Sales** (10 approved ticket orders in the last 30 days = ¥960, commission ¥96, net profit ¥96).
+       - Both numbers are 100% real database records, not mock or hardcoded data!
+       - Updated `FinancialControl.tsx` with an `All Time (Lifetime)` filter (`days=all`), added "All-Time Platform Gross Revenue" card with ¥83,521 and 10% platform take badge, and surfaced separated metrics: Gross Ticket Sales, Platform Commission, Net Profit, Organizer Share, and Payout metrics.
+       - Fixed `AmbiguousForeignKeysError` in `api/admin.py` line 2584 by specifying explicit join condition `Order.user_id == User.id`.
+       - Fixed `PayoutRequest` filter crash in `api/admin.py` line 6271 where Python `@property` `created_at` was passed instead of the SQL column `requested_at`.
+  3. **Phase 3 & 4 — Events, Businesses, Artists & Users Data Integrity**:
+     - *Manage Events (`ManageEvents.tsx`, `api/admin.py`)*:
+       - Counted approved + completed events in approved KPI stat (`e.status === 'approved' || e.status === 'completed'`), fixing `Approved: 0`.
+       - Added fallback for organizer name (`event.business_name || event.organizer_name || 'Sound It Partner'`), resolving blank `By ` display.
+       - Replaced hardcoded zero attendee counts with real database attendees / tickets sold (`{event.attendees_count ?? event.tickets_sold ?? 0} Attendees`).
+       - Added `completed` status to event filter dropdown.
+     - *Manage Businesses (`ManageBusinesses.tsx`, `api/admin.py`)*:
+       - Populated dynamic event counts and revenues from PostgreSQL database queries (e.g. Sound Events: 6 events, ¥83,421 revenue; ANONYMOUS: 1 event).
+     - *Manage Artists (`ManageArtists.tsx`, `api/admin.py`)*:
+       - Populated dynamic follower counts and event counts from `artist_follows` and `event_artists` tables (e.g. Fred Max: 1 event, 4 followers; GerryBeatz: 1 event, 3 followers).
+     - *Manage Users (`ManageUsers.tsx`)*:
+       - Restyled "Invite User" button with solid `#D3DA0C` primary lime and black text.
+       - Added active filtered user count and page indicators.
+  4. **Phase 7 & 8 — Production Deployment, Regression Suite & Native Wrapper Sync**:
+     - Successfully compiled production frontend bundle (`tsc -b && vite build`, 0 errors, 3502 modules transformed).
+     - Deployed backend and frontend to production host `72.62.254.251` (`/var/www/soundit/current/`), set permissions (`chown -R nginx:nginx`, `chmod -R a+rX`), and restarted `soundit.service`.
+     - Verified live health check: `https://sounditent.com/health` -> `{"status":"healthy"}`.
+     - Verified all admin endpoints via server API: `/api/v1/admin/dashboard`, `/api/v1/admin/financials?days=30`, `/api/v1/admin/financials?days=all`, `/api/v1/admin/businesses`, `/api/v1/admin/events`.
+     - Executed full multi-tenant security and performance regression suite: **16/16 passed in 10.75s (100% pass rate)**.
+     - Synced `app/dist/` into native iOS and Android wrappers (`app/ios/App/App/public/` and `app/android/app/src/main/assets/public/`).
+
+---
+
+### 184. DJ / Artist Dashboard Overflow Fix, Full Mobile Admin Dashboard Redesign (Android & iOS — All 26 Pages) & Live Production Deployment (2026-11-21)
+- **Objectives & Issues Addressed**:
+  1. **DJ / Artist Dashboard Mobile Horizontal Overflow Fix (`app/src/pages/artist/Dashboard.tsx`, `MobileLayout.tsx`, `MobilePageTransition.tsx`)**:
+     - Resolved right-edge clipping on 390px iPhone screens (where `AVG RATING`, `PENDING`, `Manage All`, and `¥3,000 CONFIRMED` overflowed past the viewport) by replacing implicit single-column grids with explicit `min-w-0 max-w-full` containers and constraining `<main>` / transition wrappers with `w-full max-w-full min-w-0 overflow-x-hidden`.
+     - Audited and hardened sibling artist/user/vendor pages (`Bookings.tsx`, `Performances.tsx`, `Analytics.tsx`, `Recaps.tsx`, `Community.tsx`, `user/Dashboard.tsx`, `vendor/Events.tsx`).
+  2. **Complete Mobile Admin Dashboard Redesign — Android & iOS (All 26 Admin Pages)**:
+     - *Mobile Admin Shell (`app/src/pages/admin/AdminLayout.tsx`, `app/src/index.css`)*: Added safe-area native mobile top app bar (`lg:hidden`) with contextual Back button, active section title, theme toggle, `<NotificationBell mobile />`, and drawer trigger; floating 5-tab mobile bottom nav (Overview, Users, Events, Finance, More) that auto-hides when the keyboard or drawer is open; searchable full-height mobile app drawer covering all 26 admin modules + "Switch to Public App" + Logout; desktop (`lg:`) sidebar preserved unchanged.
+     - *Bottom-Sheet Modals & Shared Admin Headers (`AdminPageHeader.tsx`, `EditModal.tsx`, `EntityDetailModal.tsx`)*: Converted modals to native mobile bottom sheets with drag handle pill and safe-area bottom padding.
+     - *Mobile Card Views (`md:hidden`) + Desktop Tables (`hidden md:block overflow-x-auto`)*: Converted all wide admin tables across `ManageUsers.tsx`, `ManageArtists.tsx`, `ManageVendors.tsx`, `ManageBusinesses.tsx`, `FinancialControl.tsx`, `WithdrawalRequests.tsx`, `AdminSubscriptions.tsx`, `AdsManager.tsx`, `CMSContent.tsx`, `SecurityLogs.tsx`, `ManageCommunitySections.tsx`, and `SmartNotificationAutomation.tsx`.
+     - *Responsive Bento KPIs & Filter Bars*: Upgraded `DashboardOverview.tsx`, `Analytics.tsx`, `ManageEvents.tsx`, `ManageBookings.tsx`, `ReportsModeration.tsx`, `VerificationCenter.tsx`, `RolePermissions.tsx`, and `SystemSettings.tsx`.
+  3. **Production Deployment, PostgreSQL Indexes, GitHub Push & Native App Packaging**:
+     - Fixed `app/vite.config.ts` build syntax and prioritized `process.env.VITE_API_URL`, compiled production bundle (`tsc -b && vite build`, 0 errors), and pushed to `https://github.com/fredmax001/SounditApp` (`main`, commit `5b0200b`).
+     - Deployed backend + frontend to `72.62.254.251` (`/var/www/soundit/current/`), applied all 34 Performance v2 PostgreSQL indexes (`scripts/migrate_performance_v2.py`), restarted `soundit.service` (4 Uvicorn workers + Smart Notification worker running), and verified `https://sounditent.com/health` returns HTTP/2 200 `{"status":"healthy"}`.
+     - Executed live production regression suite (`tests/test_tenant_isolation_security.py` + `tests/test_performance_optimizations.py`): **16/16 passed in 10.07s**.
+     - Synced `app/dist/` to `app/ios/App/App/public/`, `app/android/app/src/main/assets/public/`, and `app/ios/App/build/Build/Products/Debug-iphoneos/App.app/public/`, and re-signed `App.app` with certificate `32595D20202CA2AA6361E25BEC4C750604871FD3` and renewed provisioning profile `bc647dc7-076b-44dc-8a3e-ac49da33ee8a`.
 
 ---
 

@@ -136,6 +136,14 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
     return () => observer.disconnect();
   }, []);
 
+  // Force Sound It Dark Command Center on admin routes
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    document.documentElement.style.colorScheme = 'dark';
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }, []);
+
   // Close mobile drawer automatically on route change
   useEffect(() => {
     if (isMobile) {
@@ -563,7 +571,9 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
               {isDark ? <Sun className="w-4 h-4 text-[#d3da0c]" /> : <Moon className="w-4 h-4 text-[#020b00]" />}
             </button>
 
-            <NotificationBell className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06] rounded-lg transition-all" />
+            <div className="flex items-center">
+              <NotificationBell />
+            </div>
 
             <button
               onClick={() => navigate('/admin/settings')}
@@ -586,7 +596,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-3.5 sm:px-5 lg:px-6 pt-3.5 sm:pt-5 lg:pt-6 pb-[calc(6.75rem+env(safe-area-inset-bottom,16px))] lg:pb-8">
+        <main className="flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-3.5 sm:px-5 lg:px-6 pt-3.5 sm:pt-5 lg:pt-6 pb-[calc(9.5rem+env(safe-area-inset-bottom,24px))] lg:pb-8">
           <div className="w-full max-w-full min-w-0">
             {children || <Outlet />}
           </div>
@@ -599,7 +609,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           aria-label="Admin mobile navigation"
           className="lg:hidden fixed left-3 right-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 hide-on-keyboard"
         >
-          <div className="mx-auto max-w-md bg-white/95 dark:bg-[#081207]/92 backdrop-blur-2xl border border-black/10 dark:border-white/12 rounded-full px-2 py-1.5 shadow-[0_10px_35px_rgba(0,0,0,0.22)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.7)] flex items-center justify-around gap-1">
+          <div className="mx-auto max-w-md bg-[#0F140D]/95 backdrop-blur-2xl border border-[#1F261E] rounded-full px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.85)] flex items-center justify-around gap-1">
             {mobileBottomTabs.map((tab) => {
               const Icon = tab.icon!;
               const active = isActiveRoute(tab.path);
@@ -609,12 +619,12 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
                   onClick={() => navigate(tab.path)}
                   className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-full transition-all active:scale-95 min-h-[48px] ${
                     active
-                      ? 'bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/40'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
+                      ? 'bg-[#d3da0c] text-black font-extrabold shadow-[0_0_12px_rgba(211,218,12,0.35)]'
+                      : 'text-[#9CA3AF] hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${active ? 'stroke-[2.4]' : 'stroke-[1.9]'}`} />
-                  <span className="text-[0.625rem] font-semibold mt-0.5 leading-none truncate max-w-full">
+                  <Icon className={`w-5 h-5 ${active ? 'text-black stroke-[2.5]' : 'text-[#9CA3AF] stroke-[1.8]'}`} />
+                  <span className={`text-[0.625rem] mt-0.5 leading-none truncate max-w-full ${active ? 'font-black text-black' : 'font-medium text-[#9CA3AF]'}`}>
                     {tab.label}
                   </span>
                 </button>
@@ -625,12 +635,12 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
               onClick={() => setIsSidebarOpen(true)}
               className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-full transition-all active:scale-95 min-h-[48px] ${
                 isMoreTabActive
-                  ? 'bg-[#d3da0c]/15 text-[#020b00] dark:text-[#d3da0c] border border-[#d3da0c]/40'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-[#020b00] dark:hover:text-white'
+                  ? 'bg-[#d3da0c] text-black font-extrabold shadow-[0_0_12px_rgba(211,218,12,0.35)]'
+                  : 'text-[#9CA3AF] hover:text-white'
               }`}
             >
-              <Grid className={`w-5 h-5 ${isMoreTabActive ? 'stroke-[2.4]' : 'stroke-[1.9]'}`} />
-              <span className="text-[0.625rem] font-semibold mt-0.5 leading-none">
+              <Grid className={`w-5 h-5 ${isMoreTabActive ? 'text-black stroke-[2.5]' : 'text-[#9CA3AF] stroke-[1.8]'}`} />
+              <span className={`text-[0.625rem] mt-0.5 leading-none ${isMoreTabActive ? 'font-black text-black' : 'font-medium text-[#9CA3AF]'}`}>
                 More
               </span>
             </button>
