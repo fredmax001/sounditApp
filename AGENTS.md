@@ -9,6 +9,24 @@
 
 ---
 
+### 186. Google Play Console Android App Links (Deep Links) Domain Verification Failure Resolution (2026-11-23)
+- **Objectives & Issues Addressed**:
+  1. **Google Play Console Domain Checks Failure (`sounditent.com`)**:
+     - *Issue Reported*: Google Play Console Deep Links page showed `Failed domain checks` with `2 issues found` on `sounditent.com` and `1 issue found` on all 5 path patterns (`/artists/.*`, `/city-guide`, `/events/.*`, `/profiles/.*`, `/vendors/.*` on Activity `com.sounditent.app.MainActivity`).
+     - *Root Cause Analysis*:
+       - Running `curl -i https://sounditent.com/.well-known/assetlinks.json` returned `HTTP/2 403 Forbidden`.
+       - In `/etc/nginx/conf.d/soundit.conf`, the directive `location ~ /\. { deny all; }` intercepted all URIs starting with `.` (dotfiles), blocking Google Play's verification crawler from accessing `/.well-known/assetlinks.json`.
+       - `assetlinks.json` only contained `package_name: "app.sounditent.com"`. While `applicationId` is `app.sounditent.com`, Android Manifest namespace and Activity is `com.sounditent.app` (`com.sounditent.app.MainActivity`).
+  2. **Nginx Configuration Hardening (`/etc/nginx/conf.d/soundit.conf`)**:
+     - Added priority prefix match location blocks `location ^~ /.well-known/` to both HTTP and HTTPS server blocks with `default_type application/json;`, `add_header Access-Control-Allow-Origin "*" always;`, and `Cache-Control "public, max-age=3600"`. The `^~` modifier prevents Nginx from evaluating subsequent regex blocks (`~ /\. { deny all; }`).
+     - Tested configuration with `nginx -t` (syntax ok, test successful) and reloaded Nginx (`systemctl reload nginx`).
+  3. **Digital Asset Links Expansion & Google API Verification**:
+     - Updated `assetlinks.json` to declare both package names (`app.sounditent.com` and `com.sounditent.app`) with both Google Play App Signing key fingerprint (`EE:6C:69:D9:7A:F0:D7:02:49:0E:2B:DB:56:BF:88:48:8B:FF:23:81:B1:CD:B8:B3:E7:96:8A:11:5A:19:06:8B`) and release keystore fingerprint (`20:D7:74:A7:4B:3C:1D:0F:46:C4:E2:C0:AA:E7:A5:2A:28:5D:82:B4:F1:24:37:08:78:0B:27:FE:39:2B:C0:F5`).
+     - Verified live endpoint: `curl -i https://sounditent.com/.well-known/assetlinks.json` returns `HTTP/2 200 OK` with `content-type: application/json`.
+     - Tested against Google's official Digital Asset Links API (`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://sounditent.com&relation=delegate_permission/common.handle_all_urls`): Google returned HTTP 200 with all 4 validated permission statements.
+
+---
+
 ### 185. SOUND IT ADMIN — Comprehensive Mobile Responsiveness, Dark Mode Layout Specification, UI/UX Elevation & Full-Stack Data Integrity Overhaul (2026-11-23)
 - **Objectives & Issues Addressed**:
   1. **Phase 1 & 6 — Theme, Layout & Navigation Overhaul (`AdminLayout.tsx`, `index.css`)**:
