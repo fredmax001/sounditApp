@@ -261,7 +261,7 @@ const ReportsModeration = () => {
                     {report.status === 'pending' && (
                       <>
                         <button
-                          onClick={() => alert(`${t('admin.reportsModeration.reason') || 'Reason'}: ${report.reason}\n${t('admin.reportsModeration.reporter') || 'Reporter'}: ${report.reporter_name}`)}
+                          onClick={() => toast.info(`${t('admin.reportsModeration.reason') || 'Reason'}: ${report.reason} — ${t('admin.reportsModeration.reporter') || 'Reporter'}: ${report.reporter_name}`)}
                           className="p-2 bg-neutral-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
                           title={t('admin.reportsModeration.viewDetailsTitle')}
                         >

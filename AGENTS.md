@@ -9,6 +9,39 @@
 
 ---
 
+### 190. Apple App Store & Google Play Store Operative Audit — Follow Account Network Error Fix, Multi-Role Local & Live Testing (107/107 Passed), & Store Compliance Fixes (2026-11-24)
+- **Objectives & Issues Addressed**:
+  1. **Fixed Follow Account "Network Error" & State Mismatch (`FollowButton.tsx`, `FollowersModal.tsx`, `Recaps.tsx`, `api/social.py`)**:
+     - *Root Cause*: `FollowButton.tsx` and `FollowersModal.tsx` defined `const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'` instead of importing `API_BASE_URL` from `@/config/api` (`VITE_API_URL || 'https://sounditent.com/api/v1'`). On native iOS/Android Capacitor WebViews (`capacitor://localhost`), every Follow/Unfollow tap requested `capacitor://localhost/api/v1/social/users/...`, failing immediately with `"Network error. Please try again."`.
+     - *Additional Follow Bugs Fixed*:
+       - `FollowButton.tsx` read `data.relationship` instead of `data.button_state` returned by `GET /social/users/{id}/relationship`, resetting the button to `"Follow"` on reload.
+       - `FollowButton.tsx` checked `data.status === 'pending'` instead of `'requested'`, and `DELETE /social/users/{id}/follow` now returns `is_followed_by`/`mutual_follows` so `"Follow Back"` updates immediately.
+       - `FollowersModal.tsx` now resolves `user.name`, `user.button_state`, and `getMediaUrl(user.avatar_url)`.
+       - `api/social.py` legacy `follow_artist`/`unfollow_artist`, `follow_vendor`/`unfollow_vendor`, and `follow_organizer`/`unfollow_organizer` now keep universal `UserFollow` in sync and support fallback lookup by `user_id`.
+       - `Recaps.tsx` fallback follow corrected from non-existent `DELETE /artists/{id}/follow` to `/social/artists/{id}/follow` with rollback + toast on error.
+  2. **Fixed Production HTTP 500 in Analytics Session Tracking (`api/analytics.py`)**:
+     - `POST /api/v1/analytics/track` crashed with `500 Internal Server Error` on every second page view in a session (`TypeError: can't subtract offset-naive and offset-aware datetimes` on `session_record.started_at`). Normalized `started_at` to UTC, hardened `date_of_birth` age calculation, and wrapped session upsert cleanly.
+  3. **Apple App Store & Google Play Store Compliance Blockers Fixed**:
+     - **UGC Report & Block (Apple Guideline 1.2)**: Added `POST /api/v1/social/report` (writing directly into `ModerationReport` / Admin `/admin/reports`), `POST/DELETE /api/v1/social/users/{id}/block`, and `GET /api/v1/social/blocked`, plus reusable `app/src/components/social/SafetyActionsMenu.tsx` wired onto `PublicProfile.tsx` and `ArtistDetail.tsx`.
+     - **Broken Registration Legal Links (`Register.tsx`)**: Fixed `"Terms of Service"` and `"Privacy Policy"` consent links pointing to `/about` -> corrected to `/terms` and `/privacy`.
+     - **Relative Native API URLs (`Footer.tsx`, `Download.tsx`)**: Replaced hardcoded `/api/v1/newsletter/subscribe` and `/api/v1/download/android` with `${API_BASE_URL}/...`.
+     - **Registration Rate Limit (`api/auth.py`)**: Aligned `/auth/register` from hardcoded `3/minute` to `10/minute` (matching `security/rate_limiter.py`) so multi-role store reviewers and venue Wi-Fi users aren't falsely locked out with HTTP 429.
+     - **Replaced Browser `alert()` & Emoji (`organizer/Recaps.tsx`, `admin/ReportsModeration.tsx`, `api/messaging.py`)**: Replaced native `alert()` calls with Sonner toasts and removed `💬` emoji from DM notification titles.
+  4. **Mobile UI, Dead Button & Route Fixes (`Events.tsx`, `EventDetail.tsx`, `ArtistDetail.tsx`, `PublicProfile.tsx`, `CheckedInGuests.tsx`, `i18n/locales/*.json`)**:
+     - `Events.tsx`: Fixed 390px horizontal overflow clipping Search & Filter buttons offscreen; fixed `"All Events"` showing `"No events found"` by loading `includePast: true` and sorting active/upcoming first, then past.
+     - `EventDetail.tsx`: Fixed Save (Heart) button to use numeric `currentEvent?.id`, show toasts, and redirect logged-out users to `/login`.
+     - `ArtistDetail.tsx`: Fixed `/bookings/artists/{id}/reviews` and `/availability` to pass numeric `profileData.id` instead of slug; fixed Follow button redirect to `/login` when logged out; replaced literal `"Tab About"`, `"Tab Reviews"`, `"Tab Gallery"`, `"Response Time Value"` strings across `en.json`, `fr.json`, and `zh.json`.
+     - `PublicProfile.tsx`: Deduplicated double-rendered `<ReviewsSection />` on accounts with both business and organizer profiles.
+     - `CheckedInGuests.tsx`: Fixed broken 404 endpoint `/payments/tickets` -> `/tickets/business/tickets`.
+  5. **Local & Live Verification, Deployment & Native Packaging**:
+     - Built production frontend (`tsc -b && vite build`, 0 errors, `soundit-v20`), deployed backend & frontend to `72.62.254.251`, verified `/health` (`{"status":"healthy"}`).
+     - Executed automated Multi-Role QA Operative Suite across all 4 non-admin roles (`user`, `artist`, `business`, `vendor`) + Account Deletion cleanup:
+       - **Isolated Local SQLite DB**: **107/107 PASSED (0 FAILED)**.
+       - **Live Production (`https://sounditent.com/`)**: **107/107 PASSED (0 FAILED)**.
+     - Synced `soundit-v20` `app/dist/` into iOS & Android wrappers and strictly re-signed `App.app` (`codesign -v --strict` passed).
+
+---
+
 ### 189. Broken Image Resolution (App & Live), AI Emoji Removal & Native-Only Full-Bleed Onboarding Redesign (2026-11-24)
 - **Objectives & Issues Addressed**:
   1. **Fixed Broken Images on Both Live Web (`sounditent.com`) and Native iOS/Android Apps**:

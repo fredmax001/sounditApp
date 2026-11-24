@@ -29,6 +29,7 @@ import ReviewsSection from '@/components/ReviewsSection';
 import UniversalShareModal from '@/components/ui/UniversalShareModal';
 import FollowButton from '@/components/social/FollowButton';
 import FollowersModal from '@/components/social/FollowersModal';
+import SafetyActionsMenu from '@/components/social/SafetyActionsMenu';
 import { useAuthStore } from '@/store/authStore';
 import { slugify } from '@/lib/slug';
 import { saveImageToDevice } from '@/lib/downloadImage';
@@ -425,6 +426,13 @@ export default function PublicProfile() {
                   <Share2 className="w-4 h-4 text-[#020b00] dark:text-[#d3da0c]" />
                   <span>Share</span>
                 </button>
+                <SafetyActionsMenu
+                  entityType="user"
+                  entityId={profile.id}
+                  targetUserId={profile.id}
+                  targetName={displayName}
+                  onBlocked={() => navigate(-1)}
+                />
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
@@ -801,23 +809,22 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Reviews (for organizer and business) */}
-        {(profile.organizer_profile || profile.business_profile) && (
+        {/* Reviews (single deduplicated section for business or organizer) */}
+        {(profile.business_profile || profile.organizer_profile) && (
           <div className="mt-8">
-            {profile.organizer_profile && (
-              <ReviewsSection
-                entityId={profile.organizer_profile.id}
-                entityType="organizer"
-                entityName={profile.organizer_profile.organization_name}
-              />
-            )}
-            {profile.business_profile && (
+            {profile.business_profile ? (
               <ReviewsSection
                 entityId={profile.business_profile.id}
                 entityType="business"
                 entityName={profile.business_profile.business_name}
               />
-            )}
+            ) : profile.organizer_profile ? (
+              <ReviewsSection
+                entityId={profile.organizer_profile.id}
+                entityType="organizer"
+                entityName={profile.organizer_profile.organization_name}
+              />
+            ) : null}
           </div>
         )}
 

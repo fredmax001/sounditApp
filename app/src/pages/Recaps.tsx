@@ -520,13 +520,22 @@ export default function Recaps() {
 
       if (res.ok) {
         toast.success(currentlyFollowing ? 'Unfollowed creator' : 'Now following creator!');
-      } else {
-        if (artistId) {
-          await fetch(`${API_BASE_URL}/artists/${artistId}/follow`, {
-            method: currentlyFollowing ? 'DELETE' : 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-          });
+      } else if (artistId) {
+        const fallbackRes = await fetch(`${API_BASE_URL}/social/artists/${artistId}/follow`, {
+          method: currentlyFollowing ? 'DELETE' : 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (fallbackRes.ok) {
+          toast.success(currentlyFollowing ? 'Unfollowed creator' : 'Now following creator!');
+        } else {
+          setFollowedUsers((prev) => ({ ...prev, [userId]: currentlyFollowing }));
+          const err = await fallbackRes.json().catch(() => ({}));
+          toast.error(err?.detail || err?.error?.message || 'Could not update follow state');
         }
+      } else {
+        setFollowedUsers((prev) => ({ ...prev, [userId]: currentlyFollowing }));
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.detail || err?.error?.message || 'Could not update follow state');
       }
     } catch {
       setFollowedUsers((prev) => ({ ...prev, [userId]: currentlyFollowing }));

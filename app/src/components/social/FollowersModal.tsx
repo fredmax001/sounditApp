@@ -4,10 +4,13 @@ import { X, Search, Users, UserCheck, ShieldCheck, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 import VerificationBadge from '@/components/VerificationBadge';
+import { API_BASE_URL } from '@/config/api';
+import { getMediaUrl } from '@/lib/appUrl';
 
 interface FollowUserItem {
   id: number;
   username: string;
+  name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   display_name?: string | null;
@@ -17,6 +20,7 @@ interface FollowUserItem {
   bio?: string | null;
   is_following?: boolean;
   follows_back?: boolean;
+  button_state?: 'self' | 'following' | 'requested' | 'follow_back' | 'follow';
 }
 
 interface FollowersModalProps {
@@ -26,8 +30,6 @@ interface FollowersModalProps {
   userName?: string;
   initialTab?: 'followers' | 'following';
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export const FollowersModal: React.FC<FollowersModalProps> = ({
   isOpen,
@@ -105,10 +107,11 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
     const q = searchQuery.toLowerCase().trim();
     return activeList.filter((u) => {
       const matchUsername = (u.username || '').toLowerCase().includes(q);
+      const matchName = (u.name || '').toLowerCase().includes(q);
       const matchFirst = (u.first_name || '').toLowerCase().includes(q);
       const matchLast = (u.last_name || '').toLowerCase().includes(q);
       const matchDisplay = (u.display_name || '').toLowerCase().includes(q);
-      return matchUsername || matchFirst || matchLast || matchDisplay;
+      return matchUsername || matchName || matchFirst || matchLast || matchDisplay;
     });
   }, [activeList, searchQuery]);
 
@@ -217,9 +220,9 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
               </div>
             ) : (
               filteredList.map((user) => {
-                const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username;
-                const avatar = user.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`;
-                const relationshipState = user.is_following ? 'following' : user.follows_back ? 'follow_back' : 'follow';
+                const displayName = user.display_name || user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username;
+                const avatar = getMediaUrl(user.avatar_url) || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`;
+                const relationshipState = user.button_state || (user.is_following ? 'following' : user.follows_back ? 'follow_back' : 'follow');
 
                 return (
                   <div

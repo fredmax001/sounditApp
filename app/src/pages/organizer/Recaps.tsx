@@ -21,6 +21,7 @@ import { useRecapsStore, type CreateRecapData, type Recap } from '../../store/re
 import { useEventStore } from '../../store/eventStore';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '@/config/api';
+import { toast } from 'sonner';
 
 const MAX_PHOTOS = 20;
 
@@ -145,7 +146,7 @@ export default function RecapsManagement() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (formData.photos.length >= MAX_PHOTOS) {
-      alert(t('organizer.recaps.maxPhotosAlert', { max: MAX_PHOTOS }));
+      toast.error(t('organizer.recaps.maxPhotosAlert', { max: MAX_PHOTOS }));
       return;
     }
     setIsUploadingPhoto(true);
@@ -156,7 +157,7 @@ export default function RecapsManagement() {
         photos: [...prev.photos, url]
       }));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Upload failed');
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setIsUploadingPhoto(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

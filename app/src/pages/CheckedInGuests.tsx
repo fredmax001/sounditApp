@@ -33,7 +33,7 @@ export default function CheckedInGuests() {
     const fetchGuests = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/payments/tickets?event_id=${event.id}`, {
+        const res = await fetch(`${API_BASE_URL}/tickets/business/tickets?event_id=${event.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Failed to load guests');

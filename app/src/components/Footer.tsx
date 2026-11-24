@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Instagram, Twitter, Youtube, Mail, MapPin, Phone, ExternalLink, Check, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '@/store/themeStore';
+import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 
 interface FooterProps {
@@ -28,7 +29,7 @@ const Footer = ({ isMobile = false }: FooterProps) => {
 
     setIsSubscribing(true);
     try {
-      const res = await fetch('/api/v1/newsletter/subscribe', {
+      const res = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

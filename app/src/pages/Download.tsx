@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Download, Smartphone, Apple, CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '@/config/api';
 
 type Platform = 'android' | 'ios' | 'desktop';
 
@@ -75,7 +76,7 @@ const DownloadPage = () => {
             </ol>
 
             <a
-              href="/api/v1/download/android"
+              href={`${API_BASE_URL}/download/android`}
               download
               className="inline-flex items-center justify-center gap-2 w-full md:w-auto px-8 py-3.5 rounded-xl bg-[#d3da0c] text-black font-semibold hover:bg-[#c4cf0a] transition-colors"
             >

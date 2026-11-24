@@ -395,11 +395,11 @@ const Register = () => {
           </button>
           <p className="text-gray-600 dark:text-gray-400 text-sm text-left">
             {t('auth.register.agreeText')}{' '}
-            <Link to="/about" className="text-[#020b00] dark:text-[#d3da0c] hover:underline font-semibold">
+            <Link to="/terms" className="text-[#020b00] dark:text-[#d3da0c] hover:underline font-semibold">
               {t('auth.register.termsOfService')}
             </Link>{' '}
             {t('auth.register.and')}{' '}
-            <Link to="/about" className="text-[#020b00] dark:text-[#d3da0c] hover:underline font-semibold">
+            <Link to="/privacy" className="text-[#020b00] dark:text-[#d3da0c] hover:underline font-semibold">
               {t('auth.register.privacyPolicy')}
             </Link>
           </p>

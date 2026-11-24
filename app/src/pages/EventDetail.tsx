@@ -457,25 +457,39 @@ export default function EventDetail() {
             onClick={async () => {
               const token = localStorage.getItem('auth-token') || localStorage.getItem('token');
               if (!token) {
-                toast.info(t('eventDetail.loginToSave'));
+                toast.info(t('eventDetail.loginToSave', 'Please sign in to save events'));
+                navigate('/login');
                 return;
               }
+              const targetEventId = currentEvent?.id || id;
               try {
                 if (isLiked) {
-                  const res = await fetch(`${API_BASE_URL}/events/${id}/save`, {
+                  const res = await fetch(`${API_BASE_URL}/events/${targetEventId}/save`, {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` }
                   });
-                  if (res.ok) { setIsLiked(false); Analytics.trackEvent("event_saved", "engagement", { event_id: id, action: "unsave" }); }
+                  if (res.ok) {
+                    setIsLiked(false);
+                    toast.success('Removed from saved events');
+                    Analytics.trackEvent("event_saved", "engagement", { event_id: targetEventId, action: "unsave" });
+                  } else {
+                    toast.error(t('eventDetail.saveError', 'Could not update saved event'));
+                  }
                 } else {
-                  const res = await fetch(`${API_BASE_URL}/events/${id}/save`, {
+                  const res = await fetch(`${API_BASE_URL}/events/${targetEventId}/save`, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` }
                   });
-                  if (res.ok) { setIsLiked(true); Analytics.trackEvent("event_saved", "engagement", { event_id: id, action: "save" }); }
+                  if (res.ok) {
+                    setIsLiked(true);
+                    toast.success('Saved to your favorites');
+                    Analytics.trackEvent("event_saved", "engagement", { event_id: targetEventId, action: "save" });
+                  } else {
+                    toast.error(t('eventDetail.saveError', 'Could not save event'));
+                  }
                 }
               } catch {
-                toast.error(t('eventDetail.saveError'));
+                toast.error(t('eventDetail.saveError', 'Network error while saving event'));
               }
             }}
             aria-label="Save"

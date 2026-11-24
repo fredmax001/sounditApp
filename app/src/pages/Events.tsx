@@ -69,6 +69,8 @@ export default function Events() {
     const cityParam = selectedCity && selectedCity !== 'all' ? selectedCity : undefined;
     if (dateFilter === 'past') {
       fetchPastEvents(cityParam);
+    } else if (dateFilter === 'all') {
+      fetchEvents({ city: cityParam, includePast: true });
     } else {
       fetchEvents({ city: cityParam });
     }
@@ -109,8 +111,8 @@ export default function Events() {
       } else if (dateFilter === 'past') {
         matchesDate = isCompleted;
       } else {
-        // 'all' shows active events (current + upcoming)
-        matchesDate = !isCompleted;
+        // 'all' displays all non-cancelled events (active/upcoming sorted first, then past)
+        matchesDate = true;
       }
 
       let matchesFree = true;
@@ -123,9 +125,18 @@ export default function Events() {
     });
 
     if (sortBy === 'date') {
+      const nowMs = Date.now();
       result = [...result].sort((a, b) => {
         if (dateFilter === 'past') {
           return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
+        }
+        if (dateFilter === 'all') {
+          const aDone = a.status === 'completed' || new Date(a.end_date || a.start_date).getTime() < nowMs;
+          const bDone = b.status === 'completed' || new Date(b.end_date || b.start_date).getTime() < nowMs;
+          if (aDone !== bDone) return aDone ? 1 : -1;
+          return aDone
+            ? new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+            : new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
         }
         return new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
       });
@@ -183,31 +194,33 @@ export default function Events() {
           )}
 
           {/* Filter Pills Row matching Reference Visual: All Events | Current | Upcoming | Past */}
-          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-            {[
-              { id: 'all', label: 'All Events' },
-              { id: 'current', label: 'Current' },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'past', label: 'Past' },
-            ].map((pill) => {
-              const active = dateFilter === pill.id;
-              return (
-                <button
-                  key={pill.id}
-                  type="button"
-                  onClick={() => setDateFilter(pill.id as DateFilter)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                    active
-                      ? 'bg-[#d3da0c] text-black shadow-sm'
-                      : 'bg-neutral-100 dark:bg-[#0d140a] text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white'
-                  }`}
-                >
-                  {pill.label}
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 w-full min-w-0">
+            <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
+              {[
+                { id: 'all', label: 'All Events' },
+                { id: 'current', label: 'Current' },
+                { id: 'upcoming', label: 'Upcoming' },
+                { id: 'past', label: 'Past' },
+              ].map((pill) => {
+                const active = dateFilter === pill.id;
+                return (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setDateFilter(pill.id as DateFilter)}
+                    className={`px-3.5 py-2 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
+                      active
+                        ? 'bg-[#d3da0c] text-black shadow-sm'
+                        : 'bg-neutral-100 dark:bg-[#0d140a] text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                );
+              })}
+            </div>
 
-            <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => setShowSearchBar(!showSearchBar)}

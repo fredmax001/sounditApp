@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserCheck, UserPlus, Clock, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 
 export type FollowRelationshipState = 'self' | 'following' | 'requested' | 'follow_back' | 'follow';
@@ -15,8 +16,6 @@ interface FollowButtonProps {
   onFollowChange?: (newState: FollowRelationshipState, delta: number) => void;
   className?: string;
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
   targetUserId,
@@ -59,7 +58,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
         const res = await fetch(`${API_BASE_URL}/social/users/${targetUserId}/relationship`, { headers });
         if (res.ok && isMounted) {
           const data = await res.json();
-          setRelationship(data.relationship || 'follow');
+          setRelationship(data.button_state || data.relationship || 'follow');
         }
       } catch {
         // Fallback default
@@ -122,7 +121,14 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 
       if (res.ok) {
         const data = await res.json();
-        const serverState = data.status === 'pending' ? 'requested' : isUnfollowing ? (data.mutual_follows ? 'follow_back' : 'follow') : 'following';
+        const serverState: FollowRelationshipState =
+          data.status === 'pending' || data.status === 'requested'
+            ? 'requested'
+            : isUnfollowing
+            ? data.mutual_follows || data.is_followed_by
+              ? 'follow_back'
+              : 'follow'
+            : 'following';
         setRelationship(serverState);
         if (isUnfollowing) {
           toast.success(targetUsername ? `Unfollowed @${targetUsername}` : 'Unfollowed');
@@ -136,7 +142,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
         setRelationship(previousState);
         if (onFollowChange) onFollowChange(previousState, -delta);
         const err = await res.json().catch(() => ({}));
-        toast.error(err.detail || 'Could not update follow state');
+        toast.error(err?.detail || err?.error?.message || 'Could not update follow state');
       }
     } catch {
       setRelationship(previousState);

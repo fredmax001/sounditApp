@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileQrPayment from '@/components/MobileQrPayment';
 import {
@@ -18,6 +18,7 @@ import { API_BASE_URL } from '@/config/api';
 import { getMediaUrl } from '@/lib/appUrl';
 import VerificationBadge from '@/components/VerificationBadge';
 import MessageModal from '@/components/MessageModal';
+import SafetyActionsMenu from '@/components/social/SafetyActionsMenu';
 import { slugify } from '@/lib/slug';
 import {
   SpotifyIcon,
@@ -828,6 +829,7 @@ const AvailabilityCalendar = ({ availability }: { availability: Availability[] }
 // Main Artist Detail Page
 const ArtistDetail = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { session, profile } = useAuthStore();
   const [artist, setArtist] = useState<ArtistProfile | null>(null);
@@ -852,10 +854,14 @@ const ArtistDetail = () => {
     setIsLoading(true);
     try {
       // Fetch artist profile (required)
+      let resolvedArtistId: string | number = id;
       const profileRes = await fetch(`${API_BASE_URL}/bookings/artists/${id}/profile`);
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setArtist(profileData);
+        if (profileData?.id) {
+          resolvedArtistId = profileData.id;
+        }
         // Normalize URL if accessed via numeric ID or unslugged name
         const canonicalSlug = profileData.slug || slugify(profileData.stage_name);
         if (canonicalSlug && id !== canonicalSlug) {
@@ -870,7 +876,7 @@ const ArtistDetail = () => {
 
       // Fetch reviews (optional)
       try {
-        const reviewsRes = await fetch(`${API_BASE_URL}/bookings/artists/${id}/reviews`);
+        const reviewsRes = await fetch(`${API_BASE_URL}/bookings/artists/${resolvedArtistId}/reviews`);
         if (reviewsRes.ok) {
           const reviewsData = await reviewsRes.json();
           setReviews(reviewsData);
@@ -883,7 +889,7 @@ const ArtistDetail = () => {
       try {
         const now = new Date();
         const availRes = await fetch(
-          `${API_BASE_URL}/bookings/artists/${id}/availability?month=${now.getMonth() + 1}&year=${now.getFullYear()}`
+          `${API_BASE_URL}/bookings/artists/${resolvedArtistId}/availability?month=${now.getMonth() + 1}&year=${now.getFullYear()}`
         );
         if (availRes.ok) {
           const availData = await availRes.json();
@@ -1093,7 +1099,8 @@ const ArtistDetail = () => {
                 <button
                   onClick={async () => {
                     if (!session?.access_token) {
-                      toast.info(t('artistDetail.loginToFollow') || 'Please log in to follow artists');
+                      toast.info(t('artistDetail.loginToFollow', 'Please sign in to follow artists'));
+                      navigate('/login');
                       return;
                     }
                     if (!artist?.id) return;
@@ -1146,6 +1153,14 @@ const ArtistDetail = () => {
                   <Share2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#020b00] dark:text-[#d3da0c]" />
                   <span>{t('common.share') || 'Share'}</span>
                 </button>
+                <SafetyActionsMenu
+                  entityType="user"
+                  entityId={artist.user_id || artist.id}
+                  targetUserId={artist.user_id || artist.id}
+                  targetName={artist.stage_name}
+                  onBlocked={() => navigate('/artists')}
+                  className="shrink-0"
+                />
               </div>
             </motion.div>
           </div>
@@ -1160,9 +1175,9 @@ const ArtistDetail = () => {
             {/* Tabs */}
             <div className="flex gap-1.5 sm:gap-2 border-b border-black/10 dark:border-white/10 pb-3 overflow-x-auto hide-scrollbar">
               {[
-                { id: 'about', label: t('artistDetail.tabAbout') },
-                { id: 'reviews', label: t('artistDetail.tabReviews') },
-                { id: 'gallery', label: t('artistDetail.tabGallery') }
+                { id: 'about', label: t('artistDetail.tabAbout', 'About') },
+                { id: 'reviews', label: t('artistDetail.tabReviews', 'Reviews') },
+                { id: 'gallery', label: t('artistDetail.tabGallery', 'Gallery') }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1631,7 +1646,7 @@ const ArtistDetail = () => {
                   <CheckCircle className="w-5 h-5 text-[#020b00] dark:text-[#d3da0c]" />
                   <div>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">{t('artistDetail.responseTime')}</p>
-                    <p className="text-[#020b00] dark:text-white font-medium">{t('artistDetail.responseTimeValue')}</p>
+                    <p className="text-[#020b00] dark:text-white font-medium">{t('artistDetail.responseTimeValue', 'Usually within 2 hours')}</p>
                   </div>
                 </div>
               </div>
