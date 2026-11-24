@@ -8,7 +8,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Circle, ChevronRight, Compass, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronRight, Compass, Disc3, X } from 'lucide-react';
 import { isNativeMobileApp } from '@/lib/platform';
 import { useAuthStore } from '@/store/authStore';
 import { useOnboardingStore } from '@/store/onboardingStore';
@@ -46,7 +46,7 @@ export default function NativeGettingStartedChecklist() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-[#d3da0c]/15 border border-[#d3da0c]/40 flex items-center justify-center shrink-0">
-            <Sparkles className="w-5 h-5 text-[#d3da0c]" />
+            <Disc3 className="w-5 h-5 text-[#d3da0c]" />
           </div>
           <div className="min-w-0">
             <h2 className="text-sm sm:text-base font-extrabold tracking-tight text-white">

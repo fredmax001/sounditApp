@@ -196,7 +196,7 @@ const Footer = ({ isMobile = false }: FooterProps) => {
                       </button>
                     </div>
                     <p className="text-[0.6875rem] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 pl-1">
-                      <span>🔒 No spam ever. Sent 1-2x weekly. One-click unsubscribe anytime.</span>
+                      <span>No spam ever. Sent 1-2x weekly. One-click unsubscribe anytime.</span>
                     </p>
                   </form>
                 </div>

@@ -4,8 +4,8 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bell, ChevronRight, Globe, HelpCircle, LogOut, Moon, Sun, Monitor,
-  Shield, User as UserIcon, UserPlus, X, Store, LayoutDashboard, Sparkles, Trash2,
+  Bell, ChevronRight, Compass, Globe, HelpCircle, LogOut, Moon, Sun, Monitor,
+  Shield, User as UserIcon, UserPlus, X, Store, LayoutDashboard, Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -68,7 +68,7 @@ const Settings = () => {
     { icon: Shield, label: t('kit.settingsMenu.security'), value: null, path: '/settings/security' },
     { icon: Globe, label: t('kit.settingsMenu.language'), value: currentLanguage, path: '/settings/language' },
     { icon: HelpCircle, label: t('kit.settingsMenu.helpCenter'), value: null, path: '/help' },
-    { icon: Sparkles, label: t('settings.appIntro', 'App Tour & Intro'), value: null, path: '/onboarding' },
+    { icon: Compass, label: t('settings.appIntro', 'App Tour & Intro'), value: null, path: '/onboarding' },
     { icon: UserPlus, label: t('kit.settingsMenu.inviteFriends'), value: null, path: '/settings/invite' },
   ];
 

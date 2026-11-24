@@ -200,7 +200,7 @@ const EmailVerification = () => {
       {/* Info Box */}
       <div className="mt-6 p-4 bg-neutral-100 dark:bg-white/5 rounded-lg border border-black/10 dark:border-white/10">
         <p className="text-gray-600 dark:text-gray-400 text-xs text-center">
-          🔒 {t('auth.emailVerification.infoLine1')}
+          {t('auth.emailVerification.infoLine1')}
           {t('auth.emailVerification.infoLine2')}
         </p>
       </div>

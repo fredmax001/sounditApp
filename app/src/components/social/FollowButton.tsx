@@ -83,7 +83,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     e.preventDefault();
 
     if (!isAuthenticated) {
-      toast('Please sign in to follow users', { icon: '🔒' });
+      toast('Please sign in to follow users');
       navigate('/login', { state: { from: location.pathname } });
       return;
     }

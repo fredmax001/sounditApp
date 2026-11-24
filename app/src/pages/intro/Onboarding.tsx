@@ -10,7 +10,7 @@ import {
   Bell,
   Music2,
   MapPin,
-  Sparkles,
+  Disc3,
   Camera,
   Image as ImageIcon,
   Check,
@@ -87,6 +87,8 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
     img1.src = '/onboarding/screen2-woman.png';
     const img2 = new Image();
     img2.src = '/onboarding/screen3-event.png';
+    const img3 = new Image();
+    img3.src = '/onboarding/screen4-dj.jpg';
   }, []);
 
   // Hydrate persisted backend state when in setup mode
@@ -458,7 +460,7 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
               >
                 <div className="space-y-1.5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#d3da0c]/40 bg-[#d3da0c]/10 text-[#d3da0c] text-[0.6875rem] font-bold uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5" /> Personalize Feed
+                    <Disc3 className="w-3.5 h-3.5" /> Personalize Feed
                   </span>
                   <h1 className="text-2xl font-extrabold tracking-tight">What vibes do you love?</h1>
                   <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
@@ -599,7 +601,9 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
     );
   }
 
-  // ==================== RENDER ENHANCED 4-SLIDE WELCOME CAROUSEL (EXISTING DESIGN PRESERVED) ====================
+  // ==================== RENDER ENHANCED 4-SLIDE WELCOME CAROUSEL ====================
+  const isNative = isNativeMobileApp();
+
   const renderDots = () => (
     <div className="flex items-center justify-center gap-2">
       {[0, 1, 2, 3].map((idx) => (
@@ -608,15 +612,465 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
           type="button"
           onClick={() => handleDotClick(idx)}
           aria-label={`Go to slide ${idx + 1}`}
-          className={`h-2 rounded-full transition-all cursor-pointer ${
+          className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
             currentStep === idx
-              ? 'w-6 bg-[#d3da0c] shadow-[0_0_8px_rgba(211,218,12,0.8)]'
-              : 'w-2 bg-neutral-600'
+              ? 'w-7 bg-[#d3da0c] shadow-[0_0_10px_rgba(211,218,12,0.75)]'
+              : 'w-2 bg-white/35'
           }`}
         />
       ))}
     </div>
   );
+
+  // ==================== NATIVE iOS & ANDROID ONLY: FULL-BLEED EDGE-TO-EDGE ONBOARDING ====================
+  if (isNative) {
+    const nativeSlideVariants = {
+      enter: (dir: number) => ({
+        x: dir > 0 ? '28%' : '-28%',
+        opacity: 0,
+      }),
+      center: {
+        x: 0,
+        opacity: 1,
+        transition: {
+          x: { type: 'spring' as const, stiffness: 300, damping: 32 },
+          opacity: { duration: 0.28, ease: 'easeOut' as const },
+        },
+      },
+      exit: (dir: number) => ({
+        x: dir > 0 ? '-24%' : '24%',
+        opacity: 0,
+        transition: {
+          x: { type: 'spring' as const, stiffness: 300, damping: 32 },
+          opacity: { duration: 0.22, ease: 'easeIn' as const },
+        },
+      }),
+    };
+
+    const nativeFeatures = [
+      {
+        icon: Compass,
+        title: 'Tailored Discovery',
+        desc: 'Events, clubs, DJs, and restaurants personalized to your city and music taste.',
+      },
+      {
+        icon: Bell,
+        title: 'Smart Real-Time Alerts',
+        desc: 'Instant updates on ticket approvals, artist bookings, messages, and event drops.',
+      },
+      {
+        icon: Music2,
+        title: 'Live Recaps & Direct Bookings',
+        desc: 'Relive the night through reels, book top DJs, or grow your own event brand.',
+      },
+    ];
+
+    const nativeRoles = [
+      { id: 'user' as const, title: 'User', desc: 'Discover events and buy tickets', icon: User, accent: 'border-[#d3da0c]/50 text-[#d3da0c] bg-[#d3da0c]/10' },
+      { id: 'business' as const, title: 'Business', desc: 'Bar, Club, or Event Organizer', icon: Store, accent: 'border-rose-500/40 text-rose-400 bg-rose-500/10' },
+      { id: 'vendor' as const, title: 'Vendor', desc: 'Food, drink & service providers', icon: Bell, accent: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10' },
+      { id: 'artist' as const, title: 'Artist / DJ', desc: 'Performers & creators', icon: Music2, accent: 'border-purple-500/40 text-purple-400 bg-purple-500/10' },
+    ];
+
+    return (
+      <div
+        className="fixed inset-0 z-[80] bg-[#020b00] text-white select-none overflow-hidden font-['Inter',sans-serif]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Floating Edge-to-Edge Safe-Area Top Header: Logo Left + Skip Right */}
+        <header
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-5 pb-3"
+          style={{ paddingTop: 'max(0.85rem, env(safe-area-inset-top))' }}
+        >
+          <div className="flex items-center">
+            <img
+              src="/intro_sound.png"
+              alt="Sound It"
+              className="h-6 w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleFinishCarousel('/')}
+            className="px-4 py-1.5 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 border border-white/20 backdrop-blur-md text-xs font-semibold text-white/95 transition-all shadow-lg cursor-pointer"
+          >
+            Skip
+          </button>
+        </header>
+
+        {/* Full-Bleed Slide Viewport */}
+        <div className="relative w-full h-full overflow-hidden">
+          <AnimatePresence initial={false} custom={direction} mode="sync">
+            {/* ==================== NATIVE SLIDE 1: FULL-BLEED DISCOVER & CONNECT ==================== */}
+            {currentStep === 0 && (
+              <motion.div
+                key="native-screen-1"
+                custom={direction}
+                variants={nativeSlideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 w-full h-full flex flex-col justify-end"
+              >
+                {/* Full-bleed edge-to-edge portrait photography */}
+                <img
+                  src="/onboarding/screen2-woman.png"
+                  alt="Discover and connect on Sound It"
+                  className="absolute inset-0 w-full h-full object-cover object-[center_18%]"
+                />
+                {/* Top vignette for status bar & header clarity */}
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-36"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, rgba(2,11,0,0.72) 0%, rgba(2,11,0,0.28) 52%, transparent 100%)',
+                  }}
+                />
+                {/* Bottom cinematic gradient for legible typography & CTA */}
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, transparent 36%, rgba(2,11,0,0.42) 56%, rgba(2,11,0,0.92) 74%, #020b00 88%, #020b00 100%)',
+                  }}
+                />
+
+                {/* Overlaid Bottom Copy & Controls */}
+                <div
+                  className="relative z-20 w-full max-w-md mx-auto px-5 pt-6 space-y-5"
+                  style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+                >
+                  <div className="text-center px-1">
+                    <h1 className="font-['Inter',sans-serif] text-[1.75rem] sm:text-[2rem] font-black leading-[1.12] tracking-tight text-white uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+                      DISCOVER. <span className="text-[#d3da0c]">CONNECT.</span>
+                      <br />
+                      EXPERIENCE.
+                    </h1>
+                    <p className="mt-3 text-[0.8125rem] sm:text-sm font-normal text-neutral-200 leading-relaxed max-w-[20.5rem] mx-auto">
+                      Explore events, discover DJs and artists, connect with entertainment businesses
+                      and find exciting experiences around you.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {renderDots()}
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="w-full h-[3.375rem] rounded-full bg-[#d3da0c] text-black font-extrabold text-base hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_8px_28px_rgba(211,218,12,0.38)] cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ==================== NATIVE SLIDE 2: FULL-BLEED EVENTS & COMMUNITY ==================== */}
+            {currentStep === 1 && (
+              <motion.div
+                key="native-screen-2"
+                custom={direction}
+                variants={nativeSlideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 w-full h-full flex flex-col justify-end"
+              >
+                {/* Full-bleed edge-to-edge event crowd photo */}
+                <img
+                  src="/onboarding/screen3-event.png"
+                  alt="African events and community in China"
+                  className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+                />
+                {/* Top vignette */}
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-36"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, rgba(2,11,0,0.72) 0%, rgba(2,11,0,0.28) 52%, transparent 100%)',
+                  }}
+                />
+                {/* Bottom cinematic gradient */}
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, transparent 36%, rgba(2,11,0,0.45) 56%, rgba(2,11,0,0.93) 74%, #020b00 88%, #020b00 100%)',
+                  }}
+                />
+
+                {/* Overlaid Bottom Copy & Controls */}
+                <div
+                  className="relative z-20 w-full max-w-md mx-auto px-5 pt-6 space-y-5"
+                  style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+                >
+                  <div className="text-center px-1">
+                    <h1 className="font-['Inter',sans-serif] text-[1.75rem] sm:text-[2rem] font-black leading-[1.12] tracking-tight text-white uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+                      YOUR EXPERIENCE
+                      <br />
+                      <span className="text-[#d3da0c]">STARTS HERE.</span>
+                    </h1>
+                    <p className="mt-3 text-[0.8125rem] sm:text-sm font-normal text-neutral-200 leading-relaxed max-w-[20.5rem] mx-auto">
+                      Discover African events in China, connect with the community, enjoy unforgettable
+                      experiences and become part of the Sound It movement.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {renderDots()}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handlePrev}
+                        aria-label="Previous slide"
+                        className="w-[3.375rem] h-[3.375rem] rounded-full bg-[#141a12]/90 border border-white/15 backdrop-blur-md text-white flex items-center justify-center shrink-0 active:scale-95 transition-transform cursor-pointer"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex-1 h-[3.375rem] rounded-full bg-[#d3da0c] text-black font-extrabold text-base hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_8px_28px_rgba(211,218,12,0.38)] cursor-pointer"
+                      >
+                        <span>Next</span>
+                        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ==================== NATIVE SLIDE 3: FULL-BLEED TOP HERO + VALUE CARDS ==================== */}
+            {currentStep === 2 && (
+              <motion.div
+                key="native-screen-3"
+                custom={direction}
+                variants={nativeSlideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 w-full h-full flex flex-col justify-end bg-[#020b00]"
+              >
+                {/* Full-bleed edge-to-edge top DJ hero banner */}
+                <div className="absolute top-0 left-0 right-0 h-[44dvh] min-h-[16rem] overflow-hidden">
+                  <img
+                    src="/onboarding/screen4-dj.jpg"
+                    alt="DJ mixing live on decks"
+                    className="w-full h-full object-cover object-center"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = '/hero-event.jpg';
+                      }
+                    }}
+                  />
+                  {/* Top vignette for logo & skip */}
+                  <div
+                    className="pointer-events-none absolute inset-x-0 top-0 h-28"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, rgba(2,11,0,0.72) 0%, rgba(2,11,0,0.22) 55%, transparent 100%)',
+                    }}
+                  />
+                  {/* Seamless melt into #020b00 dark background */}
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, transparent 30%, rgba(2,11,0,0.58) 68%, #020b00 100%)',
+                    }}
+                  />
+                </div>
+
+                {/* Content + 3 Dark Glass Feature Cards + Bottom Navigation */}
+                <div
+                  className="relative z-20 w-full max-w-md mx-auto px-5 flex flex-col justify-end gap-4"
+                  style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+                >
+                  <div className="text-center">
+                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#0a1207]/90 border border-[#d3da0c]/45 text-[#d3da0c] text-[0.6875rem] font-extrabold tracking-wider uppercase mx-auto mb-2.5 backdrop-blur-md">
+                      <Disc3 className="w-3.5 h-3.5" />
+                      <span>BUILT FOR THE CULTURE</span>
+                    </div>
+                    <h1 className="font-['Inter',sans-serif] text-[1.625rem] sm:text-[1.875rem] font-black leading-tight tracking-tight text-white uppercase">
+                      NEVER MISS A <span className="text-[#d3da0c]">BEAT.</span>
+                    </h1>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {nativeFeatures.map((feature) => {
+                      const Icon = feature.icon;
+                      return (
+                        <div
+                          key={feature.title}
+                          className="p-3.5 rounded-2xl bg-[#0d140b]/95 border border-[#1f261e] flex items-center gap-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+                        >
+                          <div className="w-11 h-11 rounded-xl bg-[#d3da0c]/12 border border-[#d3da0c]/40 flex items-center justify-center shrink-0">
+                            <Icon className="w-5 h-5 text-[#d3da0c]" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-sm text-white leading-snug">{feature.title}</h3>
+                            <p className="text-[0.75rem] text-neutral-300 mt-0.5 leading-snug">{feature.desc}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-4 pt-1">
+                    {renderDots()}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handlePrev}
+                        aria-label="Previous slide"
+                        className="w-[3.375rem] h-[3.375rem] rounded-full bg-[#141a12]/90 border border-white/15 backdrop-blur-md text-white flex items-center justify-center shrink-0 active:scale-95 transition-transform cursor-pointer"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex-1 h-[3.375rem] rounded-full bg-[#d3da0c] text-black font-extrabold text-base hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_8px_28px_rgba(211,218,12,0.38)] cursor-pointer"
+                      >
+                        <span>Next</span>
+                        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ==================== NATIVE SLIDE 4: FULL-BLEED AMBIENT ROLE SELECTION ==================== */}
+            {currentStep === 3 && (
+              <motion.div
+                key="native-screen-4"
+                custom={direction}
+                variants={nativeSlideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 w-full h-full flex flex-col justify-end bg-[#020b00]"
+              >
+                {/* Full-bleed atmospheric top backdrop */}
+                <div className="absolute top-0 left-0 right-0 h-[34dvh] min-h-[12rem] overflow-hidden">
+                  <img
+                    src="/onboarding/screen3-event.png"
+                    alt="Join the Sound It community"
+                    className="w-full h-full object-cover object-center opacity-55"
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, rgba(2,11,0,0.72) 0%, rgba(2,11,0,0.45) 45%, #020b00 100%)',
+                    }}
+                  />
+                </div>
+
+                <div
+                  className="relative z-20 w-full max-w-md mx-auto px-5 flex flex-col justify-end gap-3.5"
+                  style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+                >
+                  <div className="text-center">
+                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#0a1207]/90 border border-[#d3da0c]/45 text-[#d3da0c] text-[0.6875rem] font-extrabold tracking-wider uppercase mx-auto mb-2">
+                      <User className="w-3.5 h-3.5" />
+                      <span>CHOOSE YOUR ROLE</span>
+                    </div>
+                    <h1 className="font-['Inter',sans-serif] text-[1.5rem] sm:text-[1.75rem] font-black leading-tight tracking-tight text-white uppercase">
+                      JOIN THE SOUND IT <span className="text-[#d3da0c]">COMMUNITY</span>
+                    </h1>
+                    <p className="mt-1 text-xs text-neutral-300 leading-relaxed max-w-[20rem] mx-auto">
+                      Whatever your role in the entertainment space, Sound It has a place for you.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {nativeRoles.map((r) => {
+                      const Icon = r.icon;
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => handleSelectRoleAndProceed(r.id)}
+                          className={`w-full flex items-center justify-between p-3 rounded-2xl bg-[#0d140b]/95 border transition-all text-left group cursor-pointer ${
+                            selectedRole === r.id
+                              ? 'border-[#d3da0c] shadow-[0_0_18px_rgba(211,218,12,0.35)]'
+                              : 'border-[#1f261e] hover:border-[#d3da0c]/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${r.accent}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-bold text-sm text-white">{r.title}</h3>
+                              <p className="text-xs text-neutral-400 truncate">{r.desc}</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-white transition-all shrink-0" />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-3 pt-1">
+                    {renderDots()}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handlePrev}
+                        aria-label="Previous slide"
+                        className="w-[3.375rem] h-[3.375rem] rounded-full bg-[#141a12]/90 border border-white/15 backdrop-blur-md text-white flex items-center justify-center shrink-0 active:scale-95 transition-transform cursor-pointer"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex-1 h-[3.375rem] rounded-full bg-[#d3da0c] text-black font-extrabold text-base hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_8px_28px_rgba(211,218,12,0.38)] cursor-pointer"
+                      >
+                        <span>Get Started</span>
+                        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-4 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleFinishCarousel('/')}
+                        className="text-neutral-300 hover:text-[#d3da0c] font-semibold transition-colors cursor-pointer"
+                      >
+                        Explore Platform First
+                      </button>
+                      <span className="text-neutral-600">•</span>
+                      <button
+                        type="button"
+                        onClick={() => handleFinishCarousel('/login')}
+                        className="text-[#d3da0c] font-bold hover:underline transition-colors cursor-pointer"
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== WEBSITE / PWA ONBOARDING (UNMODIFIED) ====================
 
   return (
     <div
@@ -795,7 +1249,7 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
               <div className="flex-1 flex flex-col justify-center space-y-3 py-4">
                 <div className="text-center mb-2">
                   <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-[#d3da0c] text-[#d3da0c] text-[0.6875rem] font-bold tracking-wider uppercase mx-auto mb-3">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Disc3 className="w-3.5 h-3.5" />
                     <span>BUILT FOR THE CULTURE</span>
                   </div>
                   <h1 className="font-['Inter',sans-serif] text-2xl sm:text-[1.75rem] font-extrabold leading-tight tracking-tight text-white uppercase">

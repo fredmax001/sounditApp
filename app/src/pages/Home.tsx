@@ -33,7 +33,6 @@ import {
   Plus,
   MoreHorizontal,
   Search,
-  Sparkles,
   X,
 } from 'lucide-react';
 import { useEventStore } from '@/store/eventStore';
@@ -56,6 +55,18 @@ import type { DJ, EventWithDetails } from '@/store/eventStore';
 import { queryCache, isAbortError } from '@/lib/queryCache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
+
+const resolveServerMedia = (url?: string | null, fallback = '/web-hero/C48A0758.jpg'): string => {
+  if (!url || !url.trim()) return fallback;
+  const clean = url.trim();
+  if (clean.startsWith('/uploads/') || clean.startsWith('/static/')) {
+    return `${API_URL.replace(/\/api\/v1\/?$/, '')}${clean}`;
+  }
+  if (clean.startsWith('http://sounditent.com')) {
+    return clean.replace('http://', 'https://');
+  }
+  return clean;
+};
 
 /* Floating music note particles for hero background */
 const FloatingNotes = () => {
@@ -579,9 +590,16 @@ const Home = () => {
               <div className="relative w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] to-[#65a30d]">
                 <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
                   <img
-                    src={profile?.avatar_url || '/web-hero/C48A0758.jpg'}
+                    src={resolveServerMedia(profile?.avatar_url, '/web-hero/C48A0758.jpg')}
                     alt="Your Story"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = '/hero-slide-1.jpg';
+                      }
+                    }}
                   />
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#d3da0c] text-black flex items-center justify-center border border-white dark:border-[#020b00]">
@@ -600,9 +618,16 @@ const Home = () => {
               <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
                 <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
                   <img
-                    src={featuredEvents[0]?.banner_url || featuredEvents[0]?.cover_image || '/web-hero/C48A0775.jpg'}
+                    src={resolveServerMedia(featuredEvents[0]?.banner_url || featuredEvents[0]?.cover_image, '/web-hero/C48A0775.jpg')}
                     alt="Events"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = '/hero-event.jpg';
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -618,9 +643,16 @@ const Home = () => {
               <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d3da0c] via-[#a3e635] to-[#d3da0c]">
                 <div className="w-full h-full rounded-full overflow-hidden bg-[#0a1207] border-2 border-white dark:border-[#020b00]">
                   <img
-                    src={featuredDJs[0]?.avatar_url || '/web-hero/C48A0916.jpg'}
+                    src={resolveServerMedia(featuredDJs[0]?.avatar_url, '/web-hero/C48A0916.jpg')}
                     alt="Artists"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = '/default-artist.png';
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -639,6 +671,13 @@ const Home = () => {
                     src="/web-hero/C48A0889.jpg"
                     alt="Venues"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = '/placeholder-club.jpg';
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -760,7 +799,7 @@ const Home = () => {
                     {/* Top slide controls & indicators */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md border border-[#d3da0c]/40 text-[#d3da0c] text-[0.625rem] font-extrabold uppercase">
-                        <Sparkles className="w-3 h-3 text-[#d3da0c]" />
+                        <Star className="w-3 h-3 text-[#d3da0c] fill-[#d3da0c]" />
                         Featured Event
                       </span>
 
@@ -1049,7 +1088,7 @@ const Home = () => {
                 </button>
                 <div className="absolute bottom-4 left-4 right-4">
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#d3da0c] text-black text-[0.625rem] font-extrabold uppercase tracking-wider mb-2">
-                    <Sparkles className="w-3 h-3" /> Sound It Story
+                    <Radio className="w-3 h-3" /> Sound It Story
                   </span>
                   <h3 className="text-white font-bold text-xl">{activeStoryPreview.title}</h3>
                   <p className="text-gray-300 text-xs mt-1">{activeStoryPreview.subtitle}</p>

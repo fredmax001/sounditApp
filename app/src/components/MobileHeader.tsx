@@ -305,6 +305,13 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
+              onError={(e) => {
+                const img = e.currentTarget as HTMLImageElement;
+                if (!img.dataset.fallback) {
+                  img.dataset.fallback = '1';
+                  img.src = '/logo.png';
+                }
+              }}
             />
           </Link>
 

@@ -9,6 +9,20 @@
 
 ---
 
+### 189. Broken Image Resolution (App & Live), AI Emoji Removal & Native-Only Full-Bleed Onboarding Redesign (2026-11-24)
+- **Objectives & Issues Addressed**:
+  1. **Fixed Broken Images on Both Live Web (`sounditent.com`) and Native iOS/Android Apps**:
+     - *Root Cause*: Server `/var/www/soundit/current/app/public/` was missing brand logos (`logo-dark.png`, `logo-light.png`, `brand-logo-dark.png`, `brand-logo-light.png`, `logo-icon-dark.png`, `mobile-logo.png`, `logo.svg`), the entire `web-hero/` photo folder (15 files used by Mobile Home story circles & hero fallbacks), and `collab_*.jpg` files. When Vite built on the server, those missing assets produced broken `[?]` placeholders on both `sounditent.com` and the iOS app.
+     - *Fix*: Synced the complete local `app/public/` directory to production `/var/www/soundit/current/app/public/`, rebuilt (`tsc -b && vite build`, 0 errors), added `resolveServerMedia()` + `onError` fallbacks on `Home.tsx` story circles and `MobileHeader.tsx` logo, and verified HTTP 200 across all 8 tested image URLs on `https://sounditent.com/`.
+  2. **Removed AI Emojis & Sparkle Icons (`Home.tsx`, `Onboarding.tsx`, `NativeGettingStartedChecklist.tsx`, `Settings.tsx`, `Footer.tsx`, `FollowButton.tsx`, `VerifyOTP.tsx`, `EmailVerification.tsx`)**:
+     - Replaced `<Sparkles />` icons with clean Lucide music/event icons (`Star`, `Radio`, `Disc3`, `Compass`) and removed unicode emojis (`🔒`, `📱`) from UI text and toasts.
+  3. **Native-Only Full-Bleed Edge-to-Edge Onboarding Redesign (`app/src/pages/intro/Onboarding.tsx`, `app/public/onboarding/screen4-dj.jpg`)**:
+     - Strictly scoped behind `isNativeMobileApp()` so Website and PWA onboarding remain 100% unmodified.
+     - Redesigned native iOS & Android onboarding slides into immersive full-bleed edge-to-edge imagery extending behind the device status bar (zero inset card margins, `object-cover` aspect-safe scaling, top vignette + deep bottom gradient into `#020B00`, floating safe-area header with Sound It logo top-left and frosted `Skip` pill top-right, `#D3DA0C` pill indicators and full-width CTAs, circular glass Back button on slides 2–4).
+     - Added custom editorial DJ decks hero photo (`app/public/onboarding/screen4-dj.jpg`) for Slide 3 (`BUILT FOR THE CULTURE` / `NEVER MISS A BEAT.`) above the 3 dark glass feature cards, while preserving Slide 4 role selection, first-time-user state, and post-registration setup wizard.
+
+---
+
 ### 188. Self-Service Account Deletion Overhaul & RFC 8058 Email Unsubscribe System (2026-11-24)
 - **Objectives & Issues Addressed**:
   1. **Self-Service Account Deletion Audit & Hardening (`api/auth_password.py`, `SecuritySettings.tsx`, `Settings.tsx`, `EditProfile.tsx`)**:
