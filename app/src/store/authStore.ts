@@ -274,6 +274,81 @@ interface ArtistProfileData {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
+// Client-side image normalizer: converts HEIC/HEIF & huge 48MP phone photos to fast, EXIF-correct JPEGs
+async function optimizeImageForUpload(file: File, maxDimension = 1024, quality = 0.86): Promise<File> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return file;
+  if (file.type === 'image/gif' || /\.gif$/i.test(file.name)) return file;
+  try {
+    let sourceWidth = 0;
+    let sourceHeight = 0;
+    let drawSource: CanvasImageSource;
+    let cleanup: () => void = () => {};
+
+    if (typeof createImageBitmap === 'function') {
+      try {
+        const bitmap = await createImageBitmap(file);
+        sourceWidth = bitmap.width;
+        sourceHeight = bitmap.height;
+        drawSource = bitmap;
+        cleanup = () => bitmap.close();
+      } catch {
+        // Fallback to HTMLImageElement below
+        drawSource = null as unknown as CanvasImageSource;
+      }
+    } else {
+      drawSource = null as unknown as CanvasImageSource;
+    }
+
+    if (!drawSource) {
+      const objectUrl = URL.createObjectURL(file);
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = objectUrl;
+      });
+      sourceWidth = img.naturalWidth || img.width;
+      sourceHeight = img.naturalHeight || img.height;
+      drawSource = img;
+      cleanup = () => URL.revokeObjectURL(objectUrl);
+    }
+
+    if (!sourceWidth || !sourceHeight) {
+      cleanup();
+      return file;
+    }
+
+    const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+    const targetW = Math.max(1, Math.round(sourceWidth * scale));
+    const targetH = Math.max(1, Math.round(sourceHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      cleanup();
+      return file;
+    }
+    ctx.drawImage(drawSource, 0, 0, targetW, targetH);
+    cleanup();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), 'image/jpeg', quality)
+    );
+    if (!blob || blob.size === 0) return file;
+
+    const baseName = (file.name || 'photo').replace(/\.[^.]+$/, '') || 'photo';
+    return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+  } catch {
+    return file;
+  }
+}
+
+function extractApiErrorMessage(errorData: any, fallback: string): string {
+  return errorData?.detail || errorData?.error?.message || errorData?.message || fallback;
+}
+
 // Guard against concurrent refresh-token requests that can race and 401 the user out
 let isRefreshingSession = false;
 
@@ -843,25 +918,27 @@ export const useAuthStore = create<AuthState>()(
       // Upload Avatar
       uploadAvatar: async (file: File): Promise<string> => {
         const { session } = get();
-        if (!session?.access_token) throw new Error('Not authenticated');
+        const authToken = session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('token');
+        if (!authToken) throw new Error('Not authenticated');
 
         // Validate file (supports HEIC/HEIF and standard image formats)
-        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp|jfif)$/i.test(file.name);
         if (!isImage) {
           throw new Error('Please select a valid image file');
         }
-        if (file.size > 10 * 1024 * 1024) { // 10MB
-          throw new Error('Image size must be less than 10MB');
+        if (file.size > 25 * 1024 * 1024) { // 25MB raw smartphone photo limit before client compression
+          throw new Error('Image size must be less than 25MB');
         }
 
+        const preparedFile = await optimizeImageForUpload(file, 1024, 0.86);
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', preparedFile);
 
         try {
           const response = await fetch(`${API_BASE_URL}/media/upload`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${authToken}`,
             },
             body: formData,
           });
@@ -878,7 +955,7 @@ export const useAuthStore = create<AuthState>()(
             } catch {
               errorData = { detail: `Upload failed: HTTP ${response.status}` };
             }
-            throw new Error(errorData.detail || 'Failed to upload avatar');
+            throw new Error(extractApiErrorMessage(errorData, 'Failed to upload avatar'));
           }
 
           const data = await response.json();
@@ -888,29 +965,35 @@ export const useAuthStore = create<AuthState>()(
           const updateResponse = await fetch(`${API_BASE_URL}/auth/me`, {
             method: 'PUT',
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ avatar_url: avatarUrl }),
           });
 
           if (!updateResponse.ok) {
-            const error = await updateResponse.json();
-            throw new Error(error.detail || 'Failed to update profile with avatar');
+            const error = await updateResponse.json().catch(() => ({}));
+            throw new Error(extractApiErrorMessage(error, 'Failed to update profile with avatar'));
           }
 
-          // Update local profile state
-          const { profile } = get();
+          // Update local profile state across user, vendor, and business views immediately
+          const { profile, businessProfile } = get();
           if (profile) {
-            set({ profile: { ...profile, avatar_url: avatarUrl } });
+            const updatedProfile: any = { ...profile, avatar_url: avatarUrl };
+            if (updatedProfile.vendor_profile) {
+              updatedProfile.vendor_profile = { ...updatedProfile.vendor_profile, logo_url: avatarUrl };
+            }
+            set({
+              profile: updatedProfile,
+              ...(businessProfile ? { businessProfile: { ...businessProfile, logo_url: avatarUrl } as any } : {}),
+            });
           }
 
           return avatarUrl;
         } catch (error: unknown) {
           if (error instanceof TypeError && (error as TypeError).message.includes('Failed to fetch')) {
             throw new Error(
-              'Network error: Unable to connect to server. Please check if the backend is running at ' +
-              API_BASE_URL
+              'Network error: Unable to connect to server. Please check your connection and try again.'
             );
           }
           throw error;
@@ -920,25 +1003,27 @@ export const useAuthStore = create<AuthState>()(
       // Upload Banner
       uploadBanner: async (file: File): Promise<string> => {
         const { session } = get();
-        if (!session?.access_token) throw new Error('Not authenticated');
+        const authToken = session?.access_token || localStorage.getItem('auth-token') || localStorage.getItem('token');
+        if (!authToken) throw new Error('Not authenticated');
 
         // Validate file (supports HEIC/HEIF and standard image formats)
-        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp|jfif)$/i.test(file.name);
         if (!isImage) {
           throw new Error('Please select a valid image file');
         }
-        if (file.size > 10 * 1024 * 1024) { // 10MB
-          throw new Error('Image size must be less than 10MB');
+        if (file.size > 25 * 1024 * 1024) { // 25MB raw smartphone photo limit before client compression
+          throw new Error('Image size must be less than 25MB');
         }
 
+        const preparedFile = await optimizeImageForUpload(file, 1920, 0.85);
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', preparedFile);
 
         try {
           const response = await fetch(`${API_BASE_URL}/media/upload`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${authToken}`,
             },
             body: formData,
           });
@@ -955,7 +1040,7 @@ export const useAuthStore = create<AuthState>()(
             } catch {
               errorData = { detail: `Upload failed: HTTP ${response.status}` };
             }
-            throw new Error(errorData.detail || 'Failed to upload banner');
+            throw new Error(extractApiErrorMessage(errorData, 'Failed to upload banner'));
           }
 
           const data = await response.json();
@@ -965,15 +1050,15 @@ export const useAuthStore = create<AuthState>()(
           const updateResponse = await fetch(`${API_BASE_URL}/auth/me`, {
             method: 'PUT',
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ background_url: bannerUrl }),
           });
 
           if (!updateResponse.ok) {
-            const error = await updateResponse.json();
-            throw new Error(error.detail || 'Failed to update profile with banner');
+            const error = await updateResponse.json().catch(() => ({}));
+            throw new Error(extractApiErrorMessage(error, 'Failed to update profile with banner'));
           }
 
           // Update local profile state
@@ -986,8 +1071,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: unknown) {
           if (error instanceof TypeError && (error as TypeError).message.includes('Failed to fetch')) {
             throw new Error(
-              'Network error: Unable to connect to server. Please check if the backend is running at ' +
-              API_BASE_URL
+              'Network error: Unable to connect to server. Please check your connection and try again.'
             );
           }
           throw error;

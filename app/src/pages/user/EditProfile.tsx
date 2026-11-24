@@ -334,7 +334,7 @@ const EditProfile = () => {
               <img src="/onboarding/screen3-event.png" alt="" className="w-full h-full object-cover opacity-70" />
             )}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 dark:to-[#020B00]/80" />
-            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+            <input ref={bannerInputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleBannerUpload} />
             <button
               type="button"
               onClick={() => bannerInputRef.current?.click()}
@@ -368,7 +368,7 @@ const EditProfile = () => {
                 <Camera className="w-3.5 h-3.5" />
               </span>
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <input ref={fileInputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleAvatarUpload} />
           </div>
         </div>
 

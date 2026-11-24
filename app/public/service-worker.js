@@ -35,7 +35,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 // Sound It - Service Worker for Push Notifications & PWA Cache
 // Must be at the root scope: /service-worker.js
 
-const CACHE_NAME = 'soundit-v20';
+const CACHE_NAME = 'soundit-v21';
 const urlsToCache = [
   '/',
   '/logo-dark.png',
