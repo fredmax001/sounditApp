@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 import { Link } from 'react-router-dom';
+import ProviderFinancialOverview from '@/components/finance/ProviderFinancialOverview';
 
 interface Booking {
   id: number | string;
@@ -336,6 +337,12 @@ const Analytics = () => {
           </div>
         )}
       </div>
+
+      {/* Channel-Separated DJ / Artist Financial Breakdown */}
+      <ProviderFinancialOverview
+        title="DJ & Artist Earnings Breakdown"
+        subtitle="Personal QR booking payments go directly to your account (0% fee, not withdrawable). Sound It Yoopay booking payments (4% fee) enter your eligible withdrawable balance."
+      />
 
       {/* Genre Categories */}
       {artistProfile?.genres && artistProfile.genres.length > 0 && (

@@ -3515,3 +3515,183 @@ class EventInvitation(Base):
     inviter = relationship("User", foreign_keys=[inviter_id])
     invitee = relationship("User", foreign_keys=[invitee_id])
 
+
+# ===========================================================================
+# IMMUTABLE DOUBLE-ENTRY FINANCIAL LEDGER & CHANNEL SEPARATION MODELS
+# Channel A: platform_yoopay (Sound It Yoopay gateway, 4% fee once, withdrawable)
+# Channel B: direct_qr (Provider-owned QR, 0% fee, NEVER withdrawable / platform cash)
+# Subscriptions: subscription_yoopay / subscription_direct (100% platform revenue)
+# ===========================================================================
+
+class FinancialTransaction(Base):
+    """Canonical financial transaction record separating Yoopay platform-processed payments,
+    Direct QR provider-owned payments, and Subscription payments."""
+    __tablename__ = "financial_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transaction_uid = Column(String(64), unique=True, nullable=False, index=True)
+    idempotency_key = Column(String(128), unique=True, nullable=True, index=True)
+
+    # Parties
+    provider_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    provider_role = Column(String(30), nullable=True, index=True)  # organizer, business, artist, vendor, venue, platform
+    customer_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    # Source entity linkage (reuses existing orders/tickets/bookings/subscriptions)
+    source_type = Column(String(40), nullable=False, index=True)  # ticket_order, table_order, product_order, vendor_order, booking_request, order, subscription, direct_qr_record
+    source_id = Column(Integer, nullable=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True, index=True)
+    booking_id = Column(Integer, ForeignKey("booking_requests.id"), nullable=True, index=True)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=True, index=True)
+
+    # Channel & Method Separation (CRITICAL INVARIANT)
+    # platform_yoopay | direct_qr | subscription_yoopay | subscription_direct
+    payment_channel = Column(String(32), nullable=False, index=True)
+    payment_method = Column(String(40), nullable=False, default="yoopay")  # yoopay, wechat_qr, alipay_qr, wechat_pay, alipay, bank_transfer
+    gateway_name = Column(String(30), nullable=True)  # yoopay | direct_qr | none
+    gateway_reference = Column(String(128), nullable=True, index=True)
+
+    # Monetary amounts (strictly currency-separated, 2-decimal precision)
+    currency = Column(String(3), nullable=False, default="CNY", index=True)
+    gross_amount = Column(Float, nullable=False)
+    fee_rate = Column(Float, nullable=False, default=0.0)  # 0.04 for eligible platform_yoopay, 0.0 for direct_qr & subscriptions
+    platform_fee_amount = Column(Float, nullable=False, default=0.0)  # Charged ONCE on platform_yoopay; ALWAYS 0.0 on direct_qr
+    net_provider_entitlement = Column(Float, nullable=False, default=0.0)  # Payable by Sound It ONLY for platform_yoopay; ALWAYS 0.0 for direct_qr & subscriptions
+    refunded_amount = Column(Float, nullable=False, default=0.0)
+
+    # Lifecycle states (explicitly separated)
+    # payment_status: initiated, pending, confirmed, settled, failed, refunded, partially_refunded, reversed, disputed
+    payment_status = Column(String(30), nullable=False, default="initiated", index=True)
+    # settlement_status: unsettled, pending_settlement, settled, not_applicable
+    settlement_status = Column(String(30), nullable=False, default="unsettled", index=True)
+    # verification_status:
+    #   Yoopay: unverified, webhook_verified, reconciled, manual_verified
+    #   Direct QR: recorded, provider_reported, evidence_submitted, independently_verified
+    verification_status = Column(String(32), nullable=False, default="recorded", index=True)
+
+    # Historical migration / audit classification
+    classification_confidence = Column(String(40), nullable=False, default="confirmed")  # confirmed, inferred_direct_qr, inferred_platform_yoopay, ambiguous_needs_review
+    needs_review = Column(Boolean, nullable=False, default=False, index=True)
+    notes = Column(Text, nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+
+    confirmed_at = Column(DateTime(timezone=True), nullable=True)
+    settled_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    provider = relationship("User", foreign_keys=[provider_user_id])
+    customer = relationship("User", foreign_keys=[customer_user_id])
+    event = relationship("Event", foreign_keys=[event_id])
+
+
+class FinancialLedgerEntry(Base):
+    """Immutable append-only double-entry accounting journal.
+    Never updated or deleted — corrections and refunds create balanced reversal entries.
+    Direct QR payments NEVER post to PLATFORM_CASH_YOOPAY, PROVIDER_PAYABLE, or PLATFORM_FEE_REVENUE."""
+    __tablename__ = "financial_ledger_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    journal_id = Column(String(64), nullable=False, index=True)
+    idempotency_key = Column(String(160), unique=True, nullable=True, index=True)
+
+    transaction_id = Column(Integer, ForeignKey("financial_transactions.id"), nullable=True, index=True)
+    payout_request_id = Column(Integer, ForeignKey("payout_requests.id"), nullable=True, index=True)
+    refund_id = Column(Integer, ForeignKey("financial_refunds.id"), nullable=True, index=True)
+
+    # Chart of accounts:
+    #   PLATFORM_CASH_YOOPAY       (Asset: debit increases cash, credit decreases cash)
+    #   PROVIDER_PAYABLE           (Liability: credit increases withdrawable balance, debit decreases)
+    #   PROVIDER_PAYOUT_PENDING    (Liability: credit locks payout request, debit clears on paid/rejected)
+    #   PLATFORM_FEE_REVENUE       (Revenue: credit increases 4% fee revenue, debit reverses on refund)
+    #   SUBSCRIPTION_REVENUE       (Revenue: credit increases subscription revenue, debit reverses on refund)
+    account_code = Column(String(50), nullable=False, index=True)
+    provider_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    entry_type = Column(String(10), nullable=False)  # debit | credit
+    amount = Column(Float, nullable=False)  # Always > 0
+    currency = Column(String(3), nullable=False, default="CNY", index=True)
+
+    description = Column(String(300), nullable=False)
+    is_reversal = Column(Boolean, nullable=False, default=False)
+    reverses_entry_id = Column(Integer, ForeignKey("financial_ledger_entries.id"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class FinancialRefund(Base):
+    """Channel-separated refund and reversal record linked to original FinancialTransaction."""
+    __tablename__ = "financial_refunds"
+
+    id = Column(Integer, primary_key=True, index=True)
+    refund_uid = Column(String(64), unique=True, nullable=False, index=True)
+    idempotency_key = Column(String(128), unique=True, nullable=True, index=True)
+
+    transaction_id = Column(Integer, ForeignKey("financial_transactions.id"), nullable=False, index=True)
+    payment_channel = Column(String(32), nullable=False, index=True)
+    provider_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    customer_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    currency = Column(String(3), nullable=False, default="CNY", index=True)
+    refund_amount = Column(Float, nullable=False)
+    fee_refunded = Column(Float, nullable=False, default=0.0)
+    provider_deduction = Column(Float, nullable=False, default=0.0)
+
+    reason = Column(Text, nullable=True)
+    status = Column(String(24), nullable=False, default="completed", index=True)  # requested, approved, completed, failed
+    gateway_refund_id = Column(String(128), nullable=True)
+    processed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    transaction = relationship("FinancialTransaction", foreign_keys=[transaction_id])
+
+
+class PayoutAuditLog(Base):
+    """Immutable audit log for every payout state transition."""
+    __tablename__ = "payout_audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    payout_request_id = Column(Integer, ForeignKey("payout_requests.id"), nullable=False, index=True)
+    from_status = Column(String(30), nullable=True)
+    to_status = Column(String(30), nullable=False)
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    actor_role = Column(String(30), nullable=True)
+    amount = Column(Float, nullable=False)
+    currency = Column(String(3), nullable=False, default="CNY")
+    gateway_reference = Column(String(128), nullable=True)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class FinancialReconciliation(Base):
+    """Yoopay gateway settlement reconciliation reports."""
+    __tablename__ = "financial_reconciliations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reconciliation_uid = Column(String(64), unique=True, nullable=False, index=True)
+    gateway = Column(String(30), nullable=False, default="yoopay")
+    currency = Column(String(3), nullable=False, default="CNY")
+    period_start = Column(DateTime(timezone=True), nullable=True)
+    period_end = Column(DateTime(timezone=True), nullable=True)
+
+    internal_confirmed_volume = Column(Float, nullable=False, default=0.0)
+    internal_fee_total = Column(Float, nullable=False, default=0.0)
+    internal_subscription_volume = Column(Float, nullable=False, default=0.0)
+    gateway_reported_volume = Column(Float, nullable=False, default=0.0)
+    gateway_settled_cash = Column(Float, nullable=False, default=0.0)
+    discrepancy_amount = Column(Float, nullable=False, default=0.0)
+
+    matched_count = Column(Integer, nullable=False, default=0)
+    unmatched_internal_count = Column(Integer, nullable=False, default=0)
+    unmatched_gateway_count = Column(Integer, nullable=False, default=0)
+    ambiguous_count = Column(Integer, nullable=False, default=0)
+
+    status = Column(String(24), nullable=False, default="matched")  # matched, discrepancy, in_review, resolved
+    notes = Column(Text, nullable=True)
+    details_json = Column(JSON, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+

@@ -5,7 +5,31 @@
 ---
 
 ## Last Updated
-2026-11-24
+2026-11-25
+
+---
+
+### 191. Complete Financial System Audit, Double-Entry Ledger Architecture, Channel Separation (Yoopay vs Direct QR) & Production Migration (2026-11-25)
+- **Objectives & Issues Addressed**:
+  1. **Critical Accounting & Financial Bugs Discovered & Eliminated**:
+     - *Channel Commingling*: Legacy `/api/v1/admin/financials`, `/api/v1/payments/business/withdrawal`, and `/api/v1/business/finance` lumped provider Direct QR ticket sales (`¥83,521`) into platform gross revenue, charged an erroneous 10% platform commission (`¥8,342` uncollected) instead of the 4% Yoopay-only fee policy, and inflated provider withdrawable balances with money Sound It never received or held (leading to an unbacked `¥70,000` legacy payout request).
+     - *Broken Queries & Fee Leaks*: `api/payments.py` withdrawal calculation referenced non-existent `Event.user_id` and `TableReservation.total_price`, `api/business.py` crashed on `total_price`, and no immutable double-entry ledger, refund reversal engine, Yoopay reconciliation log, or payout audit trail existed.
+  2. **Additive Double-Entry Financial Schema (`models.py`)**:
+     - Added 5 strictly additive tables with zero drops/overwrites to existing records: `financial_transactions`, `financial_ledger_entries`, `financial_refunds`, `payout_audit_logs`, and `financial_reconciliations`.
+  3. **Canonical Double-Entry Financial Engine (`services/financial_ledger.py`)**:
+     - Cent-exact `Decimal` (`ROUND_HALF_UP`) accounting with database idempotency keys and strict currency separation (`CNY`, `USD`, etc.).
+     - **Channel A (`platform_yoopay`)**: Charges the 4% platform fee ONCE on confirmed & settled Yoopay payments; posts balanced double-entry ledger lines (`DEBIT PLATFORM_CASH_YOOPAY = gross`, `CREDIT PLATFORM_FEE_REVENUE = 4%`, `CREDIT PROVIDER_PAYABLE = 96%`).
+     - **Channel B (`direct_qr`)**: 0% platform fee, `net_provider_entitlement = 0.0`, zero platform cash/revenue/payable ledger entries; tracked strictly for reported earnings & operational analytics with explicit verification statuses (`recorded`, `provider_reported`, `evidence_submitted`, `independently_verified`).
+     - **Subscriptions (`subscription_yoopay` / `subscription_direct`)**: Recognized 100% as `SUBSCRIPTION_REVENUE` with zero provider payout liability; separated MRR, active/expired/trial counts, city & category breakdowns, and 14-day renewal radar.
+     - **Immutable Refunds & Payout Guardrails**: Refunds create channel-aware reversal entries without overwriting historical `gross_amount`. Payouts strictly require settled `platform_yoopay` balance, prevent duplicates/over-withdrawals/double-releases, lock funds on request, release on completion with `PayoutAuditLog` + `AdminActivityLog`, and reverse on rejection/failure.
+  4. **RBAC/IDOR-Protected APIs & Restructured Dashboards (`api/finance.py`, `api/payments.py`, `api/tickets.py`, `api/subscriptions.py`, `api/business.py`, `api/artist_dashboard.py`, `api/admin.py`, `ProviderFinancialOverview.tsx`, `FinancialControl.tsx`)**:
+     - Added `/api/v1/finance/*` provider & admin endpoints with strict `_resolve_authorized_provider_id` IDOR enforcement (`403` on cross-account access, `403` on non-admin access, `401` unauthenticated).
+     - Rebuilt Admin Financial Control (`FinancialControl.tsx`) into 4 tabs: 8-Category Overview, Subscription Revenue Report, Yoopay Reconciliation & Ambiguous Historical Classification Queue, and Immutable Double-Entry Ledger + CSV export.
+     - Built unified `<ProviderFinancialOverview />` separating all 8 required figures (Total Reported, Direct QR, Sound It Processed, Withdrawable Balance, Pending Payout, Completed Payouts, Total Fees, Refunds/Reversals) across Organizer/Business/Venue (`FinanceWorkspace.tsx`), Artist/DJ (`artist/Analytics.tsx`), and Vendor (`vendor/Analytics.tsx`) dashboards.
+  5. **Safe Historical Migration, Testing & Deployment**:
+     - Safely classified 111 live PostgreSQL records idempotently (0 deleted, 0 overwritten): 18 confirmed Direct QR orders (`¥1,761`), 91 ambiguous historical orders (`¥81,760`) flagged `needs_review=True` pending Yoopay statement verification (conservative `direct_qr` default so zero unbacked cash/liabilities are fabricated), and 2 paid Yoopay subscriptions (`¥180` recognized revenue, `¥100` MRR, `¥180` available platform cash, `¥0` unbacked payout liabilities).
+     - Automated pytest suite (`tests/test_financial_system.py`): **9/9 PASSED** covering Direct QR isolation, 4% Yoopay fee idempotency, mixed-channel math, payout guardrails, immutable refund reversals, IDOR/RBAC blocking, subscription isolation, reconciliation, and currency separation.
+     - Built production frontend (`tsc -b && vite build`, 0 errors, `soundit-v22`), restarted `soundit.service`, verified live production endpoints (`/health`, `/api/v1/finance/*`, `/api/v1/admin/financials`), and synced & strictly re-signed native iOS/Android wrappers.
 
 ---
 

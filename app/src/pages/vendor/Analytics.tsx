@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import VendorAnalyticsCharts from '@/components/VendorAnalyticsCharts';
+import ProviderFinancialOverview from '@/components/finance/ProviderFinancialOverview';
 import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
@@ -63,6 +64,13 @@ export default function VendorAnalytics() {
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <h1 className="text-[#020b00] dark:text-white text-2xl font-bold">Analytics</h1>
+                </div>
+
+                <div className="mb-6">
+                    <ProviderFinancialOverview
+                        title="Vendor Earnings & Payout Breakdown"
+                        subtitle="Direct QR store payments go directly to your account (0% fee, not withdrawable). Eligible Sound It Yoopay sales (4% fee) enter your withdrawable balance."
+                    />
                 </div>
 
                 {isLoading ? (

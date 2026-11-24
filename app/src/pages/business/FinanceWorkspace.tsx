@@ -21,6 +21,7 @@ import {
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import ProviderFinancialOverview from '@/components/finance/ProviderFinancialOverview';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sounditent.com/api/v1';
 
@@ -310,6 +311,13 @@ const FinanceWorkspace = () => {
 
   return (
     <div className="space-y-6 p-6 lg:p-10">
+      {/* Canonical Channel-Separated Financial Breakdown (Direct QR vs Sound It Yoopay) */}
+      <ProviderFinancialOverview
+        title="Earnings & Payout Separation (Direct QR vs Sound It Yoopay)"
+        subtitle="Direct QR ticket/table payments go straight to your own account (0% fee, never withdrawable from Sound It). Only confirmed Sound It Yoopay payments (4% fee) enter your withdrawable balance."
+        allowWithdrawal={canManagePayouts}
+      />
+
       {/* Role Workspace Banner (modeled after Sound It Platform Finance Role) */}
       <div className="bg-gradient-to-r from-emerald-500/10 via-neutral-50 to-white dark:from-emerald-500/15 dark:via-[#111111] dark:to-[#111111] rounded-2xl p-6 border border-emerald-500/30 shadow-xs dark:shadow-none">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

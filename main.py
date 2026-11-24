@@ -19,7 +19,7 @@ from database import init_db, SessionLocal, get_db
 from models import SystemSetting, User, UserRole
 from auth import decode_REDACTED_PLACEHOLDER as decode_token
 from utils.logging_config import setup_logging
-from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, drinks, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, newsletter
+from api import auth, auth_password, events, payments, admin, admin_payment_verification, clubs, foodspots, vendors, dashboard_stats, bookings, media, contact, artists, profiles, social, notifications, business, sitemap, recaps, artist_dashboard, payments_manual_qr, community, subscriptions, ticketing, ticketing_organizer, table_reservations, drinks, cities, tickets, product_orders, promoters, ads, analytics, vendor_orders, newsletter, finance
 import api.reviews as reviews
 import api.event_reviews as event_reviews
 import api.two_factor as two_factor
@@ -426,6 +426,7 @@ app.include_router(reels.router, prefix="/api/v1")
 app.include_router(points.router, prefix="/api/v1")
 app.include_router(smart_notifications.router, prefix="/api/v1")
 app.include_router(onboarding.router, prefix="/api/v1")
+app.include_router(finance.router, prefix="/api/v1")
 app.include_router(sitemap.router)
 
 
