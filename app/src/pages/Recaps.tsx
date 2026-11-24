@@ -1601,8 +1601,13 @@ export default function Recaps() {
                 post.user?.username ||
                 'Community Member';
               const authorAvatar = resolveMediaUrl(post.user?.avatar_url) || '/default-avatar.png';
-              const images = (post.images || []).map((img) => resolveMediaUrl(img)).filter(Boolean);
-              const postVideos = (post.videos || []).map((vid) => resolveMediaUrl(vid)).filter(Boolean);
+              const isVideoMedia = (u: string) => /\.(mov|mp4|webm|m4v|ogv)(\?.*)?$/i.test(u);
+              const rawImages = (post.images || []).map((img) => resolveMediaUrl(img)).filter(Boolean);
+              const images = rawImages.filter((u) => !isVideoMedia(u));
+              const postVideos = [
+                ...rawImages.filter((u) => isVideoMedia(u)),
+                ...(post.videos || []).map((vid) => resolveMediaUrl(vid)).filter(Boolean),
+              ];
 
               return (
                 <div
@@ -1669,7 +1674,20 @@ export default function Recaps() {
                       >
                         {images.slice(0, 4).map((img, i) => (
                           <div key={i} className="relative aspect-square overflow-hidden bg-black">
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img
+                              src={img}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const el = e.currentTarget as HTMLImageElement;
+                                if (!el.dataset.fallback) {
+                                  el.dataset.fallback = '1';
+                                  el.src = '/hero-event.jpg';
+                                }
+                              }}
+                            />
                             {i === 3 && images.length > 4 && (
                               <div className="absolute inset-0 bg-black/60 flex items-center justify-center font-extrabold text-white text-lg">
                                 +{images.length - 4}
@@ -1680,7 +1698,7 @@ export default function Recaps() {
                       </div>
                     ) : postVideos.length > 0 ? (
                       <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video bg-black flex items-center justify-center">
-                        <video src={postVideos[0]} controls className="w-full h-full object-cover" />
+                        <video src={postVideos[0]} controls playsInline preload="metadata" className="w-full h-full object-cover" />
                       </div>
                     ) : null}
 

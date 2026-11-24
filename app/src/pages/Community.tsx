@@ -338,10 +338,16 @@ const Community = ({
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || 'U';
   };
 
-  const getMediaItems = (post: CommunityPost): MediaItem[] => [
-    ...(post.images || []).map((url) => ({ type: 'image' as const, url })),
-    ...(post.videos || []).map((url) => ({ type: 'video' as const, url })),
-  ];
+  const getMediaItems = (post: CommunityPost): MediaItem[] => {
+    const isVideoMedia = (u: string) => /\.(mov|mp4|webm|m4v|ogv)(\?.*)?$/i.test(u);
+    return [
+      ...(post.images || []).map((url) => ({
+        type: (isVideoMedia(url) ? 'video' : 'image') as 'image' | 'video',
+        url,
+      })),
+      ...(post.videos || []).map((url) => ({ type: 'video' as const, url })),
+    ];
+  };
 
   const renderComment = (comment: CommunityComment, postId: number, isReply = false) => (
     <div key={comment.id} className={`flex gap-3 ${isReply ? 'ml-10 mt-3' : ''}`}>
