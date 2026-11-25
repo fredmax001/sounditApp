@@ -405,58 +405,18 @@ def trigger_event_change_or_cancellation(
 
 
 # ---------------------------------------------------------------------------
-# TRIGGER 7: Inactive User Re-engagement (Weekly)
+# TRIGGER 7: Autonomous Supply-Aware Re-engagement (Replaces static "We Miss You")
 # ---------------------------------------------------------------------------
 def trigger_inactive_user_reengagement(db: Session) -> int:
-    """Scans for users with zero activity in 7+ days and recommends trending events."""
-    rule = db.query(SmartNotificationRule).filter(SmartNotificationRule.rule_key == "inactive_reengagement").first()
-    if rule and not rule.is_enabled:
-        return 0
-
-    now = datetime.now(timezone.utc)
-    inactive_cutoff = now - timedelta(days=7)
-
-    # Active users in last 7 days
-    active_user_ids = {
-        r[0]
-        for r in db.query(UserActivity.user_id)
-        .filter(UserActivity.created_at >= inactive_cutoff)
-        .distinct()
-        .all()
-    }
-
-    # Candidate users: active account, but no activity in 7+ days
-    candidate_users = (
-        db.query(User.id, User.preferred_city)
-        .filter(User.id.notin_(active_user_ids))
-        .limit(100)
-        .all()
-    )
-
-    week_str = now.strftime("%Y_W%W")
-    count = 0
-
-    for uid, city in candidate_users:
-        key = f"reengage_{week_str}_u_{uid}"
-
-        # Get user's top interest category
-        top_interests = get_top_user_interests(db, uid, limit=1)
-        fav_genre = top_interests[0]["category"].capitalize() if top_interests else "Entertainment"
-
-        notif = schedule_notification(
-            db,
-            user_id=uid,
-            title="We Miss You on Sound It! 🎉",
-            message=f"Discover trending {fav_genre} events and nightlife highlights happening this weekend.",
-            category="reengagement",
-            priority="low",
-            idempotency_key=key,
-            rule_key="inactive_reengagement",
-        )
-        if notif:
-            count += 1
-
-    return count
+    """
+    Legacy static 'We Miss You' weekly blast has been retired and replaced by
+    the 4 supply-aware, click-learning Autonomous Engagement Agents
+    (Event Radar, Talent Spotlight, Provider Coach, Click Optimizer).
+    """
+    from services.engagement_agents import run_autonomous_agents_cycle
+    res = run_autonomous_agents_cycle(db)
+    agents = res.get("agents", {})
+    return sum(int((a or {}).get("drafted", 0)) for a in agents.values())
 
 
 def evaluate_all_rules(db: Session) -> Dict[str, Any]:

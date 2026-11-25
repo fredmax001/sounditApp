@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import SmartNotificationAutomation from '@/components/admin/SmartNotificationAutomation';
+import AutonomousAgentsPanel from '@/components/admin/AutonomousAgentsPanel';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Bell, Send, Loader2, Mail, Smartphone, Clock, Layers,
-  Image as ImageIcon, Trash2, Eye, X, RotateCcw, Sparkles
+  Image as ImageIcon, Trash2, Eye, X, RotateCcw, Sparkles, Bot
 } from 'lucide-react';
 
 interface NotificationHistoryItem {
@@ -54,7 +55,7 @@ const NotificationCenter = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [viewing, setViewing] = useState<NotificationHistoryItem | null>(null);
-  const [activeTab, setActiveTab] = useState<'automation' | 'broadcast'>('automation');
+  const [activeTab, setActiveTab] = useState<'agents' | 'automation' | 'broadcast'>('agents');
   const [notification, setNotification] = useState({
     title: '',
     message: '',
@@ -199,22 +200,33 @@ const NotificationCenter = () => {
     <div className="space-y-6">
       <AdminPageHeader chip="Marketing" title={t('admin.notificationCenter.title')} subtitle={t('admin.notificationCenter.subtitle')} />
 
-      {/* Tabs: Smart Automation vs Manual Broadcast */}
-      <div className="flex items-center gap-2 border-b border-black/10 dark:border-white/10 pb-3">
+      {/* Tabs: Autonomous Agents vs Smart Rules vs Manual Broadcast */}
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-black/10 dark:border-white/10 pb-3">
+        <button
+          onClick={() => setActiveTab('agents')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            activeTab === 'agents'
+              ? 'bg-[#d3da0c] text-black shadow-md shadow-[#d3da0c]/20'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Bot className="w-3.5 h-3.5" />
+          Autonomous Agents
+        </button>
         <button
           onClick={() => setActiveTab('automation')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'automation'
               ? 'bg-[#d3da0c] text-black shadow-md shadow-[#d3da0c]/20'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          Smart Automation Engine
+          Smart Rules & Queue
         </button>
         <button
           onClick={() => setActiveTab('broadcast')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'broadcast'
               ? 'bg-[#d3da0c] text-black shadow-md shadow-[#d3da0c]/20'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -224,6 +236,8 @@ const NotificationCenter = () => {
           Manual Broadcasts
         </button>
       </div>
+
+      {activeTab === 'agents' && <AutonomousAgentsPanel />}
 
       {activeTab === 'automation' && <SmartNotificationAutomation />}
 

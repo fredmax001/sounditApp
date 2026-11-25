@@ -78,14 +78,14 @@ def check_frequency_cap(
     day_ago = now - timedelta(days=1)
     week_ago = now - timedelta(days=7)
 
-    # Count delivered promotional notifications in last 24h
+    # Count sent/queued promotional notifications in last 24h
     daily_count = (
         db.query(func.count(ScheduledNotification.id))
         .filter(
             ScheduledNotification.user_id == user_id,
-            ScheduledNotification.sent_at >= day_ago,
+            ScheduledNotification.created_at >= day_ago,
             ScheduledNotification.category.notin_(EXEMPT_CATEGORIES),
-            ScheduledNotification.status == "delivered",
+            ScheduledNotification.status.in_(["sent", "delivered", "pending"]),
         )
         .scalar()
         or 0
@@ -94,14 +94,14 @@ def check_frequency_cap(
     if daily_count >= cap_daily:
         return False, f"Daily limit exceeded ({daily_count}/{cap_daily})"
 
-    # Count delivered promotional notifications in last 7 days
+    # Count sent/queued promotional notifications in last 7 days
     weekly_count = (
         db.query(func.count(ScheduledNotification.id))
         .filter(
             ScheduledNotification.user_id == user_id,
-            ScheduledNotification.sent_at >= week_ago,
+            ScheduledNotification.created_at >= week_ago,
             ScheduledNotification.category.notin_(EXEMPT_CATEGORIES),
-            ScheduledNotification.status == "delivered",
+            ScheduledNotification.status.in_(["sent", "delivered", "pending"]),
         )
         .scalar()
         or 0

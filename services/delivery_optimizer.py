@@ -88,10 +88,26 @@ def calculate_optimal_delivery_utc(
     quiet_start = prefs.quiet_hours_start if prefs else "22:00"
     quiet_end = prefs.quiet_hours_end if prefs else "08:00"
 
-    # 3. Determine target delivery hour
-    learned_hour = get_learned_engagement_hour(db, user_id)
-    preferred_hour = prefs.preferred_delivery_hour if prefs and prefs.preferred_delivery_hour else 18
-    target_hour = learned_hour if learned_hour is not None else preferred_hour
+    # 3. Determine target delivery hour:
+    # Priority: user explicit preference > click-learned hour > activity-learned hour > 09:00 AM morning default
+    from models import UserEngagementProfile
+    eng_profile = (
+        db.query(UserEngagementProfile)
+        .filter(UserEngagementProfile.user_id == user_id)
+        .first()
+    )
+    click_learned_hour = eng_profile.learned_send_hour if eng_profile else None
+    activity_learned_hour = get_learned_engagement_hour(db, user_id) if click_learned_hour is None else None
+    explicit_hour = prefs.preferred_delivery_hour if prefs and prefs.preferred_delivery_hour is not None else None
+
+    if click_learned_hour is not None:
+        target_hour = click_learned_hour
+    elif explicit_hour is not None:
+        target_hour = explicit_hour
+    elif activity_learned_hour is not None:
+        target_hour = activity_learned_hour
+    else:
+        target_hour = 9  # 09:00 AM user local morning default for discovery & planning
 
     # 4. Check quiet hours and return optimal UTC time
     return get_next_suitable_delivery_utc(

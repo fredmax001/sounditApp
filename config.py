@@ -103,11 +103,18 @@ class Settings(BaseSettings):
     FCM_SERVICE_ACCOUNT_JSON: str = ""
     FCM_SERVER_KEY: str = ""
     
-    # SIA — Sound It Assistant (optional LLM enhancement)
+    # SIA — Sound It Assistant & Autonomous Engagement Agents (optional pluggable LLM enhancement)
     SIA_ENABLED: bool = True
     SIA_MAX_UPLOAD_SIZE: int = 10_485_760  # 10 MB
-    OPENAI_API_KEY: str = ""  # Optional: enables GPT fallback for complex extractions
+    AI_COPYWRITER_ENABLED: bool = True  # Uses LLM if any key below is configured, else zero-key smart template engine
+    OPENAI_API_KEY: str = ""  # Optional: enables GPT fallback for complex extractions & agent copy
     OPENAI_MODEL: str = "gpt-4o-mini"  # Cost-effective model for extraction/chat
+    GEMINI_API_KEY: str = ""  # Optional: Google Gemini free/paid tier for agent copy
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    DEEPSEEK_API_KEY: str = ""  # Optional: China-friendly DeepSeek API
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+    QWEN_API_KEY: str = ""  # Optional: Alibaba Cloud DashScope (Qwen) API
+    QWEN_MODEL: str = "qwen-turbo"
     
     # Logging & Monitoring
     LOG_LEVEL: str = "INFO"

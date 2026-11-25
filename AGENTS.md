@@ -9,6 +9,25 @@
 
 ---
 
+### 193. Autonomous Backend Growth & Engagement Agents (Zero-Key + Optional Pluggable LLM) & Admin Mission Control (2026-11-25)
+- **Retired Legacy Static Broadcasts**:
+  - Replaced the hardcoded weekly `"We Miss You on Sound It!"` blast in `services/notification_triggers.py` with 4 supply-aware, click-learning autonomous worker agents running on the existing 5-minute background scheduler (`services/notification_worker.py`).
+  - Fixed `services/anti_spam.py` frequency-cap query (`status == "delivered"` -> `status.in_(["sent", "delivered", "pending"])`) and updated `services/delivery_optimizer.py` to default discovery messages to **09:00 AM user local time** until click-learning identifies a stronger hour.
+- **Additive Schema & Pluggable Copywriter (`models.py`, `config.py`, `services/ai_copywriter.py`)**:
+  - Added 3 strictly additive PostgreSQL tables: `engagement_agent_configs`, `engagement_agent_drafts`, and `user_engagement_profiles`.
+  - Built `services/ai_copywriter.py`: runs at **\$0/month with zero API keys** via a multi-angle, multi-language (`en`/`fr`/`zh`), zero-emoji rotating dynamic copy engine grounded strictly in verified DB facts, and automatically upgrades if `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `QWEN_API_KEY`, or `OPENAI_API_KEY` is added to `.env`.
+- **4 Autonomous Worker Agents (`services/engagement_agents.py`)**:
+  1. `event_radar` (**Event & Seasonal Radar**): City-matched morning digests for newly approved events & seasonal peaks (New Year's Eve, Spring Festival, Golden Week, Weekends) with a **strict Silence Rule** (`0` upcoming events = `0` drafted) and ticket-buyer exclusion.
+  2. `talent_spotlight` (**Talent & Community Spotlight**): Rotates spotlight-ready Artists/DJs, Vendors with active products, and Businesses/Organizers with 30-day entity/angle deduplication and direct profile/store deep links.
+  3. `provider_coach` (**Provider Activation Coach**): Audits Artists, Businesses/Organizers, and Vendors for exact profile/upload gaps (photo, bio, city, mix, first event, first products) and sends spaced **Day 1 / Day 4 / Day 10** coaching nudges, stopping immediately on completion.
+  4. `click_optimizer` (**Click-Learning & Timing Optimizer**): Tracks opens/clicks via `POST /api/v1/notifications/{id}/read` and `GET /api/v1/agents/track-click/{draft_id}`, learns optimal local send hour after `>= 3` interactions, ranks preferred topics, suppresses repeatedly ignored topics, and auto-throttles users for 14 days after 3 consecutive ignores.
+- **Admin Mission Control UI & Verification (`api/smart_notifications.py`, `AutonomousAgentsPanel.tsx`, `NotificationCenter.tsx`)**:
+  - Added `/api/v1/admin/agents/*` RBAC-protected Mission Control endpoints (`overview`, `config`, `set-global-mode`, `run-now`, `drafts`, `approve`, `reject`, `approve-all`) and built the default **Autonomous Agents** tab in **Admin → Broadcasts & Alerts**.
+  - Defaults safely to **Preview / Dry-Run Mode** (drafts inspectable with plain-English reasoning and 1-click **Approve & Send** or **Switch to Autopilot**).
+  - Automated pytest suite (`tests/test_engagement_agents.py`): **6/6 PASSED**. Deployed live (`soundit-v24`), verified `/health`, RBAC (`401`/`403`), live Preview dry-run (`event_radar_silence_active: true`, `31` incomplete provider nudges drafted, `0` sent live).
+
+---
+
 ### 192. Global Mobile Layout, Viewport, Scroll Restoration, Safe-Area & Modal Positioning Architecture Fix (2026-11-25)
 - **Root Causes Identified & Eliminated**:
   1. **Zero Route-Change Scroll Reset + Global `scroll-behavior: smooth` + Browser `scrollRestoration = 'auto'`**: Navigating from a scrolled page (e.g. Home at `y=700`) to a shorter destination (`/settings`, `/settings/security`, forms, details) left `window.scrollY` / `<main>.scrollTop` non-zero, shifting the new screen upwards with blank space below.

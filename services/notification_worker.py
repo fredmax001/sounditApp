@@ -190,9 +190,26 @@ def process_single_scheduled_notification(db: Session, item: ScheduledNotificati
             except Exception as se:
                 logger.warning(f"SMS delivery failed for notification {item.id}: {se}")
 
-        # E. Mark ScheduledNotification as sent
+        # E. Mark ScheduledNotification as sent & sync AgentMessageDraft telemetry if applicable
         item.status = "sent"
         item.sent_at = datetime.utcnow()
+        draft_id = (item.data or {}).get("agent_draft_id") if isinstance(item.data, dict) else None
+        if draft_id:
+            try:
+                from models import AgentMessageDraft, UserEngagementProfile
+                draft = db.query(AgentMessageDraft).filter(AgentMessageDraft.id == int(draft_id)).first()
+                if draft:
+                    draft.in_app_notification_id = in_app.id
+                    draft.status = "sent"
+                    draft.sent_at = datetime.utcnow()
+                eng = db.query(UserEngagementProfile).filter(UserEngagementProfile.user_id == user.id).first()
+                if not eng:
+                    eng = UserEngagementProfile(user_id=user.id, preferred_topics={}, suppressed_topics=[])
+                    db.add(eng)
+                eng.total_sent = (eng.total_sent or 0) + 1
+                eng.last_sent_at = datetime.utcnow()
+            except Exception as sync_err:
+                logger.warning(f"Failed to sync agent draft telemetry for {draft_id}: {sync_err}")
         db.commit()
         logger.info(f"Successfully delivered smart notification {item.id} to user {user.id}")
         return True

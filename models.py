@@ -3695,3 +3695,92 @@ class FinancialReconciliation(Base):
     resolved_at = Column(DateTime(timezone=True), nullable=True)
 
 
+# ============================================================================
+# AUTONOMOUS ENGAGEMENT & GROWTH AGENTS (Zero-Key + Optional Pluggable LLM)
+# ============================================================================
+
+class AgentConfiguration(Base):
+    """Per-agent runtime configuration managed in Admin Mission Control."""
+    __tablename__ = "engagement_agent_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    agent_key = Column(String(50), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    description = Column(Text, nullable=True)
+    is_enabled = Column(Boolean, default=True, nullable=False)
+    # 'preview' creates inspectable drafts without dispatching; 'autopilot' queues & sends live
+    mode = Column(String(20), default="preview", nullable=False)
+    default_send_hour = Column(Integer, default=9, nullable=False)  # 09:00 local morning default
+    max_per_week = Column(Integer, default=2, nullable=False)
+    cooldown_days = Column(Integer, default=30, nullable=False)
+    channels = Column(JSON, default=lambda: ["push", "in_app"])
+    config = Column(JSON, default=dict)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
+    last_run_summary = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class AgentMessageDraft(Base):
+    """Audit trail, preview queue, and click-attribution record for every agent-drafted message."""
+    __tablename__ = "engagement_agent_drafts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    agent_key = Column(String(50), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    recipient_role = Column(String(30), nullable=True)
+    city = Column(String(60), nullable=True, index=True)
+    language = Column(String(10), default="en")
+
+    # Deduplication & copy variety tracking
+    angle_key = Column(String(80), nullable=False, index=True)
+    entity_type = Column(String(40), nullable=True, index=True)  # event, artist, vendor, business, profile_coach, seasonal
+    entity_id = Column(Integer, nullable=True, index=True)
+    idempotency_key = Column(String(255), unique=True, nullable=True, index=True)
+
+    # Message payload
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    action_url = Column(String(500), nullable=True)
+    reasoning = Column(Text, nullable=True)  # Plain-English explanation shown in Admin Preview
+    channels = Column(JSON, default=lambda: ["push", "in_app"])
+    generated_by = Column(String(30), default="template_engine")  # template_engine, openai, gemini, deepseek, qwen
+
+    # Delivery & click telemetry
+    scheduled_for_utc = Column(DateTime(timezone=True), nullable=True, index=True)
+    local_send_hour = Column(Integer, nullable=True)
+    # draft (preview), queued, sent, opened, clicked, rejected, suppressed
+    status = Column(String(24), default="draft", nullable=False, index=True)
+    scheduled_notification_id = Column(Integer, ForeignKey("scheduled_notifications.id", ondelete="SET NULL"), nullable=True, index=True)
+    in_app_notification_id = Column(Integer, ForeignKey("notifications.id", ondelete="SET NULL"), nullable=True, index=True)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    opened_at = Column(DateTime(timezone=True), nullable=True)
+    clicked_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+
+class UserEngagementProfile(Base):
+    """Per-user learned click behaviour, optimal send hour, topic affinities, and fatigue throttling."""
+    __tablename__ = "user_engagement_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+    learned_send_hour = Column(Integer, nullable=True)  # None until >= 3 clicks teach a preferred hour (defaults to 9 AM)
+    preferred_topics = Column(JSON, default=dict)  # e.g. {"events": 4.0, "artists": 2.5, "vendors": 1.0}
+    suppressed_topics = Column(JSON, default=list)  # topics user repeatedly ignored
+    total_sent = Column(Integer, default=0, nullable=False)
+    total_opened = Column(Integer, default=0, nullable=False)
+    total_clicked = Column(Integer, default=0, nullable=False)
+    consecutive_ignored = Column(Integer, default=0, nullable=False)
+    last_sent_at = Column(DateTime(timezone=True), nullable=True)
+    last_clicked_at = Column(DateTime(timezone=True), nullable=True)
+    throttled_until = Column(DateTime(timezone=True), nullable=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+
+
