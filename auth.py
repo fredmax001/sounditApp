@@ -327,6 +327,16 @@ async def require_super_admin(current_user: User = Depends(get_current_user)) ->
     return current_user
 
 
+def forbid_admin_consumer_action(current_user: User, action_label: str = "consumer actions") -> None:
+    """Strictly isolates admin/super_admin accounts from consumer commerce & social actions."""
+    from models import UserRole
+    if current_user and current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Admin accounts are restricted to the Admin Dashboard and cannot perform {action_label}.",
+        )
+
+
 def require_permission(permission: str):
     """Factory that returns a dependency checking a specific permission key.
     Super admins and legacy admins (admin_role_id is None) always pass."""

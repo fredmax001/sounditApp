@@ -12,7 +12,7 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3, Sun, Moon, Send, Search, Grid, Monitor, Compass
+  BarChart3, Sun, Moon, Send, Search, Grid, Monitor
 } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 import NotificationBell from '@/components/NotificationBell';
@@ -181,7 +181,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
   useEffect(() => {
     if (!isAdmin()) {
       toast.error(t('admin.adminLayout.accessDenied'));
-      navigate('/');
+      navigate('/admin/login', { replace: true });
       return;
     }
     fetchPermissions();
@@ -189,7 +189,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login', { replace: true });
     toast.success(t('admin.adminLayout.loggedOutSuccessfully'));
   };
 
@@ -437,21 +437,8 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           )}
         </nav>
 
-        {/* User Info, Return to App & Logout */}
+        {/* User Info & Logout */}
         <div className="border-t border-black/8 dark:border-white/[0.06] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-1.5 shrink-0">
-          {(isSidebarOpen || isMobile) && (
-            <button
-              onClick={() => {
-                navigate('/');
-                if (isMobile) setIsSidebarOpen(false);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-black/5 dark:bg-white/[0.05] text-[#020b00] dark:text-gray-200 hover:bg-[#d3da0c]/15 hover:text-[#020b00] dark:hover:text-[#d3da0c] text-xs font-semibold transition-all"
-            >
-              <Compass className="w-4 h-4 shrink-0 text-[#8a8f04] dark:text-[#d3da0c]" />
-              <span className="truncate">Switch to Public App</span>
-            </button>
-          )}
-
           <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${(isSidebarOpen || isMobile) ? '' : 'justify-center'}`}>
             <div className="w-8 h-8 bg-gradient-to-br from-[#d3da0c] to-[#a8b009] rounded-full flex items-center justify-center text-black font-bold text-sm shrink-0">
               {profile?.first_name?.[0] || profile?.email?.[0] || 'A'}

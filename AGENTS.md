@@ -9,6 +9,20 @@
 
 ---
 
+### 195. Business & Vendor Real Display Names Fix + Strict Admin Isolation, Dedicated Admin Login & In-Admin Entity Viewer (2026-11-25)
+- **Business & Vendor Display Name Resolution (`api/auth.py`, `api/otp.py`, `api/admin.py`, `api/social.py`, `app/src/pages/auth/Register.tsx`, `app/src/store/authStore.ts`)**:
+  - Backfilled 9 legacy PostgreSQL `BusinessProfile` / `OrganizerProfile` rows that were stuck on auto-generated `"<First>'s Business"` placeholders (`Kay's Business` → `The Yanos`, `ANONYMOUS's Business` → `ANONYMOUS EVENTS`, `Chale's Business` → `Chale Boyz`, `NACIM's Business` → `NACIM ELCURE`, `Alex's Business` → `Alex Nkambule`, `Andelu's Business` → `Andelu`, `Pertunia's Business` → `Pertunia`, `Lesedi's Business` → `Lesedi`, `Majesty's Business` → `Majesty`), linked `organizer_profiles.business_profile_id`, and regenerated clean slugs.
+  - Updated `PUT /api/v1/auth/me` to sync `business_name` across `BusinessProfile`, `OrganizerProfile`, and `VendorProfile` (with cache invalidation) and auto-heal any remaining legacy `"<X>'s Business"` placeholder if the user updates their name.
+  - Updated Google Sign-Up (`Register.tsx` + `POST /api/v1/auth/google/login`) to accept and persist `business_name`, removed `"<X> Events"` / `"<X> Vendor Services"` placeholders from `api/otp.py`, synced Admin business edits (`PUT /api/v1/admin/businesses/{id}`) to both `OrganizerProfile` and `BusinessProfile`, updated follower/following listings (`api/social.py`) to display real business/vendor/stage names (e.g., `Cessy’s Kitchen`), and propagated updated `business_name` into `authStore` & `vendorStore`.
+- **Dedicated Admin Console Login & Hard Security Isolation (`auth.py`, `api/auth.py`, `api/tickets.py`, `api/payments.py`, `api/product_orders.py`, `api/vendor_orders.py`, `api/bookings.py`, `api/table_reservations.py`, `AdminLogin.tsx`, `App.tsx`, `ProtectedRoute.tsx`, `AdminLayout.tsx`, `NotificationBell.tsx`, `EntityDetailModal.tsx`)**:
+  - Added dedicated `/admin/login` portal (`AdminLogin.tsx`) backed by rate-limited (`5/minute`) `POST /api/v1/auth/admin/login` (strictly `ADMIN`/`SUPER_ADMIN` only, 2FA-capable, full security audit logging for every attempt) and blocked Google OAuth on admin accounts (`403`).
+  - Enforced strict frontend session isolation via `<AdminSessionIsolationGuard />` in `App.tsx` + `ProtectedRoute.tsx`: authenticated admins remain locked exclusively inside `/admin/*` (cannot open consumer `/`, `/events`, `/tickets`, `/settings`, `/profile`, `/cart`, `/checkout`), removed `"Switch to Public App"` from `AdminLayout.tsx`, routed Admin logout and unauthenticated `/admin/*` requests to `/admin/login`, and kept `NotificationBell` inside `/admin/notifications`.
+  - Enforced server-side `forbid_admin_consumer_action()` (`403 Forbidden`) across ticket orders, payment orders, product orders, vendor orders, artist bookings, and table reservations (in addition to existing follow blocks and 404 public-profile hiding for admins).
+  - Upgraded `EntityDetailModal.tsx` (the "eye" inspector) to stay 100% inside the Admin Dashboard: removed `"View Public Page"` external website redirects and added in-modal drill-down with a Back button for linked Artist, Business, and Vendor sub-profiles.
+  - Built & deployed `soundit-v26` and synced local iOS/Android wrappers.
+
+---
+
 ### 194. Admin Dashboard Uniform Typography Weight, Zero Emojis/AI-Icons & Automated Message Channel Visibility (2026-11-25)
 - **Uniform Admin Text Weight (`app/src/index.css`, `AdminPageHeader.tsx`, `AdminLayout.tsx`, `NotificationCenter.tsx`, `AutonomousAgentsPanel.tsx`, `SmartNotificationAutomation.tsx`)**:
   - Enforced a single uniform Regular (`font-weight: 400`) text weight across the entire `.admin-shell` so visual hierarchy comes cleanly from size, spacing, and contrast rather than mixed `font-black`/`font-extrabold`/`font-bold`/`font-semibold`/`font-medium`/`<strong>` weights.

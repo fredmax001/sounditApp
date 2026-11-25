@@ -9,7 +9,7 @@ import {
   AlertCircle, ExternalLink, Mail, Phone, MapPin,
   Calendar, DollarSign, Ticket, Heart, Shield,
   Award, Lock, Unlock, Loader2, Check,
-  Package, Globe, Copy, CheckCheck, Star
+  Package, Copy, CheckCheck, Star, Eye, ChevronLeft
 } from 'lucide-react';
 
 export type EntityType = 'user' | 'artist' | 'vendor' | 'business';
@@ -38,21 +38,29 @@ export default function EntityDetailModal({
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [drillTarget, setDrillTarget] = useState<{ type: EntityType; id: number | string } | null>(null);
+
+  const activeType: EntityType = drillTarget ? drillTarget.type : type;
+  const activeEntityId = drillTarget ? drillTarget.id : entityId;
 
   const authHeaders = useCallback(() => ({
     'Authorization': `Bearer ${session?.access_token}`,
     'Content-Type': 'application/json'
   }), [session?.access_token]);
 
+  useEffect(() => {
+    setDrillTarget(null);
+  }, [type, entityId, isOpen]);
+
   const loadEntity = useCallback(async () => {
-    if (!entityId) return;
+    if (!activeEntityId) return;
     setLoading(true);
     try {
       let endpoint = '';
-      if (type === 'user') endpoint = `${API_BASE_URL}/admin/users/${entityId}`;
-      else if (type === 'artist') endpoint = `${API_BASE_URL}/admin/artists/${entityId}`;
-      else if (type === 'vendor') endpoint = `${API_BASE_URL}/admin/vendors/${entityId}`;
-      else if (type === 'business') endpoint = `${API_BASE_URL}/admin/businesses/${entityId}`;
+      if (activeType === 'user') endpoint = `${API_BASE_URL}/admin/users/${activeEntityId}`;
+      else if (activeType === 'artist') endpoint = `${API_BASE_URL}/admin/artists/${activeEntityId}`;
+      else if (activeType === 'vendor') endpoint = `${API_BASE_URL}/admin/vendors/${activeEntityId}`;
+      else if (activeType === 'business') endpoint = `${API_BASE_URL}/admin/businesses/${activeEntityId}`;
 
       const res = await fetch(endpoint, { headers: authHeaders() });
       if (res.ok) {
@@ -67,15 +75,15 @@ export default function EntityDetailModal({
     } finally {
       setLoading(false);
     }
-  }, [entityId, type, authHeaders]);
+  }, [activeEntityId, activeType, authHeaders]);
 
   useEffect(() => {
-    if (isOpen && entityId) {
+    if (isOpen && activeEntityId) {
       loadEntity();
     } else {
       setData(null);
     }
-  }, [isOpen, entityId, loadEntity]);
+  }, [isOpen, activeEntityId, loadEntity]);
 
   const copyToClipboard = (text: string, field: string) => {
     if (!text) return;
@@ -88,7 +96,7 @@ export default function EntityDetailModal({
   // Actions
   const handleToggleVerification = async () => {
     if (!data) return;
-    const targetUserId = type === 'user' ? data.id : data.user_id;
+    const targetUserId = activeType === 'user' ? data.id : data.user_id;
     if (!targetUserId) return;
     setActionLoading('verify');
     try {
@@ -114,7 +122,7 @@ export default function EntityDetailModal({
 
   const handleToggleSuspension = async () => {
     if (!data) return;
-    const targetUserId = type === 'user' ? data.id : data.user_id;
+    const targetUserId = activeType === 'user' ? data.id : data.user_id;
     if (!targetUserId) return;
     const isSuspended = data.status === 'suspended' || data.status === 'inactive';
     const action = isSuspended ? 'activate' : 'suspend';
@@ -139,7 +147,7 @@ export default function EntityDetailModal({
   };
 
   const handleVendorApproval = async (approve: boolean) => {
-    if (type !== 'vendor' || !data) return;
+    if (activeType !== 'vendor' || !data) return;
     setActionLoading('approval');
     try {
       const endpoint = approve
@@ -168,9 +176,9 @@ export default function EntityDetailModal({
     setActionLoading('feature');
     try {
       let endpoint = '';
-      if (type === 'artist') endpoint = `${API_BASE_URL}/admin/artists/${data.id}/feature`;
-      else if (type === 'vendor') endpoint = `${API_BASE_URL}/admin/vendors/${data.id}/feature`;
-      else if (type === 'business') endpoint = `${API_BASE_URL}/admin/businesses/${data.id}/feature`;
+      if (activeType === 'artist') endpoint = `${API_BASE_URL}/admin/artists/${data.id}/feature`;
+      else if (activeType === 'vendor') endpoint = `${API_BASE_URL}/admin/vendors/${data.id}/feature`;
+      else if (activeType === 'business') endpoint = `${API_BASE_URL}/admin/businesses/${data.id}/feature`;
       if (!endpoint) return;
 
       const res = await fetch(endpoint, {
@@ -193,32 +201,27 @@ export default function EntityDetailModal({
 
   if (!isOpen) return null;
 
-  // Resolve Titles & Public URLs
-  let publicUrl = '';
+  // Resolve Titles (strictly inside Admin Dashboard — no public site redirects)
   let entityTitle = '';
   let entitySubtitle = '';
   let avatarImg = '';
 
   if (data) {
-    if (type === 'user') {
+    if (activeType === 'user') {
       entityTitle = `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.email;
       entitySubtitle = data.role ? `${data.role.toUpperCase()} Account` : 'User';
-      publicUrl = `/profiles/${data.slug || data.id}`;
       avatarImg = data.avatar_url;
-    } else if (type === 'artist') {
+    } else if (activeType === 'artist') {
       entityTitle = data.stage_name || data.user_name || 'Artist';
       entitySubtitle = data.genre ? `DJ / Producer • ${data.genre}` : 'DJ / Music Artist';
-      publicUrl = `/artists/${data.slug || data.id}`;
       avatarImg = data.avatar_url;
-    } else if (type === 'vendor') {
+    } else if (activeType === 'vendor') {
       entityTitle = data.business_name || 'Vendor Store';
       entitySubtitle = data.category ? `Vendor • ${data.category}` : 'Vendor Partner';
-      publicUrl = `/vendors/${data.slug || data.id}`;
       avatarImg = data.logo_url;
-    } else if (type === 'business') {
-      entityTitle = data.organization_name || 'Business Venue';
+    } else if (activeType === 'business') {
+      entityTitle = data.business_name || data.organization_name || 'Business';
       entitySubtitle = 'Event Organizer / Business';
-      publicUrl = `/business/${data.slug || data.id}`;
       avatarImg = data.logo_url;
     }
   }
@@ -243,11 +246,20 @@ export default function EntityDetailModal({
           {/* Header Bar */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-black/8 dark:border-white/10 bg-neutral-50 dark:bg-white/5 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c] shrink-0">
-                {type} details
+              {drillTarget && (
+                <button
+                  onClick={() => setDrillTarget(null)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/10 text-xs text-gray-300 hover:text-white transition-colors shrink-0"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Back</span>
+                </button>
+              )}
+              <span className="px-2.5 py-1 rounded-full text-xs uppercase tracking-wider bg-[#d3da0c]/20 text-yellow-800 dark:text-[#d3da0c] shrink-0">
+                {activeType} details
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                ID #{entityId}
+                ID #{activeEntityId}
               </span>
             </div>
             <button
@@ -276,11 +288,11 @@ export default function EntityDetailModal({
                   <div className="w-16 h-16 rounded-2xl bg-black/10 dark:bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 border border-black/10 dark:border-white/10 relative">
                     {avatarImg ? (
                       <img src={avatarImg} alt="" className="w-full h-full object-cover" />
-                    ) : type === 'artist' ? (
+                    ) : activeType === 'artist' ? (
                       <Music className="w-8 h-8 text-[#d3da0c]" />
-                    ) : type === 'vendor' ? (
+                    ) : activeType === 'vendor' ? (
                       <Store className="w-8 h-8 text-orange-400" />
-                    ) : type === 'business' ? (
+                    ) : activeType === 'business' ? (
                       <Building2 className="w-8 h-8 text-blue-400" />
                     ) : (
                       <User className="w-8 h-8 text-gray-400" />
@@ -326,22 +338,15 @@ export default function EntityDetailModal({
                   </div>
                 </div>
 
-                {publicUrl && (
-                  <a
-                    href={publicUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#d3da0c] text-black font-bold text-xs hover:bg-[#c2c80b] transition-all shadow-sm flex-shrink-0"
-                  >
-                    <span>View Public Page</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 text-gray-400 text-xs flex-shrink-0">
+                  <Eye className="w-3.5 h-3.5 text-[#d3da0c]" />
+                  <span>Admin Preview</span>
+                </span>
               </div>
 
               {/* Metrics Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {type === 'user' && (
+                {activeType === 'user' && (
                   <>
                     <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3.5">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
@@ -378,7 +383,7 @@ export default function EntityDetailModal({
                   </>
                 )}
 
-                {type === 'artist' && (
+                {activeType === 'artist' && (
                   <>
                     <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3.5">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
@@ -415,7 +420,7 @@ export default function EntityDetailModal({
                   </>
                 )}
 
-                {type === 'vendor' && (
+                {activeType === 'vendor' && (
                   <>
                     <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3.5">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
@@ -453,7 +458,7 @@ export default function EntityDetailModal({
                   </>
                 )}
 
-                {type === 'business' && (
+                {activeType === 'business' && (
                   <>
                     <div className="bg-neutral-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3.5">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
@@ -548,92 +553,92 @@ export default function EntityDetailModal({
                   )}
                 </div>
 
-                {data.bio && (
+                {(data.bio || data.description) && (
                   <div className="pt-2">
                     <p className="text-xs text-gray-500 mb-1">Bio / Description:</p>
                     <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-[#161616] p-3 rounded-xl border border-black/5 dark:border-white/5">
-                      {data.bio}
+                      {data.bio || data.description}
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Linked Sub-Profiles (for user role) */}
-              {type === 'user' && (data.artist_profile || data.business_profile || data.organizer_profile || data.vendor_profile) && (
+              {/* Linked Sub-Profiles (drill down directly inside this Admin modal) */}
+              {activeType === 'user' && (data.artist_profile || data.business_profile || data.organizer_profile || data.vendor_profile) && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <h3 className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Linked Creator & Business Spaces
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {data.artist_profile && (
-                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-[#d3da0c]/15 text-[#d3da0c]">
+                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2.5 rounded-xl bg-[#d3da0c]/15 text-[#d3da0c] shrink-0">
                             <Music className="w-5 h-5" />
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-[#020b00] dark:text-white">
+                          <div className="min-w-0">
+                            <p className="text-sm text-[#020b00] dark:text-white truncate">
                               {data.artist_profile.stage_name}
                             </p>
-                            <p className="text-xs text-gray-500">DJ • {data.artist_profile.genre || 'Music'}</p>
+                            <p className="text-xs text-gray-500">Artist • {data.artist_profile.genre || 'Music'}</p>
                           </div>
                         </div>
-                        <a
-                          href={`/artists/${data.artist_profile.slug || data.artist_profile.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-[#d3da0c] transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => setDrillTarget({ type: 'artist', id: data.artist_profile.id })}
+                          title="Inspect Artist inside Admin"
+                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-[#d3da0c] transition-colors shrink-0"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </div>
                     )}
 
                     {(data.business_profile || data.organizer_profile) && (
-                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-500">
+                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-500 shrink-0">
                             <Building2 className="w-5 h-5" />
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-[#020b00] dark:text-white">
-                              {data.organizer_profile?.organization_name || data.business_profile?.organization_name || 'Business'}
+                          <div className="min-w-0">
+                            <p className="text-sm text-[#020b00] dark:text-white truncate">
+                              {data.business_profile?.business_name || data.organizer_profile?.organization_name || data.business_profile?.organization_name || 'Business'}
                             </p>
-                            <p className="text-xs text-gray-500">Event Organizer</p>
+                            <p className="text-xs text-gray-500">Business / Organizer</p>
                           </div>
                         </div>
-                        <a
-                          href={`/business/${data.organizer_profile?.slug || data.business_profile?.slug || data.organizer_profile?.id || data.business_profile?.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-blue-400 transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => setDrillTarget({ type: 'business', id: data.organizer_profile?.id || data.business_profile?.id })}
+                          title="Inspect Business inside Admin"
+                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-blue-400 transition-colors shrink-0"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </div>
                     )}
 
                     {data.vendor_profile && (
-                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-orange-500/15 text-orange-500">
+                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-[#161616] border border-black/5 dark:border-white/5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2.5 rounded-xl bg-orange-500/15 text-orange-500 shrink-0">
                             <Store className="w-5 h-5" />
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-[#020b00] dark:text-white">
+                          <div className="min-w-0">
+                            <p className="text-sm text-[#020b00] dark:text-white truncate">
                               {data.vendor_profile.business_name}
                             </p>
                             <p className="text-xs text-gray-500">Vendor • {data.vendor_profile.category || 'Store'}</p>
                           </div>
                         </div>
-                        <a
-                          href={`/vendors/${data.vendor_profile.slug || data.vendor_profile.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-orange-400 transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => setDrillTarget({ type: 'vendor', id: data.vendor_profile.id })}
+                          title="Inspect Vendor inside Admin"
+                          className="p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:text-orange-400 transition-colors shrink-0"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -641,7 +646,7 @@ export default function EntityDetailModal({
               )}
 
               {/* Streaming Links (for artist) */}
-              {type === 'artist' && (data.spotify_url || data.soundcloud_url || data.apple_music_url || data.instagram_url) && (
+              {activeType === 'artist' && (data.spotify_url || data.soundcloud_url || data.apple_music_url || data.instagram_url) && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Social & Music Streaming Links
@@ -700,7 +705,7 @@ export default function EntityDetailModal({
                     {isSuspended ? 'Activate Account' : 'Suspend Account'}
                   </button>
 
-                  {type === 'vendor' && (
+                  {activeType === 'vendor' && (
                     <button
                       onClick={() => handleVendorApproval(!data.is_approved)}
                       disabled={actionLoading === 'approval'}
@@ -715,7 +720,7 @@ export default function EntityDetailModal({
                     </button>
                   )}
 
-                  {(type === 'artist' || type === 'vendor' || type === 'business') && (
+                  {(activeType === 'artist' || activeType === 'vendor' || activeType === 'business') && (
                     <button
                       onClick={handleFeatureToggle}
                       disabled={actionLoading === 'feature'}

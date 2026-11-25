@@ -15,7 +15,7 @@ const NotificationBell = ({
   className?: string;
 }) => {
   const navigate = useNavigate();
-  const { session, isAuthenticated } = useAuthStore();
+  const { session, isAuthenticated, isAdmin } = useAuthStore();
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasLivePulse, setHasLivePulse] = useState(false);
 
@@ -86,7 +86,7 @@ const NotificationBell = ({
 
   const handleClick = () => {
     setHasLivePulse(false);
-    navigate('/notifications');
+    navigate(isAdmin() ? '/admin/notifications' : '/notifications');
   };
 
   return (

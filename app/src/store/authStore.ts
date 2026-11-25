@@ -901,6 +901,13 @@ export const useAuthStore = create<AuthState>()(
             verification_status: backendUser.is_verified ? 'verified' : 'unverified',
             followers_count: backendUser.followers_count || 0,
             following_count: backendUser.following_count || 0,
+            business_name:
+              backendUser.business_profile?.business_name ||
+              backendUser.organizer_profile?.organization_name ||
+              backendUser.vendor_profile?.business_name ||
+              backendUser.business_name ||
+              profile.business_name ||
+              null,
           };
 
           set({ profile: updatedProfile, selectedCity: get().selectedCity || 'all' });
@@ -908,6 +915,13 @@ export const useAuthStore = create<AuthState>()(
             await get().fetchBusinessProfile();
           } else if (profile.role_type === 'artist') {
             await get().fetchArtistProfile();
+          } else if (profile.role_type === 'vendor') {
+            try {
+              const { useVendorStore } = await import('./vendorStore');
+              if (session?.access_token) {
+                await useVendorStore.getState().fetchProfile(session.access_token);
+              }
+            } catch {}
           }
         } catch (error: unknown) {
           console.error('Profile update error:', error);

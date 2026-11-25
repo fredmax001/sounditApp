@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { Toaster } from 'sonner';
 import { Capacitor } from '@capacitor/core';
@@ -146,6 +146,7 @@ const Analytics = lazy(() => import('./pages/business/Analytics'));
 const OrganizerRecaps = lazy(() => import('./pages/organizer/Recaps'));
 
 // Admin Pages
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/admin/DashboardOverview'));
 const ManageUsers = lazy(() => import('./pages/admin/ManageUsers'));
 const ManageArtists = lazy(() => import('./pages/admin/ManageArtists'));
@@ -229,6 +230,27 @@ const OnboardingGuard = () => {
     return <Navigate to="/" replace />;
   }
   return <Onboarding />;
+};
+
+/**
+ * Hard isolation boundary for authenticated Admin / Super Admin sessions:
+ * Admins operate exclusively inside /admin/* and are immediately returned
+ * to /admin if they hit any public website, settings, checkout, or consumer route.
+ */
+const AdminSessionIsolationGuard = () => {
+  const { isAuthenticated, isAdmin } = useAuthStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated || !isAdmin()) return;
+    const p = location.pathname;
+    if (!p.startsWith('/admin') || p === '/admin/login') {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, isAdmin, location.pathname, navigate]);
+
+  return null;
 };
 
 function App() {
@@ -349,6 +371,7 @@ function App() {
       <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
     )}
     <Router>
+      <AdminSessionIsolationGuard />
       <NavigationScrollManager />
       <LiveNotificationBridge />
       <UploadProgressHUD />
@@ -432,6 +455,9 @@ function App() {
           <Route path="/on-site-tools/guests" element={<CheckedInGuests />} />
           <Route path="/scan" element={<Scan />} />
           <Route path="/validate/:token" element={<Suspense fallback={<PageLoader />}><Validate /></Suspense>} />
+
+          {/* Dedicated Hardened Admin Login Portal */}
+          <Route path="/admin/login" element={<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>} />
 
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>

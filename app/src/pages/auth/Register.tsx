@@ -115,7 +115,11 @@ const Register = () => {
       const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, role: normalizedRole }),
+        body: JSON.stringify({
+          token,
+          role: normalizedRole,
+          business_name: selectedRole && selectedRole !== 'user' ? (businessName.trim() || undefined) : undefined,
+        }),
       });
 
       const data = await response.json();

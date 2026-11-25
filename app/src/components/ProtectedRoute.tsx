@@ -19,9 +19,9 @@ const ProtectedRoute = () => {
   }
 
   if (!isAuthenticated) {
-    // Removed console.log for production
-    // Redirect to login with return URL
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    // Unauthenticated visitors attempting to reach /admin/* go to the dedicated Admin Login portal
+    const targetLogin = location.pathname.startsWith('/admin') ? '/admin/login' : '/login';
+    return <Navigate to={targetLogin} state={{ from: location.pathname }} replace />;
   }
 
   // Wait for profile to load before making role checks
@@ -51,8 +51,8 @@ const ProtectedRoute = () => {
     return <Navigate to="/" replace />;
   }
 
-  // If admin tries to access user pages, redirect to admin dashboard
-  if (isAdminUser && (path === '/dashboard' || path === '/dashboard/user')) {
+  // Strict Admin Isolation: authenticated admins stay exclusively inside /admin/*
+  if (isAdminUser && !isAdminPath) {
     return <Navigate to="/admin" replace />;
   }
 
