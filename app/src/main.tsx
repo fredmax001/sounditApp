@@ -2,6 +2,7 @@
 import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar'
 import { SplashScreen } from '@capacitor/splash-screen'
 import './index.css'
@@ -41,11 +42,13 @@ const GOOGLE_CLIENT_ID =
 
 function CapacitorInit() {
   useEffect(() => {
-    // Initialize native plugins when running inside Capacitor
-    if ((window as any).__capacitor?.isNativePlatform?.()) {
-      StatusBar.setStyle({ style: StatusBarStyle.Dark })
-      StatusBar.setBackgroundColor({ color: '#000000' })
-      StatusBar.setOverlaysWebView({ overlay: false })
+    // Initialize native plugins when running inside Capacitor (iOS & Android)
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: StatusBarStyle.Dark }).catch(() => {})
+      StatusBar.setBackgroundColor({ color: '#020b00' }).catch(() => {})
+      // Unified edge-to-edge on both iOS and Android; CSS env(safe-area-inset-*)
+      // handles exact status bar & home indicator clearance with zero double-insets.
+      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
     }
   }, [])
   return null
@@ -54,7 +57,7 @@ function CapacitorInit() {
 function ServiceWorkerInit() {
   useEffect(() => {
     // Register service worker for push notifications (web only)
-    if ('serviceWorker' in navigator && !(window as any).__capacitor?.isNativePlatform?.()) {
+    if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
       pushManager.init().catch(() => {});
     }
   }, [])

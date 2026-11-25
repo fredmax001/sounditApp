@@ -7,13 +7,13 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   loggingBehavior: 'production',
   ios: {
-    contentInset: 'always',
+    contentInset: 'never',
     allowsLinkPreview: false,
     scrollEnabled: true,
-    backgroundColor: '#000000',
+    backgroundColor: '#020b00',
   },
   android: {
-    backgroundColor: '#000000',
+    backgroundColor: '#020b00',
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
@@ -40,8 +40,8 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'DARK',
-      backgroundColor: '#000000',
-      overlaysWebView: false,
+      backgroundColor: '#020b00',
+      overlaysWebView: true,
     },
     PushNotifications: {
       presentationOptions: ['alert', 'badge', 'sound'],

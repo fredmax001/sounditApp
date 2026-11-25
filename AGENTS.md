@@ -9,6 +9,30 @@
 
 ---
 
+### 192. Global Mobile Layout, Viewport, Scroll Restoration, Safe-Area & Modal Positioning Architecture Fix (2026-11-25)
+- **Root Causes Identified & Eliminated**:
+  1. **Zero Route-Change Scroll Reset + Global `scroll-behavior: smooth` + Browser `scrollRestoration = 'auto'`**: Navigating from a scrolled page (e.g. Home at `y=700`) to a shorter destination (`/settings`, `/settings/security`, forms, details) left `window.scrollY` / `<main>.scrollTop` non-zero, shifting the new screen upwards with blank space below.
+  2. **Transformed Page Transition Wrapper (`MobilePageTransition.tsx`)**: Applying Framer Motion `x: 20 -> 0` CSS transforms + `overflow-x-clip h-full` on the route wrapper hijacked `position: fixed` modals/sheets into the scrolled page flow and broke `position: sticky` headers.
+  3. **Stale Header/Bottom-Nav Scroll State Across Routes**: `MobileHeader` (`isHidden`), `MobileLayout` (`isHeaderHidden`), and `MobileBottomNav` (`isExpanded`) never reset on route changes, leaving headers hidden off-screen (`y = -100%`) after navigating from a scrolled page.
+  4. **Dual Scroll Containers & Quadruple Bottom/Safe-Area Padding**:
+     - Inline `overflow-x: hidden` on `<body>` in `index.html` overrode `index.css` `overflow-x: clip`, turning `<body>` into a secondary scroll container.
+     - `body` applied `padding-top/bottom: env(safe-area-inset-*)` on top of fixed headers, `pb-app-nav`, `Footer.pb-28`, `MobileBottomNav`'s duplicate empty spacer div, inner-page `min-h-dvh` wrappers, and Capacitor iOS `contentInset: 'always'` — creating 200–400px of stacked bottom voids and iOS negative `UIScrollView` inset shifts.
+     - `MobileLayout.tsx` wrapped dashboard pages in a nested `overflow-y-auto app-page` `<main>` inside an unconstrained `min-h-dvh` parent, desyncing scroll from `window`.
+  5. **Sticky Sub-Headers Overlapping Behind Fixed `MobileHeader`**: `MobilePageHeader` and catalog filter bars (`CityGuide`, `Artists`, `Vendors`, `Food`) used `sticky top-0` under `MobileHeader` (`z-40`).
+  6. **Frame-0 Desktop→Mobile Hydration Flash**: `useIsMobile()` and `useDeviceDetection()` initialized as `false`/`desktop` before flipping in `useEffect`.
+  7. **Mobile Keyboard Shift & Unportaled/Unlocked Modals**: `AndroidManifest.xml` used `adjustPan` (conflicting with `EdgeToEdge` + `WindowInsetsCompat.Type.ime()`), `useMobileViewport.ts` did not recover stuck iOS `visualViewport.offsetTop` on keyboard dismissal or clear keyboard state on route change, and shared modals lacked `createPortal(..., document.body)` + reference-counted scroll locking (`About.tsx` wrote `body.style.overflow = 'unset'`).
+- **Centralized Architectural Fixes Implemented**:
+  - Created `app/src/components/NavigationScrollManager.tsx` (sets `history.scrollRestoration = 'manual'`, blurs active inputs, force-unlocks stale scroll locks, resets all scroll containers atomically with `behavior: 'instant'` + double-RAF & lazy `PageLoader` unmount guard, selectively restores Back scroll only for bounded catalog feeds, dispatches `'soundit-route-change'`).
+  - Created `app/src/lib/scrollLock.ts` (reference-counted iOS/Android/Web scroll lock preserving exact `scrollY` without corrupting `overflow-x: clip`).
+  - Updated `app/index.html`, `app/src/index.css`, `app/src/App.tsx`, `app/src/main.tsx`, `app/capacitor.config.ts`, `app/ios/App/App/capacitor.config.json` (`ios.contentInset: 'never'`, `StatusBar.overlaysWebView: true`), `app/android/app/src/main/assets/capacitor.config.json`, and `app/android/app/src/main/AndroidManifest.xml` (`windowSoftInputMode="adjustResize"`).
+  - Refactored `MobilePageTransition.tsx` (opacity-only, zero transforms), `MainLayout.tsx`, `MobileLayout.tsx` (single document scroll, no nested `overflow-y-auto`), `MobileHeader.tsx` (ResizeObserver publishing `--mobile-header-height` & `--mobile-header-offset`, route reset, portaled overlays + scroll lock), `MobilePageHeader.tsx`, `MobileBottomNav.tsx` (removed duplicate spacer div, route reset), `Footer.tsx`, `AdminLayout.tsx`, `use-mobile.ts`, `useDeviceDetection.ts`, `useMobileViewport.ts`, and shared modals (`BottomSheet`, `MoreMenuSheet`, `UpgradeModal`, `MessageModal`, `FollowersModal`, `About`) + sticky catalog bars (`CityGuide`, `Artists`, `Vendors`, `Food`) + `EventDetail`, `Events`, `Profile`.
+- **Deployment & Cross-Platform Verification (`soundit-v23`)**:
+  - Built (`tsc -b && vite build`, 0 errors, 3,521 modules), deployed to `https://sounditent.com` (fixed `app/` directory mode to `0755`, HTTP 200 verified).
+  - Verified live across `390×844` (iPhone) and `360×800` (Android) viewports: 100% PASS on deep-scroll → `/settings`, `/settings/language`, `/help`, `/events`, `/events/:id` (`img.top === header.bottom`, 0px gap), Back navigation, `/discovery` sticky bar coordination, `/recaps`, `/login`, `MoreMenuSheet` & Quick Search modal viewport anchoring + scroll lock (`scrollY` restored with 0px jump), and 0px horizontal overflow.
+  - Synced `soundit-v23` + updated `capacitor.config.json` to native iOS & Android wrappers, strictly re-signed `App.app` (`codesign -v --strict`), and installed onto connected physical iPhone 14 Pro Max (`app.sounditent.com`).
+
+---
+
 ### 191. Complete Financial System Audit, Double-Entry Ledger Architecture, Channel Separation (Yoopay vs Direct QR) & Production Migration (2026-11-25)
 - **Objectives & Issues Addressed**:
   1. **Critical Accounting & Financial Bugs Discovered & Eliminated**:

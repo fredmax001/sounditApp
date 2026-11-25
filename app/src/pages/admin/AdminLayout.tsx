@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 import NotificationBell from '@/components/NotificationBell';
+import { lockBodyScroll } from '@/lib/scrollLock';
 
 interface AdminMenuItem {
   id: string;
@@ -151,6 +152,12 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
       setDrawerSearch('');
     }
   }, [location.pathname, isMobile]);
+
+  // Lock background scroll while mobile admin drawer is open
+  useEffect(() => {
+    if (!isMobile || !isSidebarOpen) return;
+    return lockBodyScroll();
+  }, [isMobile, isSidebarOpen]);
 
   const [myRoleInfo, setMyRoleInfo] = useState<{ role_name?: string; is_system?: boolean }>({});
 
@@ -596,7 +603,7 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-3.5 sm:px-5 lg:px-6 pt-3.5 sm:pt-5 lg:pt-6 pb-[calc(9.5rem+env(safe-area-inset-bottom,24px))] lg:pb-8">
+        <main className="app-shell-main flex-1 w-full max-w-full min-w-0 overflow-x-clip px-3.5 sm:px-5 lg:px-6 pt-3.5 sm:pt-5 lg:pt-6 pb-[calc(6.25rem+env(safe-area-inset-bottom,0px))] lg:pb-8">
           <div className="w-full max-w-full min-w-0">
             {children || <Outlet />}
           </div>

@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import MobileHeader from '@/components/MobileHeader';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -23,8 +23,10 @@ const MainLayout = () => {
     location.pathname === '/get-verified' ||
     location.pathname === '/profile/edit';
 
+  const showFooter = !immersive;
+
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative overflow-x-clip transition-colors duration-200">
+    <div className="min-h-dvh flex flex-col bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white relative overflow-x-clip transition-colors duration-200">
       {/* Global Background Effects */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Subtle Noise Texture */}
@@ -47,27 +49,36 @@ const MainLayout = () => {
       {isMobile && <MobileHeader hideBar={immersive} />}
 
       {/* Main Content */}
-      <main className={`relative z-10 ${isMobile ? (immersive ? 'pb-app-nav' : 'pt-[calc(3.5rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav') : (isRecapsFeed ? '' : 'pt-24')}`}>
-        <AnimatePresence mode="wait">
-          {isMobile ? (
-            <MobilePageTransition key="mobile-outlet">
-              <Outlet />
-            </MobilePageTransition>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Outlet />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <main
+        className={`app-shell-main relative z-10 flex-1 flex flex-col min-w-0 ${
+          isMobile
+            ? immersive
+              ? 'pb-app-nav'
+              : 'pt-[var(--mobile-header-height,calc(3.25rem+max(0.5rem,env(safe-area-inset-top,0px))))] pb-4'
+            : isRecapsFeed
+            ? ''
+            : 'pt-24'
+        }`}
+      >
+        {isMobile ? (
+          <MobilePageTransition key={location.pathname}>
+            <Outlet />
+          </MobilePageTransition>
+        ) : (
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+            className="app-page-outlet flex-1 flex flex-col min-w-0"
+          >
+            <Outlet />
+          </motion.div>
+        )}
       </main>
 
       {/* Footer - Displayed on both Desktop and Mobile / PWA */}
-      {!immersive && <Footer isMobile={isMobile} />}
+      {showFooter && <Footer isMobile={isMobile} />}
 
       {/* Mobile Bottom Navigation */}
       {isMobile && <MobileBottomNav />}

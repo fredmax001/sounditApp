@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Crown, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { formatPlanName } from '@/store/subscriptionStore';
+import { lockBodyScroll } from '@/lib/scrollLock';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -90,6 +93,11 @@ const UpgradeModal = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!isOpen) return;
+    return lockBodyScroll();
+  }, [isOpen]);
+
   const handleUpgrade = () => {
     onClose();
     navigate('/subscriptions');
@@ -97,10 +105,12 @@ const UpgradeModal = ({
 
   const message = customMessage || getPresetMessage(featureName, currentPlan, requiredPlan, t);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div data-modal-open="true" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -112,7 +122,7 @@ const UpgradeModal = ({
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="relative w-full max-w-md bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-2xl"
+            className="relative w-full max-w-md max-h-[88dvh] overflow-y-auto bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-2xl my-auto"
           >
             <button
               onClick={onClose}
@@ -166,7 +176,8 @@ const UpgradeModal = ({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

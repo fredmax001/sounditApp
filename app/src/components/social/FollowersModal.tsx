@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Users, UserCheck, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import FollowButton from './FollowButton';
 import VerificationBadge from '@/components/VerificationBadge';
 import { API_BASE_URL } from '@/config/api';
 import { getMediaUrl } from '@/lib/appUrl';
+import { lockBodyScroll } from '@/lib/scrollLock';
 
 interface FollowUserItem {
   id: number;
@@ -115,11 +117,16 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
     });
   }, [activeList, searchQuery]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+    return lockBodyScroll();
+  }, [isOpen]);
 
-  return (
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4 overflow-y-auto">
+      <div data-modal-open="true" className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4 overflow-y-auto">
         <div className="fixed inset-0" onClick={onClose} />
 
         <motion.div
@@ -275,7 +282,8 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

@@ -137,12 +137,36 @@ export function useMobileViewport() {
       document.body.classList.toggle('keyboard-open', isOpen);
 
       if (isOpen !== lastKeyboardOpen) {
+        const wasOpen = lastKeyboardOpen;
         lastKeyboardOpen = isOpen;
         window.dispatchEvent(
           new CustomEvent('soundit-keyboard-change', {
             detail: { isOpen, keyboardHeight: estimatedKeyboardHeight, keyboardOffset },
           })
         );
+
+        // iOS Safari / WKWebView fix: dismissing the keyboard often leaves
+        // visualViewport.offsetTop > 0 or window.scrollY past maxScroll, causing
+        // the whole screen to look shifted upward with empty space at the bottom.
+        if (wasOpen && !isOpen && isMobile) {
+          window.setTimeout(() => {
+            if (hasEditableFocus) return;
+            const maxScroll = Math.max(
+              0,
+              document.documentElement.scrollHeight - window.innerHeight
+            );
+            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+            const stuckOffset = window.visualViewport?.offsetTop || 0;
+            if (currentY > maxScroll || stuckOffset > 1) {
+              const clampedY = Math.max(0, Math.min(currentY, maxScroll));
+              try {
+                window.scrollTo({ top: clampedY, left: 0, behavior: 'instant' as ScrollBehavior });
+              } catch {
+                window.scrollTo(0, clampedY);
+              }
+            }
+          }, 80);
+        }
       }
 
       // If keyboard just resized while an input is focused, ensure it remains centered and unobstructed
@@ -154,6 +178,35 @@ export function useMobileViewport() {
     const scheduleApply = () => {
       if (rafId !== null) return;
       rafId = window.requestAnimationFrame(applyMetrics);
+    };
+
+    const handleRouteChange = () => {
+      hasEditableFocus = false;
+      if (blurTimer !== null) {
+        window.clearTimeout(blurTimer);
+        blurTimer = null;
+      }
+      if (scrollTimer1 !== null) {
+        window.clearTimeout(scrollTimer1);
+        scrollTimer1 = null;
+      }
+      if (scrollTimer2 !== null) {
+        window.clearTimeout(scrollTimer2);
+        scrollTimer2 = null;
+      }
+      root.style.setProperty('--keyboard-height', '0px');
+      root.style.setProperty('--keyboard-offset', '0px');
+      root.dataset.keyboardOpen = 'false';
+      document.body.classList.remove('keyboard-open');
+      if (lastKeyboardOpen) {
+        lastKeyboardOpen = false;
+        window.dispatchEvent(
+          new CustomEvent('soundit-keyboard-change', {
+            detail: { isOpen: false, keyboardHeight: 0, keyboardOffset: 0 },
+          })
+        );
+      }
+      scheduleApply();
     };
 
     const handleFocusIn = (e: FocusEvent) => {
@@ -198,6 +251,7 @@ export function useMobileViewport() {
     window.visualViewport?.addEventListener('scroll', scheduleApply);
     window.addEventListener('resize', scheduleApply);
     window.addEventListener('orientationchange', handleOrientationChange);
+    window.addEventListener('soundit-route-change', handleRouteChange);
     document.addEventListener('focusin', handleFocusIn, true);
     document.addEventListener('focusout', handleFocusOut, true);
 
@@ -210,6 +264,7 @@ export function useMobileViewport() {
       window.visualViewport?.removeEventListener('scroll', scheduleApply);
       window.removeEventListener('resize', scheduleApply);
       window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('soundit-route-change', handleRouteChange);
       document.removeEventListener('focusin', handleFocusIn, true);
       document.removeEventListener('focusout', handleFocusOut, true);
     };

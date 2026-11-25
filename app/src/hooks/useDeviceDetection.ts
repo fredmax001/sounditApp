@@ -22,69 +22,71 @@ interface DeviceInfo {
   userAgent: string;
 }
 
-export function useDeviceDetection(): DeviceInfo {
-  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
-    deviceType: 'desktop',
-    platform: 'web',
-    isMobile: false,
-    isDesktop: true,
-    isTablet: false,
-    isMiniProgram: false,
-    isApp: false,
-    screenWidth: window.innerWidth,
-    screenHeight: window.innerHeight,
-    isTouchDevice: false,
+function computeDeviceInfo(): DeviceInfo {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return {
+      deviceType: 'desktop',
+      platform: 'web',
+      isMobile: false,
+      isDesktop: true,
+      isTablet: false,
+      isMiniProgram: false,
+      isApp: false,
+      screenWidth: 1280,
+      screenHeight: 800,
+      isTouchDevice: false,
+      userAgent: '',
+    };
+  }
+
+  const ua = navigator.userAgent.toLowerCase();
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
+  const isMiniProgram =
+    /miniprogram|wechat|micromessenger/.test(ua) ||
+    (window as any).__wxjs_environment === 'miniprogram';
+  const isApp = /soundit-app|cordova|capacitor|ionic/.test(ua);
+
+  const isMobileUA = /mobile|android|iphone|ipad|ipod|windows phone/.test(ua);
+  const isTabletUA = /ipad|tablet|android(?!.*mobile)/.test(ua);
+
+  let deviceType: DeviceType = 'desktop';
+  if (screenWidth < 768 || (isMobileUA && !isTabletUA)) {
+    deviceType = 'mobile';
+  } else if (screenWidth < 1024 || isTabletUA) {
+    deviceType = 'tablet';
+  }
+
+  if (isMiniProgram) {
+    deviceType = 'mobile';
+  }
+
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  return {
+    deviceType,
+    platform: isMiniProgram ? 'mini-program' : isApp ? 'app' : 'web',
+    isMobile: deviceType === 'mobile',
+    isDesktop: deviceType === 'desktop',
+    isTablet: deviceType === 'tablet',
+    isMiniProgram,
+    isApp,
+    screenWidth,
+    screenHeight,
+    isTouchDevice,
     userAgent: navigator.userAgent,
-  });
+  };
+}
+
+export function useDeviceDetection(): DeviceInfo {
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>(() => computeDeviceInfo());
 
   useEffect(() => {
     const detectDevice = () => {
-      const ua = navigator.userAgent.toLowerCase();
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-      
-      // Detect platform
-      const isMiniProgram = /miniprogram|wechat|micromessenger/.test(ua) || 
-                           (window as any).__wxjs_environment === 'miniprogram';
-      const isApp = /soundit-app|cordova|capacitor|ionic/.test(ua);
-      const isWeb = !isMiniProgram && !isApp;
-      
-      // Detect device type by screen size and user agent
-      const isMobileUA = /mobile|android|iphone|ipad|ipod|windows phone/.test(ua);
-      const isTabletUA = /ipad|tablet|android(?!.*mobile)/.test(ua);
-      
-      // Determine device type by screen width
-      let deviceType: DeviceType = 'desktop';
-      if (screenWidth < 768 || (isMobileUA && !isTabletUA)) {
-        deviceType = 'mobile';
-      } else if (screenWidth < 1024 || isTabletUA) {
-        deviceType = 'tablet';
-      }
-      
-      // Override for Mini Program - always use mobile layout
-      if (isMiniProgram) {
-        deviceType = 'mobile';
-      }
-      
-      // Detect touch device
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      setDeviceInfo({
-        deviceType,
-        platform: isMiniProgram ? 'mini-program' : isApp ? 'app' : 'web',
-        isMobile: deviceType === 'mobile',
-        isDesktop: deviceType === 'desktop',
-        isTablet: deviceType === 'tablet',
-        isMiniProgram,
-        isApp,
-        screenWidth,
-        screenHeight,
-        isTouchDevice,
-        userAgent: navigator.userAgent,
-      });
+      setDeviceInfo(computeDeviceInfo());
     };
 
-    // Initial detection
     detectDevice();
 
     // Throttled resize handler (max once per 200ms) to prevent layout thrashing

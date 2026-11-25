@@ -460,9 +460,12 @@ const CityGuide = () => {
   ];
 
   return (
-    <div className="min-h-dvh pt-0 pb-28 md:pt-6 md:pb-24 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
+    <div className="min-h-dvh pt-0 pb-8 md:pt-6 md:pb-16 bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Filter Pills & Search Controls */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+      <section
+        className="sticky z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-[top] duration-200"
+        style={{ top: 'var(--mobile-header-offset, 0px)' }}
+      >
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2.5 md:py-4">
           {/* Desktop Title row */}
           <div className="hidden md:flex items-center gap-2 mb-3">

@@ -221,7 +221,10 @@ export default function Artists() {
   return (
     <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white transition-colors duration-200">
       {/* Header */}
-      <section className="sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5">
+      <section
+        className="sticky z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 transition-[top] duration-200"
+        style={{ top: 'var(--mobile-header-offset, 0px)' }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>

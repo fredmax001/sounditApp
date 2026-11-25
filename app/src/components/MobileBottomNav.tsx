@@ -70,9 +70,16 @@ const MobileBottomNav = () => {
     return () => window.removeEventListener('open-more-menu', handleOpenMore);
   }, []);
 
+  // Reset bottom nav scroll expansion & More menu on every route change
+  useEffect(() => {
+    setIsExpanded(false);
+    setShowMoreMenu(false);
+    lastScrollY.current = 0;
+  }, [location.pathname, location.search]);
+
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
       const diff = currentScrollY - lastScrollY.current;
 
       // Filter micro-jitters
@@ -438,13 +445,6 @@ const MobileBottomNav = () => {
           </div>
         </motion.nav>
       </div>
-
-      {/* Dynamic spacer matching rendered floating nav + safe area */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none shrink-0"
-        style={{ height: 'calc(var(--bottom-nav-height, 5.25rem) + env(safe-area-inset-bottom, 0px))' }}
-      />
 
       {/* More Menu Sheet */}
       <MoreMenuSheet

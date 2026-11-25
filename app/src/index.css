@@ -39,6 +39,8 @@
   --sal: env(safe-area-inset-left, 0px);
 
   /* Global Navigation, CTA & Keyboard Clearance Tokens */
+  --mobile-header-height: 0px;
+  --mobile-header-offset: 0px;
   --bottom-nav-height: 0px;
   --sticky-cta-height: 0px;
   --keyboard-height: 0px;
@@ -59,7 +61,9 @@
 
 @media (max-width: 1023px) {
   :root {
-    --bottom-nav-height: 5.25rem;
+    --mobile-header-height: calc(3.25rem + max(0.5rem, env(safe-area-inset-top, 0px)));
+    --mobile-header-offset: calc(3.25rem + max(0.5rem, env(safe-area-inset-top, 0px)));
+    --bottom-nav-height: 4.75rem;
   }
 }
 
@@ -113,7 +117,15 @@ html.light {
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+  overflow-x: clip;
+  min-height: 100%;
+  background-color: #020b00;
+}
+
+html.light,
+:root.light {
+  background-color: #FFFFFF;
 }
 
 /* Mobile performance: lightweight CSS animations replacing heavy Framer Motion loops */
@@ -139,14 +151,21 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: #020b00;
   color: #FFFFFF;
+  width: 100%;
   max-width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: clip;
-  /* Support for mobile safe areas */
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
+  margin: 0;
+  padding: 0;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 html.light body,
@@ -161,11 +180,21 @@ html.light body,
 
 /* Mobile Safe Area Utilities */
 .safe-area-pb {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
 .safe-area-pt {
-  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+/* Prevent inner page wrappers inside MainLayout / MobileLayout from forcing
+   an extra full 100dvh on top of the shell's header + footer (which created
+   unexplained empty vertical space at the bottom of short pages). */
+.app-shell-main > .app-page-outlet > .min-h-dvh,
+.app-shell-main > .app-page-outlet > .min-h-screen,
+.app-shell-main > .min-h-dvh,
+.app-shell-main > .min-h-screen {
+  min-height: 0;
 }
 
 /* Bottom Navigation Safe Area */
@@ -752,12 +781,17 @@ html[data-keyboard-open="true"] .hide-on-keyboard {
 /* Universal Keyboard-Safe Modal & Dialog Scrolling:
    Prevents centered modal overlays from clipping top inputs or trapping bottom Save/Apply/Submit buttons behind the mobile keyboard */
 .fixed.inset-0.items-center.justify-center {
-  max-height: var(--vvh, 100dvh);
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 html[data-keyboard-open="true"] .fixed.inset-0.items-center.justify-center {
+  max-height: var(--vvh, 100dvh);
   align-items: flex-start !important;
   padding-top: max(1rem, env(safe-area-inset-top, 0px)) !important;
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px)) !important;

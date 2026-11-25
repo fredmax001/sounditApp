@@ -3,10 +3,12 @@
  * Unified with MainLayout for a consistent native-app feel.
  */
 import { useLocation, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useState, type ReactNode, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { lockBodyScroll } from '@/lib/scrollLock';
 import {
   useSubscriptionStore,
   canAccessFeature,
@@ -80,7 +82,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
   const [upgradeFeature, setUpgradeFeature] = useState<string | undefined>();
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const lastScrollY = useRef(0);
-  const mainRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (token) {
@@ -98,21 +100,34 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     return () => window.removeEventListener('plan-restricted', handlePlanRestricted);
   }, []);
 
-  // Header hide/show on scroll
+  // Reset header visibility, scroll tracker, and drawer state on every route navigation
   useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
+    setIsHeaderHidden(false);
+    setShowDrawer(false);
+    lastScrollY.current = 0;
+  }, [location.pathname, location.search]);
+
+  // Lock background scroll while profile drawer is open
+  useEffect(() => {
+    if (!showDrawer) return;
+    return lockBodyScroll();
+  }, [showDrawer]);
+
+  // Unified document-level scroll listener (eliminates nested scroll container desync)
+  useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = el.scrollTop;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      if (currentScrollY <= 16) {
+        setIsHeaderHidden(false);
+      } else if (currentScrollY > lastScrollY.current + 6 && currentScrollY > 72) {
         setIsHeaderHidden(true);
-      } else {
+      } else if (currentScrollY < lastScrollY.current - 6) {
         setIsHeaderHidden(false);
       }
       lastScrollY.current = currentScrollY;
     };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const role = (profile?.role_type || profile?.role || '').toLowerCase();
@@ -298,14 +313,37 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
     '/dashboard/vendor/orders',
   ].includes(location.pathname);
 
+  // Publish exact header height & live offset so sticky sub-headers align cleanly
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (hasCustomHeader) {
+      root.style.setProperty('--mobile-header-height', '0px');
+      root.style.setProperty('--mobile-header-offset', '0px');
+      return;
+    }
+    const updateMetrics = () => {
+      const h = headerRef.current ? Math.ceil(headerRef.current.getBoundingClientRect().height) : 64;
+      root.style.setProperty('--mobile-header-height', `${h}px`);
+      root.style.setProperty('--mobile-header-offset', isHeaderHidden ? '0px' : `${h}px`);
+    };
+    updateMetrics();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateMetrics) : null;
+    if (ro && headerRef.current) ro.observe(headerRef.current);
+    return () => {
+      ro?.disconnect();
+    };
+  }, [hasCustomHeader, isHeaderHidden]);
+
   return (
     <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white flex flex-col overflow-x-clip transition-colors duration-200">
       {/* App Header with Back button and Menu button */}
       {!hasCustomHeader && (
       <motion.header
-        initial={{ y: 0 }}
+        ref={headerRef}
+        initial={false}
         animate={{ y: isHeaderHidden ? '-100%' : 0 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-md border-b border-black/8 dark:border-white/5 safe-area-pt"
       >
         <div className="flex items-center justify-between px-4 py-3">
@@ -357,25 +395,26 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       </motion.header>
       )}
 
-      {/* Main Content */}
+      {/* Main Content — scrolls on the unified document viewport (no nested scroll trap) */}
       <main
-        ref={mainRef}
-        className={`flex-1 w-full max-w-full min-w-0 overflow-x-hidden ${
-          hasCustomHeader ? 'pb-app-nav' : 'pt-[calc(4rem+max(0.75rem,env(safe-area-inset-top)))] pb-app-nav'
-        } overflow-y-auto app-page`}
+        className={`app-shell-main flex-1 flex flex-col w-full max-w-full min-w-0 overflow-x-clip ${
+          hasCustomHeader
+            ? 'pb-app-nav'
+            : 'pt-[var(--mobile-header-height,calc(3.5rem+max(0.5rem,env(safe-area-inset-top,0px))))] pb-4'
+        }`}
       >
-        <AnimatePresence mode="wait">
-          <MobilePageTransition key={location.pathname}>
-            {children}
-            {!hasCustomHeader && <Footer isMobile={true} />}
-          </MobilePageTransition>
-        </AnimatePresence>
+        <MobilePageTransition key={location.pathname}>
+          {children}
+        </MobilePageTransition>
       </main>
+
+      {!hasCustomHeader && <Footer isMobile={true} />}
 
       {/* Shared Bottom Navigation */}
       <MobileBottomNav />
 
-      {/* Profile Drawer */}
+      {/* Profile Drawer (portaled to document.body so viewport anchoring is always exact) */}
+      {typeof document !== 'undefined' && createPortal(
       <AnimatePresence>
         {showDrawer && (
           <>
@@ -496,7 +535,9 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
 
       <UpgradeModal
         isOpen={upgradeModalOpen}

@@ -48,7 +48,10 @@ const MobilePageHeader = ({
   });
 
   return (
-    <section className={`sticky top-0 z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-xl border-b border-black/8 dark:border-white/5 transition-colors ${className}`}>
+    <section
+      className={`sticky z-30 bg-white/95 dark:bg-[#020b00]/95 backdrop-blur-xl border-b border-black/8 dark:border-white/5 transition-[top,background-color,border-color] duration-200 ${className}`}
+      style={{ top: 'var(--mobile-header-offset, 0px)' }}
+    >
       <div className={`${wide ? 'max-w-4xl' : 'max-w-3xl'} mx-auto px-4 sm:px-6 lg:px-8 py-3`}>
         <div className="flex items-center gap-2">
           <button

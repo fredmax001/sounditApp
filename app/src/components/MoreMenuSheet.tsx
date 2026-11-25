@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { lockBodyScroll } from '@/lib/scrollLock';
 import {
   X,
   ChevronDown,
@@ -35,6 +37,11 @@ const XTwitterIcon = ({ className }: { className?: string }) => (
 export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { trigger } = useHaptic();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    return lockBodyScroll();
+  }, [isOpen]);
 
   // Collapsible state matching Image 2 reference: Company & Support open, Ecosystem collapsed
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -95,7 +102,9 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
     { label: 'YouTube', url: 'https://www.youtube.com/@soundit_ent', icon: Youtube },
   ];
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -326,7 +335,8 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

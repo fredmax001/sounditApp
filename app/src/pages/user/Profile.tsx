@@ -283,7 +283,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-28 pt-3 md:pt-6 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pb-8 pt-3 md:pt-6 transition-colors duration-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
         {/* Top bar with back button & title */}
         <div className="flex items-center gap-2 mb-4">

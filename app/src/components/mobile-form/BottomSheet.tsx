@@ -7,6 +7,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
+import { lockBodyScroll } from '@/lib/scrollLock';
 
 interface BottomSheetProps {
   open: boolean;
@@ -23,18 +24,10 @@ const BottomSheet = ({ open, title, onClose, children, header, footer }: BottomS
   const panelRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
 
-  // Lock background scrolling (the page scrolls inside <main>, not <body>)
+  // Lock background scrolling cleanly using reference-counted scroll lock
   useEffect(() => {
     if (!open) return;
-    const main = document.querySelector('main');
-    const prevBody = document.body.style.overflow;
-    const prevMain = main ? (main as HTMLElement).style.overflow : '';
-    document.body.style.overflow = 'hidden';
-    if (main) (main as HTMLElement).style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevBody;
-      if (main) (main as HTMLElement).style.overflow = prevMain;
-    };
+    return lockBodyScroll();
   }, [open]);
 
   // Close on Escape

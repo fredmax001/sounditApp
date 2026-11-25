@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '@/store/themeStore';
+import { lockBodyScroll } from '@/lib/scrollLock';
 import {
   Users,
   Globe,
@@ -40,14 +41,8 @@ const About = () => {
   const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
 
   useEffect(() => {
-    if (selectedCollaborator) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    if (!selectedCollaborator) return;
+    return lockBodyScroll();
   }, [selectedCollaborator]);
 
   useEffect(() => {

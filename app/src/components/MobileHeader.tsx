@@ -4,9 +4,11 @@
  * Right: Search + Notification Bell + Profile Avatar (opens full-height Profile Menu Drawer)
  */
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { lockBodyScroll } from '@/lib/scrollLock';
 import {
   MapPin,
   User,
@@ -53,6 +55,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
   const [scrollDepth, setScrollDepth] = useState(0);
   const [pointsBalance, setPointsBalance] = useState<number>((profile as any)?.points_balance || 0);
   const lastScrollY = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
   const { trigger } = useHaptic();
   const { t } = useTranslation();
 
@@ -99,13 +102,57 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
   const dayStr = today.toLocaleDateString('en-US', { weekday: 'short' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+  // Always restore header visibility and close transient overlays on navigation
+  useEffect(() => {
+    setIsHidden(false);
+    setScrollDepth(0);
+    setShowDrawer(false);
+    setShowCitySheet(false);
+    setShowSearchModal(false);
+    lastScrollY.current = 0;
+  }, [location.pathname, location.search]);
+
+  // Lock background scroll while any header drawer/modal/sheet is open
+  useEffect(() => {
+    if (!showDrawer && !showCitySheet && !showSearchModal) return;
+    return lockBodyScroll();
+  }, [showDrawer, showCitySheet, showSearchModal]);
+
+  // Publish exact rendered header height & live sticky offset to CSS custom properties
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (hideBar) {
+      root.style.setProperty('--mobile-header-height', '0px');
+      root.style.setProperty('--mobile-header-offset', '0px');
+      return;
+    }
+
+    const updateHeaderMetrics = () => {
+      const h = headerRef.current ? Math.ceil(headerRef.current.getBoundingClientRect().height) : 60;
+      root.style.setProperty('--mobile-header-height', `${h}px`);
+      root.style.setProperty('--mobile-header-offset', isHidden ? '0px' : `${h}px`);
+    };
+
+    updateHeaderMetrics();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateHeaderMetrics) : null;
+    if (ro && headerRef.current) {
+      ro.observe(headerRef.current);
+    }
+    return () => {
+      ro?.disconnect();
+    };
+  }, [hideBar, isHidden]);
+
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
       setScrollDepth(currentScrollY);
-      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+      if (currentScrollY <= 16) {
+        setIsHidden(false);
+      } else if (currentScrollY > lastScrollY.current + 6 && currentScrollY > 80) {
         setIsHidden(true);
-      } else {
+      } else if (currentScrollY < lastScrollY.current - 6) {
         setIsHidden(false);
       }
       lastScrollY.current = currentScrollY;
@@ -280,9 +327,10 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
     <>
       {!hideBar && (
       <motion.header
-        initial={{ y: 0 }}
+        ref={headerRef}
+        initial={false}
         animate={{ y: isHidden ? '-100%' : 0 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-40 safe-area-pt transition-colors"
         style={{
           background: isDark
@@ -380,10 +428,13 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
       </motion.header>
       )}
 
-      {/* Quick Search Modal */}
+      {/* Quick Search Modal, Profile Drawer & City Picker — portaled to document.body */}
+      {typeof document !== 'undefined' && createPortal(
+      <>
       <AnimatePresence>
         {showSearchModal && (
           <motion.div
+            data-modal-open="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -448,6 +499,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
               onClick={() => setShowDrawer(false)}
             />
             <motion.div
+              data-modal-open="true"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -613,7 +665,7 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
       {/* City Picker Bottom Sheet */}
       <AnimatePresence>
         {showCitySheet && (
-          <div className="bottom-sheet">
+          <div className="bottom-sheet" data-modal-open="true">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -660,6 +712,9 @@ const MobileHeader = ({ hideBar = false }: { hideBar?: boolean }) => {
           </div>
         )}
       </AnimatePresence>
+      </>,
+      document.body
+      )}
     </>
   );
 };

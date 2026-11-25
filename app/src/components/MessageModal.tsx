@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, Loader2, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/config/api';
+import { lockBodyScroll } from '@/lib/scrollLock';
 
 interface MessageModalProps {
   recipientId: number;
@@ -16,6 +18,11 @@ export default function MessageModal({ recipientId, recipientName, isOpen, onClo
   const { session } = useAuthStore();
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    return lockBodyScroll();
+  }, [isOpen]);
 
   const handleSend = async () => {
     if (!session?.access_token) {
@@ -97,15 +104,17 @@ export default function MessageModal({ recipientId, recipientName, isOpen, onClo
     }
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80">
+        <div data-modal-open="true" className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden"
+            className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-lg max-h-[88dvh] overflow-y-auto my-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/10">
@@ -168,6 +177,7 @@ export default function MessageModal({ recipientId, recipientName, isOpen, onClo
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -133,7 +133,9 @@ const Footer = ({ isMobile = false }: FooterProps) => {
   return (
     <footer
       className={`bg-neutral-50 dark:bg-[#020b00] border-t border-black/8 dark:border-white/5 text-[#020b00] dark:text-white transition-colors duration-200 ${
-        isMobile ? 'pb-28 pt-8' : 'pb-14 pt-14'
+        isMobile
+          ? 'pt-6 pb-[calc(var(--bottom-nav-height,4.75rem)+env(safe-area-inset-bottom,0px)+1rem)]'
+          : 'pb-14 pt-14'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

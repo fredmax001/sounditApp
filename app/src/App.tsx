@@ -59,6 +59,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AndroidAppPrompt from './components/AndroidAppPrompt';
 import CookieConsent from './components/CookieConsent';
 import { MobileViewportManager } from './hooks/useMobileViewport';
+import { NavigationScrollManager, resetAllScrollContainers } from './components/NavigationScrollManager';
 import LiveNotificationBridge from './components/notifications/LiveNotificationBridge';
 import UploadProgressHUD from './components/notifications/UploadProgressHUD';
 import NativeProductTour from './components/onboarding/NativeProductTour';
@@ -185,12 +186,23 @@ const ProductCheckout = lazy(() => import('./pages/ProductCheckout'));
 const MyOrders = lazy(() => import('./pages/user/MyOrders'));
 const OrderTracking = lazy(() => import('./pages/user/OrderTracking'));
 
-// Simple inline fallback while lazy chunks load
-const PageLoader = () => (
-  <div className="min-h-dvh bg-white dark:bg-[#020b00] flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
-  </div>
-);
+// Simple inline fallback while lazy chunks load.
+// Ensures scroll is reset cleanly right after a lazy route finishes hydrating.
+const PageLoader = () => {
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && !window.location.hash) {
+        window.requestAnimationFrame(() => resetAllScrollContainers(0));
+      }
+    };
+  }, []);
+
+  return (
+    <div className="min-h-[60dvh] w-full bg-white dark:bg-[#020b00] flex items-center justify-center flex-1">
+      <div className="w-8 h-8 border-2 border-[#d3da0c] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+};
 
 const isNativeApp = () => isNativeMobileApp();
 
@@ -337,6 +349,7 @@ function App() {
       <LoadingScreen settings={introScreen} onFinish={() => setIsLoading(false)} />
     )}
     <Router>
+      <NavigationScrollManager />
       <LiveNotificationBridge />
       <UploadProgressHUD />
       <NativeProductTour />

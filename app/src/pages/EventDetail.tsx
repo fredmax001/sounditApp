@@ -422,7 +422,7 @@ export default function EventDetail() {
   const mapQuery = encodeURIComponent([venuePrimary, venueSecondary].filter(Boolean).join(', '));
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-16 lg:pt-20 md:pb-0 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-[#020b00] text-[#020b00] dark:text-white pt-0 md:pb-0 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] transition-colors duration-200">
       {/* Back Button (desktop) */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
