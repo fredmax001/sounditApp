@@ -12,7 +12,7 @@ import {
   BookOpen, Lock, Globe, Flag,
   CreditCard, Layers, Megaphone,
   MessageSquare, ChevronDown, Zap,
-  BarChart3, Sun, Moon, Send, Search, Grid, Sparkles, Compass
+  BarChart3, Sun, Moon, Send, Search, Grid, Monitor, Compass
 } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 import NotificationBell from '@/components/NotificationBell';
@@ -66,7 +66,7 @@ const menuGroups: AdminMenuGroup[] = [
       { id: 'reports', label: 'Moderation', icon: Flag, path: '/admin/reports', permission: 'support_read' },
       { id: 'community', label: 'Community', icon: MessageSquare, path: '/admin/community', permission: 'support_read' },
       { id: 'cms', label: 'CMS', icon: BookOpen, path: '/admin/cms', permission: 'content_read' },
-      { id: 'intro-screen', label: 'Intro Screen', icon: Sparkles, path: '/admin/intro-screen', permission: 'content_read' },
+      { id: 'intro-screen', label: 'Intro Screen', icon: Monitor, path: '/admin/intro-screen', permission: 'content_read' },
       { id: 'recaps', label: 'Recaps', icon: Calendar, path: '/admin/recaps', permission: 'content_read' },
       { id: 'ads', label: 'Ads Manager', icon: Megaphone, path: '/admin/ads', permission: 'marketing_read' },
     ]

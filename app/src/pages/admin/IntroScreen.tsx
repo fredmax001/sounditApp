@@ -5,7 +5,7 @@ import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
 import {
   Loader2, Image as ImageIcon, Trash2, Eye, Save, Upload,
-  Megaphone, ExternalLink, Clock
+  Megaphone, ExternalLink, Clock, X
 } from 'lucide-react';
 
 interface IntroSettings {
@@ -438,7 +438,7 @@ const IntroScreen = () => {
             <div className="absolute top-4 right-4 z-20">
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-[0.625rem] text-white/80">
                 <span>Skip</span>
-                <span className="text-[0.5625rem]">✕</span>
+                <X className="w-2.5 h-2.5" />
               </div>
             </div>
 

@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
-  Sparkles,
+  SlidersHorizontal,
   Layers,
   ShieldAlert,
   Loader2,
@@ -228,7 +228,7 @@ const SmartNotificationAutomation: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin text-[#d3da0c] mb-3" />
-        <p className="text-sm">Loading Smart Notification Engine...</p>
+        <p className="text-sm">Loading notification rules...</p>
       </div>
     );
   }
@@ -239,17 +239,17 @@ const SmartNotificationAutomation: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#071205] border border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#d3da0c]/10 border border-[#d3da0c]/30 flex items-center justify-center text-[#d3da0c]">
-            <Sparkles className="w-5 h-5" />
+            <SlidersHorizontal className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-white font-bold text-base flex items-center gap-2">
-              Automated Intelligence Engine
+            <h3 className="text-white text-base flex items-center gap-2">
+              Notification Rules & Queue
               <span className="text-[0.625rem] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 ACTIVE
               </span>
             </h3>
             <p className="text-xs text-gray-400">
-              Autonomous behaviour-based triggers, dynamic interest scoring, and time zone delivery.
+              Activity-based triggers, interest scoring, and local time zone scheduling.
             </p>
           </div>
         </div>

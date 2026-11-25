@@ -458,8 +458,11 @@ def _enqueue_draft_to_scheduled_notification(
     immediate: bool = False,
 ) -> ScheduledNotification:
     """Queues an AgentMessageDraft into the durable ScheduledNotification delivery pipeline."""
-    # Map channel list to notification_worker channel field
-    ch_set = set(draft.channels or ["push", "in_app"])
+    # Honor the worker's live channel config (so toggling Email On applies to existing preview drafts too)
+    live_cfg = db.query(AgentConfiguration).filter(AgentConfiguration.agent_key == draft.agent_key).first()
+    eff_channels = list(live_cfg.channels) if (live_cfg and live_cfg.channels) else list(draft.channels or ["push", "in_app"])
+    draft.channels = eff_channels
+    ch_set = set(eff_channels)
     channel_str = "all" if "email" in ch_set else "push"
 
     # Build click-tracking deep link for email CTAs while preserving direct app route

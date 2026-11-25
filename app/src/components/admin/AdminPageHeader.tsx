@@ -18,11 +18,11 @@ export const AdminPageHeader = ({ title, subtitle, chip, actions }: AdminPageHea
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
       <div className="min-w-0 flex-1">
         {chip && (
-          <span className="inline-block px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] font-black uppercase tracking-wider mb-1.5">
+          <span className="inline-block px-2 py-0.5 rounded-full bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black text-[0.625rem] uppercase tracking-wider mb-1.5">
             {chip}
           </span>
         )}
-        <h1 className="text-xl sm:text-2xl font-bold text-[#020b00] dark:text-white tracking-tight break-words">
+        <h1 className="text-xl sm:text-2xl text-[#020b00] dark:text-white tracking-tight break-words">
           {title}
         </h1>
         {subtitle && (

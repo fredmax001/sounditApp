@@ -9,6 +9,20 @@
 
 ---
 
+### 194. Admin Dashboard Uniform Typography Weight, Zero Emojis/AI-Icons & Automated Message Channel Visibility (2026-11-25)
+- **Uniform Admin Text Weight (`app/src/index.css`, `AdminPageHeader.tsx`, `AdminLayout.tsx`, `NotificationCenter.tsx`, `AutonomousAgentsPanel.tsx`, `SmartNotificationAutomation.tsx`)**:
+  - Enforced a single uniform Regular (`font-weight: 400`) text weight across the entire `.admin-shell` so visual hierarchy comes cleanly from size, spacing, and contrast rather than mixed `font-black`/`font-extrabold`/`font-bold`/`font-semibold`/`font-medium`/`<strong>` weights.
+- **Zero Unicode Emojis & Zero AI-ish Icons/Copy across Admin (`AdminLayout.tsx`, `IntroScreen.tsx`, `EntityDetailModal.tsx`, `NotificationCenter.tsx`, `AutonomousAgentsPanel.tsx`, `SmartNotificationAutomation.tsx`, `api/auth.py`, `services/ai_copywriter.py`)**:
+  - Replaced `<Sparkles />` and `<Bot />` icons with standard UI icons (`Monitor`, `Radio`, `SlidersHorizontal`, `Bell`).
+  - Replaced unicode `✕` in `IntroScreen.tsx` with Lucide `<X />`, unicode `★` in `EntityDetailModal.tsx` with Lucide `<Star />`, and stripped `🎉` from admin new-signup notification titles in `api/auth.py`.
+  - Replaced AI-ish headings (`Autonomous Agents`, `Automated Intelligence Engine`, `Zero-Key Smart Copy Engine`) with direct operational labels (`Automated Messaging`, `Rules & Queue`, `Built-in Template Engine ($0/mo)`).
+- **Automated Messaging Channel Transparency & Email Toggle (`AutonomousAgentsPanel.tsx`, `services/engagement_agents.py`)**:
+  - Added per-worker **Email On / Email Off** toggle (`Mail` icon) and channel badges on every draft row, and updated `_enqueue_draft_to_scheduled_notification()` to honor live worker channel config when approving existing preview drafts.
+  - Verified live production Draft #343 (`talent_spotlight` → User #248): delivered in-app as `Notification #1448`, `ScheduledNotification #465` sent (`push`), with `0` web/native push tokens registered on that account and `email` disabled by default on `talent_spotlight`.
+  - Verified `tests/test_engagement_agents.py` (6/6 PASSED), built & deployed `soundit-v25`, and synced native iOS/Android wrappers.
+
+---
+
 ### 193. Autonomous Backend Growth & Engagement Agents (Zero-Key + Optional Pluggable LLM) & Admin Mission Control (2026-11-25)
 - **Retired Legacy Static Broadcasts**:
   - Replaced the hardcoded weekly `"We Miss You on Sound It!"` blast in `services/notification_triggers.py` with 4 supply-aware, click-learning autonomous worker agents running on the existing 5-minute background scheduler (`services/notification_worker.py`).

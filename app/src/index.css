@@ -1349,6 +1349,32 @@ img, video, svg {
 }
 
 /* ============================================
+   Admin Typography — Uniform Single Text Weight
+   ============================================ */
+.admin-shell,
+.admin-shell *,
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4,
+.admin-shell h5,
+.admin-shell h6,
+.admin-shell p,
+.admin-shell span,
+.admin-shell a,
+.admin-shell button,
+.admin-shell label,
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea,
+.admin-shell th,
+.admin-shell td,
+.admin-shell strong,
+.admin-shell b {
+  font-weight: 400 !important;
+}
+
+/* ============================================
    Admin Mobile Shell (iOS & Android)
    ============================================ */
 @media (max-width: 1023px) {

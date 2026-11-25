@@ -9,7 +9,7 @@ import {
   AlertCircle, ExternalLink, Mail, Phone, MapPin,
   Calendar, DollarSign, Ticket, Heart, Shield,
   Award, Lock, Unlock, Loader2, Check,
-  Package, Globe, Copy, CheckCheck
+  Package, Globe, Copy, CheckCheck, Star
 } from 'lucide-react';
 
 export type EntityType = 'user' | 'artist' | 'vendor' | 'business';
@@ -445,8 +445,9 @@ export default function EntityDetailModal({
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Award className="w-3.5 h-3.5 text-yellow-400" /> Rating
                       </p>
-                      <p className="text-lg font-bold text-[#020b00] dark:text-white mt-1">
-                        {data.rating || '5.0'} ★
+                      <p className="text-lg text-[#020b00] dark:text-white mt-1 flex items-center gap-1.5">
+                        <span>{data.rating || '5.0'}</span>
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                       </p>
                     </div>
                   </>

@@ -66,7 +66,7 @@ def get_active_copywriter_status() -> Dict[str, Any]:
         "mode": "zero_key_smart_engine",
         "provider": "template_engine",
         "model": "rotating-data-driven-v1",
-        "label": "Zero-Key Smart Copy Engine ($0/mo)",
+        "label": "Built-in Template Engine ($0/mo)",
         "zero_key": True,
     }
 
