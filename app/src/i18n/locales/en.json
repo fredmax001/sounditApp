@@ -2863,7 +2863,22 @@
       "price": "Price",
       "optionalAdminNotes": "Optional admin notes",
       "failedToCheckExpiredSubscriptions": "Failed to check expired subscriptions",
-      "role": "Role"
+      "role": "Role",
+      "planPricing": "Plan Pricing Configuration",
+      "planPricingHint": "Set monthly and yearly subscription prices (CNY) for each role tier.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "invalidPrice": "Please enter a valid price.",
+      "priceUpdated": "Plan price updated successfully.",
+      "priceUpdateFailed": "Failed to update plan price.",
+      "grantLifetime": "Grant Lifetime Access",
+      "grantLifetimeHint": "Grant permanent premium subscription access to a user by ID.",
+      "grantLifetimeConfirm": "Grant lifetime premium access to this user?",
+      "grant": "Grant",
+      "invalidUserId": "Please enter a valid User ID.",
+      "userIdPlaceholder": "Enter User ID (e.g. 42)",
+      "lifetimeGranted": "Lifetime subscription granted.",
+      "lifetimeFailed": "Failed to grant lifetime subscription."
     },
     "systemSettings": {
       "resetSystemCache": "Reset System Cache",
@@ -3510,7 +3525,8 @@
       "saved": "Intro screen settings saved",
       "saveFailed": "Failed to save settings",
       "uploadFailed": "Failed to upload logo",
-      "failedToLoad": "Failed to load intro screen settings"
+      "failedToLoad": "Failed to load intro screen settings",
+      "enableSection": "Enable section"
     }
   },
   "about": {

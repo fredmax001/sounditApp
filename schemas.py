@@ -173,6 +173,15 @@ class UserResponse(UserBase):
     status: str
     is_verified: bool
     verification_badge: bool = False
+
+    @field_validator('email', mode='before')
+    @classmethod
+    def validate_email(cls, v):
+        """Response schema must serialize stored/anonymized emails (e.g. *@deleted.local) without crashing."""
+        if v is None:
+            return None
+        v_str = str(v).strip()
+        return v_str.lower() if v_str else None
     created_at: datetime
     followers_count: int = 0
     following_count: int = 0

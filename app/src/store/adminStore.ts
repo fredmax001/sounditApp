@@ -54,6 +54,10 @@ export interface AdminUser {
     last_login?: string;
     is_verified: boolean;
     preferred_city?: string;
+    artist_profile?: { id?: number; stage_name?: string; artist_type?: string; genre?: string; city?: string } | null;
+    vendor_profile?: { id?: number; business_name?: string; vendor_type?: string; category?: string } | null;
+    business_profile?: { id?: number; organization_name?: string; business_type?: string } | null;
+    organizer_profile?: { id?: number; organization_name?: string } | null;
 }
 
 export interface AdminRole {

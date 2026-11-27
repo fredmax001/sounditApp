@@ -12,6 +12,7 @@ import EntityDetailModal from '@/components/admin/EntityDetailModal';
 interface Artist {
   id: number;
   stage_name?: string;
+  artist_type?: string;
   genre?: string;
   city?: string;
   is_verified?: boolean;
@@ -59,6 +60,42 @@ const ManageArtists = () => {
       toast.error(t('admin.manageArtists.failedToLoadArtists'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const ARTIST_SUBROLES = [
+    { value: 'DJ', label: 'DJ' },
+    { value: 'Singer', label: 'Singer' },
+    { value: 'MC', label: 'MC / Host' },
+    { value: 'Dancer', label: 'Dancer' },
+    { value: 'Photographer', label: 'Photographer' },
+    { value: 'Band', label: 'Musician / Band' },
+    { value: 'Artist', label: 'Other Artist' },
+  ];
+
+  const handleChangeSubrole = async (userId: number | undefined, artistType: string) => {
+    if (!userId) return;
+    setActionLoading(`subrole-${userId}`);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: 'artist', artist_type: artistType }),
+      });
+      if (res.ok) {
+        toast.success(`Updated artist subrole to ${artistType}`);
+        loadArtists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || 'Failed to update artist subrole');
+      }
+    } catch {
+      toast.error('Failed to update artist subrole');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -471,6 +508,7 @@ const ManageArtists = () => {
             <thead className="bg-neutral-50 dark:bg-white/5 border-b border-black/8 dark:border-white/10">
               <tr>
                 <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.manageArtists.artist')}</th>
+                <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">Subrole</th>
                 <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.manageArtists.genre')}</th>
                 <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.manageArtists.followers')}</th>
                 <th className="text-left text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold p-4">{t('admin.manageArtists.events')}</th>
@@ -506,6 +544,19 @@ const ManageArtists = () => {
                         </p>
                       </div>
                     </div>
+                  </td>
+                  <td className="p-4">
+                    <select
+                      value={artist.artist_type || 'Artist'}
+                      onChange={(e) => handleChangeSubrole(artist.user_id, e.target.value)}
+                      disabled={actionLoading === `subrole-${artist.user_id}`}
+                      aria-label="Artist subrole"
+                      className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.04] border border-white/[0.1] text-gray-200 cursor-pointer focus:border-[#d3da0c]/60 focus:outline-none disabled:opacity-50"
+                    >
+                      {ARTIST_SUBROLES.map(opt => (
+                        <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-4 text-gray-600 dark:text-gray-400 text-sm">{artist.genre || t('admin.manageArtists.na')}</td>
                   <td className="p-4 text-gray-600 dark:text-gray-400 text-sm">{artist.followers_count || 0}</td>

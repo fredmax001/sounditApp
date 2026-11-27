@@ -28,7 +28,9 @@ const Register = () => {
       setSelectedRole('artist_dj');
     }
   }, [searchParams]);
-  const [selectedArtistType, setSelectedArtistType] = useState<string>('DJ');
+  const [selectedArtistType, setSelectedArtistType] = useState<string>('');
+  const [selectedVendorType, setSelectedVendorType] = useState<string>('');
+  const [selectedBusinessType, setSelectedBusinessType] = useState<string>('');
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -44,6 +46,19 @@ const Register = () => {
 
     if (!selectedRole) {
       toast.error(t('auth.register.selectRoleError'));
+      return;
+    }
+
+    if (selectedRole === 'artist_dj' && !selectedArtistType) {
+      toast.error('Please select your Artist subrole (e.g. DJ, Singer, MC, Dancer, Photographer).');
+      return;
+    }
+    if (selectedRole === 'vendor' && !selectedVendorType) {
+      toast.error('Please select your Vendor category (e.g. Food, Beverage, Merch, Services).');
+      return;
+    }
+    if (selectedRole === 'business' && !selectedBusinessType) {
+      toast.error('Please select your Business type (e.g. Event Organizer, Club, Bar, Lounge).');
       return;
     }
 
@@ -95,6 +110,8 @@ const Register = () => {
         role_type: selectedRole,
         business_name: selectedRole !== 'user' ? resolvedEntityName : undefined,
         artist_type: selectedRole === 'artist_dj' ? selectedArtistType : undefined,
+        vendor_type: selectedRole === 'vendor' ? selectedVendorType : undefined,
+        business_type: selectedRole === 'business' ? selectedBusinessType : undefined,
       });
 
       toast.success(t('auth.register.accountCreated'));
@@ -111,6 +128,18 @@ const Register = () => {
 
   const handleGoogleSuccess = async (token: string) => {
     try {
+      if (selectedRole === 'artist_dj' && !selectedArtistType) {
+        toast.error('Please select your Artist subrole (e.g. DJ, Singer, MC) before continuing with Google.');
+        return;
+      }
+      if (selectedRole === 'vendor' && !selectedVendorType) {
+        toast.error('Please select your Vendor category before continuing with Google.');
+        return;
+      }
+      if (selectedRole === 'business' && !selectedBusinessType) {
+        toast.error('Please select your Business type before continuing with Google.');
+        return;
+      }
       const normalizedRole = selectedRole === 'artist_dj' ? 'artist' : (selectedRole || 'user');
       const response = await fetch(`${API_BASE_URL}/auth/google/login`, {
         method: 'POST',
@@ -119,6 +148,9 @@ const Register = () => {
           token,
           role: normalizedRole,
           business_name: selectedRole && selectedRole !== 'user' ? (businessName.trim() || undefined) : undefined,
+          artist_type: selectedRole === 'artist_dj' ? selectedArtistType : undefined,
+          vendor_type: selectedRole === 'vendor' ? selectedVendorType : undefined,
+          business_type: selectedRole === 'business' ? selectedBusinessType : undefined,
         }),
       });
 
@@ -192,29 +224,105 @@ const Register = () => {
 
         {selectedRole === 'artist_dj' && (
           <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4 space-y-3">
-            <label className="block text-[#020b00] dark:text-white text-sm font-semibold">
-              {t('artist.dashboard.label.artistType') || 'Creative Discipline'}
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="block text-[#020b00] dark:text-white text-sm font-semibold">
+                {t('artist.dashboard.label.artistType') || 'Select Your Artist Subrole'} *
+              </label>
+              {!selectedArtistType && (
+                <span className="text-[0.6875rem] text-amber-500">Required</span>
+              )}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
-                { id: 'DJ', label: t('artist.dashboard.artistType.dj') || 'DJ', icon: '🎧' },
-                { id: 'Singer', label: t('artist.dashboard.artistType.singer') || 'Singer', icon: '🎤' },
-                { id: 'Dancer', label: t('artist.dashboard.artistType.dancer') || 'Dancer', icon: '💃' },
-                { id: 'Photographer', label: t('artist.dashboard.artistType.photographer') || 'Photographer', icon: '📸' },
-                { id: 'MC', label: t('artist.dashboard.artistType.mc') || 'MC', icon: '🎙️' },
-                { id: 'Artist', label: t('artist.dashboard.artistType.artist') || 'Other Artist', icon: '🎨' },
+                { id: 'DJ', label: t('artist.dashboard.artistType.dj') || 'DJ' },
+                { id: 'Singer', label: t('artist.dashboard.artistType.singer') || 'Singer' },
+                { id: 'MC', label: t('artist.dashboard.artistType.mc') || 'MC / Host' },
+                { id: 'Dancer', label: t('artist.dashboard.artistType.dancer') || 'Dancer' },
+                { id: 'Photographer', label: t('artist.dashboard.artistType.photographer') || 'Photographer' },
+                { id: 'Band', label: 'Musician / Band' },
+                { id: 'Artist', label: t('artist.dashboard.artistType.artist') || 'Other Artist' },
               ].map(item => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setSelectedArtistType(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all border ${
+                  className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-xs font-semibold transition-all border ${
                     selectedArtistType === item.id
                       ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black border-transparent shadow-sm'
                       : 'bg-white dark:bg-[#111111] text-[#020b00] dark:text-white border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]'
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedRole === 'vendor' && (
+          <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <label className="block text-[#020b00] dark:text-white text-sm font-semibold">
+                Select Your Vendor Category *
+              </label>
+              {!selectedVendorType && (
+                <span className="text-[0.6875rem] text-amber-500">Required</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { id: 'food', label: 'Food Vendor' },
+                { id: 'beverage', label: 'Beverage / Drinks' },
+                { id: 'merch', label: 'Retail & Merch' },
+                { id: 'service', label: 'Services' },
+                { id: 'other', label: 'Other Vendor' },
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedVendorType(item.id)}
+                  className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+                    selectedVendorType === item.id
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black border-transparent shadow-sm'
+                      : 'bg-white dark:bg-[#111111] text-[#020b00] dark:text-white border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]'
+                  }`}
+                >
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedRole === 'business' && (
+          <div className="bg-neutral-50 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <label className="block text-[#020b00] dark:text-white text-sm font-semibold">
+                Select Your Business Type *
+              </label>
+              {!selectedBusinessType && (
+                <span className="text-[0.6875rem] text-amber-500">Required</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { id: 'organizer', label: 'Event Organizer' },
+                { id: 'club', label: 'Club' },
+                { id: 'bar', label: 'Bar' },
+                { id: 'lounge', label: 'Lounge' },
+                { id: 'restaurant', label: 'Restaurant' },
+                { id: 'venue', label: 'Venue / Other' },
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedBusinessType(item.id)}
+                  className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+                    selectedBusinessType === item.id
+                      ? 'bg-[#020b00] text-[#d3da0c] dark:bg-[#d3da0c] dark:text-black border-transparent shadow-sm'
+                      : 'bg-white dark:bg-[#111111] text-[#020b00] dark:text-white border-black/10 dark:border-white/10 hover:border-[#020b00] dark:hover:border-[#d3da0c]'
+                  }`}
+                >
                   <span className="truncate">{item.label}</span>
                 </button>
               ))}

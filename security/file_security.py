@@ -89,8 +89,8 @@ class FileSecurityScanner:
     
     def __init__(self):
         self.clamav_available = self._check_clamav()
-        self.max_file_size = 10 * 1024 * 1024  # 10MB
-        self.max_image_dimensions = (4096, 4096)
+        self.max_file_size = 50 * 1024 * 1024  # 50MB (per-type limits enforced by api/media.py)
+        self.max_image_dimensions = (12000, 12000)  # Supports modern 48MP/50MP smartphone cameras
     
     def _check_clamav(self) -> bool:
         """Check if ClamAV is available"""
@@ -254,6 +254,16 @@ class FileSecurityScanner:
     
     def _validate_image(self, content: bytes) -> Tuple[bool, str]:
         """Validate image file integrity"""
+        # Support HEIC/HEIF container magic bytes (ftypheic/heix/hevc/mif1/msf1) when pillow_heif is absent
+        if len(content) >= 12 and content[4:8] == b'ftyp' and content[8:12] in (
+            b'heic', b'heix', b'hevc', b'hevx', b'mif1', b'msf1', b'avif'
+        ):
+            try:
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+            except ImportError:
+                return True, "HEIF/HEIC image header valid"
+
         try:
             image = Image.open(io.BytesIO(content))
             

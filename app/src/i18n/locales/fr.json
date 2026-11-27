@@ -2860,7 +2860,22 @@
       "price": "Price",
       "optionalAdminNotes": "Optional admin notes",
       "failedToCheckExpiredSubscriptions": "Failed to check expired subscriptions",
-      "role": "Role"
+      "role": "Role",
+      "planPricing": "Configuration des tarifs",
+      "planPricingHint": "Définissez les tarifs mensuels et annuels (CNY) pour chaque rôle.",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "invalidPrice": "Veuillez saisir un prix valide.",
+      "priceUpdated": "Tarif mis à jour avec succès.",
+      "priceUpdateFailed": "Échec de la mise à jour du tarif.",
+      "grantLifetime": "Accorder un accès à vie",
+      "grantLifetimeHint": "Accorder un abonnement premium permanent à un utilisateur par ID.",
+      "grantLifetimeConfirm": "Accorder un accès premium à vie à cet utilisateur ?",
+      "grant": "Accorder",
+      "invalidUserId": "Veuillez saisir un ID utilisateur valide.",
+      "userIdPlaceholder": "ID utilisateur (ex. 42)",
+      "lifetimeGranted": "Abonnement à vie accordé.",
+      "lifetimeFailed": "Échec de l'attribution de l'abonnement à vie."
     },
     "systemSettings": {
       "resetSystemCache": "Reset System Cache",
@@ -3507,7 +3522,8 @@
       "saved": "Paramètres de l'écran d'introduction enregistrés",
       "saveFailed": "Échec de l'enregistrement des paramètres",
       "uploadFailed": "Échec du téléchargement du logo",
-      "failedToLoad": "Échec du chargement des paramètres d'introduction"
+      "failedToLoad": "Échec du chargement des paramètres d'introduction",
+      "enableSection": "Activer la section"
     }
   },
   "about": {

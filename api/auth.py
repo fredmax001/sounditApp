@@ -423,7 +423,8 @@ def register(
                 description=data.bio,
                 city=data.city,
                 website=data.website,
-                is_approved=False
+                is_verified=False,
+                is_approved=True
             )
             db.add(business_profile)
             db.flush()
@@ -437,7 +438,7 @@ def register(
                 city=data.city,
                 website=data.website,
                 is_verified=False,
-                is_approved=False
+                is_approved=True
             )
             db.add(organizer_profile)
             
@@ -449,7 +450,8 @@ def register(
                 vendor_type=data.vendor_type or "merchandise",
                 city=data.city,
                 website=data.website,
-                is_approved=False
+                is_verified=False,
+                is_approved=True
             )
             db.add(vendor_profile)
     
@@ -1211,6 +1213,9 @@ class GoogleAuthRequest(BaseModel):
     token: str  # Google ID token or access token from frontend
     role: Optional[str] = "user"
     business_name: Optional[str] = None
+    artist_type: Optional[str] = None
+    vendor_type: Optional[str] = None
+    business_type: Optional[str] = None
 
 
 @router.post("/google/login", response_model=SignupRedirectResponse)
@@ -1368,7 +1373,7 @@ def google_login(
                     artist_profile = ArtistProfile(
                         user_id=user.id,
                         stage_name=resolved_google_entity,
-                        artist_type="DJ",
+                        artist_type=(data.artist_type or "DJ").strip(),
                         is_approved=True,
                         is_verified=False
                     )
@@ -1377,8 +1382,9 @@ def google_login(
                     business_profile = BusinessProfile(
                         user_id=user.id,
                         business_name=resolved_google_entity,
+                        business_type=[(data.business_type or "organizer").strip().lower()],
                         is_verified=False,
-                        is_approved=False
+                        is_approved=True
                     )
                     db.add(business_profile)
                     db.flush()  # Get business_profile.id before referencing it
@@ -1387,15 +1393,16 @@ def google_login(
                         business_profile_id=business_profile.id,
                         organization_name=resolved_google_entity,
                         is_verified=False,
-                        is_approved=False
+                        is_approved=True
                     )
                     db.add(organizer_profile)
                 elif signup_role == UserRole.VENDOR:
                     vendor_profile = VendorProfile(
                         user_id=user.id,
                         business_name=resolved_google_entity,
+                        vendor_type=(data.vendor_type or "food").strip().lower(),
                         is_verified=False,
-                        is_approved=False
+                        is_approved=True
                     )
                     db.add(vendor_profile)
                 

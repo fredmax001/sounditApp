@@ -127,7 +127,11 @@ export default function ArtistBookings() {
         loadBookings();
       } else {
         const error = await res.json().catch(() => ({}));
-        toast.error(error.detail || t('artist.bookings.updateStatusFailed') || 'Failed to update booking status');
+        const errMsg =
+          typeof error?.detail === 'string'
+            ? error.detail
+            : error?.detail?.message || error?.message || t('artist.bookings.updateStatusFailed') || 'Failed to update booking status';
+        toast.error(errMsg);
       }
     } catch {
       toast.error(t('artist.bookings.updateError') || 'Network error updating booking');

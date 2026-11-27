@@ -186,7 +186,14 @@ const APIIntegrations = () => {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader chip="System" title={t('admin.apiIntegrations.title')} subtitle={t('admin.apiIntegrations.subtitle')} />
+      <AdminPageHeader chip="System & Access" title={t('admin.apiIntegrations.title')} subtitle={t('admin.apiIntegrations.subtitle')} />
+
+      <div className="bg-white dark:bg-[#0D130D] border border-amber-500/25 rounded-xl p-4 text-xs text-gray-300 leading-relaxed">
+        <p className="text-amber-400 mb-1">Configuration Registry Notice</p>
+        <p className="text-gray-400">
+          API keys, integration toggles, and webhook URLs created here are saved to the database registry, but outbound webhook dispatch and third-party API-key authentication are not yet wired into live traffic. Production payment (Yoopay), email (SMTP/Resend), Google OAuth, and Cloudflare Turnstile run directly from server environment credentials.
+        </p>
+      </div>
 
       {/* API Keys */}
       <div className="bg-white dark:bg-[#111111] border border-black/8 dark:border-white/10 shadow-xs dark:shadow-none rounded-2xl p-6">

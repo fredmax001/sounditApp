@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, distinct, func, or_  # type: ignore
 from sqlalchemy.orm import joinedload
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Any
 from datetime import datetime, timezone, timedelta
 import logging
 import io
@@ -78,6 +78,23 @@ class DashboardStatsResponse(BaseModel):
     vendors_by_type: Dict[str, int] = {}
     artists_by_type: Dict[str, int] = {}
     business_owned_vendors: int = 0
+    # Canonical ledger & live operational metrics (strictly additive)
+    active_subscriptions: int = 0
+    pending_events: int = 0
+    pending_reports: int = 0
+    pending_business_approvals: int = 0
+    platform_processed_revenue: float = 0.0
+    platform_fee_revenue: float = 0.0
+    subscription_revenue: float = 0.0
+    direct_qr_reported_volume: float = 0.0
+    available_platform_cash: float = 0.0
+    new_users_30d: int = 0
+    new_events_30d: int = 0
+    users_growth_pct: Optional[float] = None
+    events_growth_pct: Optional[float] = None
+    visits_growth_pct: Optional[float] = None
+    daily_series: List[Dict[str, Any]] = []
+    recent_activity: List[Dict[str, Any]] = []
     
     class Config:
         from_attributes = True
@@ -163,6 +180,9 @@ class UserAdminUpdate(BaseModel):
     role: Optional[UserRole] = None
     status: Optional[UserStatus] = None
     is_verified: Optional[bool] = None
+    artist_type: Optional[str] = None
+    vendor_type: Optional[str] = None
+    business_type: Optional[str] = None
 
 
 class BusinessResponse(BaseModel):
@@ -200,6 +220,7 @@ class BusinessUpdate(BaseModel):
 class ArtistResponse(BaseModel):
     id: int
     stage_name: str
+    artist_type: Optional[str] = "Artist"
     genre: Optional[str] = None
     followers_count: int = 0
     events_count: int = 0
@@ -326,100 +347,217 @@ def get_dashboard_stats(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Get admin dashboard statistics"""
-    # User counts
-    total_users = db.query(User).count()
-    
-    # Business count (organizers)
-    total_businesses = db.query(OrganizerProfile).count()
-    
-    # Artist count (DJs)
-    total_artists = db.query(ArtistProfile).count()
-    
+    """Get admin dashboard statistics with canonical ledger metrics and live 14-day series"""
+    now_utc = datetime.now(timezone.utc)
+    now_naive = datetime.utcnow()
+    thirty_days_ago = now_naive - timedelta(days=30)
+    sixty_days_ago = now_naive - timedelta(days=60)
+
+    # Exclude anonymized deleted users from active platform headcount
+    non_deleted_filter = ~User.email.like("deleted_%@deleted.local")
+    total_users = db.query(User).filter(non_deleted_filter).count()
+
+    # Business count (organizers belonging to active non-deleted users)
+    total_businesses = db.query(OrganizerProfile).join(
+        User, OrganizerProfile.user_id == User.id
+    ).filter(non_deleted_filter).count()
+
+    # Artist count (DJs / talent)
+    total_artists = db.query(ArtistProfile).join(
+        User, ArtistProfile.user_id == User.id
+    ).filter(non_deleted_filter).count()
+
     # Vendor count
-    total_vendors = db.query(VendorProfile).count()
-    
+    total_vendors = db.query(VendorProfile).join(
+        User, VendorProfile.user_id == User.id
+    ).filter(non_deleted_filter).count()
+
     # Event count
     total_events = db.query(Event).count()
 
     # Total bookings count
     total_bookings = db.query(BookingRequest).count()
-    
-    # Tickets sold (from approved ticket orders - more accurate than event counter)
+
+    # Active paid/trial subscriptions
+    active_subscriptions = db.query(Subscription).filter(
+        Subscription.status == SubscriptionStatus.ACTIVE,
+        Subscription.end_date > now_utc
+    ).count()
+
+    # Tickets sold (from approved ticket orders)
     tickets_sold = db.query(func.sum(TicketOrder.quantity)).filter(
         TicketOrder.status == TicketOrderStatus.APPROVED
     ).scalar() or 0
-    
-    # Total revenue from ALL sources:
-    # 1. Approved ticket orders
-    ticket_revenue = db.query(func.sum(TicketOrder.payment_amount)).filter(
-        TicketOrder.status == TicketOrderStatus.APPROVED
-    ).scalar() or 0.0
-    
-    # 2. Approved table orders
-    table_revenue = db.query(func.sum(TableOrder.payment_amount)).filter(
-        TableOrder.status == TableOrderStatus.APPROVED
-    ).scalar() or 0.0
-    
-    # 3. Approved product orders
-    product_revenue = db.query(func.sum(ProductOrder.payment_amount)).filter(
-        ProductOrder.status == TicketOrderStatus.APPROVED
-    ).scalar() or 0.0
-    
-    # 4. Active subscriptions
-    subscription_revenue = db.query(func.sum(Subscription.price)).filter(
-        Subscription.status == SubscriptionStatus.ACTIVE
-    ).scalar() or 0.0
-    
-    # 5. Legacy completed orders (if any)
-    legacy_revenue = db.query(func.sum(Order.total_amount)).filter(
-        Order.payment_status == PaymentStatus.COMPLETED
-    ).scalar() or 0.0
-    
-    total_revenue = ticket_revenue + table_revenue + product_revenue + subscription_revenue + legacy_revenue
-    
-    # Pending payouts
+
+    # Canonical financial breakdown from services.financial_ledger
+    platform_processed_revenue = 0.0
+    platform_fee_revenue = 0.0
+    subscription_revenue = 0.0
+    direct_qr_reported_volume = 0.0
+    available_platform_cash = 0.0
+    try:
+        from services.financial_ledger import get_admin_financial_overview
+        fin = get_admin_financial_overview(db, days="all", currency="CNY")
+        platform_processed_revenue = float(fin.get("platform_payment_volume", 0.0) or 0.0)
+        platform_fee_revenue = float(fin.get("transaction_fee_revenue", 0.0) or 0.0)
+        subscription_revenue = float(fin.get("subscription_revenue", 0.0) or 0.0)
+        direct_qr_reported_volume = float(fin.get("direct_qr_transaction_volume", 0.0) or 0.0)
+        available_platform_cash = float(fin.get("available_platform_cash", 0.0) or 0.0)
+    except Exception:
+        subscription_revenue = float(db.query(func.sum(Subscription.price)).filter(
+            Subscription.status == SubscriptionStatus.ACTIVE
+        ).scalar() or 0.0)
+
+    # Canonical total platform-recognized revenue (fees + subscriptions) while exposing Direct QR separately
+    total_revenue = round(platform_fee_revenue + subscription_revenue, 2)
+
+    # Pending queues (all excluding deleted/anonymized users)
     pending_payouts = db.query(PayoutRequest).filter(
         PayoutRequest.status.in_([PayoutStatus.PENDING, PayoutStatus.PROCESSING])
     ).count()
-    
-    # Pending approvals/verifications:
-    # 1. Real active document verification requests (ONLY users who submitted a verification application)
     pending_verifications = db.query(VerificationRequest).filter(
         VerificationRequest.status == VerificationStatus.PENDING
     ).count()
-    pending_vendor_approvals = db.query(VendorProfile).filter(
-        VendorProfile.is_approved == False
+    pending_vendor_approvals = db.query(VendorProfile).join(
+        User, VendorProfile.user_id == User.id
+    ).filter(
+        VendorProfile.is_approved == False,
+        non_deleted_filter
     ).count()
-    
-    # Active cities count (distinct cities from active business/artist/vendor/organizer users)
+    pending_business_approvals = db.query(OrganizerProfile).join(
+        User, OrganizerProfile.user_id == User.id
+    ).filter(
+        OrganizerProfile.is_approved == False,
+        non_deleted_filter
+    ).count()
+    pending_events = db.query(Event).filter(Event.status == EventStatus.PENDING).count()
+    try:
+        pending_reports = db.query(ModerationReport).filter(
+            ModerationReport.status == "pending"
+        ).count()
+    except Exception:
+        pending_reports = 0
+
+    # Active cities count
     total_cities = db.query(func.count(distinct(User.preferred_city))).filter(
         User.preferred_city.isnot(None),
+        non_deleted_filter,
         User.role.in_([UserRole.BUSINESS, UserRole.ARTIST, UserRole.VENDOR, UserRole.ORGANIZER])
     ).scalar() or 0
-    
-    # Visitor metrics (last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+
+    # Visitor metrics (last 30 days & previous 30 days)
     total_visits_30d = db.query(PageVisit).filter(
         PageVisit.created_at >= thirty_days_ago
+    ).count()
+    prev_visits_30d = db.query(PageVisit).filter(
+        PageVisit.created_at >= sixty_days_ago,
+        PageVisit.created_at < thirty_days_ago
     ).count()
     unique_visitors_30d = db.query(func.count(distinct(PageVisit.ip_address))).filter(
         PageVisit.created_at >= thirty_days_ago
     ).scalar() or 0
 
-    # Role sub-type breakdowns (power the role-tailored admin overview)
+    # Real 30-day growth calculations
+    new_users_30d = db.query(User).filter(
+        non_deleted_filter,
+        User.created_at >= thirty_days_ago
+    ).count()
+    prev_users_30d = db.query(User).filter(
+        non_deleted_filter,
+        User.created_at >= sixty_days_ago,
+        User.created_at < thirty_days_ago
+    ).count()
+    new_events_30d = db.query(Event).filter(Event.created_at >= thirty_days_ago).count()
+    prev_events_30d = db.query(Event).filter(
+        Event.created_at >= sixty_days_ago,
+        Event.created_at < thirty_days_ago
+    ).count()
+
+    def _growth_pct(curr: int, prev: int) -> Optional[float]:
+        if prev <= 0:
+            return None
+        return round(((curr - prev) / prev) * 100.0, 1)
+
+    users_growth_pct = _growth_pct(new_users_30d, prev_users_30d)
+    events_growth_pct = _growth_pct(new_events_30d, prev_events_30d)
+    visits_growth_pct = _growth_pct(total_visits_30d, prev_visits_30d)
+
+    # Real 14-day daily activity series (visits, signups, approved orders & volume)
+    days_window = 14
+    start_day = (now_naive - timedelta(days=days_window - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    buckets: Dict[str, Dict[str, Any]] = {}
+    for offset in range(days_window):
+        d = start_day + timedelta(days=offset)
+        key = d.strftime("%Y-%m-%d")
+        buckets[key] = {
+            "date": key,
+            "label": d.strftime("%b %d"),
+            "visits": 0,
+            "signups": 0,
+            "orders": 0,
+            "volume": 0.0,
+        }
+
+    for row in db.query(PageVisit.created_at).filter(PageVisit.created_at >= start_day).all():
+        if row[0]:
+            k = row[0].strftime("%Y-%m-%d")
+            if k in buckets:
+                buckets[k]["visits"] += 1
+
+    for row in db.query(User.created_at).filter(non_deleted_filter, User.created_at >= start_day).all():
+        if row[0]:
+            k = row[0].strftime("%Y-%m-%d")
+            if k in buckets:
+                buckets[k]["signups"] += 1
+
+    for row in db.query(TicketOrder.created_at, TicketOrder.payment_amount).filter(
+        TicketOrder.status == TicketOrderStatus.APPROVED,
+        TicketOrder.created_at >= start_day
+    ).all():
+        if row[0]:
+            k = row[0].strftime("%Y-%m-%d")
+            if k in buckets:
+                buckets[k]["orders"] += 1
+                buckets[k]["volume"] = round(buckets[k]["volume"] + float(row[1] or 0.0), 2)
+
+    daily_series = list(buckets.values())
+
+    # Recent admin activity (last 8 real entries)
+    recent_activity = []
+    try:
+        logs = db.query(AdminActivityLog).order_by(desc(AdminActivityLog.created_at)).limit(8).all()
+        for lg in logs:
+            recent_activity.append({
+                "id": lg.id,
+                "action": lg.action,
+                "entity_type": lg.entity_type,
+                "entity_id": lg.entity_id,
+                "details": lg.details if isinstance(lg.details, str) else None,
+                "created_at": lg.created_at.isoformat() if lg.created_at else None,
+            })
+    except Exception:
+        recent_activity = []
+
+    # Role sub-type breakdowns
     vendors_by_type = {
         (row[0] or "other"): row[1]
         for row in db.query(VendorProfile.vendor_type, func.count(VendorProfile.id))
+        .join(User, VendorProfile.user_id == User.id)
+        .filter(non_deleted_filter)
         .group_by(VendorProfile.vendor_type).all()
     }
     artists_by_type = {
         (row[0] or "Artist"): row[1]
         for row in db.query(ArtistProfile.artist_type, func.count(ArtistProfile.id))
+        .join(User, ArtistProfile.user_id == User.id)
+        .filter(non_deleted_filter)
         .group_by(ArtistProfile.artist_type).all()
     }
-    business_owned_vendors = db.query(VendorProfile).filter(
-        VendorProfile.business_profile_id.isnot(None)
+    business_owned_vendors = db.query(VendorProfile).join(
+        User, VendorProfile.user_id == User.id
+    ).filter(
+        VendorProfile.business_profile_id.isnot(None),
+        non_deleted_filter
     ).count()
 
     return DashboardStatsResponse(
@@ -428,7 +566,7 @@ def get_dashboard_stats(
         total_artists=total_artists,
         total_vendors=total_vendors,
         total_events=total_events,
-        total_tickets_sold=tickets_sold,
+        total_tickets_sold=int(tickets_sold),
         total_revenue=float(total_revenue),
         pending_payouts=pending_payouts,
         pending_verifications=pending_verifications,
@@ -440,6 +578,22 @@ def get_dashboard_stats(
         vendors_by_type=vendors_by_type,
         artists_by_type=artists_by_type,
         business_owned_vendors=business_owned_vendors,
+        active_subscriptions=active_subscriptions,
+        pending_events=pending_events,
+        pending_reports=pending_reports,
+        pending_business_approvals=pending_business_approvals,
+        platform_processed_revenue=platform_processed_revenue,
+        platform_fee_revenue=platform_fee_revenue,
+        subscription_revenue=subscription_revenue,
+        direct_qr_reported_volume=direct_qr_reported_volume,
+        available_platform_cash=available_platform_cash,
+        new_users_30d=new_users_30d,
+        new_events_30d=new_events_30d,
+        users_growth_pct=users_growth_pct,
+        events_growth_pct=events_growth_pct,
+        visits_growth_pct=visits_growth_pct,
+        daily_series=daily_series,
+        recent_activity=recent_activity,
     )
 
 
@@ -465,22 +619,28 @@ def get_pending_actions(
             action_url=f"/admin/events"
         ))
     
-    # 2. Pending business approvals (unapproved organizers)
-    unapproved_organizers = db.query(OrganizerProfile).filter(
-        OrganizerProfile.is_approved == False
+    # 2. Pending business approvals (unapproved organizers with active non-deleted users)
+    unapproved_organizers = db.query(OrganizerProfile).join(
+        User, OrganizerProfile.user_id == User.id
+    ).filter(
+        OrganizerProfile.is_approved == False,
+        ~User.email.like("deleted_%@deleted.local")
     ).all()
     for org in unapproved_organizers:
         if not org.user_id:
             continue
+        org_label = (org.organization_name or "").strip()
+        if org_label.lower() == "deleted organizer":
+            continue
         actions.append(PendingActionItem(
             id=org.id,
             type="business_approval",
-            title=f"Approve: {org.organization_name or 'Business'}",
-            description=f"Organizer approval pending",
+            title=f"Approve: {org_label or 'Business'}",
+            description="Organizer approval pending",
             created_at=org.created_at,
             entity_id=org.user_id,
             entity_type="organizer",
-            action_url=f"/admin/businesses"
+            action_url="/admin/businesses"
         ))
     
     # 3. Pending document verification requests (ONLY real active pending requests submitted by users)
@@ -518,20 +678,23 @@ def get_pending_actions(
             action_url="/admin/withdrawals"
         ))
 
-    # 5. Pending vendor approvals (unapproved vendors)
-    unapproved_vendors = db.query(VendorProfile).filter(
-        VendorProfile.is_approved == False
+    # 5. Pending vendor approvals (unapproved vendors with active non-deleted users)
+    unapproved_vendors = db.query(VendorProfile).join(
+        User, VendorProfile.user_id == User.id
+    ).filter(
+        VendorProfile.is_approved == False,
+        ~User.email.like("deleted_%@deleted.local")
     ).all()
     for vendor in unapproved_vendors:
         actions.append(PendingActionItem(
             id=vendor.id,
             type="vendor_approval",
             title=f"Approve Vendor: {vendor.business_name or 'Vendor'}",
-            description=f"Vendor account awaiting approval",
+            description="Vendor account awaiting approval",
             created_at=vendor.created_at,
             entity_id=vendor.user_id,
             entity_type="vendor",
-            action_url=f"/admin/vendors"
+            action_url="/admin/vendors"
         ))
     
     # Sort by created_at (newest first)
@@ -619,13 +782,16 @@ def list_users(
     city: Optional[str] = None,
     status: Optional[UserStatus] = None,
     search: Optional[str] = None,
+    include_deleted: bool = False,
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 500,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """List all users with filters"""
     query = db.query(User)
+    if not include_deleted:
+        query = query.filter(~User.email.like("deleted_%@deleted.local"))
     
     if role:
         query = query.filter(User.role == role)
@@ -709,6 +875,7 @@ def list_users(
             user_dict["artist_profile"] = {
                 "id": user.artist_profile.id,
                 "stage_name": user.artist_profile.stage_name,
+                "artist_type": getattr(user.artist_profile, 'artist_type', None) or "Artist",
                 "genre": user.artist_profile.genre,
                 "city": ap_c or user_city,
                 "slug": getattr(user.artist_profile, 'slug', None),
@@ -725,9 +892,12 @@ def list_users(
                 "total_revenue": user.organizer_profile.total_revenue or 0.0
             }
         if biz_prof:
+            raw_btype = getattr(biz_prof, 'business_type', None)
+            primary_btype = raw_btype[0] if isinstance(raw_btype, list) and raw_btype else (raw_btype if isinstance(raw_btype, str) else "organizer")
             user_dict["business_profile"] = {
                 "id": biz_prof.id,
                 "organization_name": getattr(biz_prof, 'business_name', '') or getattr(biz_prof, 'organization_name', ''),
+                "business_type": primary_btype,
                 "slug": getattr(biz_prof, 'slug', None),
                 "is_verified": getattr(biz_prof, 'is_verified', False)
             }
@@ -736,7 +906,8 @@ def list_users(
                 "id": vendor_prof.id,
                 "business_name": vendor_prof.business_name,
                 "slug": getattr(vendor_prof, 'slug', None),
-                "category": vendor_prof.vendor_type,
+                "vendor_type": vendor_prof.vendor_type or "other",
+                "category": vendor_prof.vendor_type or "other",
                 "is_approved": vendor_prof.is_approved or False,
                 "is_verified": vendor_prof.is_verified or False
             }
@@ -995,7 +1166,73 @@ def update_user(
         user.status = user_data.status
     if user_data.is_verified is not None:
         user.is_verified = user_data.is_verified
-    
+
+    # Sync role-specific profiles & subroles (artist_type, vendor_type, business_type)
+    target_role = user_data.role or user.role
+    display_name = (
+        f"{user.first_name or ''} {user.last_name or ''}".strip()
+        or getattr(user, "username", None)
+        or (user.email.split("@")[0] if user.email else "Sound It Member")
+    )
+
+    if target_role == UserRole.ARTIST or user_data.artist_type is not None:
+        artist_prof = db.query(ArtistProfile).filter(ArtistProfile.user_id == user.id).first()
+        if not artist_prof and target_role == UserRole.ARTIST:
+            artist_prof = ArtistProfile(
+                user_id=user.id,
+                stage_name=display_name,
+                artist_type=(user_data.artist_type or "DJ").strip(),
+                city=user.preferred_city,
+                is_approved=True,
+                is_verified=bool(user.is_verified or user.verification_badge),
+            )
+            db.add(artist_prof)
+        elif artist_prof and user_data.artist_type is not None:
+            artist_prof.artist_type = user_data.artist_type.strip() or "Artist"
+
+    if target_role == UserRole.VENDOR or user_data.vendor_type is not None:
+        vendor_prof = db.query(VendorProfile).filter(VendorProfile.user_id == user.id).first()
+        if not vendor_prof and target_role == UserRole.VENDOR:
+            vendor_prof = VendorProfile(
+                user_id=user.id,
+                business_name=display_name,
+                vendor_type=(user_data.vendor_type or "food").strip().lower(),
+                city=user.preferred_city,
+                is_approved=True,
+                is_verified=bool(user.is_verified or user.verification_badge),
+            )
+            db.add(vendor_prof)
+        elif vendor_prof and user_data.vendor_type is not None:
+            vendor_prof.vendor_type = user_data.vendor_type.strip().lower() or "other"
+
+    if target_role in (UserRole.BUSINESS, UserRole.ORGANIZER) or user_data.business_type is not None:
+        biz_prof = db.query(BusinessProfile).filter(BusinessProfile.user_id == user.id).first()
+        org_prof = db.query(OrganizerProfile).filter(OrganizerProfile.user_id == user.id).first()
+        clean_btype = (user_data.business_type or "organizer").strip().lower()
+        if not biz_prof and target_role in (UserRole.BUSINESS, UserRole.ORGANIZER):
+            biz_prof = BusinessProfile(
+                user_id=user.id,
+                business_name=(org_prof.organization_name if org_prof and org_prof.organization_name else display_name),
+                business_type=[clean_btype],
+                city=user.preferred_city,
+                is_approved=True,
+                is_verified=bool(user.is_verified or user.verification_badge),
+            )
+            db.add(biz_prof)
+            db.flush()
+        elif biz_prof and user_data.business_type is not None:
+            biz_prof.business_type = [clean_btype]
+        if not org_prof and target_role in (UserRole.BUSINESS, UserRole.ORGANIZER):
+            org_prof = OrganizerProfile(
+                user_id=user.id,
+                business_profile_id=biz_prof.id if biz_prof else None,
+                organization_name=(biz_prof.business_name if biz_prof and biz_prof.business_name else display_name),
+                city=user.preferred_city,
+                is_approved=True,
+                is_verified=bool(user.is_verified or user.verification_badge),
+            )
+            db.add(org_prof)
+
     db.commit()
     db.refresh(user)
     return user
@@ -1114,12 +1351,14 @@ def list_businesses(
     verified: Optional[bool] = None,
     search: Optional[str] = None,
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 500,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """List all businesses (organizers)"""
-    query = db.query(OrganizerProfile).join(User)
+    query = db.query(OrganizerProfile).join(User).filter(
+        ~User.email.like("deleted_%@deleted.local")
+    )
     
     if verified is not None:
         query = query.filter(OrganizerProfile.is_verified == verified)
@@ -1528,7 +1767,7 @@ def list_artists(
     genre: Optional[str] = None,
     search: Optional[str] = None,
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 500,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
@@ -1536,7 +1775,10 @@ def list_artists(
     # Query users with artist role, left-joining their artist profile
     query = db.query(User, ArtistProfile).outerjoin(
         ArtistProfile, User.id == ArtistProfile.user_id
-    ).filter(User.role == UserRole.ARTIST)
+    ).filter(
+        User.role == UserRole.ARTIST,
+        ~User.email.like("deleted_%@deleted.local")
+    )
     
     if verified is not None:
         query = query.filter(User.is_verified == verified)
@@ -1572,6 +1814,7 @@ def list_artists(
         result.append({
             "id": artist_id,
             "stage_name": stage_name,
+            "artist_type": (getattr(ap, 'artist_type', None) or "Artist") if ap else "Artist",
             "genre": ap.genre if ap else None,
             "followers_count": real_followers,
             "events_count": real_events,
@@ -3500,12 +3743,14 @@ def list_vendors(
     verified: Optional[bool] = None,
     search: Optional[str] = None,
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 500,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """List all vendors"""
-    query = db.query(VendorProfile).join(User)
+    query = db.query(VendorProfile).join(User).filter(
+        ~User.email.like("deleted_%@deleted.local")
+    )
     
     if vendor_type:
         query = query.filter(VendorProfile.vendor_type == vendor_type)

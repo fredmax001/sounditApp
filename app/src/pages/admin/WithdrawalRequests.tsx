@@ -44,6 +44,16 @@ const WithdrawalRequests = () => {
   // Reject Modal state
   const [rejectingItem, setRejectingItem] = useState<Withdrawal | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [actionErrorBanner, setActionErrorBanner] = useState<string | null>(null);
+
+  const extractApiError = (err: any, fallback: string) => {
+    if (!err) return fallback;
+    if (typeof err.detail === 'string') return err.detail;
+    if (typeof err.detail?.message === 'string') return err.detail.message;
+    if (typeof err.error?.message === 'string') return err.error.message;
+    if (typeof err.message === 'string') return err.message;
+    return fallback;
+  };
 
   useEffect(() => {
     loadWithdrawals();
@@ -77,6 +87,7 @@ const WithdrawalRequests = () => {
 
   const handleApprove = async (id: number) => {
     setActionLoading(`approve-${id}`);
+    setActionErrorBanner(null);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/withdrawals/${id}/approve`, {
         method: 'POST',
@@ -86,8 +97,10 @@ const WithdrawalRequests = () => {
         toast.success(t('admin.withdrawalRequests.withdrawalApproved') || 'Withdrawal approved successfully');
         await loadWithdrawals();
       } else {
-        const err = await res.json().catch(() => ({ detail: 'Failed to approve' }));
-        toast.error(err.detail || 'Failed to approve withdrawal');
+        const err = await res.json().catch(() => ({ detail: 'Failed to approve withdrawal' }));
+        const msg = extractApiError(err, 'Failed to approve withdrawal');
+        setActionErrorBanner(msg);
+        toast.error(msg);
       }
     } catch {
       toast.error(t('admin.withdrawalRequests.failedToApproveWithdrawal') || 'Network error approving withdrawal');
@@ -145,6 +158,27 @@ const WithdrawalRequests = () => {
   return (
     <div className="space-y-6">
       <AdminPageHeader chip="Finance" title={t('admin.withdrawalRequests.title') || 'Withdrawal Requests'} subtitle={t('admin.withdrawalRequests.subtitle') || 'Review, approve, or reject business organizer payout requests.'} />
+
+      {actionErrorBanner && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-sm text-amber-300">{actionErrorBanner}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Only settled Sound It (Yoopay) funds can be approved for payout. Direct QR ticket sales are collected directly by organizers and should be rejected here or reconciled in Financial Control.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setActionErrorBanner(null)}
+            className="text-gray-400 hover:text-white shrink-0"
+            aria-label="Dismiss alert"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">

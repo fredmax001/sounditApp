@@ -26,13 +26,21 @@ def _aware(dt):
 class SubscriptionService:
     @staticmethod
     def has_active_artist_subscription(db: Session, user_id: int) -> bool:
-        """Deposit receiving requires an active subscription or active trial for the artist role."""
+        """Accepting bookings / receiving deposits requires verified status, an active subscription, or an active trial."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+        if user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN] or bool(user.verification_badge):
+            return True
+        artist = db.query(ArtistProfile).filter(ArtistProfile.user_id == user_id).first()
+        if artist and bool(getattr(artist, "is_verified", False)):
+            return True
         sub = SubscriptionService.get_active_subscription(db, user_id)
-        return bool(
-            sub
-            and sub.role in [UserRole.ARTIST, UserRole.ADMIN, UserRole.SUPER_ADMIN]
-            and sub.status == SubscriptionStatus.ACTIVE
-        )
+        if sub and sub.role in [UserRole.ARTIST, UserRole.ADMIN, UserRole.SUPER_ADMIN] and sub.status == SubscriptionStatus.ACTIVE:
+            return True
+        # Fall back to get_subscription_status so newly-created artists within their 30-day free trial are auto-granted
+        status_info = SubscriptionService.get_subscription_status(db, user_id)
+        return bool(status_info.get("has_active_subscription"))
 
     @staticmethod
     def get_active_subscription(db: Session, user_id: int):

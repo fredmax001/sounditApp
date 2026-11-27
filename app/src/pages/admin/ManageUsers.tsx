@@ -236,21 +236,62 @@ const ManageUsers = () => {
         }
     };
 
-    const handleEditRole = async (userId: string, newRole: string) => {
+    const ARTIST_SUBROLES = [
+        { value: 'DJ', label: 'DJ' },
+        { value: 'Singer', label: 'Singer' },
+        { value: 'MC', label: 'MC / Host' },
+        { value: 'Dancer', label: 'Dancer' },
+        { value: 'Photographer', label: 'Photographer' },
+        { value: 'Band', label: 'Musician / Band' },
+        { value: 'Artist', label: 'Other Artist' },
+    ];
+
+    const VENDOR_SUBROLES = [
+        { value: 'food', label: 'Food Vendor' },
+        { value: 'beverage', label: 'Beverage' },
+        { value: 'merch', label: 'Retail & Merch' },
+        { value: 'service', label: 'Services' },
+        { value: 'other', label: 'Other' },
+    ];
+
+    const BUSINESS_SUBROLES = [
+        { value: 'organizer', label: 'Event Organizer' },
+        { value: 'club', label: 'Club' },
+        { value: 'bar', label: 'Bar' },
+        { value: 'lounge', label: 'Lounge' },
+        { value: 'restaurant', label: 'Restaurant' },
+        { value: 'venue', label: 'Venue' },
+    ];
+
+    const handleEditRole = async (
+        userId: string,
+        newRole: string,
+        subrolePayload?: { artist_type?: string; vendor_type?: string; business_type?: string }
+    ) => {
         setActionLoading(`edit-${userId}`);
         try {
             const token = session?.access_token;
+            const payload: Record<string, string> = { role: newRole };
+            if (subrolePayload?.artist_type) payload.artist_type = subrolePayload.artist_type;
+            if (subrolePayload?.vendor_type) payload.vendor_type = subrolePayload.vendor_type;
+            if (subrolePayload?.business_type) payload.business_type = subrolePayload.business_type;
+
             const res = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ role: newRole })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
-                toast.success(t('admin.manageUsers.userRoleUpdated'));
+                const subLabel = subrolePayload?.artist_type || subrolePayload?.vendor_type || subrolePayload?.business_type;
+                toast.success(
+                    subLabel
+                        ? `Updated role to ${newRole} (${subLabel})`
+                        : (t('admin.manageUsers.userRoleUpdated') || 'User role updated')
+                );
                 loadUsers();
             } else {
                 const err = await res.json().catch(() => ({ detail: 'Failed to update role' }));
@@ -387,20 +428,61 @@ const ManageUsers = () => {
                                 </div>
 
                                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <select
-                                        value={user.role}
-                                        onChange={(e) => handleEditRole(user.id, e.target.value)}
-                                        disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
-                                        className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-bold uppercase tracking-wider border-0 ${getRoleColor(user.role)} disabled:opacity-50`}
-                                    >
-                                        <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
-                                        <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
-                                        <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
-                                        <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
-                                        <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
-                                        <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
-                                        {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
-                                    </select>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        <select
+                                            value={user.role}
+                                            onChange={(e) => handleEditRole(user.id, e.target.value)}
+                                            disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                            className={`px-2.5 py-1 rounded-lg text-[0.6875rem] uppercase tracking-wider border-0 ${getRoleColor(user.role)} disabled:opacity-50`}
+                                        >
+                                            <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
+                                            <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
+                                            <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
+                                            <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
+                                            <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
+                                            <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
+                                            {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
+                                        </select>
+                                        {user.role === 'artist' && (
+                                            <select
+                                                value={user.artist_profile?.artist_type || 'Artist'}
+                                                onChange={(e) => handleEditRole(user.id, 'artist', { artist_type: e.target.value })}
+                                                disabled={actionLoading === `edit-${user.id}`}
+                                                aria-label="Artist subrole"
+                                                className="px-2 py-1 rounded-lg text-[0.6875rem] bg-white/5 border border-white/10 text-gray-200 disabled:opacity-50"
+                                            >
+                                                {ARTIST_SUBROLES.map(opt => (
+                                                    <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                        {user.role === 'vendor' && (
+                                            <select
+                                                value={(user.vendor_profile?.vendor_type || user.vendor_profile?.category || 'other').toLowerCase()}
+                                                onChange={(e) => handleEditRole(user.id, 'vendor', { vendor_type: e.target.value })}
+                                                disabled={actionLoading === `edit-${user.id}`}
+                                                aria-label="Vendor subrole"
+                                                className="px-2 py-1 rounded-lg text-[0.6875rem] bg-white/5 border border-white/10 text-gray-200 disabled:opacity-50"
+                                            >
+                                                {VENDOR_SUBROLES.map(opt => (
+                                                    <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                        {(user.role === 'business' || user.role === 'organizer') && (
+                                            <select
+                                                value={(user.business_profile?.business_type || 'organizer').toLowerCase()}
+                                                onChange={(e) => handleEditRole(user.id, user.role, { business_type: e.target.value })}
+                                                disabled={actionLoading === `edit-${user.id}`}
+                                                aria-label="Business subrole"
+                                                className="px-2 py-1 rounded-lg text-[0.6875rem] bg-white/5 border border-white/10 text-gray-200 disabled:opacity-50"
+                                            >
+                                                {BUSINESS_SUBROLES.map(opt => (
+                                                    <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-3">
                                         {user.preferred_city && (
                                             <span className="inline-flex items-center gap-1">
@@ -531,20 +613,64 @@ const ManageUsers = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <select
-                                            value={user.role}
-                                            onChange={(e) => handleEditRole(user.id, e.target.value)}
-                                            disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
-                                            className={`px-2.5 py-1 rounded text-[0.625rem] font-bold uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
-                                        >
-                                            <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
-                                            <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
-                                            <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
-                                            <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
-                                            <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
-                                            <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
-                                            {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
-                                        </select>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <select
+                                                value={user.role}
+                                                onChange={(e) => handleEditRole(user.id, e.target.value)}
+                                                disabled={actionLoading === `edit-${user.id}` || user.role === 'super_admin' || (user.role === 'admin' && !isSuperAdmin)}
+                                                className={`px-2.5 py-1 rounded text-[0.6875rem] uppercase tracking-wider border-0 cursor-pointer ${getRoleColor(user.role)} disabled:opacity-50`}
+                                            >
+                                                <option value="user" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">User</option>
+                                                <option value="business" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Business</option>
+                                                <option value="vendor" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Vendor</option>
+                                                <option value="artist" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Artist</option>
+                                                <option value="organizer" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Organizer</option>
+                                                <option value="admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Admin</option>
+                                                {isSuperAdmin && <option value="super_admin" className="bg-white dark:bg-[#111111] text-[#020b00] dark:text-white">Super Admin</option>}
+                                            </select>
+
+                                            {user.role === 'artist' && (
+                                                <select
+                                                    value={user.artist_profile?.artist_type || 'Artist'}
+                                                    onChange={(e) => handleEditRole(user.id, 'artist', { artist_type: e.target.value })}
+                                                    disabled={actionLoading === `edit-${user.id}`}
+                                                    aria-label="Artist subrole"
+                                                    className="px-2 py-1 rounded text-[0.6875rem] bg-white/[0.04] border border-white/[0.1] text-gray-200 cursor-pointer focus:border-[#d3da0c]/60 focus:outline-none disabled:opacity-50"
+                                                >
+                                                    {ARTIST_SUBROLES.map(opt => (
+                                                        <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+
+                                            {user.role === 'vendor' && (
+                                                <select
+                                                    value={(user.vendor_profile?.vendor_type || user.vendor_profile?.category || 'other').toLowerCase()}
+                                                    onChange={(e) => handleEditRole(user.id, 'vendor', { vendor_type: e.target.value })}
+                                                    disabled={actionLoading === `edit-${user.id}`}
+                                                    aria-label="Vendor subrole"
+                                                    className="px-2 py-1 rounded text-[0.6875rem] bg-white/[0.04] border border-white/[0.1] text-gray-200 cursor-pointer focus:border-[#d3da0c]/60 focus:outline-none disabled:opacity-50"
+                                                >
+                                                    {VENDOR_SUBROLES.map(opt => (
+                                                        <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+
+                                            {(user.role === 'business' || user.role === 'organizer') && (
+                                                <select
+                                                    value={(user.business_profile?.business_type || 'organizer').toLowerCase()}
+                                                    onChange={(e) => handleEditRole(user.id, user.role, { business_type: e.target.value })}
+                                                    disabled={actionLoading === `edit-${user.id}`}
+                                                    aria-label="Business subrole"
+                                                    className="px-2 py-1 rounded text-[0.6875rem] bg-white/[0.04] border border-white/[0.1] text-gray-200 cursor-pointer focus:border-[#d3da0c]/60 focus:outline-none disabled:opacity-50"
+                                                >
+                                                    {BUSINESS_SUBROLES.map(opt => (
+                                                        <option key={opt.value} value={opt.value} className="bg-[#111111] text-white">{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         {user.preferred_city ? (

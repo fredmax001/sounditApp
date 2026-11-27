@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 
     <!-- ── Primary identity, must match OAuth consent screen app name exactly ── -->
-    <title>Sound It - Entertainment Platform in China</title>
+    <title>Sound It | Events, DJs & Entertainment in China</title>
     <link rel="canonical" href="https://sounditent.com/" />
+    <link rel="alternate" hreflang="en" href="https://sounditent.com/" />
+    <link rel="alternate" hreflang="fr" href="https://sounditent.com/" />
+    <link rel="alternate" hreflang="zh" href="https://sounditent.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://sounditent.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="application-name" content="Sound It" />
-    <meta name="description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
-    <meta name="keywords" content="Sound It, entertainment, events China, African community China, DJ booking, buy tickets, nightlife China, artists booking, vendors, Shanghai events" />
+    <meta name="description" content="Sound It is China's #1 entertainment platform for the African and international community. Discover events, buy tickets, book DJs and artists, find food vendors, and connect with businesses across Shanghai, Beijing, Guangzhou, and more." />
+    <meta name="keywords" content="Sound It, SoundIt, Sound It Entertainment, Sound It China, entertainment, events China, African community China, DJ booking, buy tickets, nightlife China, artists booking, vendors, Shanghai events" />
     <meta name="author" content="Sound It Entertainment" />
 
     <!-- ── Favicons ── -->
@@ -66,16 +71,17 @@
 
     <!-- ── Open Graph ── -->
     <meta property="og:site_name" content="Sound It" />
-    <meta property="og:title" content="Sound It - Entertainment Platform in China" />
-    <meta property="og:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Sound It | Events, DJs & Entertainment in China" />
+    <meta property="og:description" content="Sound It is China's #1 entertainment platform for the African and international community. Discover events, buy tickets, book DJs and artists, find food vendors, and connect with businesses across China." />
     <meta property="og:image" content="https://sounditent.com/logo.png" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://sounditent.com" />
+    <meta property="og:url" content="https://sounditent.com/" />
 
     <!-- ── Twitter Card ── -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sound It - Entertainment Platform in China" />
-    <meta name="twitter:description" content="Sound It is an entertainment platform for the African and international community in China. Discover events, buy tickets, book DJs and artists, find vendors, and connect with businesses." />
+    <meta name="twitter:title" content="Sound It | Events, DJs & Entertainment in China" />
+    <meta name="twitter:description" content="Sound It is China's #1 entertainment platform for the African and international community. Discover events, buy tickets, book DJs and artists, find food vendors, and connect with businesses across China." />
     <meta name="twitter:image" content="https://sounditent.com/logo.png" />
 
     <!-- ── JSON-LD Structured Data, readable by Google & AI bots without JS ── -->
@@ -84,9 +90,25 @@
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "WebSite",
+          "@id": "https://sounditent.com/#website",
+          "url": "https://sounditent.com/",
+          "name": "Sound It",
+          "alternateName": ["SoundIt", "Sound It Entertainment", "Sound It China"],
+          "publisher": {
+            "@id": "https://sounditent.com/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://sounditent.com/events?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
           "@type": "WebApplication",
           "@id": "https://sounditent.com/#webapp",
           "name": "Sound It",
+          "alternateName": ["SoundIt", "Sound It Entertainment"],
           "url": "https://sounditent.com",
           "logo": "https://sounditent.com/logo.png",
           "description": "Sound It is an entertainment platform for the African and international community in China. It allows users to discover events, purchase tickets, book DJs and artists, find food and product vendors, connect with local businesses, and grow entertainment networks.",
@@ -108,6 +130,7 @@
           "@type": "Organization",
           "@id": "https://sounditent.com/#organization",
           "name": "Sound It Entertainment",
+          "alternateName": ["Sound It", "SoundIt"],
           "url": "https://sounditent.com",
           "logo": "https://sounditent.com/logo.png",
           "sameAs": [

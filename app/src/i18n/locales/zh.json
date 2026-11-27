@@ -2859,7 +2859,22 @@
       "price": "Price",
       "optionalAdminNotes": "Optional admin notes",
       "failedToCheckExpiredSubscriptions": "Failed to check expired subscriptions",
-      "role": "Role"
+      "role": "Role",
+      "planPricing": "订阅价格配置",
+      "planPricingHint": "为各角色套餐设置月度与年度订阅价格（人民币）。",
+      "monthly": "月付",
+      "yearly": "年付",
+      "invalidPrice": "请输入有效的价格。",
+      "priceUpdated": "套餐价格已更新。",
+      "priceUpdateFailed": "更新套餐价格失败。",
+      "grantLifetime": "授予终身会员",
+      "grantLifetimeHint": "通过用户 ID 为指定账户授予永久高级订阅权限。",
+      "grantLifetimeConfirm": "确定为该用户授予终身高级会员权限吗？",
+      "grant": "授予",
+      "invalidUserId": "请输入有效的用户 ID。",
+      "userIdPlaceholder": "输入用户 ID（如 42）",
+      "lifetimeGranted": "已成功授予终身会员。",
+      "lifetimeFailed": "授予终身会员失败。"
     },
     "systemSettings": {
       "resetSystemCache": "Reset System Cache",
@@ -3503,7 +3518,8 @@
       "saved": "启动页设置已保存",
       "saveFailed": "保存设置失败",
       "uploadFailed": "上传标志失败",
-      "failedToLoad": "加载启动页设置失败"
+      "failedToLoad": "加载启动页设置失败",
+      "enableSection": "启用此板块"
     }
   },
   "about": {

@@ -5,7 +5,37 @@
 ---
 
 ## Last Updated
-2026-11-25
+2026-11-26
+
+---
+
+### 197. Admin Dashboard Web Layout Redesign, End-to-End API Audit & Verified Artist Booking Fix (2026-11-26)
+- **Verified Artist Booking Acceptance Fix (`services/subscription_service.py`, `app/src/pages/artist/Bookings.tsx`)**:
+  - Updated `SubscriptionService.has_active_artist_subscription()` so verified artists (`user.verification_badge` or `ArtistProfile.is_verified`), admins, and newly-created artists in their 30-day free trial can accept booking requests instead of hitting `403 PLAN_RESTRICTED`.
+  - Fixed `Bookings.tsx` `handleStatusChange()` error toast to safely extract `error.detail.message` when the API returns a structured error object.
+- **End-to-End Admin API Audit & Critical Fixes (`schemas.py`, `api/admin.py`)**:
+  - Audited all 39 admin GET endpoints live against PostgreSQL: caught and fixed a **500 `ResponseValidationError` crash on `GET /api/v1/admin/users`** caused by `UserResponse` inheriting strict `is_deliverable_email` validation from `UserBase` (crashing on anonymized `deleted_*@deleted.local` accounts).
+  - Filtered anonymized deleted accounts out of `list_users()` (unless `include_deleted=True`), `get_dashboard_stats()`, and `get_pending_actions()` (eliminating the ghost `"Approve: Deleted Organizer"` action).
+  - Upgraded `GET /api/v1/admin/dashboard` to return 100% real, canonical data reconciled with `services/financial_ledger.get_admin_financial_overview()` (`platform_processed_revenue`, `platform_fee_revenue`, `subscription_revenue`, `direct_qr_reported_volume`, `available_platform_cash`), real `active_subscriptions`, real 30-day growth deltas, a real 14-day `daily_series` (visits/signups/orders/volume), and live `recent_activity`.
+- **Admin Web Layout & Positioning Redesign (`AdminLayout.tsx`, `AdminPageHeader.tsx`, `DashboardOverview.tsx`)**:
+  - Redesigned `AdminLayout.tsx` with a 256px collapsible left rail, desktop quick-jump module filter (`/` shortcut), live pending badge counters on nav items, structured 3-part desktop breadcrumb header, and a centered `max-w-[1440px]` desktop canvas.
+  - Replaced `AdminPageHeader.tsx` with a clean flat editorial header bar and redesigned `DashboardOverview.tsx` into a 4-column KPI strip, 12-column analytical workspace (real 14-day Visits/Signups/Volume chart + Priority Queue), and 3-column Directory / Financial Ledger Snapshot / Recent Activity grid — eliminating all hardcoded dummy bars, fake dates, and fake trend percentages.
+
+---
+
+### 196. Technical SEO & Google First-Page Optimization (2026-11-25)
+- **Fixed `HEAD /sitemap.xml` & `HEAD /robots.txt` HTTP 405 (`api/sitemap.py`)**:
+  - Updated `@router.api_route("/sitemap.xml", methods=["GET", "HEAD"])` and `@router.api_route("/robots.txt", methods=["GET", "HEAD"])` with `Cache-Control: public, max-age=3600` headers so both `GET` and `HEAD` crawler/validator requests return `200 OK`.
+- **Cleaned Title Tags & Added Page-Specific JSON-LD + Hreflang (`api/meta_tags.py`)**:
+  - Removed all emojis from `<title>` tags across dynamic and static routes (`events`, `artists`, `vendors`, `marketplace`, `profiles`, `city-guide`, `food`, `community`, `recaps`, `tickets`) so search snippets appear clean and authoritative.
+  - Added server-side JSON-LD structured data injection per route (`Event` with venue/location/dates/offers, `MusicGroup`/`Person` for artists, `LocalBusiness` for vendors & verified businesses).
+  - Added `hreflang` (`en`, `fr`, `zh`, `x-default`), `og:locale`, and metadata coverage for `/help`, `/download`, `/press`, `/careers`, and `/cross-border-consent`.
+- **Homepage SEO & Brand Identity (`app/index.html`)**:
+  - Updated `<title>`, `og:title`, `twitter:title` to `Sound It | Events, DJs & Entertainment in China` and added `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />` plus `hreflang` tags.
+  - Added `WebSite` JSON-LD with `alternateName` (`SoundIt`, `Sound It Entertainment`, `Sound It China`) and `SearchAction` (`https://sounditent.com/events?q={search_term_string}`).
+- **Nginx & Live Verification (`/etc/nginx/conf.d/soundit.conf`)**:
+  - Extended the SEO backend proxy regex to cover `/about`, `/contact`, `/help`, `/download`, `/press`, `/careers`, `/terms`, `/privacy`, `/refund-policy`, `/user-agreement`, `/organizer-agreement`, `/verification-policy`, and `/cross-border-consent`.
+  - Built frontend (`tsc -b && vite build`), deployed to `sounditent.com`, reloaded nginx, restarted `soundit.service`, and verified `200 OK` on `GET`/`HEAD` for `/sitemap.xml` and `/robots.txt` as well as Googlebot-rendered HTML on `/`, `/events`, `/about`, and `/artists/chucky-traub`.
 
 ---
 

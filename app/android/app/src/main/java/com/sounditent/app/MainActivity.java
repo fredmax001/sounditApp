@@ -7,35 +7,49 @@ import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Enable edge-to-edge BEFORE super.onCreate() — required by AndroidX EdgeToEdge.
+        // This sets the status bar and navigation bar to transparent and handles
+        // backward compatibility back to API 21.
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
 
-        View contentView = findViewById(android.R.id.content);
-        if (contentView != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
-                Insets systemBars = windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
-                );
-                Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+        // Make status bar icons dark-on-light or light-on-dark based on content.
+        // We use a dark brand background (#020b00) so icons should be light.
+        View decorView = getWindow().getDecorView();
+        WindowInsetsControllerCompat insetsController =
+                new WindowInsetsControllerCompat(getWindow(), decorView);
+        // Light = false → white/light icons on dark status/nav bar backgrounds
+        insetsController.setAppearanceLightStatusBars(false);
+        insetsController.setAppearanceLightNavigationBars(false);
+
+        // Apply insets to the root view so the WebView can be full-bleed while
+        // the keyboard (IME) still pushes content up correctly.
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
+                // Only handle IME (keyboard) insets here — system bars are drawn
+                // behind the transparent WebView background by the theme & EdgeToEdge.
                 boolean isImeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime());
-
-                int bottomPadding = isImeVisible ? Math.max(imeInsets.bottom, systemBars.bottom) : systemBars.bottom;
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
-
+                if (isImeVisible) {
+                    int imeBottom = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+                    int navBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+                    v.setPadding(0, 0, 0, Math.max(imeBottom - navBottom, 0));
+                } else {
+                    v.setPadding(0, 0, 0, 0);
+                }
                 return WindowInsetsCompat.CONSUMED;
             });
-            ViewCompat.requestApplyInsets(contentView);
         }
 
-        // Optimize WebView performance, hardware acceleration, DOM storage & caching
+        // Optimize WebView performance after bridge is ready
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebView webView = this.bridge.getWebView();
             WebSettings settings = webView.getSettings();
@@ -51,7 +65,7 @@ public class MainActivity extends BridgeActivity {
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
 
-            // Dark background matching brand color #020b00 to eliminate flash
+            // Dark brand background (#020b00) to eliminate cold-boot white flash
             webView.setBackgroundColor(Color.parseColor("#020b00"));
 
             // Cookie & media playback optimizations
